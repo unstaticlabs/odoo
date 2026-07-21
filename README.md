@@ -63,7 +63,7 @@ The `.env` file is ignored by Git. Change these values before using the stack be
 Other useful variables:
 
 - `ODOO_INIT_DB`: database created by the init profile. Default: `odoo19`.
-- `ODOO_INIT_MODULES`: modules installed during first init. Default: `base`.
+- `ODOO_INIT_MODULES`: modules installed during first init. Default: `usl_bootstrap`.
 - `ODOO_ADDONS_PATH`: addon path list for the Compose Odoo service.
 - `ODOO_HTTP_PORT` and `ODOO_GEVENT_PORT`: host ports. Defaults: `8069` and `8072`.
 - `ODOO_WORKERS`, `ODOO_PROXY_MODE`, `ODOO_DB_FILTER`, and limits: deployment-oriented runtime controls.
@@ -193,6 +193,43 @@ scripts/odoo-dev ruff custom-addons
 scripts/odoo-dev update       # pull service images and rebuild
 scripts/odoo-dev reset        # delete local Compose volumes
 ```
+
+### Unstatic Labs demo database
+
+The local demo baseline is provided by `custom-addons/usl_bootstrap`. It installs the standard Community apps for Contacts, Discuss/chatter, Accounting/Invoicing with French localization, Expenses, Projects, Employees, and Sales, then creates fictional `.test` development data for the single company `Unstatic Labs`.
+
+Initialize the database:
+
+```bash
+ODOO_INIT_MODULES=usl_bootstrap scripts/odoo-dev init-db
+```
+
+Start Odoo:
+
+```bash
+scripts/odoo-dev start
+```
+
+Reset and rebuild the same baseline:
+
+```bash
+scripts/odoo-dev reset
+ODOO_INIT_MODULES=usl_bootstrap scripts/odoo-dev init-db
+scripts/odoo-dev start
+```
+
+Open <http://localhost:8069/web/login?db=odoo19>.
+
+Default development login:
+
+```text
+Email/Login: admin
+Password: admin
+```
+
+Installed application domains: Contacts, Discuss, Accounting/Invoicing, French accounting localization, Expenses, Projects and Tasks, Employees, Sales, Settings and application management.
+
+Known first-iteration gaps compared with the current Odoo Online environment: Community does not provide the Enterprise application launcher experience, Documents, Sign, Knowledge, Dashboards, To-do, AI features, TESE Payroll, Platform Invoicing, or live bank synchronization. Brands such as SBFH, GBC, Yoshi, Smash, and KinkVerse are represented as projects or analytic contexts under the single legal company only.
 
 After changing Python, system, or Docker dependencies:
 

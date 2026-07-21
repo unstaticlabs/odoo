@@ -11,6 +11,7 @@ isodate==0.7.2
 lxml-html-clean==0.4.4
 maxminddb==3.1.1
 platformdirs==4.10.0
+phonenumbers==8.13.55
 pyasn1==0.6.4
 pyasn1_modules==0.4.2
 pycparser==3.0

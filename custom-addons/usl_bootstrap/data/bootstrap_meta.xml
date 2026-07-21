@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="partner_category_usl_dev" model="res.partner.category">
+            <field name="name">USL development data</field>
+            <field name="color">4</field>
+        </record>
+
+        <record id="project_tag_github_source" model="project.tags">
+            <field name="name">GitHub source of truth</field>
+            <field name="color">7</field>
+        </record>
+
+        <record id="project_tag_waiting_external" model="project.tags">
+            <field name="name">Waiting external response</field>
+            <field name="color">3</field>
+        </record>
+
+        <record id="project_tag_dev_data" model="project.tags">
+            <field name="name">Development data</field>
+            <field name="color">4</field>
+        </record>
+    </data>
+
+    <data>
+        <function model="ir.config_parameter" name="set_param" eval="('usl_bootstrap.baseline', 'development')"/>
+        <function model="ir.config_parameter" name="set_param" eval="('mail.catchall.domain', 'unstatic-labs.test')"/>
+        <function model="ir.config_parameter" name="set_param" eval="('mail.default.from', 'odoo@unstatic-labs.test')"/>
+    </data>
+</odoo>
