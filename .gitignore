@@ -8,6 +8,8 @@ _build/
 !.dockerignore
 !.devcontainer
 !.devcontainer/**
+!.cursor
+!.cursor/**
 !.env.example
 !.github
 !.mailmap
