@@ -156,67 +156,67 @@
 
 ## Devcontainer
 
-- [ ] Create `.devcontainer/`.
-- [ ] Create the Dev Container definition.
-- [ ] Pin the base development image.
-- [ ] Install the supported Python runtime and system dependencies.
-- [ ] Install PostgreSQL client tooling.
-- [ ] Install Node.js and frontend tooling required by Odoo 19.
-- [ ] Install Git and repository tooling.
-- [ ] Install XML, translation and asset-processing dependencies.
-- [ ] Install PDF/report rendering dependencies.
+- [x] Create `.devcontainer/`.
+- [x] Create the Dev Container definition.
+- [x] Pin the base development image.
+- [x] Install the supported Python runtime and system dependencies.
+- [x] Install PostgreSQL client tooling.
+- [x] Install Node.js and frontend tooling required by Odoo 19.
+- [x] Install Git and repository tooling.
+- [x] Install XML, translation and asset-processing dependencies.
+- [x] Install PDF/report rendering dependencies.
 - [ ] Install browser dependencies required for tours and frontend tests.
-- [ ] Install linting and formatting tools.
-- [ ] Install debugging tools.
-- [ ] Install database inspection tools.
+- [x] Install linting and formatting tools.
+- [x] Install debugging tools.
+- [x] Install database inspection tools.
 - [ ] Install Odoo shell helpers.
-- [ ] Configure VS Code.
-- [ ] Configure Cursor.
-- [ ] Add recommended extensions.
-- [ ] Configure Python language support.
+- [x] Configure VS Code.
+- [x] Configure Cursor.
+- [x] Add recommended extensions.
+- [x] Configure Python language support.
 - [ ] Configure JavaScript language support.
-- [ ] Configure XML support.
-- [ ] Configure debugging launch profiles.
-- [ ] Configure Odoo server launch profiles.
-- [ ] Configure test launch profiles.
-- [ ] Configure environment-variable loading.
-- [ ] Configure source and add-on paths.
-- [ ] Configure persistent development volumes.
-- [ ] Ensure the Dev Container does not require host-specific paths.
-- [ ] Ensure it works on macOS.
+- [x] Configure XML support.
+- [x] Configure debugging launch profiles.
+- [x] Configure Odoo server launch profiles.
+- [x] Configure test launch profiles.
+- [x] Configure environment-variable loading.
+- [x] Configure source and add-on paths.
+- [x] Configure persistent development volumes.
+- [x] Ensure the Dev Container does not require host-specific paths.
+- [x] Ensure it works on macOS.
 - [ ] Ensure it works on Linux.
 - [ ] Document Windows/WSL expectations if supported.
 - [ ] Add a one-command bootstrap.
-- [ ] Add a one-command reset.
-- [ ] Add a one-command test-database creation.
+- [x] Add a one-command reset.
+- [x] Add a one-command test-database creation.
 - [ ] Add a one-command sample-data load.
 - [ ] Add a one-command clean rebuild.
 - [ ] Verify a new engineer can open the repository and run Odoo without undocumented steps.
-- [ ] Verify a coding agent can discover the same commands from repository documentation.
+- [x] Verify a coding agent can discover the same commands from repository documentation.
 
 ## Local Docker Compose
 
-- [ ] Create the base `compose.yaml`.
-- [ ] Add an Odoo application service.
-- [ ] Add a PostgreSQL service.
-- [ ] Add persistent PostgreSQL storage.
-- [ ] Add persistent filestore storage.
+- [x] Create the base `compose.yaml`.
+- [x] Add an Odoo application service.
+- [x] Add a PostgreSQL service.
+- [x] Add persistent PostgreSQL storage.
+- [x] Add persistent filestore storage.
 - [ ] Add configuration mounting.
-- [ ] Add custom add-on mounting.
+- [x] Add custom add-on mounting.
 - [ ] Add OCA add-on mounting or reproducible fetching.
-- [ ] Add health checks.
-- [ ] Add service dependency health conditions.
-- [ ] Add a database initialization path.
+- [x] Add health checks.
+- [x] Add service dependency health conditions.
+- [x] Add a database initialization path.
 - [ ] Add a test database profile.
 - [ ] Add a mail-capture service for local development.
 - [ ] Add a local object-storage emulator if required.
 - [ ] Add a reverse-proxy profile if needed for realistic testing.
 - [ ] Add an optional worker/background-processing profile.
 - [ ] Add an optional observability profile.
-- [ ] Ensure secrets are not committed.
-- [ ] Provide `.env.example`.
+- [x] Ensure secrets are not committed.
+- [x] Provide `.env.example`.
 - [ ] Validate required environment variables at startup.
-- [ ] Add safe local defaults.
+- [x] Add safe local defaults.
 - [ ] Distinguish development, test, staging and production configuration.
 - [ ] Ensure local development cannot accidentally contact production integrations.
 - [ ] Ensure local databases are clearly marked as non-production.
@@ -231,14 +231,14 @@
 
 ## Developer workflow
 
-- [ ] Document the repository bootstrap command.
-- [ ] Document the Odoo startup command.
-- [ ] Document module installation.
-- [ ] Document module upgrades.
-- [ ] Document test selection.
-- [ ] Document database reset.
-- [ ] Document log inspection.
-- [ ] Document debugging.
+- [x] Document the repository bootstrap command.
+- [x] Document the Odoo startup command.
+- [x] Document module installation.
+- [x] Document module upgrades.
+- [x] Document test selection.
+- [x] Document database reset.
+- [x] Document log inspection.
+- [x] Document debugging.
 - [ ] Document frontend asset rebuilding.
 - [ ] Document translation workflows.
 - [ ] Document migration-script execution.
