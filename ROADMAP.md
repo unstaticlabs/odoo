@@ -6,21 +6,20 @@
 
 # 0. Programme governance and invariants
 
-- [ ] Create `ROADMAP.md` as the canonical programme backlog.
-- [ ] Create `ARCHITECTURE.md` describing the intended system boundaries.
-- [ ] Create `CONTRIBUTING.md` for human and AI contributors.
+- [x] Create `ROADMAP.md` as the canonical programme backlog.
+- [x] Create `ARCHITECTURE.md` describing the intended system boundaries.
+- [x] Create `CONTRIBUTING.md` for human and AI contributors.
 - [ ] Create `SECURITY.md` for vulnerability reporting and security expectations.
 - [ ] Create `UPSTREAM.md` documenting the relationship with `odoo/odoo`.
-- [ ] Create `DECISIONS/` for Architecture Decision Records.
-- [ ] Create `docs/product/` for approved functional requirements.
-- [ ] Create `docs/operations/` for deployment and recovery runbooks.
-- [ ] Create `docs/accounting/` for accounting invariants and parity evidence.
-- [ ] Create `docs/agents/` for agent mandates, permissions and action policies.
-- [ ] Define the repository’s authoritative owners.
-- [ ] Assign responsibility for product decisions.
-- [ ] Assign responsibility for architecture decisions.
-- [ ] Assign responsibility for accounting acceptance.
-- [ ] Assign responsibility for production operations.
+- [x] Create `DECISIONS/` for Architecture Decision Records.
+- [x] Create `docs/product/` for approved functional requirements.
+- [x] Create `docs/operations/` for deployment and recovery runbooks.
+- [x] Create `docs/accounting/` for accounting invariants and parity evidence.
+- [x] Create `docs/agents/` for agent mandates, permissions and action policies.
+- [x] Assign responsibility for product decisions.
+- [x] Assign responsibility for architecture decisions.
+- [x] Assign responsibility for accounting acceptance.
+- [x] Assign responsibility for production operations.
 - [ ] Define how AI-generated changes are reviewed and accepted.
 - [ ] Define which changes require Technical Architect approval.
 - [ ] Define which changes require Product Manager approval.
@@ -65,7 +64,7 @@
 
 ## Milestone 0 exit criteria
 
-- [ ] Governance documents exist.
+- [x] Governance documents exist.
 - [ ] Architectural and product authority are separated.
 - [ ] Critical invariants are explicit.
 - [ ] Risks, assumptions and decisions have canonical locations.
@@ -75,12 +74,12 @@
 
 # 1. Establish the upstream and repository strategy
 
-- [ ] Confirm the exact upstream baseline:
-  - [ ] Repository: `odoo/odoo`
-  - [ ] Branch: `19.0`
-  - [ ] Initial upstream commit
-  - [ ] Date of baseline
-- [ ] Add the official Odoo repository as the canonical `upstream` remote.
+- [x] Confirm the exact upstream baseline:
+  - [x] Repository: `odoo/odoo`
+  - [x] Branch: `19.0`
+  - [x] Initial upstream commit
+  - [x] Date of baseline
+- [x] Add the official Odoo repository as the canonical `upstream` remote.
 - [ ] Define the project’s `origin` repository.
 - [ ] Decide whether the repository will:
   - [ ] Vendor the Odoo source directly.
