@@ -5,6 +5,10 @@ _build/
 .*
 !.gitignore
 !.gitkeep
+!.dockerignore
+!.devcontainer
+!.devcontainer/**
+!.env.example
 !.github
 !.mailmap
 !.weblate.json

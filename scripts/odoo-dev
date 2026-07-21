@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+
+if [[ ! -f .env ]]; then
+  cp .env.example .env
+fi
+
+case "${1:-help}" in
+  build)
+    docker compose build "${@:2}"
+    ;;
+  start)
+    docker compose up -d db odoo
+    ;;
+  stop)
+    docker compose down
+    ;;
+  restart)
+    docker compose restart "${@:2}"
+    ;;
+  logs)
+    docker compose logs -f "${@:2}"
+    ;;
+  init-db)
+    docker compose --profile init run --rm init-db
+    ;;
+  shell)
+    docker compose --profile devcontainer run --rm devcontainer bash
+    ;;
+  test)
+    module="${2:-base}"
+    database="${3:-odoo19_test}"
+    docker compose --profile init run --rm init-db odoo --config=/etc/odoo/odoo.conf --database="$database" --init="$module" --without-demo=true --test-enable --stop-after-init
+    ;;
+  ruff)
+    docker compose --profile devcontainer run --rm devcontainer ruff check "${@:2}"
+    ;;
+  reset)
+    docker compose down --volumes --remove-orphans
+    ;;
+  update)
+    docker compose pull db
+    docker compose build --pull
+    ;;
+  ps)
+    docker compose ps
+    ;;
+  help|*)
+    cat <<'EOF'
+Usage: scripts/odoo-dev <command>
+
+Commands:
+  build        Build Odoo images
+  start        Start PostgreSQL and Odoo
+  stop         Stop the stack
+  restart      Restart services
+  logs         Follow logs
+  init-db      Initialize ODOO_INIT_DB with ODOO_INIT_MODULES
+  shell        Open a dev container shell
+  test [mod]   Run Odoo tests for a module
+  ruff [args]  Run ruff in the dev image
+  update       Pull service images and rebuild
+  reset        Stop and delete local volumes
+  ps           Show service status
+EOF
+    ;;
+esac
