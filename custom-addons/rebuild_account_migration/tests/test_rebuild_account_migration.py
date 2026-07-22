@@ -576,6 +576,48 @@ class TestRebuildAccountMigration(TransactionCase):
             self.assertEqual(context["default_receivable_accounts_only"], receivable_only)
             self.assertEqual(context["default_payable_accounts_only"], payable_only)
 
+    def test_interactive_mis_financial_statement_actions_open_previews(self):
+        expected = {
+            "action_rebuild_mis_balance_sheet": (
+                "mis_instance_usl_balance_sheet_2025",
+                "mis_report_usl_balance_sheet",
+                {"assets", "liabilities_recorded", "current_year_result", "liabilities_total", "balance_check"},
+            ),
+            "action_rebuild_mis_profit_loss": (
+                "mis_instance_usl_profit_loss_2025",
+                "mis_report_usl_profit_loss",
+                {"income", "expenses", "net_result"},
+            ),
+        }
+        instance_form_view = self.env.ref("mis_builder.mis_report_instance_view_form")
+        for action_xmlid, (instance_xmlid, report_xmlid, expected_kpis) in expected.items():
+            action = self.env.ref(f"rebuild_account_migration.{action_xmlid}")
+            instance = self.env.ref(f"rebuild_account_migration.{instance_xmlid}")
+            report = self.env.ref(f"rebuild_account_migration.{report_xmlid}")
+
+            self.assertEqual(action.res_model, "mis.report.instance")
+            self.assertEqual(action.res_id, instance.id)
+            self.assertEqual(action.view_id, instance_form_view)
+            self.assertEqual(instance.report_id, report)
+            self.assertEqual(instance.target_move, "posted")
+            self.assertTrue(instance.no_auto_expand_accounts)
+            self.assertEqual(str(instance.date_from), "2024-01-10")
+            self.assertEqual(str(instance.date_to), "2025-09-30")
+            self.assertEqual(set(report.kpi_ids.mapped("name")), expected_kpis)
+
+    def test_legal_statement_menu_prefers_interactive_mis_reports(self):
+        balance_menu = self.env.ref("rebuild_account_migration.menu_rebuild_mis_balance_sheet")
+        profit_menu = self.env.ref("rebuild_account_migration.menu_rebuild_mis_profit_loss")
+        balance_export_menu = self.env.ref("rebuild_account_migration.menu_rebuild_account_report_balance_sheet_launcher")
+        profit_export_menu = self.env.ref("rebuild_account_migration.menu_rebuild_account_report_profit_loss_launcher")
+
+        self.assertEqual(balance_menu.action, self.env.ref("rebuild_account_migration.action_rebuild_mis_balance_sheet"))
+        self.assertEqual(profit_menu.action, self.env.ref("rebuild_account_migration.action_rebuild_mis_profit_loss"))
+        self.assertEqual(balance_export_menu.name, "Balance Sheet Export Package")
+        self.assertEqual(profit_export_menu.name, "Profit and Loss Export Package")
+        self.assertGreater(balance_export_menu.sequence, balance_menu.sequence)
+        self.assertGreater(profit_export_menu.sequence, profit_menu.sequence)
+
     def test_interactive_oca_report_wizards_default_to_benchmark_period(self):
         receivable = self._account("411900", "Unit receivable report default", "asset_receivable")
         payable = self._account("401900", "Unit payable report default", "liability_payable")

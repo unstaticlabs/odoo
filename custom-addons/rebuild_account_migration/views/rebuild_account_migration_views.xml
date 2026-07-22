@@ -3595,17 +3595,17 @@
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_balance_sheet_launcher"
-        name="Balance Sheet"
+        name="Balance Sheet Export Package"
         parent="account.account_reports_legal_statements_menu"
         action="action_rebuild_account_report_export_balance_sheet"
-        sequence="4"
+        sequence="44"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_profit_loss_launcher"
-        name="Profit and Loss"
+        name="Profit and Loss Export Package"
         parent="account.account_reports_legal_statements_menu"
         action="action_rebuild_account_report_export_profit_loss"
-        sequence="5"
+        sequence="45"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_french_annual_launcher"

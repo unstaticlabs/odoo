@@ -113,8 +113,18 @@ Current targeted fixes:
 - OCA General Ledger, Journal Ledger, VAT Report, Open Items and Aged Partner Balance were also browser-smoke-tested on `odoo_rebuild_accounting_test`; each opens with USL benchmark defaults and renders through the standard Odoo report viewer with imported ledger content;
 - Open Items and Aged Partner Balance currently default to both receivable and payable filters so the OCA required account selector is populated on first open;
 - two additional OCA-native shortcuts, `Aged Receivable` and `Aged Payable`, now open the same aged-partner wizard with customer-only or supplier-only account filters for clearer daily review routines.
+- two MIS Builder report templates and saved instances now exist for the USL benchmark period:
+  - `USL Balance Sheet`
+  - `USL Profit and Loss`
+- the normal `Reports and Declarations -> Legal Statements` Balance Sheet and Profit and Loss entries now open those saved MIS instances instead of the older artifact-export wizard;
+- the MIS instance forms expose OCA's normal `Preview`, `Print` and `Export` controls;
+- browser smoke testing on `odoo_rebuild_accounting_test` confirmed both previews render without an Odoo error:
+  - Balance Sheet: Assets `71,356`, Equity and liabilities before current-year result `15,133`, Current-year result `56,223`, Equity and liabilities `71,356`, Balance check `0`;
+  - Profit and Loss: Income `129,271`, Expenses `73,048`, Net result `56,223`.
 
 Status: this is dependency and platform enablement, not final report parity. The next implementation phase must map these OCA screens into the USL Accounting UX, validate report calculations against imported controls, and decide where custom USL reports remain necessary.
+
+Known MIS limitation: account-detail expansion is disabled on the two new MIS instances. OCA MIS Builder failed while expanding details for imported archived account `625101 Voyages et déplacements` (`account_account.id = 286`), which is inactive but has 20 posted move lines. Until an OCA-compatible inactive-account detail fix is implemented, the MIS reports are usable as high-level dynamic statements with Preview/Print/Export, while detailed drill-down remains available through the OCA General Ledger and imported evidence views.
 
 Runtime caveat: the normal Compose `odoo` service requires the local `.env` value `ODOO_ADDONS_PATH=/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons`. An older local `.env` without `/mnt/oca-addons` caused installed OCA menus to exist while Odoo could not load OCA web assets. This was corrected locally during the current session.
 

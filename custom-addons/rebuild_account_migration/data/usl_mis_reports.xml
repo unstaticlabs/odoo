@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="mis_report_usl_balance_sheet" model="mis.report">
+        <field name="name">USL Balance Sheet</field>
+        <field name="description">Interactive balance sheet from imported journal items.</field>
+    </record>
+    <record id="mis_report_usl_balance_sheet_assets" model="mis.report.kpi">
+        <field name="report_id" ref="mis_report_usl_balance_sheet"/>
+        <field name="name">assets</field>
+        <field name="description">Assets</field>
+        <field name="expression">pbale[1%,2%,3%,4%,5%]</field>
+        <field name="auto_expand_accounts" eval="True"/>
+        <field name="sequence">10</field>
+    </record>
+    <record id="mis_report_usl_balance_sheet_liabilities_recorded" model="mis.report.kpi">
+        <field name="report_id" ref="mis_report_usl_balance_sheet"/>
+        <field name="name">liabilities_recorded</field>
+        <field name="description">Equity and liabilities before current-year result</field>
+        <field name="expression">-nbale[1%,2%,3%,4%,5%]</field>
+        <field name="auto_expand_accounts" eval="True"/>
+        <field name="sequence">20</field>
+    </record>
+    <record id="mis_report_usl_balance_sheet_current_year_result" model="mis.report.kpi">
+        <field name="report_id" ref="mis_report_usl_balance_sheet"/>
+        <field name="name">current_year_result</field>
+        <field name="description">Current-year result</field>
+        <field name="expression">-(balp[6%,7%])</field>
+        <field name="sequence">30</field>
+    </record>
+    <record id="mis_report_usl_balance_sheet_total_liabilities" model="mis.report.kpi">
+        <field name="report_id" ref="mis_report_usl_balance_sheet"/>
+        <field name="name">liabilities_total</field>
+        <field name="description">Equity and liabilities</field>
+        <field name="expression">liabilities_recorded + current_year_result</field>
+        <field name="sequence">40</field>
+    </record>
+    <record id="mis_report_usl_balance_sheet_check" model="mis.report.kpi">
+        <field name="report_id" ref="mis_report_usl_balance_sheet"/>
+        <field name="name">balance_check</field>
+        <field name="description">Balance check</field>
+        <field name="expression">assets - liabilities_total</field>
+        <field name="sequence">50</field>
+    </record>
+
+    <record id="mis_report_usl_profit_loss" model="mis.report">
+        <field name="name">USL Profit and Loss</field>
+        <field name="description">Interactive profit and loss from imported journal items.</field>
+    </record>
+    <record id="mis_report_usl_profit_loss_income" model="mis.report.kpi">
+        <field name="report_id" ref="mis_report_usl_profit_loss"/>
+        <field name="name">income</field>
+        <field name="description">Income</field>
+        <field name="expression">-balp[7%]</field>
+        <field name="auto_expand_accounts" eval="True"/>
+        <field name="sequence">10</field>
+    </record>
+    <record id="mis_report_usl_profit_loss_expenses" model="mis.report.kpi">
+        <field name="report_id" ref="mis_report_usl_profit_loss"/>
+        <field name="name">expenses</field>
+        <field name="description">Expenses</field>
+        <field name="expression">balp[6%]</field>
+        <field name="auto_expand_accounts" eval="True"/>
+        <field name="sequence">20</field>
+    </record>
+    <record id="mis_report_usl_profit_loss_result" model="mis.report.kpi">
+        <field name="report_id" ref="mis_report_usl_profit_loss"/>
+        <field name="name">net_result</field>
+        <field name="description">Net result</field>
+        <field name="expression">income - expenses</field>
+        <field name="sequence">30</field>
+    </record>
+
+    <record id="mis_instance_usl_balance_sheet_2025" model="mis.report.instance">
+        <field name="name">Balance Sheet - USL benchmark close</field>
+        <field name="report_id" ref="mis_report_usl_balance_sheet"/>
+        <field name="company_id" ref="base.main_company"/>
+        <field name="date_from">2024-01-10</field>
+        <field name="date_to">2025-09-30</field>
+        <field name="target_move">posted</field>
+        <field name="no_auto_expand_accounts" eval="True"/>
+        <field name="widget_show_filters" eval="True"/>
+        <field name="widget_show_settings_button" eval="False"/>
+        <field name="wide_display_by_default" eval="True"/>
+        <field name="temporary" eval="False"/>
+    </record>
+    <record id="mis_instance_usl_balance_sheet_2025_period" model="mis.report.instance.period">
+        <field name="report_instance_id" ref="mis_instance_usl_balance_sheet_2025"/>
+        <field name="name">10 Jan 2024 - 30 Sep 2025</field>
+        <field name="manual_date_from">2024-01-10</field>
+        <field name="manual_date_to">2025-09-30</field>
+        <field name="mode">fix</field>
+        <field name="source">actuals</field>
+        <field name="sequence">10</field>
+    </record>
+
+    <record id="mis_instance_usl_profit_loss_2025" model="mis.report.instance">
+        <field name="name">Profit and Loss - USL benchmark close</field>
+        <field name="report_id" ref="mis_report_usl_profit_loss"/>
+        <field name="company_id" ref="base.main_company"/>
+        <field name="date_from">2024-01-10</field>
+        <field name="date_to">2025-09-30</field>
+        <field name="target_move">posted</field>
+        <field name="no_auto_expand_accounts" eval="True"/>
+        <field name="widget_show_filters" eval="True"/>
+        <field name="widget_show_settings_button" eval="False"/>
+        <field name="wide_display_by_default" eval="True"/>
+        <field name="temporary" eval="False"/>
+    </record>
+    <record id="mis_instance_usl_profit_loss_2025_period" model="mis.report.instance.period">
+        <field name="report_instance_id" ref="mis_instance_usl_profit_loss_2025"/>
+        <field name="name">10 Jan 2024 - 30 Sep 2025</field>
+        <field name="manual_date_from">2024-01-10</field>
+        <field name="manual_date_to">2025-09-30</field>
+        <field name="mode">fix</field>
+        <field name="source">actuals</field>
+        <field name="sequence">10</field>
+    </record>
+
+    <record id="action_rebuild_mis_balance_sheet" model="ir.actions.act_window">
+        <field name="name">Balance Sheet</field>
+        <field name="res_model">mis.report.instance</field>
+        <field name="res_id" ref="mis_instance_usl_balance_sheet_2025"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="mis_builder.mis_report_instance_view_form"/>
+        <field name="target">current</field>
+    </record>
+    <record id="action_rebuild_mis_profit_loss" model="ir.actions.act_window">
+        <field name="name">Profit and Loss</field>
+        <field name="res_model">mis.report.instance</field>
+        <field name="res_id" ref="mis_instance_usl_profit_loss_2025"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="mis_builder.mis_report_instance_view_form"/>
+        <field name="target">current</field>
+    </record>
+
+    <menuitem
+        id="menu_rebuild_mis_balance_sheet"
+        name="Balance Sheet"
+        parent="account.account_reports_legal_statements_menu"
+        action="action_rebuild_mis_balance_sheet"
+        sequence="4"
+        groups="account.group_account_readonly"/>
+    <menuitem
+        id="menu_rebuild_mis_profit_loss"
+        name="Profit and Loss"
+        parent="account.account_reports_legal_statements_menu"
+        action="action_rebuild_mis_profit_loss"
+        sequence="5"
+        groups="account.group_account_readonly"/>
+</odoo>

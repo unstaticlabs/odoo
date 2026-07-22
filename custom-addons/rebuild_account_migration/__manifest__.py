@@ -20,6 +20,7 @@
     "data": [
         "security/rebuild_account_security.xml",
         "security/ir.model.access.csv",
+        "data/usl_mis_reports.xml",
         "views/rebuild_account_migration_views.xml",
     ],
     "application": False,
