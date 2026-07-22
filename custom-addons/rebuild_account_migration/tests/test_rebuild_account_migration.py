@@ -559,6 +559,23 @@ class TestRebuildAccountMigration(TransactionCase):
             self.assertEqual(context[closing_date_key], "2025-09-30")
             self.assertEqual(context[move_key], "posted")
 
+    def test_interactive_aged_receivable_payable_shortcuts_are_scoped(self):
+        expected_actions = {
+            "action_rebuild_oca_aged_receivable_wizard": (True, False),
+            "action_rebuild_oca_aged_payable_wizard": (False, True),
+        }
+        for xmlid, (receivable_only, payable_only) in expected_actions.items():
+            action = self.env.ref(f"rebuild_account_migration.{xmlid}")
+            context = safe_eval(action.context or "{}")
+
+            self.assertEqual(action.res_model, "aged.partner.balance.report.wizard")
+            self.assertEqual(action.target, "new")
+            self.assertEqual(context["default_date_from"], "2024-01-10")
+            self.assertEqual(context["default_date_at"], "2025-09-30")
+            self.assertEqual(context["default_target_move"], "posted")
+            self.assertEqual(context["default_receivable_accounts_only"], receivable_only)
+            self.assertEqual(context["default_payable_accounts_only"], payable_only)
+
     def test_interactive_oca_report_wizards_default_to_benchmark_period(self):
         receivable = self._account("411900", "Unit receivable report default", "asset_receivable")
         payable = self._account("401900", "Unit payable report default", "liability_payable")

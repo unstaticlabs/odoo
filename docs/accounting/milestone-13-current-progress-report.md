@@ -111,7 +111,8 @@ Current targeted fixes:
 - OCA interactive report launchers default to the USL benchmark period `2024-01-10` through `2025-09-30` in posted mode for the first accounting review pass;
 - OCA Trial Balance was browser-smoke-tested on `odoo_rebuild_accounting_test`: the wizard opens with `Jan 10, 2024` and `Sep 30, 2025`, `View` opens the standard Odoo report viewer, and the embedded HTML report renders imported USL rows including capital, fixed assets, VAT, bank, expense, revenue and retained-earnings accounts;
 - OCA General Ledger, Journal Ledger, VAT Report, Open Items and Aged Partner Balance were also browser-smoke-tested on `odoo_rebuild_accounting_test`; each opens with USL benchmark defaults and renders through the standard Odoo report viewer with imported ledger content;
-- Open Items and Aged Partner Balance currently default to both receivable and payable filters so the OCA required account selector is populated on first open. This is a working review surface, but the final UX still needs separate, clearer Aged Receivable and Aged Payable shortcuts for customer and supplier routines.
+- Open Items and Aged Partner Balance currently default to both receivable and payable filters so the OCA required account selector is populated on first open;
+- two additional OCA-native shortcuts, `Aged Receivable` and `Aged Payable`, now open the same aged-partner wizard with customer-only or supplier-only account filters for clearer daily review routines.
 
 Status: this is dependency and platform enablement, not final report parity. The next implementation phase must map these OCA screens into the USL Accounting UX, validate report calculations against imported controls, and decide where custom USL reports remain necessary.
 

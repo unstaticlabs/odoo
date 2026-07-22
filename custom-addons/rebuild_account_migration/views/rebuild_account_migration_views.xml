@@ -41,6 +41,36 @@
     <record id="account_financial_report.action_aged_partner_balance_wizard" model="ir.actions.act_window">
         <field name="context">{'default_date_from': '2024-01-10', 'default_date_at': '2025-09-30', 'default_target_move': 'posted'}</field>
     </record>
+    <record id="action_rebuild_oca_aged_receivable_wizard" model="ir.actions.act_window">
+        <field name="name">Aged Receivable</field>
+        <field name="res_model">aged.partner.balance.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="account_financial_report.aged_partner_balance_wizard"/>
+        <field name="target">new</field>
+        <field name="context">{'default_date_from': '2024-01-10', 'default_date_at': '2025-09-30', 'default_target_move': 'posted', 'default_receivable_accounts_only': True, 'default_payable_accounts_only': False}</field>
+    </record>
+    <record id="action_rebuild_oca_aged_payable_wizard" model="ir.actions.act_window">
+        <field name="name">Aged Payable</field>
+        <field name="res_model">aged.partner.balance.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="account_financial_report.aged_partner_balance_wizard"/>
+        <field name="target">new</field>
+        <field name="context">{'default_date_from': '2024-01-10', 'default_date_at': '2025-09-30', 'default_target_move': 'posted', 'default_receivable_accounts_only': False, 'default_payable_accounts_only': True}</field>
+    </record>
+    <menuitem
+        id="menu_rebuild_oca_aged_receivable"
+        name="Aged Receivable"
+        parent="account_financial_report.menu_oca_reports"
+        action="action_rebuild_oca_aged_receivable_wizard"
+        sequence="21"
+        groups="account.group_account_readonly"/>
+    <menuitem
+        id="menu_rebuild_oca_aged_payable"
+        name="Aged Payable"
+        parent="account_financial_report.menu_oca_reports"
+        action="action_rebuild_oca_aged_payable_wizard"
+        sequence="22"
+        groups="account.group_account_readonly"/>
 
     <record id="account_reconcile_oca.bank_statement_line_reconcile_view" model="ir.ui.view">
         <field name="arch" type="xml">
