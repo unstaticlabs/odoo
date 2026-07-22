@@ -22,6 +22,7 @@
     <record id="account_financial_report.menu_oca_reports" model="ir.ui.menu">
         <field name="name">Interactive Reports</field>
         <field name="sequence">1</field>
+        <field name="group_ids" eval="[(6, 0, [ref('account.group_account_readonly')])]"/>
     </record>
     <record id="account_financial_report.action_trial_balance_wizard" model="ir.actions.act_window">
         <field name="context">{'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_target_move': 'posted'}</field>
@@ -3576,21 +3577,21 @@
         id="menu_rebuild_account_report_trial_balance_launcher"
         name="Trial Balance"
         parent="account.account_reports_legal_statements_menu"
-        action="action_rebuild_account_report_export_trial_balance"
+        action="account_financial_report.action_trial_balance_wizard"
         sequence="1"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_general_ledger_launcher"
         name="General Ledger"
         parent="account.account_reports_legal_statements_menu"
-        action="action_rebuild_account_report_export_general_ledger"
+        action="account_financial_report.action_general_ledger_wizard"
         sequence="2"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_journal_report_launcher"
         name="Journal Report"
         parent="account.account_reports_legal_statements_menu"
-        action="action_rebuild_account_report_export_journal_report"
+        action="account_financial_report.action_journal_ledger_wizard"
         sequence="3"
         groups="account.group_account_readonly"/>
     <menuitem
@@ -3703,21 +3704,21 @@
         id="menu_rebuild_account_report_open_items_launcher"
         name="Open Items"
         parent="account.account_reports_partners_reports_menu"
-        action="action_rebuild_account_report_export_open_items"
+        action="account_financial_report.action_open_items_wizard"
         sequence="3"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_aged_receivable_launcher"
         name="Aged Receivable"
         parent="account.account_reports_partners_reports_menu"
-        action="action_rebuild_account_report_export_aged_receivable"
+        action="action_rebuild_oca_aged_receivable_wizard"
         sequence="4"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_aged_payable_launcher"
         name="Aged Payable"
         parent="account.account_reports_partners_reports_menu"
-        action="action_rebuild_account_report_export_aged_payable"
+        action="action_rebuild_oca_aged_payable_wizard"
         sequence="5"
         groups="account.group_account_readonly"/>
 
@@ -3747,7 +3748,7 @@
         id="menu_rebuild_account_report_tax_launcher"
         name="VAT and Tax Report"
         parent="account.account_reports_taxes_and_fiscal_menu"
-        action="action_rebuild_account_report_export_tax_report"
+        action="account_financial_report.action_vat_report_wizard"
         sequence="1"
         groups="account.group_account_readonly"/>
     <menuitem

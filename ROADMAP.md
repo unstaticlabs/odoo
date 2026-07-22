@@ -37,6 +37,7 @@ What is not complete:
 - [x] OCA Trial Balance opens through the normal Odoo report viewer and renders imported USL benchmark ledger rows.
 - [x] OCA General Ledger, Journal Ledger, VAT Report, Open Items and Aged Partner Balance open with benchmark defaults and render through the normal Odoo report viewer.
 - [x] Split OCA Aged Partner Balance into cleaner user-facing Aged Receivable and Aged Payable shortcuts.
+- [x] Primary report menu entries now open interactive OCA report screens where available instead of defaulting to technical export artifacts.
 - [x] OCA MIS Builder Balance Sheet and Profit and Loss instances are configured for the USL benchmark period and open from the normal Reports and Declarations menu with Preview, Print and Export controls.
 - [x] MIS Balance Sheet and Profit and Loss previews render imported benchmark-period values in the browser.
 - [x] MIS account-detail expansion works with archived imported accounts that still have posted historical move lines.

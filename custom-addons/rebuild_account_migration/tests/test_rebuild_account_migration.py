@@ -646,6 +646,22 @@ class TestRebuildAccountMigration(TransactionCase):
             self.assertEqual(context["default_receivable_accounts_only"], receivable_only)
             self.assertEqual(context["default_payable_accounts_only"], payable_only)
 
+    def test_primary_report_menus_open_interactive_reports_where_available(self):
+        expected_menus = {
+            "menu_rebuild_account_report_trial_balance_launcher": "account_financial_report.action_trial_balance_wizard",
+            "menu_rebuild_account_report_general_ledger_launcher": "account_financial_report.action_general_ledger_wizard",
+            "menu_rebuild_account_report_journal_report_launcher": "account_financial_report.action_journal_ledger_wizard",
+            "menu_rebuild_account_report_open_items_launcher": "account_financial_report.action_open_items_wizard",
+            "menu_rebuild_account_report_aged_receivable_launcher": "rebuild_account_migration.action_rebuild_oca_aged_receivable_wizard",
+            "menu_rebuild_account_report_aged_payable_launcher": "rebuild_account_migration.action_rebuild_oca_aged_payable_wizard",
+            "menu_rebuild_account_report_tax_launcher": "account_financial_report.action_vat_report_wizard",
+        }
+        for menu_xmlid, action_xmlid in expected_menus.items():
+            menu = self.env.ref(f"rebuild_account_migration.{menu_xmlid}")
+
+            self.assertEqual(menu.action, self.env.ref(action_xmlid))
+            self.assertNotEqual(menu.action.res_model, "rebuild.account.report.export.wizard")
+
     def test_interactive_mis_financial_statement_actions_open_previews(self):
         expected = {
             "action_rebuild_mis_balance_sheet": (

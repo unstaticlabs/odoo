@@ -113,6 +113,7 @@ Current targeted fixes:
 - OCA General Ledger, Journal Ledger, VAT Report, Open Items and Aged Partner Balance were also browser-smoke-tested on `odoo_rebuild_accounting_test`; each opens with USL benchmark defaults and renders through the standard Odoo report viewer with imported ledger content;
 - Open Items and Aged Partner Balance currently default to both receivable and payable filters so the OCA required account selector is populated on first open;
 - two additional OCA-native shortcuts, `Aged Receivable` and `Aged Payable`, now open the same aged-partner wizard with customer-only or supplier-only account filters for clearer daily review routines.
+- the primary Accounting report menu entries for Trial Balance, General Ledger, Journal Report, Open Items, Aged Receivable, Aged Payable and VAT now open those interactive OCA report wizards instead of defaulting to the USL technical export wizard.
 - two MIS Builder report templates and saved instances now exist for the USL benchmark period:
   - `USL Balance Sheet`
   - `USL Profit and Loss`
@@ -123,7 +124,7 @@ Current targeted fixes:
   - Profit and Loss: Income `129,271`, Expenses `73,048`, Net result `56,223`.
 - MIS account-detail expansion now includes archived imported historical accounts. The browser smoke test confirmed the Profit and Loss preview renders archived account `625101 Voyages et déplacements`, which is inactive in the target but has 20 posted move lines from the source.
 
-Status: this is dependency and platform enablement, not final report parity. The next implementation phase must map these OCA screens into the USL Accounting UX, validate report calculations against imported controls, and decide where custom USL reports remain necessary.
+Status: this is dependency, platform and primary-menu UX enablement, not final report parity. The next implementation phase must validate OCA report calculations against imported controls, add missing statutory/tax/declaration reports, and decide where custom USL reports remain necessary.
 
 Technical note: OCA MIS Builder's detail-label lookup was active-account-only. The custom addon now patches that lookup to include inactive accounts, because archived accounts are valid historical accounting evidence when they carry posted source lines.
 
@@ -438,7 +439,8 @@ Required work: implement human-readable dynamic report screens and exports, then
 ### Short term
 
 - [ ] Replace the current machine-oriented PDF output with readable, accountant-ready templates.
-- [ ] Replace or augment the wizard flow with dynamic interactive report screens.
+- [x] Make OCA dynamic interactive report screens the primary path for the general reports OCA already covers.
+- [ ] Replace or augment the remaining technical wizard flows with dynamic interactive report screens where the current OCA/MIS foundation does not cover the mandatory user need.
 - [ ] Preserve the current CSV/XLSX evidence exports as audit artifacts, but distinguish them from user-facing reports.
 - [ ] Add CFS Pro and Portailpro declaration guidance views with field, value, source, calculation, warning and reviewer state.
 - [ ] Add declaration schedule reminders for the French SASU closing workflow.
