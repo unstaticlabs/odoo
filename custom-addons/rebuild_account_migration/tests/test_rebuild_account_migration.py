@@ -588,13 +588,19 @@ class TestRebuildAccountMigration(TransactionCase):
                 "date_from",
                 "date_at",
                 "target_move",
-                "account_ids",
+                "receivable_accounts_only",
+                "payable_accounts_only",
             ])
             self.assertEqual(str(values["date_from"]), "2024-01-10")
             self.assertEqual(str(values["date_at"]), "2025-09-30")
             self.assertEqual(values["target_move"], "posted")
-            self.assertIn(receivable.id, values["account_ids"][0][2])
-            self.assertIn(payable.id, values["account_ids"][0][2])
+            self.assertTrue(values["receivable_accounts_only"])
+            self.assertTrue(values["payable_accounts_only"])
+
+            wizard = self.env[model_name].create(values)
+            wizard.onchange_type_accounts_only()
+            self.assertIn(receivable, wizard.account_ids)
+            self.assertIn(payable, wizard.account_ids)
 
     def test_empty_date_range_onchange_keeps_benchmark_dates(self):
         wizard = self.env["trial.balance.report.wizard"].create({})

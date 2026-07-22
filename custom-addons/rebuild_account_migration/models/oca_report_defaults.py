@@ -22,13 +22,6 @@ def _apply_benchmark_period_defaults(wizard, values, closing_field="date_to", mo
     return values
 
 
-def _default_reconcilable_account_ids(wizard):
-    return wizard.env["account.account"].search([
-        ("company_ids", "in", wizard.env.company.id),
-        ("reconcile", "=", True),
-    ]).ids
-
-
 class TrialBalanceReportWizard(models.TransientModel):
     _inherit = "trial.balance.report.wizard"
 
@@ -90,9 +83,19 @@ class OpenItemsReportWizard(models.TransientModel):
     def default_get(self, fields_list):
         values = super().default_get(fields_list)
         values = _apply_benchmark_period_defaults(self, values, closing_field="date_at")
-        if "account_ids" in fields_list and not values.get("account_ids"):
-            values["account_ids"] = [(6, 0, _default_reconcilable_account_ids(self))]
+        values.setdefault("receivable_accounts_only", True)
+        values.setdefault("payable_accounts_only", True)
         return values
+
+    @api.onchange("receivable_accounts_only", "payable_accounts_only")
+    def onchange_type_accounts_only(self):
+        super().onchange_type_accounts_only()
+        if self.receivable_accounts_only and self.payable_accounts_only and not self.account_ids:
+            self.account_ids = self.env["account.account"].search([
+                ("company_ids", "in", self.company_id.id or self.env.company.id),
+                ("account_type", "in", ("asset_receivable", "liability_payable")),
+                ("reconcile", "=", True),
+            ])
 
 
 class AgedPartnerBalanceReportWizard(models.TransientModel):
@@ -102,6 +105,16 @@ class AgedPartnerBalanceReportWizard(models.TransientModel):
     def default_get(self, fields_list):
         values = super().default_get(fields_list)
         values = _apply_benchmark_period_defaults(self, values, closing_field="date_at")
-        if "account_ids" in fields_list and not values.get("account_ids"):
-            values["account_ids"] = [(6, 0, _default_reconcilable_account_ids(self))]
+        values.setdefault("receivable_accounts_only", True)
+        values.setdefault("payable_accounts_only", True)
         return values
+
+    @api.onchange("receivable_accounts_only", "payable_accounts_only")
+    def onchange_type_accounts_only(self):
+        super().onchange_type_accounts_only()
+        if self.receivable_accounts_only and self.payable_accounts_only and not self.account_ids:
+            self.account_ids = self.env["account.account"].search([
+                ("company_ids", "in", self.company_id.id or self.env.company.id),
+                ("account_type", "in", ("asset_receivable", "liability_payable")),
+                ("reconcile", "=", True),
+            ])

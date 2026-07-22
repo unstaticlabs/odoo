@@ -35,6 +35,8 @@ What is not complete:
 - [x] Imported companies receive a default Odoo report layout so OCA report actions no longer divert users into document-layout setup.
 - [x] OCA interactive report launchers now default to the USL benchmark period in posted mode.
 - [x] OCA Trial Balance opens through the normal Odoo report viewer and renders imported USL benchmark ledger rows.
+- [x] OCA General Ledger, Journal Ledger, VAT Report, Open Items and Aged Partner Balance open with benchmark defaults and render through the normal Odoo report viewer.
+- [ ] Split OCA Aged Partner Balance into cleaner user-facing Aged Receivable and Aged Payable shortcuts.
 - [x] Accounting app entry now targets the accounting dashboard directly.
 - [x] Accounting now exposes first-level Review Issues and Reconcile Bank Transactions entries.
 - [x] Reconcile Bank Transactions opens the OCA reconciliation kanban workbench with imported bank transactions on `odoo_rebuild_accounting_test`.
