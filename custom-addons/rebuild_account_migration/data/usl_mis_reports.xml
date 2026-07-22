@@ -77,7 +77,7 @@
         <field name="date_from">2024-01-10</field>
         <field name="date_to">2025-09-30</field>
         <field name="target_move">posted</field>
-        <field name="no_auto_expand_accounts" eval="True"/>
+        <field name="no_auto_expand_accounts" eval="False"/>
         <field name="widget_show_filters" eval="True"/>
         <field name="widget_show_settings_button" eval="False"/>
         <field name="wide_display_by_default" eval="True"/>
@@ -100,7 +100,7 @@
         <field name="date_from">2024-01-10</field>
         <field name="date_to">2025-09-30</field>
         <field name="target_move">posted</field>
-        <field name="no_auto_expand_accounts" eval="True"/>
+        <field name="no_auto_expand_accounts" eval="False"/>
         <field name="widget_show_filters" eval="True"/>
         <field name="widget_show_settings_button" eval="False"/>
         <field name="wide_display_by_default" eval="True"/>

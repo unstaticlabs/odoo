@@ -600,10 +600,66 @@ class TestRebuildAccountMigration(TransactionCase):
             self.assertEqual(action.view_id, instance_form_view)
             self.assertEqual(instance.report_id, report)
             self.assertEqual(instance.target_move, "posted")
-            self.assertTrue(instance.no_auto_expand_accounts)
+            self.assertFalse(instance.no_auto_expand_accounts)
             self.assertEqual(str(instance.date_from), "2024-01-10")
             self.assertEqual(str(instance.date_to), "2025-09-30")
             self.assertEqual(set(report.kpi_ids.mapped("name")), expected_kpis)
+
+    def test_mis_account_expansion_includes_archived_historical_accounts(self):
+        expense = self._account("625999", "Archived travel expense", "expense")
+        payable = self._account("401999", "Unit payable counterpart", "liability_payable")
+        move = self.env["account.move"].create({
+            "move_type": "entry",
+            "journal_id": self._journal().id,
+            "date": "2025-09-30",
+            "company_id": self.company.id,
+            "line_ids": [
+                Command.create({
+                    "name": "Archived account MIS detail",
+                    "account_id": expense.id,
+                    "debit": 120.0,
+                    "credit": 0.0,
+                }),
+                Command.create({
+                    "name": "Archived account MIS detail",
+                    "account_id": payable.id,
+                    "debit": 0.0,
+                    "credit": 120.0,
+                }),
+            ],
+        })
+        move.action_post()
+        expense.active = False
+
+        report = self.env["mis.report"].create({"name": "Unit MIS archived account"})
+        self.env["mis.report.kpi"].create({
+            "report_id": report.id,
+            "name": "travel",
+            "description": "Travel",
+            "expression": "balp[625999]",
+            "auto_expand_accounts": True,
+        })
+        instance = self.env["mis.report.instance"].create({
+            "name": "Unit MIS archived account",
+            "report_id": report.id,
+            "company_id": self.company.id,
+            "date_from": "2025-09-30",
+            "date_to": "2025-09-30",
+            "target_move": "posted",
+            "no_auto_expand_accounts": False,
+            "period_ids": [Command.create({
+                "name": "Closing day",
+                "manual_date_from": "2025-09-30",
+                "manual_date_to": "2025-09-30",
+                "mode": "fix",
+                "source": "actuals",
+            })],
+        })
+
+        result = json.dumps(instance.compute())
+
+        self.assertIn("625999", result)
+        self.assertIn("Archived travel expense", result)
 
     def test_legal_statement_menu_prefers_interactive_mis_reports(self):
         balance_menu = self.env.ref("rebuild_account_migration.menu_rebuild_mis_balance_sheet")

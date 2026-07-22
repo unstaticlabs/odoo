@@ -121,10 +121,11 @@ Current targeted fixes:
 - browser smoke testing on `odoo_rebuild_accounting_test` confirmed both previews render without an Odoo error:
   - Balance Sheet: Assets `71,356`, Equity and liabilities before current-year result `15,133`, Current-year result `56,223`, Equity and liabilities `71,356`, Balance check `0`;
   - Profit and Loss: Income `129,271`, Expenses `73,048`, Net result `56,223`.
+- MIS account-detail expansion now includes archived imported historical accounts. The browser smoke test confirmed the Profit and Loss preview renders archived account `625101 Voyages et déplacements`, which is inactive in the target but has 20 posted move lines from the source.
 
 Status: this is dependency and platform enablement, not final report parity. The next implementation phase must map these OCA screens into the USL Accounting UX, validate report calculations against imported controls, and decide where custom USL reports remain necessary.
 
-Known MIS limitation: account-detail expansion is disabled on the two new MIS instances. OCA MIS Builder failed while expanding details for imported archived account `625101 Voyages et déplacements` (`account_account.id = 286`), which is inactive but has 20 posted move lines. Until an OCA-compatible inactive-account detail fix is implemented, the MIS reports are usable as high-level dynamic statements with Preview/Print/Export, while detailed drill-down remains available through the OCA General Ledger and imported evidence views.
+Technical note: OCA MIS Builder's detail-label lookup was active-account-only. The custom addon now patches that lookup to include inactive accounts, because archived accounts are valid historical accounting evidence when they carry posted source lines.
 
 Runtime caveat: the normal Compose `odoo` service requires the local `.env` value `ODOO_ADDONS_PATH=/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons`. An older local `.env` without `/mnt/oca-addons` caused installed OCA menus to exist while Odoo could not load OCA web assets. This was corrected locally during the current session.
 

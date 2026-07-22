@@ -39,7 +39,7 @@ What is not complete:
 - [x] Split OCA Aged Partner Balance into cleaner user-facing Aged Receivable and Aged Payable shortcuts.
 - [x] OCA MIS Builder Balance Sheet and Profit and Loss instances are configured for the USL benchmark period and open from the normal Reports and Declarations menu with Preview, Print and Export controls.
 - [x] MIS Balance Sheet and Profit and Loss previews render imported benchmark-period values in the browser.
-- [ ] MIS Balance Sheet and Profit and Loss account-detail expansion is temporarily disabled because imported archived accounts with posted move lines trigger an OCA account-name lookup failure.
+- [x] MIS account-detail expansion works with archived imported accounts that still have posted historical move lines.
 - [x] Accounting app entry now targets the accounting dashboard directly.
 - [x] Accounting now exposes first-level Review Issues and Reconcile Bank Transactions entries.
 - [x] Reconcile Bank Transactions opens the OCA reconciliation kanban workbench with imported bank transactions on `odoo_rebuild_accounting_test`.
