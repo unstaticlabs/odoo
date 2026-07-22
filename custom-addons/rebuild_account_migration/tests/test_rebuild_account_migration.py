@@ -132,6 +132,34 @@ class TestRebuildAccountMigration(TransactionCase):
         )
         self.assertEqual(import_run._company_report_layout_defaults(existing_layout_company), {})
 
+    def test_accountant_reviewer_can_prepare_test_fec_only(self):
+        reviewer = self.env["res.users"].with_context(no_reset_password=True).create({
+            "name": "FEC Reviewer",
+            "login": "fec.reviewer@example.invalid",
+            "email": "fec.reviewer@example.invalid",
+            "company_id": self.company.id,
+            "company_ids": [Command.set([self.company.id])],
+            "group_ids": [Command.set([self.reviewer_group.id])],
+        })
+
+        defaults = self.env["l10n_fr.fec.export.wizard"].with_user(reviewer).default_get([
+            "test_file",
+            "export_type",
+        ])
+        wizard = self.env["l10n_fr.fec.export.wizard"].with_user(reviewer).create({
+            "date_from": "2024-01-10",
+            "date_to": "2025-09-30",
+            "test_file": False,
+            "export_type": "nonofficial",
+        })
+
+        self.assertTrue(defaults["test_file"])
+        self.assertEqual(defaults["export_type"], "official")
+        self.assertTrue(wizard.test_file)
+        self.assertEqual(wizard.export_type, "official")
+        with self.assertRaises(UserError):
+            wizard.with_user(reviewer).write({"test_file": False})
+
     def test_accountant_reviewer_is_read_only_for_discrepancies(self):
         self.assertIn(self.readonly_group, self.reviewer_group.implied_ids)
         reviewer = self.env["res.users"].with_context(no_reset_password=True).create({
@@ -1031,7 +1059,7 @@ class TestRebuildAccountMigration(TransactionCase):
         with self.assertRaisesRegex(UserError, "Use Generate Export"):
             fec_wizard.action_preview_report()
 
-    def test_accountant_reviewer_can_generate_fec_through_custom_export_only(self):
+    def test_accountant_reviewer_can_prepare_test_fec_through_standard_and_custom_paths(self):
         reviewer = self.env["res.users"].with_context(no_reset_password=True).create({
             "name": "FEC Reviewer",
             "login": "fec.reviewer@example.invalid",
@@ -1041,13 +1069,14 @@ class TestRebuildAccountMigration(TransactionCase):
             "group_ids": [Command.set([self.reviewer_group.id])],
         })
 
-        with self.assertRaises(AccessError):
-            self.env["l10n_fr.fec.export.wizard"].with_user(reviewer).create({
-                "date_from": "2099-01-01",
-                "date_to": "2099-12-31",
-                "test_file": True,
-                "export_type": "official",
-            })
+        standard_wizard = self.env["l10n_fr.fec.export.wizard"].with_user(reviewer).create({
+            "date_from": "2099-01-01",
+            "date_to": "2099-12-31",
+            "test_file": False,
+            "export_type": "nonofficial",
+        })
+        self.assertTrue(standard_wizard.test_file)
+        self.assertEqual(standard_wizard.export_type, "official")
 
         fec_wizard = self.env["rebuild.account.report.export.wizard"].with_user(reviewer).create({
             "company_id": self.company.id,

@@ -190,6 +190,8 @@ The add-on currently provides:
 
 This add-on is evidence and reconstruction infrastructure. It is not yet a full replacement for the Enterprise `account_reports` interactive reporting product.
 
+Current FEC access behavior: accounting review users can now open/create the standard French FEC wizard in forced test mode. They cannot turn that wizard into a final FEC generation path that may update lock dates unless they also have Odoo's full accounting feature group. This addresses the observed access error without granting system-administrator-style accounting powers.
+
 ### User documentation
 
 User documentation exists under:
