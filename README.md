@@ -145,6 +145,12 @@ Do not run the normal Compose `odoo` service and a Dev Container Odoo server on 
 docker compose stop odoo
 ```
 
+Milestone 13 accounting development uses a separate imported target database and workflow. Read these before iterating on accounting reconstruction or reports:
+
+- [Run imported accounting data in development](docs/operations/run-imported-accounting-dev.md)
+- [Accounting development workflow](docs/operations/accounting-development-workflow.md)
+- [Milestone 13 reporting and closing UX target](docs/accounting/milestone-13-reporting-and-closing-ux-target.md)
+
 ### 2. QA/test workflow: Compose only
 
 Use this path when you want a local test or QA deployment without opening the Dev Container.

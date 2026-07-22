@@ -25,3 +25,18 @@ This repository starts from upstream Odoo 19.0. Keep it close to upstream Odoo: 
 - Run the narrowest relevant tests or checks for the files and modules changed.
 - For custom add-ons, use the helper workflow documented in `README.md` where possible.
 - Report every command run and any failures honestly. Do not claim validation that was not performed.
+
+## Accounting Milestone Workflow
+
+- Follow `docs/operations/accounting-development-workflow.md` when working on Milestone 13.
+- Do not rerun source restore, extraction, target reset or full import loops unless the changed code actually requires that stage.
+- For UI, report formatting, menu, permission and documentation changes, prefer an Odoo module update on `odoo_rebuild_accounting_test` plus targeted validation.
+- Keep `odoo19` clearly separated from the imported accounting target. Do not describe synthetic data as parity evidence.
+- Preserve current source snapshots and private artifacts, but do not commit private production extracts.
+
+## Commit Discipline
+
+- Make regular scoped commits after validated chunks of work.
+- Use Conventional Commits 1.0.0 syntax: `<type>(<scope>): <description>`.
+- Include a short body describing validation for non-trivial accounting, migration, reporting or security work.
+- Add `AI-generated commit` in the commit message body for agent-authored commits.

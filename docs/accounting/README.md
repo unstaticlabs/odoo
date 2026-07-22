@@ -7,3 +7,4 @@ These documents define the accounting truths that implementations and migrations
 - [Evidence catalogue](parity-evidence.md)
 - [Migration and release gates](migration-gates.md)
 - [Milestone 13 current progress report](milestone-13-current-progress-report.md)
+- [Milestone 13 reporting and closing UX target](milestone-13-reporting-and-closing-ux-target.md)

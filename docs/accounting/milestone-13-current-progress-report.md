@@ -6,6 +6,10 @@ Audience: Valentin, USL finance operators, the USL accountant, and the next impl
 
 This report describes the current implementation state. It is not a closure report. The current system has made real progress on deterministic source reconstruction and evidence capture, but it is not yet an Odoo Online Enterprise-equivalent accounting user experience.
 
+Related target document:
+
+- [Milestone 13 reporting and closing UX target](milestone-13-reporting-and-closing-ux-target.md)
+
 ## Target
 
 The target remains a Community 19 accounting product that can rebuild Unstatic Labs accounting from the Odoo Online `saas~19.2` backup, preserve the accounting meaning of the source records, and let normal accounting users inspect ledger, tax, statutory, management and FEC outputs through Odoo.
@@ -23,6 +27,15 @@ odoo_rebuild_accounting_test
 ```
 
 The older `odoo19` database must be treated as development or synthetic state unless it has been explicitly rebuilt from the import pipeline.
+
+The clarified product target now explicitly includes:
+
+- daily closing preparation workflows: reconcile, review, journal entries and evidence checks;
+- customer invoices and refunds as usable Odoo business records where source data permits;
+- vendor bills and refunds as usable Odoo business records where source data permits;
+- expenses where source records permit reconstruction, otherwise a documented limitation;
+- polished annual accounts, SIG, CAF, ratios, tax and FEC exports;
+- guided declaration views showing what to enter on CFS Pro and Portailpro, with source drill-down and review status.
 
 ## What has been implemented so far
 
@@ -286,6 +299,16 @@ Status: removed from the Milestone 13 target scope.
 
 Payment providers may remain available if provided by Community or other installed modules, but they are not a required Milestone 13 feature. Future bank synchronization remains a roadmap topic because it affects accounting operations after reconstruction.
 
+### Supplied report references
+
+Status: reviewed and captured as product targets.
+
+Evidence: the supplied annual accounts PDF contains the expected annual report package structure: cover, summary, accountant attestation, Bilan Actif, Bilan Passif, Compte de resultat, detailed account reports, accounting methods, ratios, SIG and CAF. The supplied SIG PDF/XLSX confirms the desired dynamic report/export style: company header, VAT number, period, page numbering, filter sheet and typed numeric balances. The supplied tax workbook confirms the desired declaration-support pattern: official-style VAT sections and boxes, period, company filter, balance and adjustment columns.
+
+Impact: Milestone 13 reporting cannot stop at ledger controls or raw CSV/PDF artifacts. The product must generate readable, reviewable accounting packages and guide the user through official declaration values.
+
+Required work: implement human-readable dynamic report screens and exports, then add declaration guidance and closing-package workflows.
+
 ## Current progress summary
 
 ### Complete enough to preserve
@@ -331,6 +354,7 @@ Payment providers may remain available if provided by Community or other install
 - [ ] Make module refresh/upgrade instructions and UI refresh behavior visible in the dev guide.
 - [ ] Diagnose the bank journal transaction view and reconcile it with imported `account.bank.statement.line` records.
 - [ ] Decide the product target for historical reconciliation: native Community flow, custom review workbench, or both.
+- [ ] Include customer invoices, credit notes, vendor bills, supplier refunds and expenses in the user-facing reconstruction scope.
 - [ ] Diagnose and fix the FEC permission path for accountant and finance operator roles.
 - [ ] Diagnose the Settings cash-basis tax error without changing tax meaning.
 - [ ] Reorganize menus around CEO/accountant workflows.
@@ -340,6 +364,8 @@ Payment providers may remain available if provided by Community or other install
 - [ ] Replace the current machine-oriented PDF output with readable, accountant-ready templates.
 - [ ] Replace or augment the wizard flow with dynamic interactive report screens.
 - [ ] Preserve the current CSV/XLSX evidence exports as audit artifacts, but distinguish them from user-facing reports.
+- [ ] Add CFS Pro and Portailpro declaration guidance views with field, value, source, calculation, warning and reviewer state.
+- [ ] Add declaration schedule reminders for the French SASU closing workflow.
 - [ ] Add drill-down from report lines to journal items and evidence in the normal UI.
 - [ ] Update user docs after the menu and reporting UX are redesigned.
 - [ ] Add realistic user-role tests for Valentin, accountant, finance operator and read-only reviewer.

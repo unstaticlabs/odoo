@@ -20,6 +20,8 @@ What is complete enough to preserve:
 - [x] Preliminary export wizard for imported report artifacts and FEC TXT generation.
 - [x] Diataxis-style user documentation under `docs/users/`.
 - [x] Browser-accessible user documentation from Odoo at `/usl/user-docs`.
+- [x] Reporting and closing UX target documented from the supplied annual accounts, SIG and tax report samples.
+- [x] Accounting development workflow documented to avoid unnecessary full rebuilds and require scoped Conventional Commits.
 
 What is not complete:
 
@@ -27,6 +29,8 @@ What is not complete:
 - [ ] Current PDF/XLSX report exports are not accountant-ready templates.
 - [ ] Accounting app entry/navigation still routes users through the Community `Invoicing` app by default.
 - [ ] Historical bank statement and reconciliation UX is not yet equivalent to the Odoo Online reconciliation workbench.
+- [ ] Customer invoices, vendor bills, refunds and expenses are not yet complete user-facing reconstructed business workflows.
+- [ ] French declaration guidance for CFS Pro and Portailpro field entry is not yet implemented.
 - [ ] FEC export permissions are not validated for the accountant-review role.
 - [ ] Settings behavior with imported cash-basis taxes requires diagnosis.
 - [ ] Menu grouping needs a CEO/accountant workflow redesign.
@@ -1031,6 +1035,26 @@ What is not complete:
 - [ ] Fix or document every difference.
 - [ ] Obtain accountant review of the dataset.
 - [ ] Turn accepted cases into permanent regression tests.
+
+## User-facing closing and reporting product
+
+- [x] Capture the annual accounts, SIG and tax-report reference document families.
+- [x] Define the target daily workbench: reconcile, review, journal entries, invoices, bills, refunds, expenses and tax readiness.
+- [x] Define the target closing package: ledger controls, reports, declaration mappings, FEC, evidence and review state.
+- [ ] Add a clear Accounting app entry that opens the accounting dashboard.
+- [ ] Redesign menus around frequent CEO/accountant workflows.
+- [ ] Implement dynamic report screens before export.
+- [ ] Implement readable accountant-ready PDF templates.
+- [ ] Implement readable templated XLSX exports.
+- [ ] Implement declaration guidance views for CFS Pro and Portailpro manual filing.
+- [ ] Implement declaration deadline/reminder workbench.
+- [ ] Reconstruct customer invoices as usable business documents where source data permits.
+- [ ] Reconstruct customer credit notes as usable business documents where source data permits.
+- [ ] Reconstruct vendor bills as usable business documents where source data permits.
+- [ ] Reconstruct supplier refunds as usable business documents where source data permits.
+- [ ] Reconstruct expenses or explicitly document why exact source reconstruction is not available.
+- [ ] Implement accountant-readable closing archive package.
+- [ ] Keep machine/detail exports available as advanced audit evidence.
 
 ## Milestone 13 exit criteria
 
