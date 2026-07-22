@@ -74,6 +74,7 @@ Implemented after the product decision memo:
 - `make oca-addons-sync` fetches pinned OCA 19.0 repositories into ignored local checkouts under `oca-src/`.
 - selected OCA modules are exposed through ignored symlinks under `oca-addons/`.
 - Docker Compose and Dev Container add-on paths now include `oca-addons/`.
+- Docker Compose now mounts both `oca-src/` and `oca-addons/` into the normal Odoo and init containers so symlinked OCA modules resolve at runtime.
 - target reset/import harness containers force the OCA add-ons path so old `.env` files do not hide installed OCA modules.
 
 The following OCA modules installed successfully on the disposable imported target database `odoo_rebuild_accounting_test`:
@@ -94,6 +95,8 @@ The following OCA modules installed successfully on the disposable imported targ
 Observed Odoo menu entries now include OCA Trial Balance, General Ledger, Journal Ledger, Partner Ledger, statement reports, tax balance support, MIS Reporting, Import Statement and Reconcile actions.
 
 Status: this is dependency and platform enablement, not final report parity. The next implementation phase must map these OCA screens into the USL Accounting UX, validate report calculations against imported controls, and decide where custom USL reports remain necessary.
+
+Runtime caveat: the normal Compose `odoo` service requires the local `.env` value `ODOO_ADDONS_PATH=/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons`. An older local `.env` without `/mnt/oca-addons` caused installed OCA menus to exist while Odoo could not load OCA web assets. This was corrected locally during the current session.
 
 ### Source extraction and reconstruction
 
@@ -131,7 +134,14 @@ Its manifest depends on Community modules:
 - `analytic`
 - `l10n_fr_account`
 
-The disposable target now also installs OCA modules for financial reports, MIS reports, reconciliation and bank statement import foundation. The custom add-on has not yet been changed to require those OCA modules directly in its manifest; the harness initializes them as part of the Milestone 13 target environment.
+It now also directly depends on the selected OCA foundation modules for financial reports, MIS reports, reconciliation, bank statement import and partner statements:
+
+- `account_financial_report`
+- `account_reconcile_oca`
+- `account_statement_import_file`
+- `account_tax_balance`
+- `mis_builder`
+- `partner_statement`
 
 The add-on currently provides:
 
@@ -277,13 +287,15 @@ Remaining work: validate the app-launcher behavior in the browser and continue t
 
 ### Missing/equivalent reconciliation view
 
-Status: partially implemented as imported evidence, not completed as user workflow.
+Status: partially improved, not complete.
 
-Evidence: imported bank statement lines and reconciliation records exist in the target import status, and custom review views exist for reconciliation evidence. However, clicking a bank journal currently opens the standard bank statement onboarding/statement view, not an Enterprise-like reconciliation workbench populated for the imported data.
+Evidence: imported bank statement lines and reconciliation records exist in the target import status, and custom review views exist for reconciliation evidence. The Accounting dashboard now exposes a first-level `Reconcile Bank Transactions` entry, and browser smoke testing on `odoo_rebuild_accounting_test` showed it opens a list of unreconciled imported bank statement lines such as Shine, Revolut and Wise transactions. This is a usable review surface, but it is not yet an Enterprise-like operational reconciliation workbench.
+
+Observed blocker: the OCA `account_reconcile_oca` kanban workbench is installed and its JS registry asset loads after fixing the OCA add-on path, but the kanban view currently fails in Odoo 19 with a web-client `KanbanArchParser` error: `Cannot read properties of undefined (reading 'type')`. The first-level menu was therefore changed to a stable `list,form` action while the OCA kanban compatibility issue remains open.
 
 Impact: historical bank balances may be visible on the dashboard while the transaction/reconciliation workspace feels empty or disconnected.
 
-Required work: decide whether to integrate imported bank statement lines into the native Community bank statement/reconciliation flows, implement a dedicated historical reconciliation review workbench, or combine both. This is a product/accounting UX blocker for Milestone 13.
+Required work: fix or adapt the OCA kanban reconciliation workbench, then validate the native operational reconciliation flow and the historical reconciliation/audit flow separately. This is a product/accounting UX blocker for Milestone 13.
 
 ### Poor PDF and XLSX report readability
 

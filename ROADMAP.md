@@ -24,6 +24,7 @@ What is complete enough to preserve:
 - [x] Accounting development workflow documented to avoid unnecessary full rebuilds and require scoped Conventional Commits.
 - [x] Pinned OCA 19.0 accounting/reporting/reconciliation add-ons can be synced locally with `make oca-addons-sync`.
 - [x] OCA financial reporting, MIS Builder, reconciliation and bank statement import foundation installed successfully on `odoo_rebuild_accounting_test`.
+- [x] Normal Compose Odoo runtime now mounts both `oca-src/` and `oca-addons/` so symlinked OCA modules resolve.
 
 What is not complete:
 
@@ -31,8 +32,10 @@ What is not complete:
 - [ ] Current PDF/XLSX report exports are not accountant-ready templates.
 - [x] Accounting app entry now targets the accounting dashboard directly.
 - [x] Accounting now exposes first-level Review Issues and Reconcile Bank Transactions entries.
+- [x] Reconcile Bank Transactions opens a stable unreconciled bank-transaction list on `odoo_rebuild_accounting_test`.
 - [x] Raw imported report/evidence screens are grouped under Review and Audit > Advanced Audit.
 - [ ] Historical bank statement and reconciliation UX is not yet equivalent to the Odoo Online reconciliation workbench.
+- [ ] OCA `account_reconcile_oca` kanban workbench is installed but still fails in the Odoo 19 web client and needs compatibility work.
 - [ ] Customer invoices, vendor bills, refunds and expenses are not yet complete user-facing reconstructed business workflows.
 - [ ] French declaration guidance for CFS Pro and Portailpro field entry is not yet implemented.
 - [x] FEC test export is available through the custom reviewed export path for accountant-review users.
@@ -239,7 +242,7 @@ What is not complete:
 - [x] Add persistent filestore storage.
 - [ ] Add configuration mounting.
 - [x] Add custom add-on mounting.
-- [ ] Add OCA add-on mounting or reproducible fetching.
+- [x] Add OCA add-on mounting or reproducible fetching.
 - [x] Add health checks.
 - [x] Add service dependency health conditions.
 - [x] Add a database initialization path.

@@ -57,6 +57,14 @@ Why: Milestone 13 uses pinned OCA 19.0 add-ons for Community financial reports, 
 
 If the Dev Container was already open before this step, recreate it before starting Odoo so its environment includes `oca-addons/`.
 
+If you use the normal Compose `odoo` service, make sure your local `.env` has the OCA path as well:
+
+```text
+ODOO_ADDONS_PATH=/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons
+```
+
+Why: `oca-addons/` contains symlinks into `oca-src/`. Compose mounts both directories into the Odoo and init containers. If `ODOO_ADDONS_PATH` omits `/mnt/oca-addons`, installed OCA menus can appear in the database while their Python code or browser assets are unavailable at runtime.
+
 ## Step 3 - Stop the Normal Odoo Web Service
 
 Still in the host shell:
@@ -196,18 +204,20 @@ admin / admin
 In Odoo, open:
 
 ```text
-Accounting > Review > Rebuild Evidence > Accounting Reconstruction Review
+Accounting > Review Issues
 ```
 
 Then try:
 
 ```text
-Accounting > Review > Rebuild Evidence > User Guide
-Accounting > Review > Rebuild Evidence > Imported Report Export
-Accounting > Reporting > Trial Balance
-Accounting > Reporting > General Ledger
-Accounting > Reporting > French Annual Statements
-Accounting > Reporting > FEC
+Accounting > Reconcile Bank Transactions
+Accounting > Reports and Declarations > Interactive Reports > Trial Balance
+Accounting > Reports and Declarations > Interactive Reports > General Ledger
+Accounting > Reports and Declarations > Statement Reports > Balance Sheet
+Accounting > Reports and Declarations > Statement Reports > Profit and Loss
+Accounting > Reports and Declarations > Taxes & Fiscal > FEC
+Accounting > Review and Audit > Advanced Audit > User Guide
+Accounting > Review and Audit > Advanced Audit > Imported Report Export
 ```
 
 The direct user-guide URL after login is:

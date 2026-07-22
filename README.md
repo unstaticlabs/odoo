@@ -48,6 +48,13 @@ make oca-addons-sync
 
 This creates local ignored checkouts under `oca-src/` and symlinks selected modules into `oca-addons/`.
 
+For the normal Compose `odoo` service, the OCA symlink targets are mounted from both directories:
+
+- `oca-src/` -> `/mnt/oca-src`
+- `oca-addons/` -> `/mnt/oca-addons`
+
+Your local `.env` must keep `/mnt/oca-addons` in `ODOO_ADDONS_PATH`. If an older `.env` omits it, the database may contain installed OCA modules while the running Odoo server cannot load their Python code or browser assets.
+
 ### Prerequisites
 
 - Docker Desktop or Docker Engine with Docker Compose.
@@ -193,7 +200,7 @@ db_password = odoo
 addons_path = /opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons
 ```
 
-This workflow runs the repository-built image and mounts `custom-addons/` into `/mnt/custom-addons`. It is suitable for QA checks, local acceptance testing, and validating behavior after rebuilds.
+This workflow runs the repository-built image and mounts `custom-addons/`, `oca-src/`, `oca-addons/` and the user docs into the Odoo container. It is suitable for QA checks, local acceptance testing, and validating behavior after rebuilds.
 
 ### Helper commands
 
