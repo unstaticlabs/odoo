@@ -27,7 +27,7 @@ What is not complete:
 
 - [ ] Enterprise-like dynamic accounting reports are not implemented.
 - [ ] Current PDF/XLSX report exports are not accountant-ready templates.
-- [ ] Accounting app entry/navigation still routes users through the Community `Invoicing` app by default.
+- [x] Accounting app entry now targets the accounting dashboard directly.
 - [ ] Historical bank statement and reconciliation UX is not yet equivalent to the Odoo Online reconciliation workbench.
 - [ ] Customer invoices, vendor bills, refunds and expenses are not yet complete user-facing reconstructed business workflows.
 - [ ] French declaration guidance for CFS Pro and Portailpro field entry is not yet implemented.
@@ -1041,7 +1041,7 @@ What is not complete:
 - [x] Capture the annual accounts, SIG and tax-report reference document families.
 - [x] Define the target daily workbench: reconcile, review, journal entries, invoices, bills, refunds, expenses and tax readiness.
 - [x] Define the target closing package: ledger controls, reports, declaration mappings, FEC, evidence and review state.
-- [ ] Add a clear Accounting app entry that opens the accounting dashboard.
+- [x] Add a clear Accounting app entry that opens the accounting dashboard.
 - [ ] Redesign menus around frequent CEO/accountant workflows.
 - [ ] Implement dynamic report screens before export.
 - [ ] Implement readable accountant-ready PDF templates.

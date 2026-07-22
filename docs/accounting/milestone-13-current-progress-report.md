@@ -235,13 +235,13 @@ The current USL implementation does not yet reproduce that full interactive beha
 
 ### Manual navigation to `/odoo/accounting`
 
-Status: confirmed as a UX gap.
+Status: implemented at menu/action level; browser UX smoke test still recommended.
 
-Evidence: the upstream Community menu root is named `Invoicing` in `addons/account/views/account_menuitem.xml`, while the dashboard action exists as the child menu `menu_board_journal_1`. The custom add-on did not add a separate Accounting app launcher.
+Evidence: the upstream Community menu root is named `Invoicing` in `addons/account/views/account_menuitem.xml`, while the dashboard action exists as the child menu `menu_board_journal_1`. The custom add-on now updates `account.menu_finance` to display `Accounting` and to target `account.open_account_journal_dashboard_kanban`, whose action path is `accounting`.
 
-Impact: users can land on invoices rather than the accounting dashboard and may think the new accounting features are missing.
+Impact: users should no longer need to manually discover `/odoo/accounting` to reach the accounting dashboard.
 
-Required work: add a deliberate Accounting entry point and ensure module upgrades or browser refreshes do not require manual URL discovery.
+Remaining work: validate the app-launcher behavior in the browser and continue the broader menu/workbench redesign.
 
 ### Missing/equivalent reconciliation view
 
@@ -332,8 +332,7 @@ Required work: implement human-readable dynamic report screens and exports, then
 - reconciliation user experience
 - tax-return workflow UX
 - FEC access through normal accountant permissions
-- accounting dashboard/app entry point
-- menu hierarchy and daily workflow naming
+- broader accounting menu hierarchy and daily workflow naming
 - settings behavior with cash-basis taxes
 
 ### Not yet complete
@@ -350,7 +349,7 @@ Required work: implement human-readable dynamic report screens and exports, then
 
 ### Immediate
 
-- [ ] Add a clear Accounting app/menu entry that opens the accounting dashboard directly.
+- [x] Add a clear Accounting app/menu entry that opens the accounting dashboard directly.
 - [ ] Make module refresh/upgrade instructions and UI refresh behavior visible in the dev guide.
 - [ ] Diagnose the bank journal transaction view and reconcile it with imported `account.bank.statement.line` records.
 - [ ] Decide the product target for historical reconciliation: native Community flow, custom review workbench, or both.

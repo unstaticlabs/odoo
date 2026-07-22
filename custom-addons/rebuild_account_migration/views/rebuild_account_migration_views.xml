@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <record id="account.menu_finance" model="ir.ui.menu">
+        <field name="name">Accounting</field>
+        <field name="action" eval="'ir.actions.act_window,%d' % ref('account.open_account_journal_dashboard_kanban')"/>
+    </record>
+
     <record id="view_rebuild_account_review_summary_list" model="ir.ui.view">
         <field name="name">rebuild.account.review.summary.list</field>
         <field name="model">rebuild.account.review.summary</field>
