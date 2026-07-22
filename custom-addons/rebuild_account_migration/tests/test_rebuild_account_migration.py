@@ -132,6 +132,48 @@ class TestRebuildAccountMigration(TransactionCase):
         )
         self.assertEqual(import_run._company_report_layout_defaults(existing_layout_company), {})
 
+    def test_import_enables_company_cash_basis_setting_for_cash_basis_taxes(self):
+        france = self.env.ref("base.fr")
+        company = self.env["res.company"].create({
+            "name": "Unit cash basis company",
+            "currency_id": self.company.currency_id.id,
+            "country_id": france.id,
+            "account_fiscal_country_id": france.id,
+            "tax_exigibility": False,
+        })
+        tax_group = self.env["account.tax.group"].create({
+            "name": "Unit VAT group",
+            "company_id": company.id,
+        })
+        transition_account = self.env["account.account"].create({
+            "code": "445UNIT",
+            "name": "Unit VAT transition",
+            "account_type": "asset_current",
+            "reconcile": True,
+            "company_ids": [Command.set([company.id])],
+        })
+        self.env["account.tax"].with_company(company).create({
+            "name": "Unit cash basis VAT",
+            "amount_type": "percent",
+            "amount": 20.0,
+            "type_tax_use": "sale",
+            "tax_group_id": tax_group.id,
+            "company_id": company.id,
+            "country_id": france.id,
+            "tax_exigibility": "on_payment",
+            "cash_basis_transition_account_id": transition_account.id,
+        })
+        import_run = self.env["rebuild.account.import.run"].create({
+            "name": "Cash basis settings sync",
+            "source_snapshot_id": "unit-snapshot",
+        })
+
+        updated_companies = import_run._sync_company_cash_basis_flags({990001: company})
+
+        self.assertEqual(updated_companies, company)
+        self.assertTrue(company.tax_exigibility)
+        self.assertIn("Tax definitions were not changed", company.rebuild_import_note)
+
     def test_accountant_reviewer_can_prepare_test_fec_only(self):
         reviewer = self.env["res.users"].with_context(no_reset_password=True).create({
             "name": "FEC Reviewer",

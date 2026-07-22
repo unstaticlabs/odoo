@@ -1058,6 +1058,34 @@ class RebuildAccountImportRun(models.Model):
             return {}
         return {"external_report_layout_id": layout.id}
 
+    def _sync_company_cash_basis_flags(self, companies):
+        """Keep company settings consistent with imported cash-basis taxes.
+
+        The source tax exigibility is the accounting fact. If any imported tax is
+        payable on payment, Odoo's own settings model expects the company-level
+        cash-basis option to be enabled; otherwise opening Settings raises a
+        blocking warning and tries to re-enable it interactively.
+        """
+        Tax = self.env["account.tax"].with_context(active_test=False)
+        updated_companies = self.env["res.company"]
+        for company in companies.values():
+            has_cash_basis_tax = Tax.with_company(company).search_count([
+                ("company_id", "=", company.id),
+                ("tax_exigibility", "=", "on_payment"),
+            ], limit=1)
+            if not has_cash_basis_tax or company.tax_exigibility:
+                continue
+            company.write({
+                "tax_exigibility": True,
+                "rebuild_import_note": (
+                    (company.rebuild_import_note or "") + "\n"
+                    "Enabled the company cash-basis VAT setting because imported source taxes "
+                    "include tax_exigibility=on_payment. Tax definitions were not changed."
+                ).strip(),
+            })
+            updated_companies |= company
+        return updated_companies
+
     def _currency_map(self, conn):
         rows = self._fetchall(conn, "SELECT id, name, active FROM res_currency ORDER BY id")
         currencies = {}
@@ -4181,6 +4209,8 @@ class RebuildAccountImportRun(models.Model):
             tax_tags = self._tax_tag_map(conn, options, countries)
             tax_groups = self._tax_group_map(conn, options, companies, accounts, countries)
             taxes, tax_repartition_lines, tax_stats = self._tax_map(conn, options, companies, accounts, tax_groups, tax_tags, countries)
+            cash_basis_companies = self._sync_company_cash_basis_flags(companies)
+            tax_stats["company_cash_basis_setting_count"] = len(cash_basis_companies)
             journals = self._journal_map(conn, options, companies, accounts, currencies)
             analytic_plans = self._analytic_plan_map(conn, options)
             analytic_accounts = self._analytic_account_map(conn, options, companies, partners, analytic_plans)

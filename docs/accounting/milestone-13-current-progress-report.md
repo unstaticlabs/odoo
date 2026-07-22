@@ -244,7 +244,7 @@ Not yet validated as finished product behavior:
 - readable templated PDF/XLSX reports
 - report UX parity with filters, unfold, annotations and exports as seen on screen
 - accountant access for official non-test FEC export
-- Settings behavior with cash-basis taxes
+- Settings behavior with cash-basis taxes is diagnosed and normalized during import
 - accountant review of FEC and statutory/tax outputs
 - complete second clean rehearsal evidence after the latest UX changes
 
@@ -362,13 +362,13 @@ Remaining work: browser-smoke the FEC menu action with the intended accountant u
 
 ### Settings cash-basis error
 
-Status: observed by user, not fully diagnosed.
+Status: fixed in the importer; existing imported development targets need a module update and helper run, or a fresh target import.
 
-Evidence: the exact error says a setting cannot be disabled while some taxes are cash basis. The current source/import perimeter includes cash-basis tax behavior as an explicit validation topic. The current report did not change settings behavior.
+Evidence: the exact error says a setting cannot be disabled while some taxes are cash basis. Target inspection found imported `account.tax` records with `tax_exigibility = on_payment` while the corresponding `res.company.tax_exigibility` setting was disabled. Odoo core intentionally blocks that inconsistent state in Settings. The importer now enables the company cash-basis setting when imported taxes require it and records an import note; it does not alter the imported tax exigibility rules.
 
-Impact: Settings may be trying to toggle a tax-cash-basis option inconsistent with imported or localized tax configuration.
+Impact: opening Settings should no longer raise the cash-basis warning after the target has been updated. Cash-basis VAT remains an accounting configuration requiring source and accountant review; the fix only removes the internal Odoo inconsistency.
 
-Required work: inspect the settings value, cash-basis taxes, and whether the target import or module install creates a contradictory configuration. Do not blindly disable cash-basis behavior because that can affect VAT accounting meaning.
+Remaining work: verify with the source tax profile and accountant whether USL uses VAT on collection, an option for VAT on debits, or a mixed treatment by date/activity. Preserve the exact source behavior in tax reports and CA12 support.
 
 ### Payment providers
 
@@ -432,7 +432,7 @@ Required work: implement human-readable dynamic report screens and exports, then
 - [ ] Decide the product target for historical reconciliation: native Community flow, custom review workbench, or both.
 - [ ] Include customer invoices, credit notes, vendor bills, supplier refunds and expenses in the user-facing reconstruction scope.
 - [ ] Diagnose and fix the FEC permission path for accountant and finance operator roles.
-- [ ] Diagnose the Settings cash-basis tax error without changing tax meaning.
+- [x] Diagnose and fix the Settings cash-basis tax error without changing tax meaning.
 - [ ] Reorganize menus around CEO/accountant workflows.
 
 ### Short term
@@ -468,7 +468,7 @@ Required work: implement human-readable dynamic report screens and exports, then
 
 - Validation question: do the selected OCA report screens produce USL/Odoo Online-equivalent interactive results once mapped to the imported ledger, or do specific reports still need a custom USL implementation?
 - Validation question: does the OCA reconciliation workbench correctly perform operational matching, write-offs and partial reconciliations on imported statement lines without damaging historical source-traced reconciliation evidence?
-- Accounting question: which cash-basis VAT behavior in the source is legally required for USL, and which behavior is only a side effect of imported localization configuration?
+- Accounting question: which cash-basis VAT behavior in the source is legally required for USL, and which behavior is only a side effect of imported localization configuration? The technical Settings inconsistency is fixed, but the tax rule still requires accountant validation.
 - Accounting question: which generated statutory PDFs/XLSX must match the accountant benchmark visual structure, and which can remain machine-oriented evidence exports under Advanced Audit?
 - Access question: which exact source documents or attachments should be visible to the accountant as evidence versus restricted accounting evidence?
 - What exact accountant review workflow is required before Milestone 13 can close?

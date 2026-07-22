@@ -50,7 +50,7 @@ What is not complete:
 - [ ] French declaration guidance for CFS Pro and Portailpro field entry is not yet implemented.
 - [x] FEC test export is available through the custom reviewed export path for accountant-review users.
 - [x] Standard French FEC wizard can be opened by accounting review users in forced test mode without granting final lock-affecting FEC permissions.
-- [ ] Settings behavior with imported cash-basis taxes requires diagnosis.
+- [x] Settings behavior with imported cash-basis taxes is diagnosed and normalized during import without changing tax definitions.
 - [ ] Menu grouping needs a final CEO/accountant workflow polish pass after report and document workflows are complete.
 - [ ] Accountant review and formal acceptance remain pending.
 
