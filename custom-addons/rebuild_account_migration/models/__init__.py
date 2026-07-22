@@ -15,3 +15,4 @@ from . import review_decision
 from . import report_views
 from . import report_export_wizard
 from . import review_summary
+from . import oca_report_defaults

@@ -67,6 +67,71 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertNotIn("<field ", card_arch)
         self.assertIn("record.payment_ref.value", card_arch)
 
+    def test_import_archives_empty_bootstrap_unaffected_earnings_accounts(self):
+        company = self.env["res.company"].create({
+            "name": "Unit retained earnings company",
+            "currency_id": self.company.currency_id.id,
+        })
+        source_account = self.env["account.account"].create({
+            "code": "999999",
+            "name": "Source retained earnings",
+            "account_type": "equity_unaffected",
+            "company_ids": [Command.set([company.id])],
+            "active": True,
+            "rebuild_source_model": "account.account",
+            "rebuild_source_id": 990707,
+            "rebuild_source_snapshot": "unit-snapshot",
+        })
+        bootstrap_account = self.env["account.account"].create({
+            "code": "999998",
+            "name": "Template retained earnings",
+            "account_type": "equity_unaffected",
+            "company_ids": [Command.set([company.id])],
+            "active": True,
+        })
+        import_run = self.env["rebuild.account.import.run"].create({
+            "name": "Retained earnings cleanup",
+            "source_snapshot_id": "unit-snapshot",
+        })
+
+        import_run._archive_empty_bootstrap_unaffected_earnings_accounts(
+            [{
+                "id": 990707,
+                "account_type": "equity_unaffected",
+                "company_ids": [990001],
+            }],
+            {"source_company_ids": [990001], "source_snapshot_id": "unit-snapshot"},
+            {990001: company},
+        )
+
+        self.assertTrue(source_account.active)
+        self.assertFalse(bootstrap_account.active)
+        self.assertIn("source retained-earnings account", bootstrap_account.rebuild_import_note)
+
+    def test_company_report_layout_defaults_do_not_overwrite_existing_layout(self):
+        import_run = self.env["rebuild.account.import.run"].create({
+            "name": "Company layout defaults",
+            "source_snapshot_id": "unit-snapshot",
+        })
+        standard_layout = self.env.ref("web.external_layout_standard")
+
+        missing_layout_company = self.env["res.company"].create({
+            "name": "Unit missing layout company",
+            "currency_id": self.company.currency_id.id,
+            "external_report_layout_id": False,
+        })
+        existing_layout_company = self.env["res.company"].create({
+            "name": "Unit existing layout company",
+            "currency_id": self.company.currency_id.id,
+            "external_report_layout_id": standard_layout.id,
+        })
+
+        self.assertEqual(
+            import_run._company_report_layout_defaults(missing_layout_company),
+            {"external_report_layout_id": standard_layout.id},
+        )
+        self.assertEqual(import_run._company_report_layout_defaults(existing_layout_company), {})
+
     def test_accountant_reviewer_is_read_only_for_discrepancies(self):
         self.assertIn(self.readonly_group, self.reviewer_group.implied_ids)
         reviewer = self.env["res.users"].with_context(no_reset_password=True).create({
@@ -476,6 +541,71 @@ class TestRebuildAccountMigration(TransactionCase):
             self.assertEqual(action.target, "new")
             self.assertEqual(context["default_report_type"], report_type)
             self.assertEqual(context["default_export_format"], export_format)
+
+    def test_interactive_oca_report_actions_open_on_benchmark_period(self):
+        expected_actions = {
+            "account_financial_report.action_trial_balance_wizard": ("default_date_to", "default_target_move"),
+            "account_financial_report.action_general_ledger_wizard": ("default_date_to", "default_target_move"),
+            "account_financial_report.action_journal_ledger_wizard": ("default_date_to", "default_move_target"),
+            "account_financial_report.action_vat_report_wizard": ("default_date_to", "default_target_move"),
+            "account_financial_report.action_open_items_wizard": ("default_date_at", "default_target_move"),
+            "account_financial_report.action_aged_partner_balance_wizard": ("default_date_at", "default_target_move"),
+        }
+        for xmlid, (closing_date_key, move_key) in expected_actions.items():
+            action = self.env.ref(xmlid)
+            context = safe_eval(action.context or "{}")
+
+            self.assertEqual(context["default_date_from"], "2024-01-10")
+            self.assertEqual(context[closing_date_key], "2025-09-30")
+            self.assertEqual(context[move_key], "posted")
+
+    def test_interactive_oca_report_wizards_default_to_benchmark_period(self):
+        receivable = self._account("411900", "Unit receivable report default", "asset_receivable")
+        payable = self._account("401900", "Unit payable report default", "liability_payable")
+
+        period_wizards = [
+            "trial.balance.report.wizard",
+            "general.ledger.report.wizard",
+            "vat.report.wizard",
+        ]
+        for model_name in period_wizards:
+            values = self.env[model_name].default_get(["date_from", "date_to", "target_move"])
+            self.assertEqual(str(values["date_from"]), "2024-01-10")
+            self.assertEqual(str(values["date_to"]), "2025-09-30")
+            self.assertEqual(values["target_move"], "posted")
+
+        journal_values = self.env["journal.ledger.report.wizard"].default_get([
+            "date_from",
+            "date_to",
+            "move_target",
+        ])
+        self.assertEqual(str(journal_values["date_from"]), "2024-01-10")
+        self.assertEqual(str(journal_values["date_to"]), "2025-09-30")
+        self.assertEqual(journal_values["move_target"], "posted")
+
+        for model_name in ["open.items.report.wizard", "aged.partner.balance.report.wizard"]:
+            values = self.env[model_name].default_get([
+                "date_from",
+                "date_at",
+                "target_move",
+                "account_ids",
+            ])
+            self.assertEqual(str(values["date_from"]), "2024-01-10")
+            self.assertEqual(str(values["date_at"]), "2025-09-30")
+            self.assertEqual(values["target_move"], "posted")
+            self.assertIn(receivable.id, values["account_ids"][0][2])
+            self.assertIn(payable.id, values["account_ids"][0][2])
+
+    def test_empty_date_range_onchange_keeps_benchmark_dates(self):
+        wizard = self.env["trial.balance.report.wizard"].create({})
+        wizard.date_from = "2024-01-10"
+        wizard.date_to = "2025-09-30"
+        wizard.date_range_id = False
+
+        wizard.onchange_date_range_id()
+
+        self.assertEqual(str(wizard.date_from), "2024-01-10")
+        self.assertEqual(str(wizard.date_to), "2025-09-30")
 
     def test_user_guide_action_and_markdown_renderer_are_available(self):
         action = self.env.ref("rebuild_account_migration.action_rebuild_account_user_guide")

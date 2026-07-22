@@ -31,6 +31,10 @@ What is not complete:
 
 - [ ] OCA report screens are installed but not yet validated as USL/Odoo Online-equivalent dynamic report workflows.
 - [ ] Current PDF/XLSX report exports are not accountant-ready templates.
+- [x] OCA Trial Balance no longer fails on duplicate unaffected-earnings accounts after source-traced retained earnings import and empty bootstrap-account archival.
+- [x] Imported companies receive a default Odoo report layout so OCA report actions no longer divert users into document-layout setup.
+- [x] OCA interactive report launchers now default to the USL benchmark period in posted mode.
+- [x] OCA Trial Balance opens through the normal Odoo report viewer and renders imported USL benchmark ledger rows.
 - [x] Accounting app entry now targets the accounting dashboard directly.
 - [x] Accounting now exposes first-level Review Issues and Reconcile Bank Transactions entries.
 - [x] Reconcile Bank Transactions opens the OCA reconciliation kanban workbench with imported bank transactions on `odoo_rebuild_accounting_test`.

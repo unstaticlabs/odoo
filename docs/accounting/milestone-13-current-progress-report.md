@@ -104,6 +104,13 @@ The following OCA modules installed successfully on the disposable imported targ
 
 Observed Odoo menu entries now include OCA Trial Balance, General Ledger, Journal Ledger, Partner Ledger, statement reports, tax balance support, MIS Reporting, Import Statement and Reconcile actions.
 
+Current targeted fixes:
+
+- the imported target now keeps the source-traced retained-earnings account active and archives empty clean-target bootstrap retained-earnings accounts, which removes the OCA Trial Balance blocker `Trial Balance can be computed only if selected company have only one unaffected earnings account`;
+- imported companies receive Odoo's standard external report layout when the source company has no target layout, so OCA report actions render through normal report templates instead of sending users to the document-layout setup wizard;
+- OCA interactive report launchers default to the USL benchmark period `2024-01-10` through `2025-09-30` in posted mode for the first accounting review pass;
+- OCA Trial Balance was browser-smoke-tested on `odoo_rebuild_accounting_test`: the wizard opens with `Jan 10, 2024` and `Sep 30, 2025`, `View` opens the standard Odoo report viewer, and the embedded HTML report renders imported USL rows including capital, fixed assets, VAT, bank, expense, revenue and retained-earnings accounts.
+
 Status: this is dependency and platform enablement, not final report parity. The next implementation phase must map these OCA screens into the USL Accounting UX, validate report calculations against imported controls, and decide where custom USL reports remain necessary.
 
 Runtime caveat: the normal Compose `odoo` service requires the local `.env` value `ODOO_ADDONS_PATH=/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons`. An older local `.env` without `/mnt/oca-addons` caused installed OCA menus to exist while Odoo could not load OCA web assets. This was corrected locally during the current session.

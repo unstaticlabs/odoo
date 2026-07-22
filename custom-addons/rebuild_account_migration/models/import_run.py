@@ -1039,12 +1039,24 @@ class RebuildAccountImportRun(models.Model):
                 vals["company_registry"] = row["company_registry"]
             if "iap_enrich_auto_done" in Company._fields:
                 vals["iap_enrich_auto_done"] = True
+            vals.update(self._company_report_layout_defaults(company))
             if company:
                 company.write(vals)
             else:
                 company = Company.create(vals)
             companies[row["id"]] = company
         return companies, rows
+
+    def _company_report_layout_defaults(self, company=False):
+        """Avoid diverting accounting report users into document-layout setup."""
+        if "external_report_layout_id" not in self.env["res.company"]._fields:
+            return {}
+        if company and company.external_report_layout_id:
+            return {}
+        layout = self.env.ref("web.external_layout_standard", raise_if_not_found=False)
+        if not layout:
+            return {}
+        return {"external_report_layout_id": layout.id}
 
     def _currency_map(self, conn):
         rows = self._fetchall(conn, "SELECT id, name, active FROM res_currency ORDER BY id")
@@ -1211,6 +1223,12 @@ class RebuildAccountImportRun(models.Model):
                 SELECT DISTINCT account_depreciation_expense_id AS id
                 FROM account_asset
                 WHERE account_depreciation_expense_id IS NOT NULL
+                UNION
+                SELECT DISTINCT aa.id AS id
+                FROM account_account aa
+                JOIN account_account_res_company_rel rel ON rel.account_account_id = aa.id
+                WHERE aa.account_type = 'equity_unaffected'
+                  AND rel.res_company_id = ANY(%(source_company_ids)s)
             )
             SELECT aa.id, aa.name, aa.code_store, aa.account_type, aa.active, aa.reconcile,
                    aa.non_trade, aa.currency_id,
@@ -1285,7 +1303,50 @@ class RebuildAccountImportRun(models.Model):
             else:
                 account = Account.with_company(company).create(vals)
             accounts[row["id"]] = account
+        self._archive_empty_bootstrap_unaffected_earnings_accounts(rows, options, companies)
         return accounts, archive_after_post
+
+    def _archive_empty_bootstrap_unaffected_earnings_accounts(self, rows, options, companies):
+        """Keep one source-traced unaffected earnings account per imported company.
+
+        Odoo's clean generic chart can create template-only retained-earnings
+        accounts. OCA financial reports require exactly one active unaffected
+        earnings account per company, so empty template accounts must not stay
+        active beside the source-traced account imported from production.
+        """
+        Account = self.env["account.account"].with_context(
+            active_test=False,
+            import_file=True,
+            tracking_disable=True,
+            mail_create_nolog=True,
+        )
+        MoveLine = self.env["account.move.line"].with_context(active_test=False)
+        source_company_ids_by_company = {}
+        for row in rows:
+            if row["account_type"] != "equity_unaffected":
+                continue
+            for source_company_id in row["company_ids"] or self._source_company_ids(options):
+                if source_company_id in companies:
+                    source_company_ids_by_company.setdefault(source_company_id, []).append(row["id"])
+        for source_company_id in source_company_ids_by_company:
+            company = companies[source_company_id]
+            bootstrap_accounts = Account.with_company(company).search([
+                ("account_type", "=", "equity_unaffected"),
+                ("company_ids", "in", company.id),
+                ("rebuild_source_model", "=", False),
+                ("active", "=", True),
+            ])
+            for account in bootstrap_accounts:
+                if MoveLine.search_count([("account_id", "=", account.id)], limit=1):
+                    continue
+                account.with_company(company).write({
+                    "active": False,
+                    "rebuild_import_note": (
+                        "Archived empty clean-target bootstrap unaffected earnings "
+                        "account because exact ledger replay imported the source "
+                        "retained-earnings account for this company."
+                    ),
+                })
 
     def _quarantine_bootstrap_account_code_collisions(self, rows, options, companies):
         """Move empty chart-template accounts out of the source chart namespace.
