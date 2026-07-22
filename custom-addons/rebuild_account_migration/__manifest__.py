@@ -13,6 +13,7 @@
         "account_statement_import_file",
         "account_tax_balance",
         "analytic",
+        "hr_expense",
         "l10n_fr_account",
         "mis_builder",
         "partner_statement",

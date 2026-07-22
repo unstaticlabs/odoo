@@ -43,11 +43,12 @@ What is not complete:
 - [x] MIS account-detail expansion works with archived imported accounts that still have posted historical move lines.
 - [x] Accounting app entry now targets the accounting dashboard directly.
 - [x] Accounting now exposes first-level Review Issues and Reconcile Bank Transactions entries.
+- [x] Native Odoo Expenses is part of the accounting rebuild dependency set and is reachable from Accounting > Suppliers and Expenses.
 - [x] Reconcile Bank Transactions opens the OCA reconciliation kanban workbench with imported bank transactions on `odoo_rebuild_accounting_test`.
 - [x] Raw imported report/evidence screens are grouped under Review and Audit > Advanced Audit.
 - [ ] Historical bank statement and reconciliation UX is not yet equivalent to the Odoo Online reconciliation workbench.
 - [x] OCA `account_reconcile_oca` kanban workbench no longer fails in the Odoo 19 web client after a compatible card override.
-- [ ] Customer invoices, vendor bills, refunds and expenses are not yet complete user-facing reconstructed business workflows.
+- [ ] Customer invoices, vendor bills, refunds and source-derived historical expenses are not yet complete user-facing reconstructed business workflows.
 - [ ] French declaration guidance for CFS Pro and Portailpro field entry is not yet implemented.
 - [x] FEC test export is available through the custom reviewed export path for accountant-review users.
 - [x] Standard French FEC wizard can be opened by accounting review users in forced test mode without granting final lock-affecting FEC permissions.

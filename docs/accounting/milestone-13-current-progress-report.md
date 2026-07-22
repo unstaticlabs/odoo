@@ -164,6 +164,7 @@ Its manifest depends on Community modules:
 - `account`
 - `account_payment`
 - `analytic`
+- `hr_expense`
 - `l10n_fr_account`
 
 It now also directly depends on the selected OCA foundation modules for financial reports, MIS reports, reconciliation, bank statement import and partner statements:
@@ -187,6 +188,7 @@ The add-on currently provides:
 - imported report line models and list/pivot views
 - fixed-asset and deferred-schedule review models
 - an export wizard for imported accounting reports
+- a dependency on native Odoo Expenses so the standard employee-expense workflow is installed and reachable from Accounting
 - a user-docs browser at `/usl/user-docs`
 
 This add-on is evidence and reconstruction infrastructure. It is not yet a full replacement for the Enterprise `account_reports` interactive reporting product.
@@ -315,9 +317,9 @@ Evidence: the upstream Community menu root is named `Invoicing` in `addons/accou
 
 Impact: users should no longer need to manually discover `/odoo/accounting` to reach the accounting dashboard.
 
-Additional menu work now exposes first-level `Review Issues` and `Reconcile Bank Transactions` entries, renames the supplier area to `Suppliers and Expenses`, renames reporting to `Reports and Declarations`, and groups raw source/import evidence under `Review and Audit > Advanced Audit`.
+Additional menu work now exposes first-level `Review Issues` and `Reconcile Bank Transactions` entries, renames the supplier area to `Suppliers and Expenses`, makes native Odoo `Employee Expenses` available in that supplier area, renames reporting to `Reports and Declarations`, and groups raw source/import evidence under `Review and Audit > Advanced Audit`.
 
-Remaining work: validate the app-launcher behavior in the browser and continue the broader menu/workbench redesign after customer/vendor/expense reconstruction and report parity are implemented.
+Remaining work: validate the app-launcher behavior in the browser and continue the broader menu/workbench redesign after customer/vendor/source-derived historical expense reconstruction and report parity are implemented.
 
 ### Missing/equivalent reconciliation view
 
@@ -431,7 +433,7 @@ Required work: implement human-readable dynamic report screens and exports, then
 - [ ] Make module refresh/upgrade instructions and UI refresh behavior visible in the dev guide.
 - [ ] Diagnose the bank journal transaction view and reconcile it with imported `account.bank.statement.line` records.
 - [ ] Decide the product target for historical reconciliation: native Community flow, custom review workbench, or both.
-- [ ] Include customer invoices, credit notes, vendor bills, supplier refunds and expenses in the user-facing reconstruction scope.
+- [ ] Include customer invoices, credit notes, vendor bills, supplier refunds and source-derived historical expenses in the user-facing reconstruction scope.
 - [ ] Diagnose and fix the FEC permission path for accountant and finance operator roles.
 - [x] Diagnose and fix the Settings cash-basis tax error without changing tax meaning.
 - [ ] Reorganize menus around CEO/accountant workflows.

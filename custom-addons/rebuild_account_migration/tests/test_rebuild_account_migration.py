@@ -56,6 +56,12 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(menu.action, dashboard_action)
         self.assertEqual(dashboard_action.path, "accounting")
 
+    def test_native_expenses_are_available_from_accounting_payables(self):
+        expenses_menu = self.env.ref("hr_expense.menu_hr_expense_account_employee_expenses")
+
+        self.assertEqual(expenses_menu.parent_id, self.env.ref("account.menu_finance_payables"))
+        self.assertEqual(expenses_menu.action, self.env.ref("hr_expense.action_hr_expense_account"))
+
     def test_reconcile_shortcut_uses_compatible_kanban_workbench(self):
         action = self.env.ref("rebuild_account_migration.action_rebuild_account_reconcile_bank_transactions")
         reconcile_view = self.env.ref("account_reconcile_oca.bank_statement_line_reconcile_view")
