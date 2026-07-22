@@ -46,6 +46,7 @@ class RebuildAccountImportRun(models.Model):
     finished_at = fields.Datetime()
     company_ids = fields.Many2many("res.company", string="Companies")
     imported_company_count = fields.Integer(readonly=True)
+    imported_currency_rate_count = fields.Integer(readonly=True)
     imported_account_count = fields.Integer(readonly=True)
     imported_journal_count = fields.Integer(readonly=True)
     imported_partner_count = fields.Integer(readonly=True)
@@ -1096,6 +1097,111 @@ class RebuildAccountImportRun(models.Model):
                     currency.active = True
                 currencies[row["id"]] = currency
         return currencies
+
+    def _import_currency_rates(self, conn, options, companies, currencies):
+        rows = self._fetchall(
+            conn,
+            """
+            SELECT rate.id, rate.name, rate.rate, rate.currency_id, rate.company_id,
+                   rate.create_date, rate.write_date,
+                   company.currency_provider AS source_provider
+            FROM res_currency_rate rate
+            LEFT JOIN res_company company ON company.id = rate.company_id
+            WHERE rate.company_id IS NULL
+               OR rate.company_id = ANY(%(source_company_ids)s)
+            ORDER BY rate.name, rate.currency_id, rate.company_id, rate.id
+            """,
+            options,
+        )
+        return self._upsert_currency_rate_rows(rows, options, companies, currencies)
+
+    def _upsert_currency_rate_rows(self, rows, options, companies, currencies):
+        """Replay exact source rates for native currency calculations.
+
+        Odoo stores the technical rate as foreign-currency units per one unit of
+        the company currency.  Source and target both use that native model, so
+        copying ``rate`` is the lossless option; inverting or recomputing it
+        would change invoice, payment and exchange-difference behavior.
+        """
+        Rate = self.env["res.currency.rate"].with_context(tracking_disable=True)
+        imported_rates = Rate.browse()
+        seen_source_ids = set()
+        reused_natural_key_count = 0
+        skipped_rows = []
+        provider_names = set()
+        currency_names = set()
+        source_dates = []
+
+        for row in rows:
+            currency = currencies.get(row["currency_id"])
+            company = companies.get(row["company_id"]) if row["company_id"] else False
+            if not currency or (row["company_id"] and not company):
+                skipped_rows.append({
+                    "source_rate_id": row["id"],
+                    "source_currency_id": row["currency_id"],
+                    "source_company_id": row["company_id"],
+                })
+                continue
+
+            rate = Rate.search([
+                ("rebuild_source_model", "=", "res.currency.rate"),
+                ("rebuild_source_id", "=", row["id"]),
+                ("rebuild_source_snapshot", "=", options.get("source_snapshot_id")),
+            ], limit=1)
+            if not rate:
+                rate = Rate.search([
+                    ("name", "=", row["name"]),
+                    ("currency_id", "=", currency.id),
+                    ("company_id", "=", company.id if company else False),
+                ], limit=1)
+                reused_natural_key_count += bool(rate)
+
+            provider = row.get("source_provider") or "source_odoo_online"
+            retrieved_at = row.get("write_date") or row.get("create_date")
+            vals = {
+                "name": row["name"],
+                "rate": self._amount(row["rate"]),
+                "currency_id": currency.id,
+                "company_id": company.id if company else False,
+                "rebuild_rate_provider": provider,
+                "rebuild_rate_retrieved_at": retrieved_at,
+                "rebuild_import_note": (
+                    "Exact native rate copied from the Odoo Online source. The source record's "
+                    "write timestamp is retained as the best available provider-retrieval evidence."
+                ),
+                **self._trace_values("res.currency.rate", row["id"], options),
+            }
+            if rate:
+                rate.write(vals)
+            else:
+                rate = Rate.create(vals)
+            imported_rates |= rate
+            seen_source_ids.add(row["id"])
+            provider_names.add(provider)
+            currency_names.add(currency.name)
+            source_dates.append(row["name"])
+
+        stale_rates = Rate.search([
+            ("rebuild_source_database", "=", options.get("source_database")),
+            ("rebuild_source_model", "=", "res.currency.rate"),
+            ("company_id", "in", [False, *[company.id for company in companies.values()]]),
+            ("rebuild_source_id", "not in", list(seen_source_ids) or [0]),
+        ])
+        stale_rate_count = len(stale_rates)
+        stale_rates.unlink()
+
+        return {
+            "source_currency_rate_count": len(rows),
+            "imported_currency_rate_count": len(imported_rates),
+            "skipped_currency_rate_count": len(skipped_rows),
+            "skipped_currency_rate_examples": skipped_rows[:20],
+            "reused_natural_key_count": reused_natural_key_count,
+            "removed_stale_currency_rate_count": stale_rate_count,
+            "currencies": sorted(currency_names),
+            "providers": sorted(provider_names),
+            "first_rate_date": str(min(source_dates)) if source_dates else False,
+            "last_rate_date": str(max(source_dates)) if source_dates else False,
+        }
 
     def _partner_map(self, conn, options):
         rows = self._fetchall(
@@ -4201,6 +4307,7 @@ class RebuildAccountImportRun(models.Model):
             currencies = self._currency_map(conn)
             countries = self._country_map(conn)
             companies, company_rows = self._company_map(conn, options, countries)
+            currency_rate_stats = self._import_currency_rates(conn, options, companies, currencies)
             source_report_stats = self._import_source_reports(conn, options)
             source_report_structure_stats = self._import_source_report_structure(conn, options)
             source_report_stats["structure"] = source_report_structure_stats
@@ -4642,6 +4749,7 @@ class RebuildAccountImportRun(models.Model):
                 "journal_count": len(journals),
                 "partner_count": len(partners),
                 "company_count": len(companies),
+                "currency_rates": currency_rate_stats,
                 "tax_configuration": tax_stats,
                 "reconciliations": reconciliation_stats,
                 "payments": payment_stats,
@@ -4665,6 +4773,7 @@ class RebuildAccountImportRun(models.Model):
                 "finished_at": fields.Datetime.now(),
                 "company_ids": [Command.set([company.id for company in companies.values()])],
                 "imported_company_count": len(companies),
+                "imported_currency_rate_count": currency_rate_stats["imported_currency_rate_count"],
                 "imported_account_count": len(accounts),
                 "imported_journal_count": len(journals),
                 "imported_partner_count": len(partners),

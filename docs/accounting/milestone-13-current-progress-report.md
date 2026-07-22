@@ -141,6 +141,7 @@ Runtime caveat: the normal Compose `odoo` service requires the local `.env` valu
 The current import status reports these production-derived records represented in the target:
 
 - 2 companies
+- 1,877 historical EUR, USD and GBP currency rates
 - 135 imported accounts
 - 31 imported journals
 - 4,843 imported posted moves
@@ -155,7 +156,9 @@ The current import status reports these production-derived records represented i
 - 632 analytic lines
 - 38 imported source report definitions
 
-The target validation artifact reports 28 comparison groups and no failed comparison group for the posted ledger slice.
+The target validation artifact reports 29 comparison groups and no failed comparison group for the posted ledger slice. The currency-rate comparison is broad-snapshot rather than benchmark-only and passes with zero missing, extra or mismatched rows; the idempotence signature includes the full `res_currency_rate` table.
+
+Historical-rate architecture deliberately separates reconstruction from future automation. Three credible options were considered: (1) replay the exact native `res.currency.rate` rows from the source with traceability; (2) install OCA `currency_rate_update` and regenerate history from an external provider; or (3) build a USL-specific ECB downloader. Option 1 is selected for reconstruction because it preserves the exact rates that drove the posted source accounting and remains native to Odoo's currency engine. Regenerating history could silently change conversions, while a custom downloader would duplicate provider and scheduling logic. The public [OCA currency repository](https://github.com/OCA/currency) does not currently provide a maintained 19.0 branch, so future automatic updates remain an explicit follow-up rather than being coupled to historical replay. Imported rows retain the source provider and best available source retrieval timestamp so that provenance is visible in both standalone and embedded currency-rate views.
 
 ### Odoo add-on work
 
@@ -240,6 +243,7 @@ Validated by artifacts or code inspection:
 - The import pipeline creates source-traced target accounting records.
 - Posted imported moves balance in the validated ledger slice.
 - Source and target control comparisons pass for the validated posted ledger slice.
+- Source currency-rate reconstruction now passes exact broad-snapshot parity: all `1,877` native EUR, USD and GBP rates from `2024-01-01` through `2026-07-20` match by source ID, company, date, technical rate, ECB provider and retained source retrieval timestamp. The importer is idempotent and uses Odoo's native rate semantics rather than inventing or inverting rates. Browser smoke testing verified the USD rate history and visible `Source Provider = ecb` provenance in the native currency form, including the `2026-06-30` rate of `1.1394` USD per EUR.
 - Reconciliation records are imported and compared as data.
 - Attachment metadata and selected binaries are imported and checked.
 - The custom report export wizard can generate CSV, XLSX, PDF and FEC TXT payloads.
@@ -247,8 +251,9 @@ Validated by artifacts or code inspection:
 
 Not yet validated as finished product behavior:
 
-- normal Odoo app launcher entry into a clearly named Accounting app
-- native Odoo bank reconciliation workbench parity
+- end-to-end accounting effects for bank matching and general reconciliation, including write-offs, partial matches and undo
+- native multicurrency invoice, payment, reconciliation and exchange-difference replay for the Track B period
+- a maintained Odoo 19 automatic future-rate provider; the restored historical source rates retain their ECB provenance, but automatic refresh is not yet configured
 - dynamic Odoo Online-style accounting reports
 - readable templated PDF/XLSX reports
 - report UX parity with filters, unfold, annotations and exports as seen on screen

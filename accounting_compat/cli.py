@@ -1811,6 +1811,7 @@ def target_table_counts(db: str) -> list[dict[str, Any]]:
         "res_company",
         "res_partner",
         "res_currency",
+        "res_currency_rate",
         "account_account",
         "account_journal",
         "account_tax",
@@ -1850,6 +1851,7 @@ def target_table_counts(db: str) -> list[dict[str, Any]]:
 TARGET_IDEMPOTENCE_TABLES = [
     "res_company",
     "res_partner",
+    "res_currency_rate",
     "account_account",
     "account_journal",
     "account_tax_group",
@@ -2149,6 +2151,7 @@ def target_import(args: argparse.Namespace) -> dict[str, Any]:
         FROM (
             SELECT id, name, mode, status, source_database, source_dump_sha256,
                    source_snapshot_id, target_database, imported_company_count,
+                   imported_currency_rate_count,
                    imported_account_count, imported_journal_count, imported_partner_count,
                    imported_move_count, imported_move_line_count, imported_move_review_count,
                    imported_move_line_review_count,
@@ -2909,6 +2912,61 @@ def source_full_replay_company_rows() -> list[dict[str, Any]]:
         ORDER BY sm.company_id
         """,
     )
+
+
+def source_currency_rate_rows() -> list[dict[str, Any]]:
+    return query_rows(
+        SOURCE_DB,
+        """
+        SELECT rate.id::text AS source_currency_rate_id,
+               currency.name::text AS currency,
+               COALESCE(rate.company_id::text, '') AS source_company_id,
+               rate.name::text AS date,
+               round(rate.rate::numeric, 12)::text AS rate,
+               COALESCE(company.currency_provider::text, 'source_odoo_online') AS provider,
+               to_char(COALESCE(rate.write_date, rate.create_date), 'YYYY-MM-DD HH24:MI:SS.US') AS retrieved_at
+        FROM res_currency_rate rate
+        JOIN res_currency currency ON currency.id = rate.currency_id
+        LEFT JOIN res_company company ON company.id = rate.company_id
+        WHERE rate.company_id IS NULL OR rate.company_id IN (1, 8)
+        ORDER BY rate.id
+        """,
+    )
+
+
+def target_currency_rate_rows() -> list[dict[str, Any]]:
+    return query_rows(
+        TARGET_DB,
+        """
+        SELECT rate.rebuild_source_id::text AS source_currency_rate_id,
+               currency.name::text AS currency,
+               COALESCE(company.rebuild_source_id::text, '') AS source_company_id,
+               rate.name::text AS date,
+               round(rate.rate::numeric, 12)::text AS rate,
+               COALESCE(rate.rebuild_rate_provider::text, 'source_odoo_online') AS provider,
+               to_char(rate.rebuild_rate_retrieved_at, 'YYYY-MM-DD HH24:MI:SS.US') AS retrieved_at
+        FROM res_currency_rate rate
+        JOIN res_currency currency ON currency.id = rate.currency_id
+        LEFT JOIN res_company company ON company.id = rate.company_id
+        WHERE rate.rebuild_source_model = 'res.currency.rate'
+          AND (company.rebuild_source_id IS NULL OR company.rebuild_source_id IN (1, 8))
+        ORDER BY rate.rebuild_source_id
+        """,
+        set_readonly_role=False,
+    )
+
+
+def currency_rate_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    return {
+        "count": len(rows),
+        "currencies": sorted({row["currency"] for row in rows}),
+        "source_company_ids": sorted({row["source_company_id"] for row in rows}),
+        "providers": sorted({row["provider"] for row in rows}),
+        "first_rate_date": min((row["date"] for row in rows), default=None),
+        "last_rate_date": max((row["date"] for row in rows), default=None),
+        "first_retrieved_at": min((row["retrieved_at"] for row in rows), default=None),
+        "last_retrieved_at": max((row["retrieved_at"] for row in rows), default=None),
+    }
 
 
 def target_full_replay_company_rows() -> list[dict[str, Any]]:
@@ -5366,6 +5424,8 @@ def target_validate(args: argparse.Namespace) -> dict[str, Any]:
     target_depreciation_schedule = target_depreciation_schedule_rows()
     source_full_replay_companies = source_full_replay_company_rows()
     target_full_replay_companies = target_full_replay_company_rows()
+    source_currency_rates = source_currency_rate_rows()
+    target_currency_rates = target_currency_rate_rows()
     source_move_backed_payments = source_move_backed_payment_rows()
     target_move_backed_payments = target_move_backed_payment_rows()
     source_no_entry_payments = source_no_entry_payment_rows()
@@ -5390,6 +5450,19 @@ def target_validate(args: argparse.Namespace) -> dict[str, Any]:
                 "tax_repartition_line_count",
                 "tax_relation_count",
                 "tax_tag_relation_count",
+            ],
+        ),
+        "currency_rates": compare_rows(
+            source_currency_rates,
+            target_currency_rates,
+            key="source_currency_rate_id",
+            fields=[
+                "currency",
+                "source_company_id",
+                "date",
+                "rate",
+                "provider",
+                "retrieved_at",
             ],
         ),
         "moves": compare_rows(
@@ -5959,6 +6032,7 @@ def target_validate(args: argparse.Namespace) -> dict[str, Any]:
         "duplicate_analytic_line_traces": duplicate_target_traces("account_analytic_line"),
         "duplicate_asset_traces": duplicate_target_traces("rebuild_account_asset"),
         "duplicate_asset_depreciation_schedule_traces": duplicate_target_traces("rebuild_account_asset_depreciation_schedule_line"),
+        "duplicate_currency_rate_traces": duplicate_target_traces("res_currency_rate"),
     }
     lock_enforcement = target_lock_enforcement_check()
     passed = (
@@ -5990,6 +6064,7 @@ def target_validate(args: argparse.Namespace) -> dict[str, Any]:
         and not invariant_failures["duplicate_analytic_line_traces"]
         and not invariant_failures["duplicate_asset_traces"]
         and not invariant_failures["duplicate_asset_depreciation_schedule_traces"]
+        and not invariant_failures["duplicate_currency_rate_traces"]
         and lock_enforcement.get("status") == "passed"
     )
     controls = {
@@ -6013,12 +6088,19 @@ def target_validate(args: argparse.Namespace) -> dict[str, Any]:
             "comparison": comparisons["full_replay_company_controls"],
             "note": "The broad replay comparison excludes source move lines without an account from accounting-line parity; these are tracked as non-account display lines for document-level follow-up.",
         },
+        "currency_rate_controls": {
+            "source": currency_rate_summary(source_currency_rates),
+            "target": currency_rate_summary(target_currency_rates),
+            "comparison": comparisons["currency_rates"],
+            "note": "Native Odoo technical rates, source provider metadata and source retrieval timestamps are compared across the complete restored snapshot, including the Track B replay period.",
+        },
         "comparisons": comparisons,
         "invariant_failures": invariant_failures,
         "lock_enforcement": lock_enforcement,
         "limitations": [
             "This validation covers posted USL benchmark journal entries and journal items only.",
             "The target database contains a broader posted replay through the source snapshot date for source companies 1 and 8; this comparison intentionally scopes to the closed USL benchmark period.",
+            "Currency-rate parity is intentionally broader than the posted benchmark slice because native Track B invoices, payments and exchange differences require the restored rates through the source snapshot date.",
             "Non-posted source move workflow review records, document-regeneration workbench cases, posted source non-account display-line review records, cross-boundary reconciliation review records, source report catalogue/line/expression/column records, move-backed source payment records, no-entry payment workflow review records, source bank statement line records, source analytic line records, scoped accounting attachments and source asset depreciation schedule evidence are compared in the broad replay controls; generated target drafts are validated by the separate document-regeneration stage and excluded from posted ledger replay controls; final report-variant acceptance remains outside the automated validation scope.",
         ],
         "status": "passed" if passed else "failed",

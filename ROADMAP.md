@@ -840,7 +840,7 @@ Overall status: **Substantially progressed, implementation continues**. The post
 - [ ] Inventory chart-of-accounts configuration.
 - [ ] Inventory taxes.
 - [ ] Inventory fiscal positions.
-- [ ] Inventory currencies and rates.
+- [x] Inventory currencies and rates. The restored source contains 1,877 ECB-tagged native EUR/USD/GBP rates from 2024-01-01 through 2026-07-20; the importer now replays and source-traces every rate.
 - [ ] Inventory analytic plans and accounts.
 - [ ] Inventory bank accounts and journals.
 - [ ] Inventory reconciliation models.
@@ -1032,6 +1032,7 @@ Overall status: **Substantially progressed, implementation continues**. The post
 - [ ] Validate payment differences.
 - [ ] Validate multicurrency invoices.
 - [ ] Validate multicurrency payments.
+- [x] Validate restored native currency-rate parity across the full source snapshot (1,877/1,877 rates, provider and retrieval metadata, no mismatches or duplicate traces).
 - [ ] Validate residual foreign-exchange balances.
 - [ ] Validate realized and unrealized exchange differences where required.
 

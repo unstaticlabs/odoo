@@ -233,6 +233,74 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertTrue(company.tax_exigibility)
         self.assertIn("Tax definitions were not changed", company.rebuild_import_note)
 
+    def test_import_currency_rates_preserves_native_source_rate_and_trace(self):
+        eur = self.env.ref("base.EUR")
+        usd = self.env.ref("base.USD")
+        company = self.env["res.company"].create({
+            "name": "Unit currency replay company",
+            "currency_id": eur.id,
+        })
+        date = fields.Date.from_string("2098-01-15")
+        retrieved_at = fields.Datetime.from_string("2098-01-16 08:30:00")
+        existing_rate = self.env["res.currency.rate"].create({
+            "name": date,
+            "rate": 1.20,
+            "currency_id": usd.id,
+            "company_id": company.id,
+        })
+        import_run = self.env["rebuild.account.import.run"].create({
+            "name": "Currency rate replay",
+            "source_snapshot_id": "unit-currency-snapshot",
+        })
+        options = {
+            "source_database": "unit-source",
+            "source_snapshot_id": "unit-currency-snapshot",
+        }
+        row = {
+            "id": 990815,
+            "name": date,
+            "rate": 1.25,
+            "currency_id": 990001,
+            "company_id": 990101,
+            "create_date": retrieved_at,
+            "write_date": retrieved_at,
+            "source_provider": "ecb",
+        }
+
+        stats = import_run._upsert_currency_rate_rows(
+            [row],
+            options,
+            {990101: company},
+            {990001: usd},
+        )
+
+        self.assertEqual(stats["source_currency_rate_count"], 1)
+        self.assertEqual(stats["imported_currency_rate_count"], 1)
+        self.assertEqual(stats["reused_natural_key_count"], 1)
+        self.assertEqual(stats["providers"], ["ecb"])
+        self.assertEqual(stats["currencies"], ["USD"])
+        self.assertEqual(existing_rate.rebuild_source_model, "res.currency.rate")
+        self.assertEqual(existing_rate.rebuild_source_id, 990815)
+        self.assertEqual(existing_rate.rebuild_source_snapshot, "unit-currency-snapshot")
+        self.assertEqual(existing_rate.rebuild_rate_provider, "ecb")
+        self.assertEqual(existing_rate.rebuild_rate_retrieved_at, retrieved_at)
+        self.assertAlmostEqual(existing_rate.rate, 1.25)
+        self.assertAlmostEqual(usd._convert(125.0, eur, company, date), 100.0)
+
+        updated_row = {**row, "rate": 1.30}
+        repeated_stats = import_run._upsert_currency_rate_rows(
+            [updated_row],
+            options,
+            {990101: company},
+            {990001: usd},
+        )
+        self.assertEqual(repeated_stats["reused_natural_key_count"], 0)
+        self.assertEqual(self.env["res.currency.rate"].search_count([
+            ("rebuild_source_model", "=", "res.currency.rate"),
+            ("rebuild_source_id", "=", 990815),
+        ]), 1)
+        self.assertAlmostEqual(existing_rate.rate, 1.30)
+
     def test_accountant_reviewer_can_prepare_test_fec_only(self):
         reviewer = self.env["res.users"].with_context(no_reset_password=True).create({
             "name": "FEC Reviewer",

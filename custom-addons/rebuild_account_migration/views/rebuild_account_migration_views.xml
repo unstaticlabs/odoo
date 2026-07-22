@@ -1,5 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <record id="view_rebuild_currency_rate_list_trace" model="ir.ui.view">
+        <field name="name">res.currency.rate.list.rebuild.trace</field>
+        <field name="model">res.currency.rate</field>
+        <field name="inherit_id" ref="base.view_currency_rate_tree"/>
+        <field name="arch" type="xml">
+            <field name="write_date" position="after">
+                <field name="rebuild_rate_provider" string="Source Provider" optional="show"/>
+                <field name="rebuild_rate_retrieved_at" string="Source Retrieved At" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_rebuild_currency_rate_form_trace" model="ir.ui.view">
+        <field name="name">res.currency.rate.form.rebuild.trace</field>
+        <field name="model">res.currency.rate</field>
+        <field name="inherit_id" ref="base.view_currency_rate_form"/>
+        <field name="arch" type="xml">
+            <field name="company_id" position="after">
+                <field name="rebuild_rate_provider" string="Source Provider"/>
+                <field name="rebuild_rate_retrieved_at" string="Source Retrieved At"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_rebuild_currency_form_rate_trace" model="ir.ui.view">
+        <field name="name">res.currency.form.rate.rebuild.trace</field>
+        <field name="model">res.currency</field>
+        <field name="inherit_id" ref="base.view_currency_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='rate_ids']/list/field[@name='write_date']" position="after">
+                <field name="rebuild_rate_provider" string="Source Provider" optional="show"/>
+                <field name="rebuild_rate_retrieved_at" string="Source Retrieved At" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
     <record id="account.menu_finance" model="ir.ui.menu">
         <field name="name">Accounting</field>
         <field name="action" eval="'ir.actions.act_window,%d' % ref('account.open_account_journal_dashboard_kanban')"/>
@@ -286,6 +322,7 @@
                 <field name="target_database"/>
                 <field name="imported_move_count"/>
                 <field name="imported_move_line_count"/>
+                <field name="imported_currency_rate_count"/>
                 <field name="imported_move_review_count"/>
                 <field name="imported_move_line_review_count"/>
                 <field name="document_regeneration_case_count"/>
@@ -333,6 +370,7 @@
                             <group>
                                 <field name="company_ids" widget="many2many_tags"/>
                                 <field name="imported_company_count"/>
+                                <field name="imported_currency_rate_count"/>
                                 <field name="imported_account_count"/>
                                 <field name="imported_journal_count"/>
                                 <field name="imported_partner_count"/>

@@ -40,6 +40,14 @@ class ResPartner(models.Model):
     _inherit = ["res.partner", "rebuild.source.trace.mixin"]
 
 
+class ResCurrencyRate(models.Model):
+    _name = "res.currency.rate"
+    _inherit = ["res.currency.rate", "rebuild.source.trace.mixin"]
+
+    rebuild_rate_provider = fields.Char(index=True, readonly=True, copy=False)
+    rebuild_rate_retrieved_at = fields.Datetime(readonly=True, copy=False)
+
+
 class AccountAccount(models.Model):
     _name = "account.account"
     _inherit = ["account.account", "rebuild.source.trace.mixin"]
