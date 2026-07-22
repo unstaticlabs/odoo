@@ -4,57 +4,59 @@
 
 > **Core constraint:** Extend and compose Odoo rather than creating an irreconcilable fork. Preserve upstream compatibility, standard business semantics, upgradeability and auditability.
 
-## Current Milestone 13 snapshot - 2026-07-22
+## Current Milestone 13 checkpoint - 2026-07-22
 
-Detailed status report: `docs/accounting/milestone-13-current-progress-report.md`.
+Authoritative checkpoint: `docs/accounting/milestone-13-checkpoint-2026-07-22.md`.
 
-What is complete enough to preserve:
+Overall status: **Substantially progressed, implementation continues**. The posted USL benchmark ledger slice is technically reconstructed and compared, but Milestone 13 is not complete because user-facing business documents, dynamic report parity, declarations, final FEC acceptance and accountant workflow remain incomplete.
+
+### Verified complete enough to preserve
 
 - [x] Isolated source database restore stage for the Odoo Online accounting dump.
-- [x] Source dump checksum and private source snapshot generation.
+- [x] Source dump checksum, manifest, source controls and private snapshot generation.
 - [x] Clean accounting target reset stage for `odoo_rebuild_accounting_test`.
 - [x] Source-traced posted ledger replay into the target validation database.
-- [x] Target ledger validation and source/target comparison artifacts for the posted ledger slice.
-- [x] Imported source report catalogue preservation.
-- [x] Preliminary Odoo evidence views for import runs, discrepancies, source reports, imported reports, assets, deferred schedules and reconciliations.
-- [x] Preliminary export wizard for imported report artifacts and FEC TXT generation.
-- [x] Diataxis-style user documentation under `docs/users/`.
-- [x] Browser-accessible user documentation from Odoo at `/usl/user-docs`.
-- [x] Reporting and closing UX target documented from the supplied annual accounts, SIG and tax report samples.
-- [x] Accounting development workflow documented to avoid unnecessary full rebuilds and require scoped Conventional Commits.
-- [x] Pinned OCA 19.0 accounting/reporting/reconciliation add-ons can be synced locally with `make oca-addons-sync`.
+- [x] Benchmark posted-ledger validation for USL from `2024-01-10` through `2025-09-30`: `2,046` posted moves, `4,809` move lines, debit and credit both `1,064,045.02`, zero source/target difference.
+- [x] Imported posted replay through source snapshot: `4,843` posted moves and `11,392` move lines.
+- [x] Full and partial reconciliation records imported and compared for the validated benchmark slice.
+- [x] Bank statement lines imported without inventing bank statement headers.
+- [x] Assets, depreciation schedule evidence, deferred schedules, analytic lines and scoped accounting attachments represented in the imported target.
+- [x] Imported source report catalogue, lines, columns and expressions preserved as evidence.
+- [x] OCA 19.0 accounting/reporting/reconciliation add-ons pinned and installable through `make oca-addons-sync`.
 - [x] OCA financial reporting, MIS Builder, reconciliation and bank statement import foundation installed successfully on `odoo_rebuild_accounting_test`.
-- [x] Normal Compose Odoo runtime now mounts both `oca-src/` and `oca-addons/` so symlinked OCA modules resolve.
-- [x] Local Compose, init and Dev Container Odoo runtimes default to `max_cron_threads = 0` for imported-accounting parity work.
+- [x] Accounting app entry opens the Accounting dashboard directly, with first-level `Review Issues`, `Reconcile Bank Transactions`, `Customers`, `Suppliers and Expenses`, and `Reports and Declarations` entries.
+- [x] Browser-accessible user documentation from Odoo at `/usl/user-docs`.
+- [x] Local imported-accounting runtime disables cron threads by default for safer development inspection.
 
-What is not complete:
+### Functionally complete but acceptance incomplete
 
-- [ ] OCA report screens are installed but not yet validated as USL/Odoo Online-equivalent dynamic report workflows.
-- [ ] Current PDF/XLSX report exports are not accountant-ready templates.
-- [x] OCA Trial Balance no longer fails on duplicate unaffected-earnings accounts after source-traced retained earnings import and empty bootstrap-account archival.
-- [x] Imported companies receive a default Odoo report layout so OCA report actions no longer divert users into document-layout setup.
-- [x] OCA interactive report launchers now default to the USL benchmark period in posted mode.
-- [x] OCA Trial Balance opens through the normal Odoo report viewer and renders imported USL benchmark ledger rows.
-- [x] OCA General Ledger, Journal Ledger, VAT Report, Open Items and Aged Partner Balance open with benchmark defaults and render through the normal Odoo report viewer.
-- [x] Split OCA Aged Partner Balance into cleaner user-facing Aged Receivable and Aged Payable shortcuts.
-- [x] Primary report menu entries now open interactive OCA report screens where available instead of defaulting to technical export artifacts.
-- [x] OCA MIS Builder Balance Sheet and Profit and Loss instances are configured for the USL benchmark period and open from the normal Reports and Declarations menu with Preview, Print and Export controls.
-- [x] MIS Balance Sheet and Profit and Loss previews render imported benchmark-period values in the browser.
-- [x] MIS account-detail expansion works with archived imported accounts that still have posted historical move lines.
-- [x] Accounting app entry now targets the accounting dashboard directly.
-- [x] Accounting now exposes first-level Review Issues and Reconcile Bank Transactions entries.
-- [x] Native Odoo Expenses is part of the accounting rebuild dependency set and is reachable from Accounting > Suppliers and Expenses.
-- [x] Reconcile Bank Transactions opens the OCA reconciliation kanban workbench with imported bank transactions on `odoo_rebuild_accounting_test`.
-- [x] Raw imported report/evidence screens are grouped under Review and Audit > Advanced Audit.
-- [ ] Historical bank statement and reconciliation UX is not yet equivalent to the Odoo Online reconciliation workbench.
-- [x] OCA `account_reconcile_oca` kanban workbench no longer fails in the Odoo 19 web client after a compatible card override.
-- [ ] Customer invoices, vendor bills, refunds and source-derived historical expenses are not yet complete user-facing reconstructed business workflows.
-- [ ] French declaration guidance for CFS Pro and Portailpro field entry is not yet implemented.
-- [x] FEC test export is available through the custom reviewed export path for accountant-review users.
-- [x] Standard French FEC wizard can be opened by accounting review users in forced test mode without granting final lock-affecting FEC permissions.
-- [x] Settings behavior with imported cash-basis taxes is diagnosed and normalized during import without changing tax definitions.
-- [ ] Menu grouping needs a final CEO/accountant workflow polish pass after report and document workflows are complete.
-- [ ] Accountant review and formal acceptance remain pending.
+- [ ] FEC test-mode export is generated from Odoo, locally structurally preflighted, and has a private validation artifact; final accountant-reviewed FEC acceptance workflow remains incomplete.
+- [ ] Lock-date enforcement is technically validated for a protected benchmark write; full role/UI lock workflow acceptance remains incomplete.
+- [ ] Accountant reviewer access probes pass for scoped evidence and write blocking; a full accountant browser walkthrough and attachment classification policy remain incomplete.
+- [ ] OCA/MIS report screens and custom report artifacts generate benchmark outputs; Level 4 interactive report parity and accountant-ready templates remain incomplete.
+
+### Partial or evidence-only
+
+- [ ] Customer invoices, customer credit notes, vendor bills, supplier refunds and historical source expenses are represented as ledger/review evidence but are not yet complete native user-facing business workflows.
+- [ ] Native Odoo Expenses is installed and reachable from Accounting, but no historical `hr.expense` records are reconstructed in the current imported target.
+- [ ] Historical reconciliation evidence is imported and the OCA reconciliation workbench is reachable, but operational reconciliation parity is not validated end to end.
+- [ ] French annual statements, SIG, CAF, tax package mappings and VAT evidence are generated as technical artifacts; declaration workflows and accountant acceptance remain incomplete.
+- [ ] Report PDFs/XLSX exist, but they are not yet accountant-ready templates matching the supplied annual-account/SIG/tax-report expectations.
+- [ ] External report values are represented, but their declaration lifecycle, reviewer state and evidence workflow are not final.
+
+### Not started or still milestone-blocking
+
+- [ ] Complete native reconstruction and validation of source customer/vendor/refund/expense workflows where source data permits.
+- [ ] Complete Level 4 parity for mandatory interactive reports: filters, drill-down, exports, benchmark reconciliation and accountant-readable presentation.
+- [ ] Complete French declaration preparation for CA12, 2065/2033, CERFA/DGFiP box mappings, deadlines, filing status and review evidence.
+- [ ] Complete final FEC acceptance dossier with official validation rerun, checksum, reconciliation to accepted statements and accountant approval.
+- [ ] Complete accountant-ready closing archive and review workflow.
+- [ ] Run two full clean reconstructions after the remaining accounting/report/declaration work lands.
+
+### Deferred or no longer Milestone 13 requirements
+
+- [ ] Payment providers are not a Milestone 13 target. They may remain available if provided by Community/Odoo modules, but they are not a required parity item.
+- [ ] Live bank synchronization is a future roadmap item. Historical and manually imported bank accounting remains in Milestone 13 scope.
 
 # 0. Programme governance and invariants
 

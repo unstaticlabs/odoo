@@ -6,6 +6,10 @@ Audience: Valentin, USL finance operators, the USL accountant, and the next impl
 
 This report describes the current implementation state. It is not a closure report. The current system has made real progress on deterministic source reconstruction and evidence capture, but it is not yet an Odoo Online Enterprise-equivalent accounting user experience.
 
+Formal checkpoint:
+
+- [Milestone 13 checkpoint - 2026-07-22](milestone-13-checkpoint-2026-07-22.md)
+
 Related target document:
 
 - [Milestone 13 reporting and closing UX target](milestone-13-reporting-and-closing-ux-target.md)
@@ -219,7 +223,7 @@ The docs are also exposed from Odoo through an authenticated route:
 and through the custom menu item:
 
 ```text
-Accounting -> Review -> Rebuild Evidence -> User Guide
+Accounting -> Review and Audit -> Advanced Audit -> User Guide
 ```
 
 This is implemented, but the content and menu placement need another UX pass because the current information architecture still feels too technical for frequent CEO/accountant workflows.
@@ -247,7 +251,7 @@ Not yet validated as finished product behavior:
 - readable templated PDF/XLSX reports
 - report UX parity with filters, unfold, annotations and exports as seen on screen
 - accountant access for official non-test FEC export
-- Settings behavior with cash-basis taxes is diagnosed and normalized during import
+- accountant validation of the source cash-basis VAT treatment
 - accountant review of FEC and statutory/tax outputs
 - complete second clean rehearsal evidence after the latest UX changes
 
@@ -413,7 +417,7 @@ Required work: implement human-readable dynamic report screens and exports, then
 - tax-return workflow UX
 - official non-test FEC access policy
 - broader accounting menu hierarchy and daily workflow naming
-- settings behavior with cash-basis taxes
+- accountant validation of cash-basis VAT treatment
 
 ### Not yet complete
 

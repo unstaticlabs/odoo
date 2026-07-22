@@ -31,6 +31,7 @@ The implemented user-facing accounting features are centered on reconstructed ac
 - open Accounting directly from the application menu;
 - open Review Issues from the first Accounting menu level;
 - open Reconcile Bank Transactions from the first Accounting menu level to review imported bank statement lines in the reconciliation workbench;
+- open the native Expenses workspace from the supplier accounting area;
 - use OCA interactive report wizards for Trial Balance, General Ledger, Journal Ledger, Open Items, Aged Partner Balance and VAT;
 - open a reconstruction summary for each imported company;
 - inspect imported posted journal items;
@@ -46,6 +47,8 @@ The implemented user-facing accounting features are centered on reconstructed ac
 - inspect cross-boundary reconciliation reviews before any native reconciliation decision is applied.
 
 The system deliberately distinguishes technical evidence from professional acceptance. A report can have technical evidence and still require accountant approval before Milestone 13 can close.
+
+Current limitation: the native Expenses workspace is installed for future daily use, but the current imported target does not yet reconstruct historical source expense records as native `hr.expense` documents. Expense-related source accounting remains available through the imported ledger and review evidence until that reconstruction layer is complete.
 
 ## Documentation Structure
 
