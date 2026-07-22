@@ -50,7 +50,7 @@ The implemented user-facing accounting features are centered on reconstructed ac
 
 The system deliberately distinguishes technical evidence from professional acceptance. A report can have technical evidence and still require accountant approval before Milestone 13 can close.
 
-Current limitation: the native Expenses workspace is installed for future daily use, but the current imported target does not yet reconstruct historical source expense records as native `hr.expense` documents. Expense-related source accounting remains available through the imported ledger and review evidence until that reconstruction layer is complete.
+Expense reconstruction status: a separate, disposable Track B proof reconstructs all `325` source expenses from `2025-10-01` through `2026-06-30` as source-traced native `hr.expense` records and validates their approval/refusal states and accounting effects without mismatches. This includes `97` company payments and `79` grouped receipts for `95` employee-paid expenses. The normal imported target still preserves the exact historical ledger rather than mixing in these recomputed records; making the proven expenses operational there remains tied to the bank-matching and employee-reimbursement integration increment. Until then, review historical expense accounting in the imported ledger/evidence and use the Expenses workspace only for new daily activity.
 
 ## Documentation Structure
 

@@ -68,6 +68,21 @@ class AccountPaymentTermLine(models.Model):
     _inherit = ["account.payment.term.line", "rebuild.source.trace.mixin"]
 
 
+class HrEmployee(models.Model):
+    _name = "hr.employee"
+    _inherit = ["hr.employee", "rebuild.source.trace.mixin"]
+
+
+class HrExpense(models.Model):
+    _name = "hr.expense"
+    _inherit = ["hr.expense", "rebuild.source.trace.mixin"]
+
+
+class ProductProduct(models.Model):
+    _name = "product.product"
+    _inherit = ["product.product", "rebuild.source.trace.mixin"]
+
+
 class AccountAccount(models.Model):
     _name = "account.account"
     _inherit = ["account.account", "rebuild.source.trace.mixin"]

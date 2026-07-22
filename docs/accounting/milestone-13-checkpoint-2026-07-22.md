@@ -8,9 +8,9 @@ This checkpoint records verified current reality for Milestone 13. It is not a c
 
 Milestone 13 is substantially progressed but not complete. The strongest verified achievement is that the USL closed benchmark posted-ledger slice can be reconstructed in `odoo_rebuild_accounting_test` with source/target parity for moves, move lines, debit, credit, full and partial reconciliations, bank statement lines, scoped attachments, assets, depreciation evidence, deferred schedule evidence and analytic lines.
 
-The largest remaining product gap is now the rest of the user-facing accounting lifecycle: native current-period invoices/bills/refunds/receipts pass in Track B, while payments, bank matching, reconciliation, historical expenses, dynamic report semantics, declaration preparation and accountant acceptance remain incomplete.
+The largest remaining product gap is now the rest of the user-facing accounting lifecycle: native current-period invoices/bills/refunds/receipts and all `325` source expenses pass in Track B, while bank matching, employee reimbursement, remaining payment/reconciliation state, replacement-target integration, dynamic report semantics, declaration preparation and accountant acceptance remain incomplete.
 
-Engineering can continue autonomously on implementation increments that have already been decided: native Track B payments/reconciliation, historical expense reconstruction, OCA-first interactive reporting, the USL closing/declaration layer, FEC acceptance workflow, and accountant review packages. Product/accountant input is still required for VAT exigibility treatment, accepted statutory presentation, attachment visibility rules, and final FEC/declaration acceptance.
+Engineering can continue autonomously on implementation increments that have already been decided: Track B bank/reimbursement/reconciliation completion and target integration, OCA-first interactive reporting, the USL closing/declaration layer, FEC acceptance workflow, and accountant review packages. Product/accountant input is still required for VAT exigibility treatment, accepted statutory presentation, attachment visibility rules, and final FEC/declaration acceptance.
 
 ## Repository and runtime baseline
 
@@ -105,9 +105,9 @@ Current target database counts from configured Odoo shell:
 | Source report columns | 141 | preserved |
 | Source report expressions | 1,227 | preserved |
 | Document-regeneration cases | 194 | `189` validated exact-target drafts plus `5` review-only/not-applicable cases |
-| Native `hr.expense` records | 0 | workspace installed, historical expense reconstruction not complete |
+| Native `hr.expense` records | 325 in isolated Track B; 0 recomputed records mixed into the exact target | all source expenses in the current period pass native reconstruction; operational target integration remains separate |
 
-Current exact-target import status is `partial`, classified as `POSTED_SOURCE_REPLAY_THROUGH_SNAPSHOT`. The reason is product scope, not a failed ledger replay: posted replay and the separate native Track B document proof work, but payments/reconciliation, historical expenses, declaration workflows, full report semantics and professional acceptance are not complete.
+Current exact-target import status is `partial`, classified as `POSTED_SOURCE_REPLAY_THROUGH_SNAPSHOT`. The reason is product scope, not a failed ledger replay: posted replay and the separate native Track B document/expense proofs work, but bank matching, employee reimbursement, remaining payment/reconciliation state, replacement-target integration, declaration workflows, full report semantics and professional acceptance are not complete.
 
 ## Source-versus-target benchmark controls
 
@@ -148,7 +148,7 @@ The target import represents `4,843` posted source moves. The apparent differenc
 - `5` are review-only/not applicable (`2` cancelled source records and `3` zero-line draft records);
 - `467` non-posted or display-only move lines are represented as move-line review records.
 
-This classification is enough for audit visibility, but not enough for final user-facing parity because native invoice, bill, refund and expense reconstruction remains incomplete.
+This classification is enough for audit visibility, and isolated Track B now supplies native invoice, bill, refund, receipt and expense proof. Final user-facing parity still requires integration with payment, bank and reimbursement workflows in the replacement target.
 
 ## User-facing Accounting experience
 
@@ -290,7 +290,7 @@ Current gaps:
 | --- | --- | --- | --- | --- |
 | Source restore | Functionally complete but not rerun in checkpoint | `source-restore-status.json` passed | full clean rehearsal before closure | P1 |
 | Source extraction | Functionally complete but not rerun in checkpoint | `source-manifest.json`, `source-controls.json` | extraction for all non-ledger semantics needs continued validation | P1 |
-| Target reconstruction | Partial | exact target plus separate passing Track B artifact | payments/reconciliation, expenses, reports and declarations | P0 |
+| Target reconstruction | Partial | exact target plus separate passing Track B document/expense artifacts | bank/reimbursement/reconciliation integration, reports and declarations | P0 |
 | Posted ledger replay | Verified complete for benchmark slice | `target-validate-status.json` passed | broaden final acceptance beyond posted slice | P0 if regresses |
 | Companies | Verified represented | Odoo shell: 2 companies | USL Media empty readiness/user reports | P1 |
 | Accounts/journals | Functionally complete but acceptance incomplete | import/run counts, validation comparisons | bootstrap/import count distinction needs clearer user evidence | P1 |
@@ -298,7 +298,7 @@ Current gaps:
 | Currencies/rates | Functionally complete for restored history | `1,877/1,877` exact traced rates | future automatic provider remains separate | P1 |
 | Moves/move lines | Verified complete for posted replay | exact source/target counts | non-posted workflow reconstruction | P0 |
 | Invoices/bills/refunds/receipts | Native Track B proof complete | `284/284` posted and exact, `0` blocked/mismatched | integrate with later payment/reconciliation proof | P1 |
-| Expenses | Implemented but not user-data complete | `hr_expense` installed, 0 records | historical expense reconstruction | P1 |
+| Expenses | Native Track B proof complete | `325/325` expenses and `176/176` generated moves exact; idempotent rerun passes | integrate with bank matching and employee reimbursement in the replacement target | P1 |
 | Payments | Partial | 97 imported, 13 review records | no-entry payment workflow native UX | P1 |
 | Bank/reconciliation | Partial | statement lines/reconciliations imported; OCA menu present | operational reconciliation UX not fully validated | P0 |
 | Assets/depreciation | Functionally complete but acceptance incomplete | 3 assets, 91 schedule rows | statement/tax reconciliation acceptance | P1 |
@@ -331,7 +331,7 @@ Documentation issues corrected in this checkpoint:
 - `ROADMAP.md` had checked implementation items under "What is not complete"; it now points to this dated checkpoint and separates verified complete, functionally complete, partial, evidence-only and not-started/deferred work.
 - `docs/accounting/README.md` now lists this checkpoint.
 - `docs/accounting/milestone-13-current-progress-report.md` now explicitly defers to this checkpoint for current status and fixes the stale user-guide menu path and cash-basis wording.
-- `docs/users/README.md` now states that the native Expenses workspace is available but historical expense records are not yet reconstructed.
+- `docs/users/README.md` now distinguishes the passing `325`-expense Track B proof from the exact imported ledger and explains the remaining operational integration boundary.
 
 Remaining documentation debt:
 
@@ -343,7 +343,7 @@ Remaining documentation debt:
 
 ### P0 milestone blockers
 
-- Native business-document reconstruction is incomplete for customer invoices, vendor bills, refunds and expenses.
+- Native current-period document and expense reconstruction passes in isolated Track B, but those records are not yet integrated with bank matching, employee reimbursement and the replacement-target lifecycle.
 - Mandatory reports have technical evidence and OCA/MIS surfaces, but not full Level 4 user-facing/accountant-accepted parity.
 - French declaration workflows for CA12, 2065/2033 and CFS Pro/Portailpro guidance are not complete.
 - VAT deductible/exigibility treatment still needs accountant validation.
@@ -352,7 +352,7 @@ Remaining documentation debt:
 
 ### P1 material risks
 
-- Currency-rate reconstruction is not sufficiently proven.
+- Automatic future currency-rate refresh is not configured; restored historical source-rate parity itself is proven.
 - Attachment privacy/access classification is incomplete.
 - Accountant browser walkthrough is incomplete.
 - USL Media is represented but its empty-company readiness and multi-company reporting UX need validation.
@@ -366,11 +366,11 @@ Remaining documentation debt:
 
 ## Recommended next increments
 
-1. **Native payments, reconciliation and historical expenses**
-   - User outcome: the proven invoices, bills, refunds and receipts participate in normal payment and bank workflows, while historical employee expenses are readable as native Odoo expenses where source data permits.
-   - Acceptance: source payment/reconciliation/expense counts are classified and native accounting effects match source without altering the exact target.
-   - Dependency: Track B payment, statement, reconciliation and expense field mapping.
-   - Decision needed: accountant/product approval for source records that cannot be safely regenerated.
+1. **Complete bank matching, reimbursements and target integration**
+   - User outcome: the proven invoices, bills, refunds, receipts and expenses participate in normal payment, bank and employee-reimbursement workflows in the replacement target.
+   - Acceptance: all `97` company payments reach the source-equivalent bank-matched state, all `95` employee-paid expenses reach the source-equivalent reimbursed state, remaining payment/reconciliation counts are classified, and exact accounting effects remain unchanged.
+   - Dependency: Track B statement, payment and reconciliation mapping plus an explicit integration boundary with the exact historical target.
+   - Decision needed: accountant/product approval for ambiguous source matches or records that cannot be safely regenerated.
 
 2. **Operational reconciliation workbench validation**
    - User outcome: finance users can reconcile bank transactions and understand imported historical reconciliation state.
@@ -444,4 +444,4 @@ Remaining documentation debt:
 
 **Substantially progressed, implementation continues.**
 
-The rebuild now has a credible Layer 1 posted-ledger foundation, exact native current-period business-document proof, and meaningful Odoo-facing evidence/report surfaces. It is not Milestone 13 complete because payments and operational reconciliation, historical expenses, Level 4 reports, French declaration workflows, final FEC acceptance and the accountant-ready review experience remain unfinished.
+The rebuild now has a credible Layer 1 posted-ledger foundation, exact native current-period business-document and expense proof, and meaningful Odoo-facing evidence/report surfaces. It is not Milestone 13 complete because bank matching, employee reimbursement and operational reconciliation integration, Level 4 reports, French declaration workflows, final FEC acceptance and the accountant-ready review experience remain unfinished.

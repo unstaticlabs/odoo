@@ -1407,8 +1407,6 @@ class RebuildAccountImportRun(models.Model):
             target_currency_id = currencies[row["currency_id"]].id if row["currency_id"] in currencies else False
             has_imported_lines = bool(account and self.env["account.move.line"].search_count([
                 ("account_id", "=", account.id),
-                ("rebuild_source_model", "=", "account.move.line"),
-                ("rebuild_source_snapshot", "=", options.get("source_snapshot_id")),
             ], limit=1))
             vals = {
                 "name": self._source_text(row["name"]) or code or f"Source account {row['id']}",
@@ -2133,6 +2131,12 @@ class RebuildAccountImportRun(models.Model):
             if row["currency_id"] in currencies:
                 vals["currency_id"] = currencies[row["currency_id"]].id
             if journal:
+                # Odoo recreates payment method lines when either dependency is
+                # present in write(), even if the value itself did not change.
+                if journal.type == vals["type"]:
+                    vals.pop("type")
+                if "currency_id" in vals and journal.currency_id.id == vals["currency_id"]:
+                    vals.pop("currency_id")
                 journal.write(vals)
             else:
                 journal = Journal.create(vals)
@@ -4815,6 +4819,1123 @@ class RebuildAccountImportRun(models.Model):
             "source_tax_ids": source_tax_ids,
         }
 
+    def _native_expense_rows(self, conn, options):
+        return self._fetchall(
+            conn,
+            """
+            SELECT expense.id, expense.name, expense.state, expense.approval_state,
+                   expense.payment_mode, expense.date, expense.employee_id,
+                   expense.company_id, expense.product_id, expense.product_uom_id,
+                   expense.currency_id, expense.payment_method_line_id,
+                   expense.account_move_id, expense.vendor_id, expense.account_id,
+                   expense.quantity, expense.tax_amount_currency, expense.tax_amount,
+                   expense.total_amount_currency, expense.total_amount,
+                   expense.untaxed_amount_currency, expense.untaxed_amount,
+                   expense.price_unit, expense.analytic_distribution,
+                   expense.description, expense.approval_date,
+                   COALESCE((
+                       SELECT array_agg(relation.tax_id ORDER BY relation.tax_id)
+                       FROM expense_tax relation
+                       WHERE relation.expense_id = expense.id
+                   ), ARRAY[]::integer[]) AS tax_ids
+            FROM hr_expense expense
+            WHERE expense.company_id = ANY(%(source_company_ids)s)
+              AND expense.date BETWEEN %(date_from)s AND %(date_to)s
+            ORDER BY expense.date, expense.id
+            """,
+            options,
+        )
+
+    def _native_expense_move_rows(self, conn, options):
+        return self._fetchall(
+            conn,
+            """
+            SELECT move.id, move.name, move.ref, move.state, move.move_type,
+                   move.journal_id, move.company_id, move.partner_id,
+                   move.currency_id, move.date, move.invoice_date,
+                   move.invoice_date_due,
+                   move.amount_untaxed, move.amount_tax, move.amount_total,
+                   payment.id AS payment_id, payment.date AS payment_date,
+                   payment.journal_id AS payment_journal_id,
+                   payment.company_id AS payment_company_id,
+                   payment.currency_id AS payment_currency_id,
+                   payment.partner_id AS payment_partner_id,
+                   payment.payment_method_line_id,
+                   payment.outstanding_account_id,
+                   payment.destination_account_id,
+                   payment.amount AS payment_amount,
+                   payment.payment_type, payment.partner_type,
+                   payment.memo, payment.payment_reference,
+                   payment.state AS payment_state
+            FROM account_move move
+            LEFT JOIN LATERAL (
+                SELECT source_payment.*
+                FROM account_payment source_payment
+                WHERE source_payment.move_id = move.id
+                ORDER BY source_payment.id
+                LIMIT 1
+            ) payment ON TRUE
+            WHERE move.id IN (
+                SELECT DISTINCT expense.account_move_id
+                FROM hr_expense expense
+                WHERE expense.company_id = ANY(%(source_company_ids)s)
+                  AND expense.date BETWEEN %(date_from)s AND %(date_to)s
+                  AND expense.account_move_id IS NOT NULL
+            )
+            ORDER BY move.date, move.id
+            """,
+            options,
+        )
+
+    def _native_expense_source_account_totals(self, conn, options):
+        rows = self._fetchall(
+            conn,
+            """
+            SELECT line.move_id, line.account_id,
+                   round(sum(line.debit)::numeric, 2) AS debit,
+                   round(sum(line.credit)::numeric, 2) AS credit,
+                   round(sum(line.balance)::numeric, 2) AS balance,
+                   round(sum(line.amount_currency)::numeric, 2) AS amount_currency
+            FROM account_move_line line
+            WHERE line.move_id IN (
+                SELECT DISTINCT expense.account_move_id
+                FROM hr_expense expense
+                WHERE expense.company_id = ANY(%(source_company_ids)s)
+                  AND expense.date BETWEEN %(date_from)s AND %(date_to)s
+                  AND expense.account_move_id IS NOT NULL
+            )
+              AND line.account_id IS NOT NULL
+            GROUP BY line.move_id, line.account_id
+            ORDER BY line.move_id, line.account_id
+            """,
+            options,
+        )
+        totals_by_move = defaultdict(dict)
+        for row in rows:
+            totals_by_move[row["move_id"]][str(row["account_id"])] = {
+                "debit": round(self._amount(row["debit"]), 2),
+                "credit": round(self._amount(row["credit"]), 2),
+                "balance": round(self._amount(row["balance"]), 2),
+                "amount_currency": round(self._amount(row["amount_currency"]), 2),
+            }
+        return totals_by_move
+
+    def _native_expense_extend_account_map(
+        self,
+        conn,
+        options,
+        companies,
+        currencies,
+        accounts,
+    ):
+        """Add accounts needed only by unposted source expenses.
+
+        The shared ledger mapper intentionally starts from journal effects.
+        Approved expenses without an entry can reference valid expense accounts
+        that do not occur in the selected posted period, so Track B must extend
+        the configuration map before those draft documents can be recreated.
+        """
+        rows = self._fetchall(
+            conn,
+            """
+            SELECT account.id, account.name, account.code_store,
+                   account.account_type, account.active, account.reconcile,
+                   account.non_trade, account.currency_id,
+                   array_remove(array_agg(relation.res_company_id
+                                          ORDER BY relation.res_company_id), NULL) AS company_ids
+            FROM account_account account
+            LEFT JOIN account_account_res_company_rel relation
+                   ON relation.account_account_id = account.id
+            WHERE account.id IN (
+                SELECT DISTINCT expense.account_id
+                FROM hr_expense expense
+                WHERE expense.company_id = ANY(%(source_company_ids)s)
+                  AND expense.date BETWEEN %(date_from)s AND %(date_to)s
+                  AND expense.account_id IS NOT NULL
+            )
+            GROUP BY account.id
+            ORDER BY account.id
+            """,
+            options,
+        )
+        missing_rows = [row for row in rows if row["id"] not in accounts]
+        self._quarantine_bootstrap_account_code_collisions(missing_rows, options, companies)
+        Account = self.env["account.account"].with_context(
+            active_test=False,
+            import_file=True,
+        )
+        imported_count = 0
+        archive_after_post = []
+        for row in missing_rows:
+            source_company_ids = [
+                source_company_id
+                for source_company_id in row["company_ids"] or options["source_company_ids"]
+                if source_company_id in companies
+            ]
+            if not source_company_ids:
+                continue
+            source_company_id = 1 if 1 in source_company_ids else source_company_ids[0]
+            company = companies[source_company_id]
+            code = self._source_account_code(row["code_store"], source_company_id)
+            account = Account.search([
+                ("rebuild_source_model", "=", "account.account"),
+                ("rebuild_source_id", "=", row["id"]),
+                ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
+            ], limit=1)
+            if not account and code:
+                account = Account.with_company(company).search([
+                    ("code", "=", code),
+                    ("company_ids", "in", company.id),
+                ], limit=1)
+            vals = {
+                "name": self._source_text(row["name"]) or code or f"Source account {row['id']}",
+                "code": code,
+                "account_type": row["account_type"] or "expense",
+                "reconcile": bool(row["reconcile"]),
+                "non_trade": bool(row["non_trade"]),
+                "currency_id": (
+                    currencies[row["currency_id"]].id
+                    if row["currency_id"] in currencies
+                    else False
+                ),
+                "active": True,
+                "company_ids": [Command.set([
+                    companies[company_id].id for company_id in source_company_ids
+                ])],
+                **self._trace_values("account.account", row["id"], options),
+            }
+            if not row["active"]:
+                archive_after_post.append(row["id"])
+            if account:
+                account.with_company(company).write(vals)
+            else:
+                account = Account.with_company(company).create(vals)
+            accounts[row["id"]] = account
+            imported_count += 1
+        return {
+            "source_expense_account_count": len(rows),
+            "additional_expense_account_count": imported_count,
+            "archive_after_post_source_ids": archive_after_post,
+        }
+
+    def _native_expense_employee_map(self, conn, options, companies, partners):
+        rows = self._fetchall(
+            conn,
+            """
+            SELECT employee.id, employee.name, employee.company_id,
+                   employee.work_contact_id, employee.work_email, employee.active
+            FROM hr_employee employee
+            WHERE employee.id IN (
+                SELECT DISTINCT expense.employee_id
+                FROM hr_expense expense
+                WHERE expense.company_id = ANY(%(source_company_ids)s)
+                  AND expense.date BETWEEN %(date_from)s AND %(date_to)s
+            )
+            ORDER BY employee.id
+            """,
+            options,
+        )
+        employees = {}
+        Employee = self.env["hr.employee"].sudo().with_context(active_test=False)
+        for row in rows:
+            company = companies.get(row["company_id"])
+            work_contact = partners.get(row["work_contact_id"])
+            if not company or not work_contact:
+                continue
+            employee = Employee.search([
+                ("rebuild_source_model", "=", "hr.employee"),
+                ("rebuild_source_id", "=", row["id"]),
+                ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
+            ], limit=1)
+            if not employee:
+                employee = Employee.search([
+                    ("company_id", "=", company.id),
+                    ("work_contact_id", "=", work_contact.id),
+                ], limit=1)
+            vals = {
+                "name": row["name"] or f"Source employee {row['id']}",
+                "company_id": company.id,
+                "work_contact_id": work_contact.id,
+                "work_email": row["work_email"],
+                "active": bool(row["active"]),
+                **self._trace_values("hr.employee", row["id"], options),
+            }
+            if employee:
+                employee.write(vals)
+            else:
+                employee = Employee.create(vals)
+            employees[row["id"]] = employee
+        return employees
+
+    @staticmethod
+    def _native_expense_company_value(value, source_company_id):
+        if not isinstance(value, dict):
+            return value
+        return value.get(str(source_company_id), value.get(source_company_id))
+
+    def _native_expense_product_map(self, conn, options, companies, accounts):
+        rows = self._fetchall(
+            conn,
+            """
+            SELECT product.id, product.default_code, product.standard_price,
+                   product.active, template.name, template.company_id,
+                   template.uom_id, template.type, template.service_type,
+                   template.can_be_expensed, template.purchase_ok,
+                   template.sale_ok, template.property_account_expense_id,
+                   uom_xmlid.module AS uom_module,
+                   uom_xmlid.name AS uom_xml_name
+            FROM product_product product
+            JOIN product_template template ON template.id = product.product_tmpl_id
+            LEFT JOIN LATERAL (
+                SELECT data.module, data.name
+                FROM ir_model_data data
+                WHERE data.model = 'uom.uom'
+                  AND data.res_id = template.uom_id
+                ORDER BY data.id
+                LIMIT 1
+            ) uom_xmlid ON TRUE
+            WHERE product.id IN (
+                SELECT DISTINCT expense.product_id
+                FROM hr_expense expense
+                WHERE expense.company_id = ANY(%(source_company_ids)s)
+                  AND expense.date BETWEEN %(date_from)s AND %(date_to)s
+                  AND expense.product_id IS NOT NULL
+            )
+            ORDER BY product.id
+            """,
+            options,
+        )
+        products = {}
+        current_standard_prices = {}
+        Product = self.env["product.product"].sudo().with_context(active_test=False)
+        default_uom = self.env.ref("uom.product_uom_unit")
+        for row in rows:
+            product = Product.search([
+                ("rebuild_source_model", "=", "product.product"),
+                ("rebuild_source_id", "=", row["id"]),
+                ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
+            ], limit=1)
+            if not product and row["default_code"]:
+                product = Product.search([
+                    ("default_code", "=", row["default_code"]),
+                ], limit=1)
+            uom = default_uom
+            if row["uom_module"] and row["uom_xml_name"]:
+                uom = self.env.ref(
+                    f"{row['uom_module']}.{row['uom_xml_name']}",
+                    raise_if_not_found=False,
+                ) or default_uom
+            vals = {
+                "name": self._source_text(row["name"]) or f"Source expense product {row['id']}",
+                "default_code": row["default_code"],
+                "type": row["type"] or "service",
+                "uom_id": uom.id,
+                "can_be_expensed": bool(row["can_be_expensed"]),
+                "purchase_ok": bool(row["purchase_ok"]),
+                "sale_ok": bool(row["sale_ok"]),
+                "active": bool(row["active"]),
+                **self._trace_values("product.product", row["id"], options),
+            }
+            if "service_type" in Product._fields:
+                vals["service_type"] = row["service_type"] or "manual"
+            if product:
+                product.write(vals)
+            else:
+                product = Product.create(vals)
+            products[row["id"]] = product
+
+            source_company_ids = (
+                [row["company_id"]]
+                if row["company_id"] in companies
+                else options["source_company_ids"]
+            )
+            for source_company_id in source_company_ids:
+                company = companies.get(source_company_id)
+                if not company:
+                    continue
+                standard_price = self._amount(self._native_expense_company_value(
+                    row["standard_price"],
+                    source_company_id,
+                ))
+                expense_account_id = self._native_expense_company_value(
+                    row["property_account_expense_id"],
+                    source_company_id,
+                )
+                product.with_company(company).standard_price = standard_price
+                if expense_account_id in accounts:
+                    product.product_tmpl_id.with_company(company).property_account_expense_id = (
+                        accounts[expense_account_id]
+                    )
+                current_standard_prices[row["id"], source_company_id] = standard_price
+        return products, current_standard_prices
+
+    def _native_expense_configure_companies(
+        self,
+        conn,
+        options,
+        companies,
+        journals,
+        method_lines,
+        accounts,
+        move_rows,
+    ):
+        company_rows = self._fetchall(
+            conn,
+            """
+            SELECT company.id, company.expense_journal_id,
+                   COALESCE((
+                       SELECT array_agg(relation.account_payment_method_line_id
+                                        ORDER BY relation.account_payment_method_line_id)
+                       FROM account_payment_method_line_res_company_rel relation
+                       WHERE relation.res_company_id = company.id
+                   ), ARRAY[]::integer[]) AS allowed_payment_method_line_ids
+            FROM res_company company
+            WHERE company.id = ANY(%(source_company_ids)s)
+            ORDER BY company.id
+            """,
+            options,
+        )
+        configured_method_line_ids = set()
+        for source_move in move_rows:
+            source_method_line_id = source_move["payment_method_line_id"]
+            source_outstanding_account_id = source_move["outstanding_account_id"]
+            method_line = method_lines.get(source_method_line_id)
+            outstanding_account = accounts.get(source_outstanding_account_id)
+            if method_line and outstanding_account:
+                method_line.payment_account_id = outstanding_account
+                configured_method_line_ids.add(method_line.id)
+
+        for row in company_rows:
+            company = companies.get(row["id"])
+            if not company:
+                continue
+            expense_journal = journals.get(row["expense_journal_id"])
+            allowed_method_lines = [
+                method_lines[source_id].id
+                for source_id in row["allowed_payment_method_line_ids"]
+                if source_id in method_lines
+            ]
+            vals = {
+                "company_expense_allowed_payment_method_line_ids": [
+                    Command.set(allowed_method_lines),
+                ],
+            }
+            if expense_journal:
+                vals["expense_journal_id"] = expense_journal.id
+            company.write(vals)
+            configured_method_line_ids.update(allowed_method_lines)
+        return {
+            "configured_company_count": len(company_rows),
+            "configured_payment_method_line_count": len(configured_method_line_ids),
+        }
+
+    def run_native_expense_replay_from_source(self, options):
+        """Rebuild source expenses through the standard Odoo expense engine.
+
+        Company-paid expenses generate native payments. Employee-paid expenses
+        generate native grouped purchase receipts. Final bank matching and
+        employee reimbursement are intentionally left to the following Track B
+        stage, while this stage proves the expense documents and their complete
+        accounting effects.
+        """
+        self.ensure_one()
+        options = {
+            "source_database": "odoo_online_source_saas_19_2",
+            "source_snapshot_id": "source-unknown",
+            "source_dump_sha256": "",
+            "source_version": "Odoo Online Enterprise saas~19.2",
+            "target_database": self.env.cr.dbname,
+            "date_from": "2025-10-01",
+            "date_to": "2026-06-30",
+            "source_company_ids": [1],
+            **(options or {}),
+        }
+        options["source_company_ids"] = self._source_company_ids(options)
+        self.write({
+            "status": "running",
+            "mode": "native_engine_replay",
+            "source_database": options["source_database"],
+            "source_dump_sha256": options.get("source_dump_sha256"),
+            "source_snapshot_id": options["source_snapshot_id"],
+            "source_version": options.get("source_version"),
+            "target_database": options["target_database"],
+        })
+        conn = self._source_connection(options)
+        try:
+            currencies = self._currency_map(conn)
+            countries = self._country_map(conn)
+            companies, _company_rows = self._company_map(conn, options, countries)
+            currency_rate_stats = self._import_currency_rates(conn, options, companies, currencies)
+            partners = self._partner_map(conn, options)
+            accounts, account_ids_to_archive_after_post = self._account_map(
+                conn,
+                options,
+                companies,
+                currencies,
+            )
+            expense_account_stats = self._native_expense_extend_account_map(
+                conn,
+                options,
+                companies,
+                currencies,
+                accounts,
+            )
+            account_ids_to_archive_after_post.extend(
+                expense_account_stats["archive_after_post_source_ids"],
+            )
+            tax_tags = self._tax_tag_map(conn, options, countries)
+            tax_groups = self._tax_group_map(conn, options, companies, accounts, countries)
+            taxes, _tax_repartition_lines, tax_stats = self._tax_map(
+                conn,
+                options,
+                companies,
+                accounts,
+                tax_groups,
+                tax_tags,
+                countries,
+            )
+            cash_basis_companies = self._sync_company_cash_basis_flags(companies)
+            tax_stats["company_cash_basis_setting_count"] = len(cash_basis_companies)
+            fiscal_positions, fiscal_position_stats = self._fiscal_position_map(
+                conn,
+                options,
+                companies,
+                accounts,
+                taxes,
+                countries,
+            )
+            partner_property_stats = self._sync_partner_accounting_properties(
+                conn,
+                options,
+                companies,
+                partners,
+                accounts,
+                fiscal_positions,
+            )
+            journals = self._journal_map(conn, options, companies, accounts, currencies)
+            method_lines = self._payment_method_line_map(conn, journals, accounts)
+            analytic_plans = self._analytic_plan_map(conn, options)
+            analytic_accounts = self._analytic_account_map(
+                conn,
+                options,
+                companies,
+                partners,
+                analytic_plans,
+            )
+            expense_rows = self._native_expense_rows(conn, options)
+            move_rows = self._native_expense_move_rows(conn, options)
+            source_totals_by_move = self._native_expense_source_account_totals(conn, options)
+            employees = self._native_expense_employee_map(
+                conn,
+                options,
+                companies,
+                partners,
+            )
+            products, current_standard_prices = self._native_expense_product_map(
+                conn,
+                options,
+                companies,
+                accounts,
+            )
+            expense_configuration_stats = self._native_expense_configure_companies(
+                conn,
+                options,
+                companies,
+                journals,
+                method_lines,
+                accounts,
+                move_rows,
+            )
+
+            move_rows_by_id = {row["id"]: row for row in move_rows}
+            expense_rows_by_move = defaultdict(list)
+            state_counts = defaultdict(int)
+            payment_mode_counts = defaultdict(int)
+            for row in expense_rows:
+                state_counts[row["state"] or "draft"] += 1
+                payment_mode_counts[row["payment_mode"]] += 1
+                if row["account_move_id"]:
+                    expense_rows_by_move[row["account_move_id"]].append(row)
+
+            Expense = self.env["hr.expense"].sudo().with_context(
+                tracking_disable=True,
+                mail_create_nolog=True,
+            )
+            Move = self.env["account.move"].sudo().with_context(
+                tracking_disable=True,
+                mail_create_nolog=True,
+            )
+            created_expense_count = 0
+            reused_expense_count = 0
+            blocked_cases = []
+
+            for source_expense in expense_rows:
+                company = companies.get(source_expense["company_id"])
+                employee = employees.get(source_expense["employee_id"])
+                product = products.get(source_expense["product_id"])
+                currency = currencies.get(source_expense["currency_id"])
+                account = accounts.get(source_expense["account_id"])
+                vendor = partners.get(source_expense["vendor_id"])
+                payment_method_line = method_lines.get(
+                    source_expense["payment_method_line_id"],
+                )
+                missing_tax_ids = sorted(
+                    source_tax_id
+                    for source_tax_id in source_expense["tax_ids"]
+                    if source_tax_id not in taxes
+                )
+                blockers = []
+                if not company:
+                    blockers.append("company")
+                if not employee:
+                    blockers.append("employee")
+                if not product:
+                    blockers.append("product")
+                if not currency:
+                    blockers.append("currency")
+                if not account:
+                    blockers.append("account")
+                if source_expense["vendor_id"] and not vendor:
+                    blockers.append("vendor")
+                if (
+                    source_expense["payment_mode"] == "company_account"
+                    and not payment_method_line
+                ):
+                    blockers.append("payment_method_line")
+                if missing_tax_ids:
+                    blockers.append("taxes")
+                if source_expense["state"] == "paid" and not source_expense["account_move_id"]:
+                    blockers.append("account_move")
+                if blockers:
+                    blocked_cases.append({
+                        "source_expense_id": source_expense["id"],
+                        "source_name": source_expense["name"],
+                        "classification": "insufficient_source_or_mapping_data",
+                        "blockers": blockers,
+                        "missing_source_tax_ids": missing_tax_ids,
+                    })
+                    continue
+
+                expense = Expense.search([
+                    ("rebuild_source_model", "=", "hr.expense"),
+                    ("rebuild_source_id", "=", source_expense["id"]),
+                    ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
+                ], limit=1)
+                if expense:
+                    reused_expense_count += 1
+                else:
+                    try:
+                        with self.env.cr.savepoint():
+                            current_standard_price = current_standard_prices.get(
+                                (source_expense["product_id"], source_expense["company_id"]),
+                                0.0,
+                            )
+                            # Priced category products derive the historical unit
+                            # price from standard cost. Zero-cost products retain
+                            # the source expense's explicit entered total instead.
+                            if current_standard_price:
+                                product.with_company(company).standard_price = self._amount(
+                                    source_expense["price_unit"],
+                                )
+                            vals = {
+                                "name": source_expense["name"] or f"Source expense {source_expense['id']}",
+                                "date": source_expense["date"],
+                                "employee_id": employee.id,
+                                "company_id": company.id,
+                                "product_id": product.id,
+                                "product_uom_id": product.uom_id.id,
+                                "currency_id": currency.id,
+                                "payment_mode": source_expense["payment_mode"],
+                                "vendor_id": vendor.id if vendor else False,
+                                "account_id": account.id,
+                                "tax_ids": [Command.set([
+                                    taxes[source_tax_id].id
+                                    for source_tax_id in source_expense["tax_ids"]
+                                ])],
+                                "quantity": self._amount(source_expense["quantity"]),
+                                "total_amount_currency": self._amount(
+                                    source_expense["total_amount_currency"],
+                                ),
+                                "total_amount": self._amount(source_expense["total_amount"]),
+                                "analytic_distribution": (
+                                    self._native_replay_analytic_distribution(
+                                        source_expense["analytic_distribution"],
+                                        analytic_accounts,
+                                    )
+                                ),
+                                "description": source_expense["description"],
+                                "rebuild_import_note": (
+                                    "Track B native expense replay: the expense document was "
+                                    "reconstructed from source business fields and advanced through "
+                                    "the standard Odoo approval and accounting workflow."
+                                ),
+                                **self._trace_values(
+                                    "hr.expense",
+                                    source_expense["id"],
+                                    options,
+                                ),
+                            }
+                            if payment_method_line:
+                                vals["payment_method_line_id"] = payment_method_line.id
+                            expense = Expense.with_company(company).create(vals)
+                            if source_expense["state"] == "refused":
+                                expense._do_refuse("Restored source refusal")
+                            elif source_expense["state"] != "draft":
+                                expense.action_submit()
+                                if expense.state == "submitted":
+                                    expense._do_approve()
+                                if source_expense["approval_date"]:
+                                    expense.approval_date = source_expense["approval_date"]
+                            expense.flush_recordset([
+                                "price_unit",
+                                "total_amount_currency",
+                                "total_amount",
+                                "tax_amount_currency",
+                                "tax_amount",
+                                "untaxed_amount_currency",
+                                "untaxed_amount",
+                            ])
+                            if current_standard_price:
+                                product.with_company(company).standard_price = current_standard_price
+                        created_expense_count += 1
+                    except Exception as exc:  # noqa: BLE001 - classify each source expense.
+                        blocked_cases.append({
+                            "source_expense_id": source_expense["id"],
+                            "source_name": source_expense["name"],
+                            "classification": "native_expense_creation_error",
+                            "exception_type": type(exc).__name__,
+                            "exception_message": str(exc),
+                        })
+
+            expenses_by_source_id = {
+                expense.rebuild_source_id: expense
+                for expense in Expense.search([
+                    ("rebuild_source_model", "=", "hr.expense"),
+                    ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
+                    ("rebuild_source_id", "in", [row["id"] for row in expense_rows] or [0]),
+                ])
+            }
+
+            created_company_payment_move_count = 0
+            reused_company_payment_move_count = 0
+            for source_expense in expense_rows:
+                if (
+                    source_expense["state"] != "paid"
+                    or source_expense["payment_mode"] != "company_account"
+                ):
+                    continue
+                expense = expenses_by_source_id.get(source_expense["id"])
+                source_move = move_rows_by_id.get(source_expense["account_move_id"])
+                if not expense or not source_move:
+                    continue
+                if expense.account_move_id:
+                    reused_company_payment_move_count += 1
+                    continue
+                try:
+                    with self.env.cr.savepoint():
+                        expense._create_company_paid_moves()
+                        move = expense.account_move_id
+                        payment = move.origin_payment_id
+                        move.write({
+                            "rebuild_source_move_type": source_move["move_type"],
+                            "rebuild_import_note": (
+                                "Track B native company-paid expense entry generated by "
+                                "hr.expense._create_company_paid_moves()."
+                            ),
+                            **self._trace_values(
+                                "account.move.native_expense_replay",
+                                source_move["id"],
+                                options,
+                            ),
+                        })
+                        payment.write({
+                            "rebuild_import_note": (
+                                "Track B native company-paid expense payment; final bank "
+                                "matching is replayed in the reconciliation stage."
+                            ),
+                            **self._trace_values(
+                                "account.payment.native_expense_replay",
+                                source_move["payment_id"],
+                                options,
+                            ),
+                        })
+                        payment.action_post()
+                    created_company_payment_move_count += 1
+                except Exception as exc:  # noqa: BLE001 - classify native payment defects.
+                    expense.invalidate_recordset(["account_move_id", "state"])
+                    blocked_cases.append({
+                        "source_expense_id": source_expense["id"],
+                        "source_move_id": source_move["id"],
+                        "classification": "native_company_expense_posting_error",
+                        "exception_type": type(exc).__name__,
+                        "exception_message": str(exc),
+                    })
+
+            created_employee_receipt_count = 0
+            reused_employee_receipt_count = 0
+            for source_move_id, source_expenses in sorted(expense_rows_by_move.items()):
+                if not source_expenses or source_expenses[0]["payment_mode"] != "own_account":
+                    continue
+                source_move = move_rows_by_id.get(source_move_id)
+                target_expenses = Expense.browse([
+                    expenses_by_source_id[row["id"]].id
+                    for row in source_expenses
+                    if row["id"] in expenses_by_source_id
+                ])
+                if not source_move or len(target_expenses) != len(source_expenses):
+                    continue
+                if target_expenses.account_move_id:
+                    reused_employee_receipt_count += 1
+                    continue
+                company = companies[source_move["company_id"]]
+                journal = journals.get(source_move["journal_id"])
+                source_currency = currencies.get(source_move["currency_id"])
+                if not journal or not source_currency:
+                    blocked_cases.append({
+                        "source_move_id": source_move_id,
+                        "classification": "native_employee_receipt_configuration_error",
+                        "blockers": [
+                            name
+                            for name, value in (
+                                ("journal", journal),
+                                ("currency", source_currency),
+                            )
+                            if not value
+                        ],
+                    })
+                    continue
+                try:
+                    with self.env.cr.savepoint():
+                        receipt_vals_list = target_expenses.with_company(
+                            company,
+                        )._prepare_receipts_vals()
+                        if len(receipt_vals_list) != 1:
+                            blocked_cases.append({
+                                "source_move_id": source_move_id,
+                                "source_expense_ids": [
+                                    row["id"] for row in source_expenses
+                                ],
+                                "classification": "native_employee_receipt_grouping_error",
+                                "generated_receipt_count": len(receipt_vals_list),
+                            })
+                            continue
+                        receipt_vals = {
+                            **receipt_vals_list[0],
+                            "journal_id": journal.id,
+                            "currency_id": source_currency.id,
+                            "date": source_move["date"],
+                            "invoice_date": source_move["invoice_date"],
+                            "invoice_date_due": source_move["invoice_date_due"],
+                            "ref": source_move["ref"],
+                            "rebuild_source_move_type": source_move["move_type"],
+                            "rebuild_import_note": (
+                                "Track B native employee-paid expense receipt generated by "
+                                "hr.expense._prepare_receipts_vals() and normal action_post."
+                            ),
+                            **self._trace_values(
+                                "account.move.native_expense_replay",
+                                source_move_id,
+                                options,
+                            ),
+                        }
+                        move = Move.with_company(company).create(receipt_vals)
+                        move.action_post()
+                    created_employee_receipt_count += 1
+                except Exception as exc:  # noqa: BLE001 - classify native receipt defects.
+                    target_expenses.invalidate_recordset(["account_move_id", "state"])
+                    blocked_cases.append({
+                        "source_move_id": source_move_id,
+                        "source_expense_ids": [row["id"] for row in source_expenses],
+                        "classification": "native_employee_receipt_posting_error",
+                        "exception_type": type(exc).__name__,
+                        "exception_message": str(exc),
+                    })
+
+            target_moves_by_source_id = {
+                move.rebuild_source_id: move
+                for move in Move.search([
+                    ("rebuild_source_model", "=", "account.move.native_expense_replay"),
+                    ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
+                    ("rebuild_source_id", "in", list(move_rows_by_id) or [0]),
+                ])
+            }
+
+            passed_expenses = []
+            mismatch_expenses = []
+            deferred_employee_reimbursement_count = 0
+            for source_expense in expense_rows:
+                expense = expenses_by_source_id.get(source_expense["id"])
+                if not expense:
+                    continue
+                company = companies[source_expense["company_id"]]
+                expected_state = source_expense["state"]
+                if (
+                    source_expense["state"] == "paid"
+                    and source_expense["payment_mode"] == "own_account"
+                ):
+                    expected_state = "posted"
+                    deferred_employee_reimbursement_count += 1
+                expected_distribution = self._native_replay_analytic_distribution(
+                    source_expense["analytic_distribution"],
+                    analytic_accounts,
+                ) or {}
+                checks = {
+                    "name": expense.name == (source_expense["name"] or ""),
+                    "date": expense.date == source_expense["date"],
+                    "state": expense.state == expected_state,
+                    "approval_state": (
+                        (expense.approval_state or False)
+                        == (source_expense["approval_state"] or False)
+                    ),
+                    "payment_mode": expense.payment_mode == source_expense["payment_mode"],
+                    "company": expense.company_id == company,
+                    "employee": expense.employee_id.rebuild_source_id == source_expense["employee_id"],
+                    "product": expense.product_id.rebuild_source_id == source_expense["product_id"],
+                    "currency": expense.currency_id == currencies[source_expense["currency_id"]],
+                    "account": expense.account_id.rebuild_source_id == source_expense["account_id"],
+                    "vendor": (
+                        (expense.vendor_id.rebuild_source_id or None)
+                        == source_expense["vendor_id"]
+                    ),
+                    "taxes": sorted(expense.tax_ids.mapped("rebuild_source_id"))
+                    == list(source_expense["tax_ids"]),
+                    "quantity": round(expense.quantity, 4)
+                    == round(self._amount(source_expense["quantity"]), 4),
+                    "price_unit": round(expense.price_unit, 4)
+                    == round(self._amount(source_expense["price_unit"]), 4),
+                    "total_amount_currency": round(expense.total_amount_currency, 2)
+                    == round(self._amount(source_expense["total_amount_currency"]), 2),
+                    "total_amount": round(expense.total_amount, 2)
+                    == round(self._amount(source_expense["total_amount"]), 2),
+                    "tax_amount_currency": round(expense.tax_amount_currency, 2)
+                    == round(self._amount(source_expense["tax_amount_currency"]), 2),
+                    "tax_amount": round(expense.tax_amount, 2)
+                    == round(self._amount(source_expense["tax_amount"]), 2),
+                    "untaxed_amount_currency": round(expense.untaxed_amount_currency, 2)
+                    == round(self._amount(source_expense["untaxed_amount_currency"]), 2),
+                    "untaxed_amount": round(expense.untaxed_amount, 2)
+                    == round(self._amount(source_expense["untaxed_amount"]), 2),
+                    "analytic_distribution": (expense.analytic_distribution or {})
+                    == expected_distribution,
+                    "description": (expense.description or "")
+                    == (source_expense["description"] or ""),
+                    "account_move": (
+                        (expense.account_move_id.rebuild_source_id or None)
+                        == source_expense["account_move_id"]
+                    ),
+                }
+                result = {
+                    "source_expense_id": source_expense["id"],
+                    "target_expense_id": expense.id,
+                    "name": expense.name,
+                    "source_state": source_expense["state"],
+                    "expected_stage_state": expected_state,
+                    "target_state": expense.state,
+                    "payment_mode": expense.payment_mode,
+                    "checks": checks,
+                }
+                if all(checks.values()):
+                    passed_expenses.append(result)
+                else:
+                    mismatch_expenses.append(result)
+
+            passed_moves = []
+            mismatch_moves = []
+            deferred_bank_match_count = 0
+            for source_move in move_rows:
+                move = target_moves_by_source_id.get(source_move["id"])
+                if not move:
+                    blocked_cases.append({
+                        "source_move_id": source_move["id"],
+                        "classification": "missing_native_expense_move",
+                    })
+                    continue
+                source_account_totals = source_totals_by_move[source_move["id"]]
+                target_account_totals = self._native_replay_target_account_totals(move)
+                checks = {
+                    "state": move.state == "posted",
+                    "move_type": move.move_type == source_move["move_type"],
+                    "journal": move.journal_id == journals[source_move["journal_id"]],
+                    "company": move.company_id == companies[source_move["company_id"]],
+                    "partner": (
+                        (move.partner_id.rebuild_source_id or None)
+                        == source_move["partner_id"]
+                    ),
+                    "currency": move.currency_id == currencies[source_move["currency_id"]],
+                    "date": move.date == source_move["date"],
+                    "invoice_date": (move.invoice_date or None)
+                    == source_move["invoice_date"],
+                    "invoice_date_due": (
+                        move.move_type == "entry"
+                        or (move.invoice_date_due or None)
+                        == source_move["invoice_date_due"]
+                    ),
+                    "ref": (move.ref or "") == (source_move["ref"] or ""),
+                    "amount_untaxed": round(move.amount_untaxed, 2)
+                    == round(self._amount(source_move["amount_untaxed"]), 2),
+                    "amount_tax": round(move.amount_tax, 2)
+                    == round(self._amount(source_move["amount_tax"]), 2),
+                    "amount_total": round(move.amount_total, 2)
+                    == round(self._amount(source_move["amount_total"]), 2),
+                    "account_totals": source_account_totals == target_account_totals,
+                }
+                payment_result = None
+                if source_move["payment_id"]:
+                    deferred_bank_match_count += 1
+                    payment = move.origin_payment_id
+                    payment_checks = {
+                        "present": bool(payment),
+                        "source_trace": (
+                            payment.rebuild_source_id == source_move["payment_id"]
+                        ),
+                        "state": payment.state == "in_process",
+                        "date": payment.date == source_move["payment_date"],
+                        "journal": payment.journal_id == journals[source_move["payment_journal_id"]],
+                        "company": payment.company_id == companies[source_move["payment_company_id"]],
+                        "currency": payment.currency_id == currencies[source_move["payment_currency_id"]],
+                        "partner": (
+                            (payment.partner_id.rebuild_source_id or None)
+                            == source_move["payment_partner_id"]
+                        ),
+                        "method": payment.payment_method_line_id
+                        == method_lines[source_move["payment_method_line_id"]],
+                        "outstanding_account": (
+                            payment.outstanding_account_id.rebuild_source_id
+                            == source_move["outstanding_account_id"]
+                        ),
+                        "amount": round(payment.amount, 2)
+                        == round(self._amount(source_move["payment_amount"]), 2),
+                        "payment_type": payment.payment_type == source_move["payment_type"],
+                        "partner_type": payment.partner_type == source_move["partner_type"],
+                        "memo": (payment.memo or "") == (source_move["memo"] or ""),
+                    }
+                    checks["payment_business_fields"] = all(payment_checks.values())
+                    payment_result = {
+                        "source_payment_id": source_move["payment_id"],
+                        "target_payment_id": payment.id,
+                        "source_state": source_move["payment_state"],
+                        "expected_stage_state": "in_process",
+                        "target_state": payment.state,
+                        "destination_account_classification": (
+                            "Source holds a legacy payable-account hint, while the current "
+                            "native company-expense workflow derives a neutral destination. "
+                            "The posted move uses the separately validated outstanding account."
+                        ),
+                        "source_destination_account_id": source_move[
+                            "destination_account_id"
+                        ],
+                        "target_destination_account_source_id": (
+                            payment.destination_account_id.rebuild_source_id or None
+                        ),
+                        "checks": payment_checks,
+                    }
+                result = {
+                    "source_move_id": source_move["id"],
+                    "source_name": source_move["name"],
+                    "target_move_id": move.id,
+                    "target_name": move.name,
+                    "expense_count": len(expense_rows_by_move[source_move["id"]]),
+                    "move_type": move.move_type,
+                    "checks": checks,
+                    "payment": payment_result,
+                }
+                if all(checks.values()):
+                    passed_moves.append(result)
+                else:
+                    mismatch_moves.append({
+                        **result,
+                        "source_account_totals": source_account_totals,
+                        "target_account_totals": target_account_totals,
+                    })
+
+            for source_account_id in account_ids_to_archive_after_post:
+                accounts[source_account_id].active = False
+
+            status = (
+                "passed"
+                if not blocked_cases and not mismatch_expenses and not mismatch_moves
+                else "partial"
+            )
+            stats = {
+                "classification": "TRACK_B_NATIVE_EXPENSE_REPLAY",
+                "date_from": options["date_from"],
+                "date_to": options["date_to"],
+                "source_company_ids": options["source_company_ids"],
+                "source_expense_count": len(expense_rows),
+                "created_expense_count": created_expense_count,
+                "reused_expense_count": reused_expense_count,
+                "passed_expense_count": len(passed_expenses),
+                "mismatch_expense_count": len(mismatch_expenses),
+                "blocked_case_count": len(blocked_cases),
+                "source_generated_move_count": len(move_rows),
+                "created_company_payment_move_count": created_company_payment_move_count,
+                "reused_company_payment_move_count": reused_company_payment_move_count,
+                "created_employee_receipt_count": created_employee_receipt_count,
+                "reused_employee_receipt_count": reused_employee_receipt_count,
+                "passed_generated_move_count": len(passed_moves),
+                "mismatch_generated_move_count": len(mismatch_moves),
+                "native_company_payment_count": sum(
+                    bool(row["payment_id"]) for row in move_rows
+                ),
+                "deferred_bank_match_count": deferred_bank_match_count,
+                "deferred_employee_reimbursement_count": (
+                    deferred_employee_reimbursement_count
+                ),
+                "state_counts": dict(sorted(state_counts.items())),
+                "payment_mode_counts": dict(sorted(payment_mode_counts.items())),
+                "passed_expense_examples": passed_expenses[:20],
+                "mismatch_expense_examples": mismatch_expenses[:20],
+                "passed_move_examples": passed_moves[:20],
+                "mismatch_move_examples": mismatch_moves[:20],
+                "blocked_examples": blocked_cases[:20],
+                "currency_rates": currency_rate_stats,
+                "tax_configuration": tax_stats,
+                "fiscal_positions": fiscal_position_stats,
+                "partner_accounting_properties": partner_property_stats,
+                "expense_accounts": expense_account_stats,
+                "expense_configuration": expense_configuration_stats,
+                "next_stage_classification": {
+                    "company_payments": (
+                        "Native payments and exact accounting effects exist; their source "
+                        "reconciled state awaits bank transaction matching."
+                    ),
+                    "employee_expenses": (
+                        "Native receipts and exact accounting effects exist; their source "
+                        "paid state awaits employee reimbursement replay."
+                    ),
+                },
+            }
+            self.write({
+                "status": status,
+                "finished_at": fields.Datetime.now(),
+                "company_ids": [Command.set([company.id for company in companies.values()])],
+                "imported_company_count": len(companies),
+                "imported_currency_rate_count": currency_rate_stats["imported_currency_rate_count"],
+                "imported_account_count": len(accounts),
+                "imported_journal_count": len(journals),
+                "imported_partner_count": len(partners),
+                "imported_move_count": len(passed_moves) + len(mismatch_moves),
+                "imported_payment_count": sum(bool(row["payment_id"]) for row in move_rows),
+                "warning_count": (
+                    len(blocked_cases) + len(mismatch_expenses) + len(mismatch_moves)
+                ),
+                "statistics_json": stats,
+                "notes": (
+                    "Dedicated Track B expense replay. Expense documents are reconstructed "
+                    "through native approval, payment and receipt generation. Bank matching "
+                    "and employee reimbursement remain explicit inputs to the next stage."
+                ),
+            })
+            return stats
+        except Exception:
+            self.write({
+                "status": "failed",
+                "finished_at": fields.Datetime.now(),
+            })
+            raise
+        finally:
+            conn.close()
+
     def run_native_engine_replay_from_source(self, options):
         """Recompute Track B business documents through native invoice posting.
 
@@ -4959,7 +6080,14 @@ class RebuildAccountImportRun(models.Model):
                     continue
 
                 move = Move.search([
-                    ("rebuild_source_model", "=", "account.move.native_engine_replay"),
+                    (
+                        "rebuild_source_model",
+                        "in",
+                        [
+                            "account.move.native_engine_replay",
+                            "account.move.native_expense_replay",
+                        ],
+                    ),
                     ("rebuild_source_id", "=", source_move["id"]),
                     ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
                 ], limit=1)

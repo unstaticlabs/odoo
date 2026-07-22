@@ -8,7 +8,7 @@
 
 Authoritative checkpoint: `docs/accounting/milestone-13-checkpoint-2026-07-22.md`.
 
-Overall status: **Substantially progressed, implementation continues**. The posted USL benchmark ledger slice is technically reconstructed and compared, but Milestone 13 is not complete because user-facing business documents, dynamic report parity, declarations, final FEC acceptance and accountant workflow remain incomplete.
+Overall status: **Substantially progressed, implementation continues**. The posted USL benchmark ledger slice is technically reconstructed and compared, and isolated Track B now proves native current-period documents and expenses. Milestone 13 is not complete because payment/bank/reimbursement integration, dynamic report parity, declarations, final FEC acceptance and accountant workflow remain incomplete.
 
 ### Verified complete enough to preserve
 
@@ -37,8 +37,8 @@ Overall status: **Substantially progressed, implementation continues**. The post
 
 ### Partial or evidence-only
 
-- [x] Current-period source customer invoices, vendor bills, supplier refunds and purchase receipts are reconstructed in isolated Track B from commercial fields and posted through native Odoo (`284/284` exact accounting outcomes, `0` blocked/mismatched). The source period contains no customer credit note case; historical `hr.expense` reconstruction remains separate and incomplete.
-- [ ] Native Odoo Expenses is installed and reachable from Accounting, but no historical `hr.expense` records are reconstructed in the current imported target.
+- [x] Current-period source customer invoices, vendor bills, supplier refunds and purchase receipts are reconstructed in isolated Track B from commercial fields and posted through native Odoo (`284/284` exact accounting outcomes, `0` blocked/mismatched). The source period contains no customer credit note case.
+- [x] All `325` source `hr.expense` records dated `2025-10-01` through `2026-06-30` are source-traced and reconstructed through native Odoo approval/refusal/posting workflows in isolated Track B, including `97` company payments and `79` grouped employee receipts, with `0` blocked/mismatched cases and a passing no-duplication rerun. Operational integration into the replacement target, bank matching and the `95` employee reimbursements remain incomplete.
 - [ ] Historical reconciliation evidence is imported and the OCA reconciliation workbench is reachable, but operational reconciliation parity is not validated end to end.
 - [ ] French annual statements, SIG, CAF, tax package mappings and VAT evidence are generated as technical artifacts; declaration workflows and accountant acceptance remain incomplete.
 - [ ] Report PDFs/XLSX exist, but they are not yet accountant-ready templates matching the supplied annual-account/SIG/tax-report expectations.
@@ -46,7 +46,7 @@ Overall status: **Substantially progressed, implementation continues**. The post
 
 ### Not started or still milestone-blocking
 
-- [ ] Complete native reconstruction and validation of historical `hr.expense`, payment, bank-matching and reconciliation workflows; current-period invoice/bill/refund/receipt posting is proven in Track B.
+- [ ] Complete native payment, bank-matching, employee-reimbursement and reconciliation workflows and integrate the proven Track B document/expense records into the replacement target.
 - [ ] Complete Level 4 parity for mandatory interactive reports: filters, drill-down, exports, benchmark reconciliation and accountant-readable presentation.
 - [ ] Complete French declaration preparation for CA12, 2065/2033, CERFA/DGFiP box mappings, deadlines, filing status and review evidence.
 - [ ] Complete final FEC acceptance dossier with official validation rerun, checksum, reconciliation to accepted statements and accountant approval.
@@ -936,7 +936,7 @@ Overall status: **Substantially progressed, implementation continues**. The post
 - [ ] Install invoicing/accounting foundations.
 - [ ] Install project functionality.
 - [ ] Install HR/employee foundations.
-- [ ] Install expense functionality or selected maintained alternative.
+- [x] Install native Odoo expense functionality.
 - [ ] Install document/attachment foundations.
 - [ ] Install communication/chatter foundations.
 - [ ] Evaluate relevant OCA accounting repositories.
@@ -1076,7 +1076,7 @@ Overall status: **Substantially progressed, implementation continues**. The post
 - [ ] Reconstruct customer credit notes as usable business documents where source data permits.
 - [ ] Reconstruct vendor bills as usable business documents where source data permits.
 - [ ] Reconstruct supplier refunds as usable business documents where source data permits.
-- [ ] Reconstruct expenses or explicitly document why exact source reconstruction is not available.
+- [x] Reconstruct and classify current-period source expenses through native Odoo in isolated Track B; integrate them into the replacement target in the remaining payment/reconciliation increment.
 - [ ] Implement accountant-readable closing archive package.
 - [ ] Keep machine/detail exports available as advanced audit evidence.
 

@@ -20,6 +20,7 @@ make accounting-target-idempotence
 make accounting-target-failure-tests
 make accounting-document-regeneration
 make accounting-track-b-reset
+make accounting-track-b-expenses
 make accounting-track-b-documents
 make accounting-target-reconciliation-probe
 make accounting-reports
@@ -52,6 +53,7 @@ source package validation
 → rollback-only target conflict failure guardrail
 → isolated native draft-generation checks for candidate-ready non-posted source moves
 → dedicated Track B database reset
+→ native expense approval, refusal and posting reconstruction for 2025-10-01 through 2026-06-30
 → native business-document reconstruction and posting for 2025-10-01 through 2026-06-30
 → rollback-only native reconciliation probe for generated draft endpoints
 → Odoo-facing report view, drill-down and export-wizard checks
@@ -111,6 +113,7 @@ Stage dependencies:
 | `make accounting-target-import` | Canonical snapshot; source database for source metadata; clean target database | Target Odoo records and source-trace metadata | It reconstructs accounting evidence through the target Odoo ORM. |
 | `make accounting-target-validate` | Imported target database | Target validation artifacts and discrepancy records | It proves the imported target is internally consistent before report checks run. |
 | `make accounting-track-b-reset` | Installed target/OCA add-ons | Fresh `odoo_rebuild_accounting_track_b` database | It creates a clean, neutralized proof environment without touching the exact replay target. |
+| `make accounting-track-b-expenses` | Read-only restored source expense/business fields and Track B configuration | Native employees, products, expenses, company payments and employee receipts in the Track B database; private proof artifact | It uses normal expense submission, approval/refusal, receipt preparation and payment posting APIs, then compares every expense and generated accounting effect to source. Run it before the document stage so expense-generated receipts can be reused. |
 | `make accounting-track-b-documents` | Read-only restored source business fields and Track B configuration | Native posted invoices, bills, supplier refunds and receipts in the Track B database; private proof artifact | It calls normal Odoo draft creation and `action_post`, then compares headers, due dates and per-account effects to source. |
 | `make accounting-reports` | Imported and validated target database | Report preview/export/drill-down evidence artifacts | It proves the user-facing report surfaces can generate and trace values. |
 
@@ -174,6 +177,7 @@ artifacts/accounting-compat/private/target-validate-status.json
 artifacts/accounting-compat/private/target-idempotence-status.json
 artifacts/accounting-compat/private/target-failure-tests-status.json
 artifacts/accounting-compat/private/track-b-reset-status.json
+artifacts/accounting-compat/private/track-b-expenses-status.json
 artifacts/accounting-compat/private/track-b-documents-status.json
 artifacts/accounting-compat/private/target-reconciliation-probe-status.json
 artifacts/accounting-compat/private/reports-status.json
@@ -229,11 +233,23 @@ Track B is deliberately separate from the exact replay. Three approaches were co
 
 Option 2 is selected. It preserves the exact target as an audit baseline and proves the target product through Odoo's own engines. Option 1 makes later parity controls ambiguous. Option 3 would duplicate the accounting engine and would be another exact-line importer rather than a native workflow proof.
 
-`make accounting-track-b-documents` currently reconstructs all `284` posted source business documents dated `2025-10-01` through `2026-06-30` for Unstatic Labs: `36` customer invoices, `161` vendor bills, `3` supplier refunds and `84` purchase receipts. It creates drafts from commercial lines, accounts, quantities, unit prices, discounts, taxes, analytic distributions, fiscal positions, payment terms, partners, dates and the source transaction currency rate, then calls normal `action_post`. The latest clean run posts and validates `284/284`, with `0` blocked cases and `0` mismatches. Coverage is `170` EUR and `114` USD documents.
+`make accounting-track-b-expenses` first reconstructs all `325` source `hr.expense` records dated `2025-10-01` through `2026-06-30`. Three credible treatments were compared:
 
-Validation compares untaxed, tax and total amounts, due dates, and debit/credit/balance/amount-currency aggregates by source account. Finalized source journal lines are never passed to document creation. The three source documents whose stored tax/base totals cannot be derived from their price fields are replayed through Odoo's native `extra_tax_data` manual-tax mechanism. That path is guarded to one unambiguous taxable product line and recorded as `supported_native_manual_tax_override`; ambiguous multi-line allocations remain mismatches rather than guesses.
+1. replay employee, product and expense business fields through native `hr.expense` submission, approval/refusal, receipt and company-payment APIs in the isolated Track B database;
+2. preserve only finalized source expense ledger/payment rows in the exact target, which retains historical accounting truth but does not prove the replacement expense workflow;
+3. calculate expense accounting in a custom migration engine or duplicate the source's Enterprise implementation.
 
-This proves current-period native invoice/bill/refund/receipt posting. It does not yet prove native payments, bank matching, reconciliation, exchange differences, `hr.expense`, assets or closing; those remain separate Track B stages.
+Option 1 is selected for product proof, while the existing exact-target ledger remains the historical-truth baseline. Option 2 alone cannot prove native daily use. Option 3 would duplicate accounting logic and create an upgrade-sensitive parallel workflow.
+
+The clean expense run validates `325/325` expenses and all `176` generated moves with `0` blocked cases and `0` mismatches. The source state distribution is `192` paid, `125` approved, `3` draft and `5` refused; payment modes are `97` company-account and `228` own-account. Native reconstruction creates `97` company payments and `79` grouped employee receipts for the `95` paid own-account expenses. It preserves accounts, taxes, analytics, employees, vendors, dates, quantities, historical unit prices, currencies and all monetary fields. A repeated run after document reconstruction reuses all `325` expenses, `97` payments and `79` receipts without changing payment-method identities or creating duplicates.
+
+State transitions that depend on later workflows are explicit rather than forged: the `97` source-reconciled company payments remain native target payments in process until their bank transactions are matched, and the `95` source-paid own-account expenses remain posted receipts until employee reimbursement replay. A legacy source destination-payable hint is retained as classification evidence; the current native company-expense payment's posted outstanding account is the accounting effect validated to source.
+
+`make accounting-track-b-documents` then reconstructs all `284` posted source business documents for the same period: `36` customer invoices, `161` vendor bills, `3` supplier refunds and `84` purchase receipts. It reuses the `79` receipts already produced by the expense workflow and creates the remaining `205` documents from commercial lines, accounts, quantities, unit prices, discounts, taxes, analytic distributions, fiscal positions, payment terms, partners, dates and the source transaction currency rate, then calls normal `action_post`. The latest clean run validates `284/284`, with `0` blocked cases and `0` mismatches. Coverage is `170` EUR and `114` USD documents.
+
+Validation compares untaxed, tax and total amounts, due dates, and debit/credit/balance/amount-currency aggregates by source account. Finalized source journal lines are never passed to document creation. After expense-generated receipts are reused, two remaining source documents whose stored tax/base totals cannot be derived from their price fields are replayed through Odoo's native `extra_tax_data` manual-tax mechanism. That path is guarded to one unambiguous taxable product line and recorded as `supported_native_manual_tax_override`; ambiguous multi-line allocations remain mismatches rather than guesses.
+
+This proves current-period native expense approval/refusal/posting and invoice/bill/refund/receipt posting. It does not yet prove bank matching, employee reimbursement, full payment/reconciliation state, exchange differences, assets or closing; those remain separate Track B stages.
 
 `make accounting-target-validate` also proves:
 

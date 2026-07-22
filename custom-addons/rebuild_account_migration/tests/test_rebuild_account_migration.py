@@ -1,11 +1,13 @@
 import base64
 import json
+from unittest.mock import patch
 
 from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError
-from odoo.addons.rebuild_account_migration.controllers import user_docs
 from odoo.tests import TransactionCase, tagged
 from odoo.tools.safe_eval import safe_eval
+
+from odoo.addons.rebuild_account_migration.controllers import user_docs
 
 
 @tagged("post_install", "-at_install", "rebuild_account_migration_unit")
@@ -114,6 +116,80 @@ class TestRebuildAccountMigration(TransactionCase):
 
         self.assertEqual(expenses_menu.parent_id, self.env.ref("account.menu_finance_payables"))
         self.assertEqual(expenses_menu.action, self.env.ref("hr_expense.action_hr_expense_account"))
+
+    def test_native_expense_records_have_source_trace_fields(self):
+        trace_fields = {
+            "rebuild_source_database",
+            "rebuild_source_model",
+            "rebuild_source_id",
+            "rebuild_source_snapshot",
+            "rebuild_import_run_id",
+            "rebuild_import_status",
+        }
+
+        for model_name in ("hr.employee", "hr.expense", "product.product"):
+            self.assertTrue(trace_fields.issubset(self.env[model_name]._fields))
+
+    def test_journal_replay_preserves_payment_method_lines_when_currency_is_unchanged(self):
+        usd = self.env.ref("base.USD")
+        journal = self.env["account.journal"].create({
+            "name": "Track B idempotent bank",
+            "code": "TBID",
+            "type": "bank",
+            "company_id": self.company.id,
+            "currency_id": usd.id,
+            "rebuild_source_model": "account.journal",
+            "rebuild_source_id": 990013,
+            "rebuild_source_snapshot": "unit-track-b-expenses",
+        })
+        method_lines = journal.inbound_payment_method_line_ids | journal.outbound_payment_method_line_ids
+        self.assertTrue(method_lines)
+        method_line_ids = method_lines.ids
+        import_run = self.env["rebuild.account.import.run"].create({
+            "name": "Track B journal idempotence",
+            "source_snapshot_id": "unit-track-b-expenses",
+        })
+        source_row = {
+            "id": 990013,
+            "name": "Track B idempotent bank",
+            "code": "TBID",
+            "type": "bank",
+            "company_id": 990001,
+            "default_account_id": False,
+            "currency_id": 990002,
+            "active": True,
+            "sequence": journal.sequence,
+            "refund_sequence": journal.refund_sequence,
+            "restrict_mode_hash_table": journal.restrict_mode_hash_table,
+        }
+        options = {
+            "source_company_ids": [990001],
+            "source_snapshot_id": "unit-track-b-expenses",
+        }
+
+        with patch.object(type(import_run), "_fetchall", return_value=[source_row]):
+            mapped = import_run._journal_map(
+                object(),
+                options,
+                {990001: self.company},
+                {},
+                {990002: usd},
+            )
+
+        self.assertEqual(mapped[990013], journal)
+        self.assertEqual(
+            (journal.inbound_payment_method_line_ids | journal.outbound_payment_method_line_ids).ids,
+            method_line_ids,
+        )
+        self.assertEqual(self.env["account.payment.method.line"].browse(method_line_ids).journal_id, journal)
+
+    def test_native_expense_company_dependent_values_accept_source_key_shapes(self):
+        import_run = self.env["rebuild.account.import.run"]
+
+        self.assertEqual(import_run._native_expense_company_value(42.0, 1), 42.0)
+        self.assertEqual(import_run._native_expense_company_value({"1": 19.5}, 1), 19.5)
+        self.assertEqual(import_run._native_expense_company_value({1: 21.5}, 1), 21.5)
+        self.assertIsNone(import_run._native_expense_company_value({"2": 24.0}, 1))
 
     def test_reconcile_shortcut_uses_compatible_kanban_workbench(self):
         action = self.env.ref("rebuild_account_migration.action_rebuild_account_reconcile_bank_transactions")
