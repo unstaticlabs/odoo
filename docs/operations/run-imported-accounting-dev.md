@@ -65,6 +65,14 @@ ODOO_ADDONS_PATH=/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/
 
 Why: `oca-addons/` contains symlinks into `oca-src/`. Compose mounts both directories into the Odoo and init containers. If `ODOO_ADDONS_PATH` omits `/mnt/oca-addons`, installed OCA menus can appear in the database while their Python code or browser assets are unavailable at runtime.
 
+Also keep scheduled jobs disabled during imported-accounting development:
+
+```text
+ODOO_MAX_CRON_THREADS=0
+```
+
+Why: imported or freshly initialized databases may contain scheduled jobs for mail, SMS, VIES, PEPPOL, PDP or other external services. The import pipeline neutralizes target cron records after import, but the safest development default is to prevent the Odoo server from running scheduler threads at all. Only change this value when you are intentionally testing scheduled-job behavior.
+
 ## Step 3 - Stop the Normal Odoo Web Service
 
 Still in the host shell:
@@ -180,6 +188,7 @@ Inside the Dev Container:
 odoo --config=/etc/odoo/odoo.conf \
   --addons-path=/workspace/odoo/addons,/workspace/odoo/odoo/addons,/workspace/odoo/custom-addons,/workspace/odoo/oca-addons \
   --database=odoo_rebuild_accounting_test \
+  --max-cron-threads=0 \
   --dev=reload,xml,qweb
 ```
 

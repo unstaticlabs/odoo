@@ -25,6 +25,7 @@ What is complete enough to preserve:
 - [x] Pinned OCA 19.0 accounting/reporting/reconciliation add-ons can be synced locally with `make oca-addons-sync`.
 - [x] OCA financial reporting, MIS Builder, reconciliation and bank statement import foundation installed successfully on `odoo_rebuild_accounting_test`.
 - [x] Normal Compose Odoo runtime now mounts both `oca-src/` and `oca-addons/` so symlinked OCA modules resolve.
+- [x] Local Compose, init and Dev Container Odoo runtimes default to `max_cron_threads = 0` for imported-accounting parity work.
 
 What is not complete:
 
@@ -289,7 +290,8 @@ What is not complete:
 
 - [ ] A fresh machine can run the project reproducibly.
 - [ ] The same source and dependency versions are used by humans, agents and CI.
-- [ ] Local environments are neutralized by default.
+- [x] Local Odoo scheduler threads are disabled by default for imported-accounting parity work.
+- [ ] Complete local neutralization review for outgoing network access, credentials, mail servers, payment providers and electronic-invoicing services.
 - [ ] There are no undocumented bootstrap steps.
 - [ ] A clean rebuild is repeatable.
 

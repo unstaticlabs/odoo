@@ -10,6 +10,7 @@ http_port = ${ODOO_HTTP_PORT}
 gevent_port = ${ODOO_GEVENT_PORT}
 http_interface = ${ODOO_HTTP_INTERFACE}
 workers = ${ODOO_WORKERS}
+max_cron_threads = ${ODOO_MAX_CRON_THREADS}
 proxy_mode = ${ODOO_PROXY_MODE}
 log_level = ${ODOO_LOG_LEVEL}
 limit_time_cpu = ${ODOO_LIMIT_TIME_CPU}

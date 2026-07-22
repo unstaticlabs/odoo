@@ -131,8 +131,11 @@ db_port = 5432
 db_user = odoo
 db_password = odoo
 addons_path = /workspace/odoo/addons,/workspace/odoo/odoo/addons,/workspace/odoo/custom-addons,/workspace/odoo/oca-addons
+max_cron_threads = 0
 dev_mode = reload,xml,qweb
 ```
+
+`max_cron_threads = 0` is intentional for local accounting parity work. It prevents scheduled jobs from sending mail, polling external services, or running e-invoicing/background integrations while imported production-derived data is being inspected.
 
 Develop custom modules in `custom-addons/`. Do not modify Odoo core unless the change is intentionally part of this fork.
 

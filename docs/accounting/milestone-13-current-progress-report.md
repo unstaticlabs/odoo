@@ -67,6 +67,16 @@ Observed current stage artifacts under `artifacts/accounting-compat/private/` sh
 
 This means the technical import and validation harness is materially ahead of the user-facing product.
 
+### Runtime side-effect controls
+
+Status: improved, not final production security.
+
+Evidence: the Compose `odoo`, `init-db` and `devcontainer` services now pass `ODOO_MAX_CRON_THREADS=0` by default, and the rendered `/etc/odoo/odoo.conf` includes `max_cron_threads = 0`. After rebuilding and restarting the local Odoo service, recent logs no longer showed scheduled-job execution entries for mail, SMS, VIES, PEPPOL or PDP jobs.
+
+Impact: imported-accounting browser testing is safer because the Odoo scheduler does not execute background jobs against restored or freshly initialized databases by default. The import pipeline still neutralizes target cron and mail/fetchmail records after import; this runtime setting is an additional guard.
+
+Remaining work: production, staging or explicit cron-test environments must define their own policy. This does not replace a final security review of outgoing network access, credentials, mail servers, payment providers or electronic-invoicing services.
+
 ### OCA accounting foundation
 
 Implemented after the product decision memo:
