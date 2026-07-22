@@ -40,6 +40,14 @@ This fork includes two local workflows for Odoo 19 Community:
 
 Both workflows build Odoo from this repository, use PostgreSQL from Compose, store PostgreSQL data and the Odoo filestore in named volumes, and keep custom addons outside Odoo core under `custom-addons/`.
 
+Milestone 13 also uses pinned OCA add-ons for Community accounting reports, reconciliation and spreadsheet/PDF support. Fetch them before running imported-accounting or report work:
+
+```bash
+make oca-addons-sync
+```
+
+This creates local ignored checkouts under `oca-src/` and symlinks selected modules into `oca-addons/`.
+
 ### Prerequisites
 
 - Docker Desktop or Docker Engine with Docker Compose.
@@ -81,6 +89,8 @@ docker compose --profile devcontainer build devcontainer
 
 Open the repository in VS Code or Cursor and run **Dev Containers: Reopen in Container**. The Dev Container starts the Compose `db` service and a long-running `devcontainer` service. It does not automatically create an Odoo database and it does not start the normal Compose `odoo` web service.
 
+If you added or refreshed OCA add-ons after the Dev Container was already running, rebuild or recreate the Dev Container so its environment includes `oca-addons/`.
+
 Inside the Dev Container, initialize the development database once:
 
 ```bash
@@ -113,7 +123,7 @@ db_host = db
 db_port = 5432
 db_user = odoo
 db_password = odoo
-addons_path = /workspace/odoo/addons,/workspace/odoo/odoo/addons,/workspace/odoo/custom-addons
+addons_path = /workspace/odoo/addons,/workspace/odoo/odoo/addons,/workspace/odoo/custom-addons,/workspace/odoo/oca-addons
 dev_mode = reload,xml,qweb
 ```
 
@@ -180,7 +190,7 @@ db_host = db
 db_port = 5432
 db_user = odoo
 db_password = odoo
-addons_path = /opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons
+addons_path = /opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons
 ```
 
 This workflow runs the repository-built image and mounts `custom-addons/` into `/mnt/custom-addons`. It is suitable for QA checks, local acceptance testing, and validating behavior after rebuilds.

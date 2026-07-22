@@ -68,6 +68,7 @@ The live `odoo19` database is not reset or modified by these stages. Target reco
 Use this shorter sequence when the immediate goal is to open the imported accounting data in Odoo:
 
 ```bash
+make oca-addons-sync
 make accounting-source-restore
 make accounting-extract
 make accounting-target-reset
@@ -77,6 +78,8 @@ make accounting-reports
 ```
 
 Run these commands from the host shell, not from inside the Dev Container. The harness currently calls `docker compose`; the Dev Container runs Odoo but does not include the Docker CLI.
+
+`make oca-addons-sync` fetches pinned OCA 19.0 add-ons into ignored local directories. The target reset stage requires these add-ons because the disposable imported target now initializes the OCA reporting, MIS, bank statement and reconciliation foundation.
 
 The sequence has two live PostgreSQL services:
 

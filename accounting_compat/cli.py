@@ -32,11 +32,34 @@ DEFAULT_SOURCE_DIR = "usl-online-dump"
 DEFAULT_POSTGRES_IMAGE = "pgvector/pgvector:pg16-bookworm"
 SOURCE_DB_SERVICE = "accounting-source-db"
 TARGET_DB_SERVICE = "db"
+TARGET_ODOO_ADDONS_PATH = ",".join(
+    [
+        "/opt/odoo/addons",
+        "/opt/odoo/odoo/addons",
+        "/mnt/custom-addons",
+        "/mnt/oca-addons",
+    ],
+)
+OCA_TARGET_MODULES = [
+    "date_range",
+    "report_xlsx",
+    "report_xlsx_helper",
+    "account_statement_base",
+    "account_reconcile_oca",
+    "account_statement_import_base",
+    "account_statement_import_file",
+    "account_statement_import_file_reconcile_oca",
+    "account_financial_report",
+    "account_tax_balance",
+    "partner_statement",
+    "mis_builder",
+]
 TARGET_INIT_MODULES = [
     "account",
     "account_payment",
     "analytic",
     "l10n_fr_account",
+    *OCA_TARGET_MODULES,
     "rebuild_account_migration",
 ]
 USL_BENCHMARK_START = "2024-01-10"
@@ -49,6 +72,7 @@ ROOT = Path(__file__).resolve().parents[1]
 ARTIFACTS = ROOT / "artifacts" / "accounting-compat"
 PRIVATE_ARTIFACTS = ARTIFACTS / "private"
 PRIVATE_SNAPSHOTS = ROOT / "accounting_compat" / "private" / "snapshots"
+OCA_ADDONS_DIR = ROOT / "oca-addons"
 
 
 ACCOUNTING_TABLES = [
@@ -158,6 +182,20 @@ def ensure_dirs() -> None:
     PRIVATE_SNAPSHOTS.mkdir(parents=True, exist_ok=True)
 
 
+def ensure_oca_addons_available() -> None:
+    missing = [
+        module
+        for module in OCA_TARGET_MODULES
+        if not (OCA_ADDONS_DIR / module / "__manifest__.py").exists()
+    ]
+    if missing:
+        raise HarnessError(
+            "Missing local OCA add-ons required for target reconstruction: "
+            + ", ".join(missing)
+            + ". Run `make oca-addons-sync` from the host shell, then rerun this stage."
+        )
+
+
 def write_json(path: Path, data: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, indent=2, sort_keys=True, ensure_ascii=False) + "\n", encoding="utf-8")
@@ -218,7 +256,11 @@ def run_stdout(args: list[str], *, env: dict[str, str] | None = None) -> str:
 
 
 def compose_args(*args: str) -> list[str]:
-    return ["docker", "compose", *args]
+    command = ["docker", "compose", *args]
+    if args[:4] == ("--profile", "init", "run", "--rm") and "init-db" in args:
+        insert_at = 6
+        command[insert_at:insert_at] = ["-e", f"ODOO_ADDONS_PATH={TARGET_ODOO_ADDONS_PATH}"]
+    return command
 
 
 def source_postgres_env() -> dict[str, str]:
@@ -1943,6 +1985,7 @@ def active_row_count(db: str, table: str) -> str:
 
 def target_reset(args: argparse.Namespace) -> dict[str, Any]:
     ensure_dirs()
+    ensure_oca_addons_available()
     wait_for_postgres_service(TARGET_DB_SERVICE)
     db_user = database_user(TARGET_DB_SERVICE)
     run(compose_args("exec", "-T", TARGET_DB_SERVICE, "dropdb", "-U", db_user, "--if-exists", "--force", TARGET_DB))
@@ -1955,6 +1998,8 @@ def target_reset(args: argparse.Namespace) -> dict[str, Any]:
             "--rm",
             "-e",
             "ODOO_DEFAULT_PRODUCTIVITY_APPS=False",
+            "-e",
+            f"ODOO_ADDONS_PATH={TARGET_ODOO_ADDONS_PATH}",
             "init-db",
             "odoo",
             "--config=/etc/odoo/odoo.conf",
@@ -2071,6 +2116,8 @@ def target_import(args: argparse.Namespace) -> dict[str, Any]:
             "init",
             "run",
             "--rm",
+            "-e",
+            f"ODOO_ADDONS_PATH={TARGET_ODOO_ADDONS_PATH}",
             "init-db",
             "odoo",
             "shell",

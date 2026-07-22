@@ -5,9 +5,12 @@ ACCOUNTING_TEST_LOG_LEVEL ?= warn
 USER_DOCS_HOST ?= 127.0.0.1
 USER_DOCS_PORT ?= 8079
 
-.PHONY: accounting-compat accounting-source-package-validate accounting-source-validate accounting-source-restore accounting-source-inspect accounting-extract accounting-source-validate-ledger accounting-failure-tests accounting-target-reset accounting-target-import accounting-target-validate accounting-target-idempotence accounting-target-failure-tests accounting-document-regeneration accounting-target-reconciliation-probe accounting-reports accounting-fec accounting-fec-preflight accounting-fec-validate accounting-compare accounting-readiness accounting-evidence accounting-addon-tests user-docs-serve user-docs-build
+.PHONY: oca-addons-sync accounting-compat accounting-source-package-validate accounting-source-validate accounting-source-restore accounting-source-inspect accounting-extract accounting-source-validate-ledger accounting-failure-tests accounting-target-reset accounting-target-import accounting-target-validate accounting-target-idempotence accounting-target-failure-tests accounting-document-regeneration accounting-target-reconciliation-probe accounting-reports accounting-fec accounting-fec-preflight accounting-fec-validate accounting-compare accounting-readiness accounting-evidence accounting-addon-tests user-docs-serve user-docs-build
 
-accounting-compat:
+oca-addons-sync:
+	scripts/sync-oca-addons
+
+accounting-compat: oca-addons-sync
 	$(ACCOUNTING_COMPAT) all
 
 accounting-source-package-validate:
@@ -31,7 +34,7 @@ accounting-source-validate-ledger:
 accounting-failure-tests:
 	$(ACCOUNTING_COMPAT) failure-tests
 
-accounting-target-reset:
+accounting-target-reset: oca-addons-sync
 	$(ACCOUNTING_COMPAT) target-reset
 
 accounting-target-import:

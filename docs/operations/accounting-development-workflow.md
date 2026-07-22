@@ -9,6 +9,7 @@ This workflow exists to keep accounting development fast, safe and reviewable. D
 ## Principles
 
 - Keep the source database restored and running while iterating.
+- Keep OCA add-ons synced with `make oca-addons-sync` before target reset, reporting or reconciliation work.
 - Reuse the extracted snapshot when changing only Odoo views, menus, reports, permissions or documentation.
 - Rebuild the target only when import behavior, schema assumptions, model creation, or data transformations change.
 - Run narrow Odoo module updates for UI/report code changes.
@@ -43,6 +44,7 @@ Host shell:
 ```bash
 cd /Users/valentin/Code/odoo
 docker compose ps
+make oca-addons-sync
 ```
 
 Keep these services running:
@@ -57,6 +59,7 @@ If only Odoo code changed, update the add-on inside the Dev Container:
 
 ```bash
 odoo --config=/etc/odoo/odoo.conf \
+  --addons-path=/workspace/odoo/addons,/workspace/odoo/odoo/addons,/workspace/odoo/custom-addons,/workspace/odoo/oca-addons \
   --database=odoo_rebuild_accounting_test \
   --update=rebuild_account_migration \
   --stop-after-init
@@ -66,6 +69,7 @@ Then run the server:
 
 ```bash
 odoo --config=/etc/odoo/odoo.conf \
+  --addons-path=/workspace/odoo/addons,/workspace/odoo/odoo/addons,/workspace/odoo/custom-addons,/workspace/odoo/oca-addons \
   --database=odoo_rebuild_accounting_test \
   --dev=reload,xml,qweb
 ```
@@ -97,6 +101,7 @@ make accounting-compat
 Or staged:
 
 ```bash
+make oca-addons-sync
 make accounting-source-restore
 make accounting-extract
 make accounting-target-reset

@@ -67,6 +67,34 @@ Observed current stage artifacts under `artifacts/accounting-compat/private/` sh
 
 This means the technical import and validation harness is materially ahead of the user-facing product.
 
+### OCA accounting foundation
+
+Implemented after the product decision memo:
+
+- `make oca-addons-sync` fetches pinned OCA 19.0 repositories into ignored local checkouts under `oca-src/`.
+- selected OCA modules are exposed through ignored symlinks under `oca-addons/`.
+- Docker Compose and Dev Container add-on paths now include `oca-addons/`.
+- target reset/import harness containers force the OCA add-ons path so old `.env` files do not hide installed OCA modules.
+
+The following OCA modules installed successfully on the disposable imported target database `odoo_rebuild_accounting_test`:
+
+- `date_range` `19.0.1.0.0`
+- `report_xlsx` `19.0.1.0.2`
+- `report_xlsx_helper` `19.0.1.0.0`
+- `account_statement_base` `19.0.1.0.0`
+- `account_reconcile_oca` `19.0.1.0.3`
+- `account_statement_import_base` `19.0.1.0.0`
+- `account_statement_import_file` `19.0.1.0.0`
+- `account_statement_import_file_reconcile_oca` `19.0.1.0.0`
+- `account_financial_report` `19.0.0.0.15`
+- `account_tax_balance` `19.0.1.0.2`
+- `partner_statement` `19.0.1.1.0`
+- `mis_builder` `19.0.1.1.1`
+
+Observed Odoo menu entries now include OCA Trial Balance, General Ledger, Journal Ledger, Partner Ledger, statement reports, tax balance support, MIS Reporting, Import Statement and Reconcile actions.
+
+Status: this is dependency and platform enablement, not final report parity. The next implementation phase must map these OCA screens into the USL Accounting UX, validate report calculations against imported controls, and decide where custom USL reports remain necessary.
+
 ### Source extraction and reconstruction
 
 The current import status reports these production-derived records represented in the target:
@@ -102,6 +130,8 @@ Its manifest depends on Community modules:
 - `account_payment`
 - `analytic`
 - `l10n_fr_account`
+
+The disposable target now also installs OCA modules for financial reports, MIS reports, reconciliation and bank statement import foundation. The custom add-on has not yet been changed to require those OCA modules directly in its manifest; the harness initializes them as part of the Milestone 13 target environment.
 
 The add-on currently provides:
 

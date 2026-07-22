@@ -22,10 +22,12 @@ What is complete enough to preserve:
 - [x] Browser-accessible user documentation from Odoo at `/usl/user-docs`.
 - [x] Reporting and closing UX target documented from the supplied annual accounts, SIG and tax report samples.
 - [x] Accounting development workflow documented to avoid unnecessary full rebuilds and require scoped Conventional Commits.
+- [x] Pinned OCA 19.0 accounting/reporting/reconciliation add-ons can be synced locally with `make oca-addons-sync`.
+- [x] OCA financial reporting, MIS Builder, reconciliation and bank statement import foundation installed successfully on `odoo_rebuild_accounting_test`.
 
 What is not complete:
 
-- [ ] Enterprise-like dynamic accounting reports are not implemented.
+- [ ] OCA report screens are installed but not yet validated as USL/Odoo Online-equivalent dynamic report workflows.
 - [ ] Current PDF/XLSX report exports are not accountant-ready templates.
 - [x] Accounting app entry now targets the accounting dashboard directly.
 - [ ] Historical bank statement and reconciliation UX is not yet equivalent to the Odoo Online reconciliation workbench.

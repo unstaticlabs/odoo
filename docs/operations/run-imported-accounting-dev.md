@@ -45,7 +45,19 @@ docker compose ps
 
 Expected: this command prints Compose services such as `db` or `odoo`. If it says `docker: command not found`, Docker Desktop is not available to this shell.
 
-## Step 2 - Stop the Normal Odoo Web Service
+## Step 2 - Fetch the OCA Accounting Add-ons
+
+Still in the host shell:
+
+```bash
+make oca-addons-sync
+```
+
+Why: Milestone 13 uses pinned OCA 19.0 add-ons for Community financial reports, MIS reports, bank statement support and reconciliation. The command creates local ignored checkouts under `oca-src/` and exposes selected modules through `oca-addons/`.
+
+If the Dev Container was already open before this step, recreate it before starting Odoo so its environment includes `oca-addons/`.
+
+## Step 3 - Stop the Normal Odoo Web Service
 
 Still in the host shell:
 
@@ -57,7 +69,7 @@ Why: the normal Compose `odoo` service uses port `8069`. If you want to run Odoo
 
 Keep PostgreSQL running.
 
-## Step 3 - Build the Imported Accounting Database
+## Step 4 - Build the Imported Accounting Database
 
 Still in the host shell:
 
@@ -83,7 +95,7 @@ These commands are ordered. Run them in this order because each command produces
 | --- | --- | --- | --- |
 | `make accounting-source-restore` | Starts the isolated `accounting-source-db` PostgreSQL service and restores `usl-online-dump/dump.sql` into `odoo_online_source_saas_19_2`. It also creates the read-only source role used by extraction. | Docker Compose, `usl-online-dump/dump.sql`, `usl-online-dump/filestore/`. | A running source database containing the Odoo Online backup. |
 | `make accounting-extract` | Reads accounting records from the restored source database and writes the private canonical snapshot/extract files. It does not read business data from the SQL file directly. | `accounting-source-db` must still be running and restored. | Snapshot files under `accounting_compat/private/` and `artifacts/accounting-compat/private/`. |
-| `make accounting-target-reset` | Recreates the disposable target Odoo database `odoo_rebuild_accounting_test` from scratch and initializes the needed target modules. | The normal `db` PostgreSQL service must be running. | A clean target Odoo database ready for import. |
+| `make accounting-target-reset` | Recreates the disposable target Odoo database `odoo_rebuild_accounting_test` from scratch and initializes the needed Community, OCA and USL target modules. | The normal `db` PostgreSQL service must be running, and `make oca-addons-sync` must have populated `oca-addons/`. | A clean target Odoo database ready for import. |
 | `make accounting-target-import` | Imports the extracted accounting snapshot into the clean target database through the target Odoo ORM. | Source database still running, extracted snapshot present, clean target database present. | Imported companies, accounts, journals, posted entries, report evidence, assets, review records and source traces. |
 | `make accounting-target-validate` | Runs target controls: balanced moves, duplicate source traces, counts, locks, relationships and imported evidence checks. | Successful target import. | Validation status artifacts and discrepancy updates. |
 | `make accounting-reports` | Exercises Odoo-facing report views, previews, exports and drill-down evidence from the imported target. | Successful target validation and imported report data. | Report export/check artifacts and Odoo report evidence. |
@@ -115,7 +127,7 @@ If you want the full rehearsal, run this instead:
 make accounting-compat
 ```
 
-## Step 4 - Open the Dev Container
+## Step 5 - Open the Dev Container
 
 In VS Code or Cursor:
 
@@ -138,12 +150,13 @@ Expected:
 - `command -v odoo` prints an Odoo executable path;
 - `command -v docker` may print nothing. That is normal.
 
-## Step 5 - Update the Accounting Addon in the Imported Database
+## Step 6 - Update the Accounting Addon in the Imported Database
 
 Inside the Dev Container:
 
 ```bash
 odoo --config=/etc/odoo/odoo.conf \
+  --addons-path=/workspace/odoo/addons,/workspace/odoo/odoo/addons,/workspace/odoo/custom-addons,/workspace/odoo/oca-addons \
   --database=odoo_rebuild_accounting_test \
   --update=rebuild_account_migration \
   --stop-after-init
@@ -151,19 +164,20 @@ odoo --config=/etc/odoo/odoo.conf \
 
 Expected: Odoo exits by itself without an error.
 
-## Step 6 - Start the Dev Odoo Server
+## Step 7 - Start the Dev Odoo Server
 
 Inside the Dev Container:
 
 ```bash
 odoo --config=/etc/odoo/odoo.conf \
+  --addons-path=/workspace/odoo/addons,/workspace/odoo/odoo/addons,/workspace/odoo/custom-addons,/workspace/odoo/oca-addons \
   --database=odoo_rebuild_accounting_test \
   --dev=reload,xml,qweb
 ```
 
 Keep this terminal open. It is the running Odoo server.
 
-## Step 7 - Open Odoo in the Browser
+## Step 8 - Open Odoo in the Browser
 
 Open:
 
@@ -177,7 +191,7 @@ Login:
 admin / admin
 ```
 
-## Step 8 - Open the Imported Accounting Features
+## Step 9 - Open the Imported Accounting Features
 
 In Odoo, open:
 
