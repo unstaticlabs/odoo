@@ -213,20 +213,21 @@ admin / admin
 In Odoo, open:
 
 ```text
-Accounting > Review Issues
+Accounting > Review > Control > Issues
 ```
 
 Then try:
 
 ```text
-Accounting > Reconcile Bank Transactions
-Accounting > Reports and Declarations > Interactive Reports > Trial Balance
-Accounting > Reports and Declarations > Interactive Reports > General Ledger
-Accounting > Reports and Declarations > Statement Reports > Balance Sheet
-Accounting > Reports and Declarations > Statement Reports > Profit and Loss
-Accounting > Reports and Declarations > Taxes & Fiscal > FEC
-Accounting > Review and Audit > Advanced Audit > User Guide
-Accounting > Review and Audit > Advanced Audit > Imported Report Export
+Accounting > Transactions > Bank Matching
+Accounting > Closing > General Reconciliation
+Accounting > Reporting > Interactive Reports > Trial Balance
+Accounting > Reporting > Interactive Reports > General Ledger
+Accounting > Reporting > Statement Reports > Balance Sheet
+Accounting > Reporting > Statement Reports > Profit and Loss
+Accounting > Reporting > Taxes & Fiscal > FEC
+Accounting > Review > Advanced Audit > User Guide
+Accounting > Review > Advanced Audit > Imported Report Export
 ```
 
 The direct user-guide URL after login is:

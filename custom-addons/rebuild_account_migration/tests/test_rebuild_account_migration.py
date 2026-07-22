@@ -56,6 +56,59 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(menu.action, dashboard_action)
         self.assertEqual(dashboard_action.path, "accounting")
 
+    def test_accounting_manager_gets_the_full_accounting_application(self):
+        manager_group = self.env.ref("account.group_account_manager")
+        accounting_user_group = self.env.ref("account.group_account_user")
+
+        self.assertIn(accounting_user_group, manager_group.implied_ids)
+
+    def test_accounting_navigation_matches_the_operating_model(self):
+        expected_top_level = {
+            "account.menu_board_journal_1": ("Dashboard", 1),
+            "account.menu_finance_receivables": ("Customers", 2),
+            "account.menu_finance_payables": ("Vendors", 3),
+            "account.menu_finance_entries": ("Accounting", 4),
+            "account.account_audit_menu": ("Review", 7),
+            "account.menu_finance_reports": ("Reporting", 20),
+            "account.menu_finance_configuration": ("Configuration", 35),
+        }
+        finance_menu = self.env.ref("account.menu_finance")
+
+        for xmlid, (name, sequence) in expected_top_level.items():
+            menu = self.env.ref(xmlid)
+            self.assertEqual(menu.parent_id, finance_menu)
+            self.assertEqual(menu.name, name)
+            self.assertEqual(menu.sequence, sequence)
+
+        bank_matching_menu = self.env.ref(
+            "rebuild_account_migration.menu_rebuild_account_reconcile_bank_transactions_priority",
+        )
+        general_reconciliation_menu = self.env.ref(
+            "account_reconcile_oca.account_account_reconcile_menu",
+        )
+        self.assertEqual(bank_matching_menu.name, "Bank Matching")
+        self.assertEqual(
+            bank_matching_menu.parent_id,
+            self.env.ref("account.account_transactions_menu"),
+        )
+        self.assertEqual(general_reconciliation_menu.name, "General Reconciliation")
+        self.assertEqual(
+            general_reconciliation_menu.action.name,
+            "General Reconciliation",
+        )
+        self.assertEqual(
+            general_reconciliation_menu.parent_id,
+            self.env.ref("account.account_closing_menu"),
+        )
+        general_reconciliation_form = self.env.ref(
+            "rebuild_account_migration.view_rebuild_account_general_reconciliation_form",
+        )
+        self.assertIn("General Reconciliation", general_reconciliation_form.arch_db)
+        self.assertEqual(
+            self.env["account.account.reconcile"]._description,
+            "General Reconciliation",
+        )
+
     def test_native_expenses_are_available_from_accounting_payables(self):
         expenses_menu = self.env.ref("hr_expense.menu_hr_expense_account_employee_expenses")
 

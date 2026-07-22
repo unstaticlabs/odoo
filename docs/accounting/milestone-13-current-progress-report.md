@@ -106,7 +106,9 @@ The following OCA modules installed successfully on the disposable imported targ
 - `partner_statement` `19.0.1.1.0`
 - `mis_builder` `19.0.1.1.1`
 
-Observed Odoo menu entries now include OCA Trial Balance, General Ledger, Journal Ledger, Partner Ledger, statement reports, tax balance support, MIS Reporting, Import Statement and Reconcile actions.
+Observed Odoo menu entries now include OCA Trial Balance, General Ledger, Journal Ledger, Partner Ledger, statement reports, tax balance support, MIS Reporting, Import Statement, Bank Matching and General Reconciliation actions.
+
+The full-accounting role hierarchy is now activated by the USL add-on: an Accounting Manager implies Odoo's full Accounting user group instead of remaining in Community's invoicing-only mode. This exposes the native/OCA accounting surfaces without per-database manual group repair. The Accounting app now uses the seven-area navigation from the product target: `Dashboard`, `Customers`, `Vendors`, `Accounting`, `Review`, `Reporting`, and `Configuration`.
 
 Current targeted fixes:
 
@@ -121,7 +123,7 @@ Current targeted fixes:
 - two MIS Builder report templates and saved instances now exist for the USL benchmark period:
   - `USL Balance Sheet`
   - `USL Profit and Loss`
-- the normal `Reports and Declarations -> Legal Statements` Balance Sheet and Profit and Loss entries now open those saved MIS instances instead of the older artifact-export wizard;
+- the normal `Reporting -> Statement Reports` Balance Sheet and Profit and Loss entries now open those saved MIS instances instead of the older artifact-export wizard;
 - the MIS instance forms expose OCA's normal `Preview`, `Print` and `Export` controls;
 - browser smoke testing on `odoo_rebuild_accounting_test` confirmed both previews render without an Odoo error:
   - Balance Sheet: Assets `71,356`, Equity and liabilities before current-year result `15,133`, Current-year result `56,223`, Equity and liabilities `71,356`, Balance check `0`;
@@ -223,7 +225,7 @@ The docs are also exposed from Odoo through an authenticated route:
 and through the custom menu item:
 
 ```text
-Accounting -> Review and Audit -> Advanced Audit -> User Guide
+Accounting -> Review -> Advanced Audit -> User Guide
 ```
 
 This is implemented, but the content and menu placement need another UX pass because the current information architecture still feels too technical for frequent CEO/accountant workflows.
@@ -315,25 +317,37 @@ The current USL implementation does not yet reproduce that full interactive beha
 
 ### Manual navigation to `/odoo/accounting`
 
-Status: implemented at menu/action level; browser UX smoke test still recommended.
+Status: implemented and browser-smoke-tested on `odoo_rebuild_accounting_test`.
 
 Evidence: the upstream Community menu root is named `Invoicing` in `addons/account/views/account_menuitem.xml`, while the dashboard action exists as the child menu `menu_board_journal_1`. The custom add-on now updates `account.menu_finance` to display `Accounting` and to target `account.open_account_journal_dashboard_kanban`, whose action path is `accounting`.
 
 Impact: users should no longer need to manually discover `/odoo/accounting` to reach the accounting dashboard.
 
-Additional menu work now exposes first-level `Review Issues` and `Reconcile Bank Transactions` entries, renames the supplier area to `Suppliers and Expenses`, makes native Odoo `Employee Expenses` available in that supplier area, renames reporting to `Reports and Declarations`, and groups raw source/import evidence under `Review and Audit > Advanced Audit`.
+The add-on now activates Odoo's documented full-accounting group hierarchy for Accounting Managers. Without that extension, Community grants a manager configuration and invoicing access but hides the full Accounting, Review and reconciliation surfaces. With it, the browser shows the required first-level areas: `Dashboard`, `Customers`, `Vendors`, `Accounting`, `Review`, `Reporting`, and `Configuration`.
 
-Remaining work: validate the app-launcher behavior in the browser and continue the broader menu/workbench redesign after customer/vendor/source-derived historical expense reconstruction and report parity are implemented.
+Frequent reconciliation paths are deliberately distinct:
+
+- `Accounting > Transactions > Bank Matching` opens the cross-journal OCA bank workbench for unreconciled statement lines;
+- journal-card `Transactions` opens transaction history, while `Reconcile … Items` opens that journal's matching workbench;
+- `Accounting > Closing > General Reconciliation` opens OCA reconciliation grouped by account and partner;
+- `Review > Control > Issues` opens the accounting-hygiene/reconstruction summary;
+- raw source/import evidence remains under `Review > Advanced Audit`.
+
+Native Odoo `Employee Expenses` remains available in the Vendors area.
+
+Remaining work: add the final closing and declaration screens to this hierarchy and validate the navigation under Valentin's and Prosper's final named user accounts.
 
 ### Missing/equivalent reconciliation view
 
 Status: partially improved, not complete.
 
-Evidence: imported bank statement lines and reconciliation records exist in the target import status, and custom review views exist for reconciliation evidence. The Accounting dashboard now exposes a first-level `Reconcile Bank Transactions` entry, and browser smoke testing on `odoo_rebuild_accounting_test` showed it opens the OCA reconciliation kanban workbench with unreconciled imported bank statement lines such as Shine, Revolut and Wise transactions. Browser smoke testing of the Banque Shine dashboard card also opened `Statement lines`, displayed `63` items and showed the journal `Global Balance` without a visible client error.
+Evidence: imported bank statement lines and reconciliation records exist in the target import status, and custom review views exist for reconciliation evidence. Browser smoke testing on `odoo_rebuild_accounting_test` verified that `Accounting > Transactions > Bank Matching` opens the OCA reconciliation kanban workbench with unreconciled imported bank statement lines such as Shine, Revolut and Wise transactions. The Banque Shine dashboard card opened `63` unreconciled items against a `90,178.28 EUR` global balance. Selecting a line opened the split matching workbench with the bank line, suspense line, candidate journal items, manual operation, chatter, validate/reset controls and the `942.00 EUR` DGFiP refund candidate.
+
+`Accounting > Closing > General Reconciliation` now opens the separate OCA account/partner reconciliation workbench. The browser showed eight account/partner reconciliation groups and candidate journal items for suspense, VAT credit, supplier, social, shareholder-current-account and deferred-expense accounts.
 
 Resolved implementation issue: the OCA `account_reconcile_oca` kanban workbench originally failed in Odoo 19 with a web-client `KanbanArchParser` error: `Cannot read properties of undefined (reading 'type')`. The custom add-on now overrides the OCA kanban card with an Odoo-19-compatible card that keeps required fields at the kanban root and renders card values without nested `<field>` tags.
 
-Impact: historical bank balances may be visible on the dashboard while the transaction/reconciliation workspace feels empty or disconnected.
+Impact: transaction history, bank matching and general reconciliation now have distinct names and navigation. The operational behavior is available, but accounting-effect acceptance is still pending.
 
 Required work: validate the native operational reconciliation flow end to end, including matching invoices/bills/payments, write-offs, partial reconciliations, and interaction with imported historical reconciliation evidence. This remains a product/accounting UX blocker for Milestone 13 until behavior and accounting effects are verified.
 
@@ -351,9 +365,9 @@ Required work: replace or wrap the current report wizard with a user-facing dyna
 
 Status: first pass implemented; final workflow polish remains.
 
-Evidence: the custom menu tree previously exposed many granular imported report and evidence views under normal Accounting reporting menus. The active menu tree now keeps raw `Imported ...` evidence views under `Review and Audit > Advanced Audit`, and first-level Accounting destinations include `Review Issues`, `Reconcile Bank Transactions`, `Customers`, `Suppliers and Expenses`, and `Reports and Declarations`.
+Evidence: the custom menu tree previously exposed many granular imported report and evidence views under normal Accounting reporting menus. The active menu tree now keeps raw `Imported ...` evidence views under `Review > Advanced Audit`, while the first level matches the seven-area product target. Bank Matching sits under Accounting transactions, General Reconciliation under Accounting closing, and Issues under Review control.
 
-Impact: users have clearer entry points for the five priority workflows while technical evidence remains reachable.
+Impact: managers now receive reproducible full-accounting access and users have stable entry points for the normal Accounting journeys while technical evidence remains reachable.
 
 Required work: continue polishing once the OCA report screens, business documents, expenses and reconciliation workflows are validated. Menu polish is not complete until the final report/declaration screens have stable names and destinations.
 
@@ -435,12 +449,12 @@ Required work: implement human-readable dynamic report screens and exports, then
 
 - [x] Add a clear Accounting app/menu entry that opens the accounting dashboard directly.
 - [ ] Make module refresh/upgrade instructions and UI refresh behavior visible in the dev guide.
-- [ ] Diagnose the bank journal transaction view and reconcile it with imported `account.bank.statement.line` records.
-- [ ] Decide the product target for historical reconciliation: native Community flow, custom review workbench, or both.
+- [x] Diagnose the bank journal transaction view and reconcile it with imported `account.bank.statement.line` records.
+- [x] Adopt the OCA workbench for operational bank/general reconciliation while retaining custom read-only historical evidence views under Advanced Audit.
 - [ ] Include customer invoices, credit notes, vendor bills, supplier refunds and source-derived historical expenses in the user-facing reconstruction scope.
 - [ ] Diagnose and fix the FEC permission path for accountant and finance operator roles.
 - [x] Diagnose and fix the Settings cash-basis tax error without changing tax meaning.
-- [ ] Reorganize menus around CEO/accountant workflows.
+- [ ] Complete menu organization around CEO/accountant workflows. The seven-area navigation and reconciliation routes are complete; closing/declaration destinations remain.
 
 ### Short term
 

@@ -7,7 +7,7 @@ This reference lists the main user-facing screens added for accounting reconstru
 ## Main Review Entry
 
 ```text
-Accounting > Review Issues
+Accounting > Review > Control > Issues
 ```
 
 Purpose: company-level dashboard for import status, ledger totals, discrepancies, review decisions, external values and report evidence.
@@ -17,25 +17,25 @@ Use it first when reviewing a reconstructed database.
 ## Evidence and Control Screens
 
 ```text
-Accounting > Review and Audit > Advanced Audit > Import Runs
+Accounting > Review > Advanced Audit > Import Runs
 ```
 
 Shows source and target import metadata.
 
 ```text
-Accounting > Review and Audit > Advanced Audit > Discrepancies
+Accounting > Review > Advanced Audit > Discrepancies
 ```
 
 Shows open, investigating, accepted and resolved accounting differences or review gates.
 
 ```text
-Accounting > Review and Audit > Advanced Audit > Review Decisions
+Accounting > Review > Advanced Audit > Review Decisions
 ```
 
 Shows accountant, Valentin, operator or joint review decisions.
 
 ```text
-Accounting > Review and Audit > Advanced Audit > External Report Values
+Accounting > Review > Advanced Audit > External Report Values
 ```
 
 Shows manual or externally supplied report values, especially for tax-package review.
@@ -43,9 +43,9 @@ Shows manual or externally supplied report values, especially for tax-package re
 ## Source Report Evidence
 
 ```text
-Accounting > Review and Audit > Advanced Audit > Source Report Catalogue
-Accounting > Review and Audit > Advanced Audit > Source Report Lines
-Accounting > Review and Audit > Advanced Audit > Source Report Expressions
+Accounting > Review > Advanced Audit > Source Report Catalogue
+Accounting > Review > Advanced Audit > Source Report Lines
+Accounting > Review > Advanced Audit > Source Report Expressions
 ```
 
 Use these screens to inspect the source Odoo Online report definitions as evidence for parity review. They do not copy Enterprise report code.
@@ -97,7 +97,7 @@ Use these to inspect asset, depreciation and deferred evidence.
 ## Report Export Wizard
 
 ```text
-Accounting > Review Issues > Report Export
+Accounting > Review > Control > Issues > Report Export
 ```
 
 Also available through Accounting reporting launchers.
@@ -106,14 +106,22 @@ Purpose: preview and export supported reports.
 
 ## Priority Workflows
 
-The Accounting app exposes these first-level destinations for frequent work:
+The Accounting app exposes the standard seven-area navigation:
 
-- `Review Issues`
-- `Reconcile Bank Transactions`
+- `Dashboard`
 - `Customers`
-- `Suppliers and Expenses`
-- `Reports and Declarations`
+- `Vendors`
+- `Accounting`
+- `Review`
+- `Reporting`
+- `Configuration`
 
-`Reconcile Bank Transactions` opens the bank reconciliation workbench for unreconciled imported bank statement lines. Use it to review transactions, amounts, partners and running balances. Full operational validation of matching, write-offs and partial reconciliations is still in progress.
+Use the three transaction/reconciliation paths for different purposes:
 
-Technical source mappings, raw imported report rows and comparison evidence are intentionally grouped under `Review and Audit > Advanced Audit`.
+- A journal card's `Transactions` button opens the complete transaction history.
+- `Accounting > Transactions > Bank Matching` opens unreconciled bank statement lines across journals. A journal card's `Reconcile … Items` button opens the same workbench scoped to that journal.
+- `Accounting > Closing > General Reconciliation` handles receivable, payable, suspense, tax, shareholder, payroll and other clearing accounts by account and partner.
+
+Bank Matching shows the statement line, suspense entry, candidate journal items, manual operation, chatter and validation controls. General Reconciliation shows account/partner groups and their residual journal items. Full accounting-effect validation of matching, write-offs, partial reconciliation and undo remains in progress.
+
+Technical source mappings, raw imported report rows and comparison evidence are intentionally grouped under `Review > Advanced Audit`.

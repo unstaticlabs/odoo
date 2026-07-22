@@ -18,3 +18,4 @@ from . import review_summary
 from . import oca_report_defaults
 from . import mis_builder_compat
 from . import fec_export_wizard
+from . import account_reconcile_compat

@@ -24,7 +24,7 @@ Overall status: **Substantially progressed, implementation continues**. The post
 - [x] Imported source report catalogue, lines, columns and expressions preserved as evidence.
 - [x] OCA 19.0 accounting/reporting/reconciliation add-ons pinned and installable through `make oca-addons-sync`.
 - [x] OCA financial reporting, MIS Builder, reconciliation and bank statement import foundation installed successfully on `odoo_rebuild_accounting_test`.
-- [x] Accounting app entry opens the Accounting dashboard directly, with first-level `Review Issues`, `Reconcile Bank Transactions`, `Customers`, `Suppliers and Expenses`, and `Reports and Declarations` entries.
+- [x] Accounting app entry opens the Accounting dashboard directly; accounting managers receive the full Accounting feature group and see `Dashboard`, `Customers`, `Vendors`, `Accounting`, `Review`, `Reporting`, and `Configuration`, with distinct Bank Matching and General Reconciliation paths.
 - [x] Browser-accessible user documentation from Odoo at `/usl/user-docs`.
 - [x] Local imported-accounting runtime disables cron threads by default for safer development inspection.
 
@@ -1065,7 +1065,7 @@ Overall status: **Substantially progressed, implementation continues**. The post
 - [x] Define the target daily workbench: reconcile, review, journal entries, invoices, bills, refunds, expenses and tax readiness.
 - [x] Define the target closing package: ledger controls, reports, declaration mappings, FEC, evidence and review state.
 - [x] Add a clear Accounting app entry that opens the accounting dashboard.
-- [ ] Redesign menus around frequent CEO/accountant workflows.
+- [ ] Complete the menu redesign around frequent CEO/accountant workflows. The seven-area top-level navigation and distinct Bank Matching/General Reconciliation routes are implemented; closing and declaration destinations still need their final screens.
 - [ ] Implement dynamic report screens before export.
 - [ ] Implement readable accountant-ready PDF templates.
 - [ ] Implement readable templated XLSX exports.

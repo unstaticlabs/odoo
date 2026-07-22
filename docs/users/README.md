@@ -15,7 +15,7 @@ This is user documentation. It explains what to do in Odoo and what the screens 
 From Odoo, open:
 
 ```text
-Accounting > Review and Audit > Advanced Audit > User Guide
+Accounting > Review > Advanced Audit > User Guide
 ```
 
 You can also open the guide from the `User Guide` button on the Accounting Reconstruction Review screen.
@@ -29,8 +29,10 @@ When a dedicated documentation site is running, the same guide can also be viewe
 The implemented user-facing accounting features are centered on reconstructed accounting evidence imported from the Odoo Online backup. In Odoo, authorized users can currently:
 
 - open Accounting directly from the application menu;
-- open Review Issues from the first Accounting menu level;
-- open Reconcile Bank Transactions from the first Accounting menu level to review imported bank statement lines in the reconciliation workbench;
+- use the seven accounting areas: Dashboard, Customers, Vendors, Accounting, Review, Reporting and Configuration;
+- open Review > Control > Issues to review reconstruction controls and unresolved discrepancies;
+- open Accounting > Transactions > Bank Matching to review imported bank statement lines in the bank workbench;
+- open Accounting > Closing > General Reconciliation to reconcile open accounting items independently of bank matching;
 - open the native Expenses workspace from the supplier accounting area;
 - use OCA interactive report wizards for Trial Balance, General Ledger, Journal Ledger, Open Items, Aged Partner Balance and VAT;
 - open a reconstruction summary for each imported company;
@@ -103,7 +105,7 @@ Use this if this is your first time opening the rebuilt accounting evidence in O
 Open:
 
 ```text
-Accounting > Review Issues
+Accounting > Review > Control > Issues
 ```
 
 This summary is the safest first screen. It tells you which source backup was imported, which company you are reviewing, how many records were reconstructed, which discrepancies remain open, and which review decisions are still pending.

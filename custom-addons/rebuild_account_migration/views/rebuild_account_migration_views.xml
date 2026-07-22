@@ -5,19 +5,37 @@
         <field name="action" eval="'ir.actions.act_window,%d' % ref('account.open_account_journal_dashboard_kanban')"/>
     </record>
     <record id="account.menu_finance_receivables" model="ir.ui.menu">
-        <field name="sequence">10</field>
+        <field name="sequence">2</field>
     </record>
     <record id="account.menu_finance_payables" model="ir.ui.menu">
-        <field name="name">Suppliers and Expenses</field>
-        <field name="sequence">20</field>
+        <field name="name">Vendors</field>
+        <field name="sequence">3</field>
     </record>
     <record id="account.menu_finance_reports" model="ir.ui.menu">
-        <field name="name">Reports and Declarations</field>
-        <field name="sequence">30</field>
+        <field name="name">Reporting</field>
+        <field name="sequence">20</field>
     </record>
     <record id="account.account_audit_menu" model="ir.ui.menu">
-        <field name="name">Review and Audit</field>
-        <field name="sequence">40</field>
+        <field name="name">Review</field>
+        <field name="sequence">7</field>
+    </record>
+    <record id="account_reconcile_oca.account_account_reconcile_menu" model="ir.ui.menu">
+        <field name="name">General Reconciliation</field>
+        <field name="parent_id" ref="account.account_closing_menu"/>
+        <field name="sequence">10</field>
+    </record>
+    <record id="account_reconcile_oca.account_account_reconcile_act_window" model="ir.actions.act_window">
+        <field name="name">General Reconciliation</field>
+    </record>
+    <record id="view_rebuild_account_general_reconciliation_form" model="ir.ui.view">
+        <field name="name">account.account.reconcile.form.general.reconciliation</field>
+        <field name="model">account.account.reconcile</field>
+        <field name="inherit_id" ref="account_reconcile_oca.account_account_reconcile_form_view"/>
+        <field name="arch" type="xml">
+            <form position="attributes">
+                <attribute name="string">General Reconciliation</attribute>
+            </form>
+        </field>
     </record>
     <record id="account_financial_report.menu_oca_reports" model="ir.ui.menu">
         <field name="name">Interactive Reports</field>
@@ -113,7 +131,7 @@
     </record>
 
     <record id="action_rebuild_account_reconcile_bank_transactions" model="ir.actions.act_window">
-        <field name="name">Reconcile Bank Transactions</field>
+        <field name="name">Bank Matching</field>
         <field name="res_model">account.bank.statement.line</field>
         <field name="domain">[('is_reconciled', '=', False)]</field>
         <field name="context">{'search_default_not_reconciled': True, 'view_ref': 'account_reconcile_oca.bank_statement_line_form_reconcile_view'}</field>
@@ -3329,17 +3347,17 @@
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_review_issues_priority"
-        name="Review Issues"
-        parent="account.menu_finance"
+        name="Issues"
+        parent="account.account_audit_control_menu"
         action="action_rebuild_account_review_summary"
-        sequence="2"
+        sequence="1"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_reconcile_bank_transactions_priority"
-        name="Reconcile Bank Transactions"
-        parent="account.menu_finance"
+        name="Bank Matching"
+        parent="account.account_transactions_menu"
         action="action_rebuild_account_reconcile_bank_transactions"
-        sequence="3"
+        sequence="10"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_review_summary"

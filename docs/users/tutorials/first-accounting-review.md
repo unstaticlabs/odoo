@@ -19,7 +19,7 @@ Prerequisites:
 3. Go to:
 
 ```text
-Accounting > Review Issues
+Accounting > Review > Control > Issues
 ```
 
 You should see one row per imported company. For Unstatic Labs, check these columns:
@@ -119,7 +119,7 @@ The metadata tells an accountant what company, dates, report type, target move s
 1. Go to:
 
 ```text
-Accounting > Review and Audit > Advanced Audit > Discrepancies
+Accounting > Review > Advanced Audit > Discrepancies
 ```
 
 2. Filter for open items.
