@@ -76,7 +76,7 @@ accounting-readiness:
 accounting-evidence:
 	$(ACCOUNTING_COMPAT) evidence
 
-accounting-addon-tests:
+accounting-addon-tests: oca-addons-sync
 	docker compose --profile init run --rm -e ODOO_INIT_DB=$(ACCOUNTING_TEST_DB) init-db odoo --config=/etc/odoo/odoo.conf --database=$(ACCOUNTING_TEST_DB) --init=rebuild_account_migration --without-demo=true --test-enable --test-tags=$(ACCOUNTING_TEST_TAGS) --stop-after-init --log-level=$(ACCOUNTING_TEST_LOG_LEVEL)
 
 user-docs-serve:

@@ -30,12 +30,14 @@ What is not complete:
 - [ ] OCA report screens are installed but not yet validated as USL/Odoo Online-equivalent dynamic report workflows.
 - [ ] Current PDF/XLSX report exports are not accountant-ready templates.
 - [x] Accounting app entry now targets the accounting dashboard directly.
+- [x] Accounting now exposes first-level Review Issues and Reconcile Bank Transactions entries.
+- [x] Raw imported report/evidence screens are grouped under Review and Audit > Advanced Audit.
 - [ ] Historical bank statement and reconciliation UX is not yet equivalent to the Odoo Online reconciliation workbench.
 - [ ] Customer invoices, vendor bills, refunds and expenses are not yet complete user-facing reconstructed business workflows.
 - [ ] French declaration guidance for CFS Pro and Portailpro field entry is not yet implemented.
 - [x] FEC test export is available through the custom reviewed export path for accountant-review users.
 - [ ] Settings behavior with imported cash-basis taxes requires diagnosis.
-- [ ] Menu grouping needs a CEO/accountant workflow redesign.
+- [ ] Menu grouping needs a final CEO/accountant workflow polish pass after report and document workflows are complete.
 - [ ] Accountant review and formal acceptance remain pending.
 
 # 0. Programme governance and invariants

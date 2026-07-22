@@ -7,7 +7,7 @@ This reference lists the main user-facing screens added for accounting reconstru
 ## Main Review Entry
 
 ```text
-Accounting > Review > Rebuild Evidence > Accounting Reconstruction Review
+Accounting > Review Issues
 ```
 
 Purpose: company-level dashboard for import status, ledger totals, discrepancies, review decisions, external values and report evidence.
@@ -17,25 +17,25 @@ Use it first when reviewing a reconstructed database.
 ## Evidence and Control Screens
 
 ```text
-Accounting > Review > Rebuild Evidence > Import Runs
+Accounting > Review and Audit > Advanced Audit > Import Runs
 ```
 
 Shows source and target import metadata.
 
 ```text
-Accounting > Review > Rebuild Evidence > Discrepancies
+Accounting > Review and Audit > Advanced Audit > Discrepancies
 ```
 
 Shows open, investigating, accepted and resolved accounting differences or review gates.
 
 ```text
-Accounting > Review > Rebuild Evidence > Review Decisions
+Accounting > Review and Audit > Advanced Audit > Review Decisions
 ```
 
 Shows accountant, Valentin, operator or joint review decisions.
 
 ```text
-Accounting > Review > Rebuild Evidence > External Report Values
+Accounting > Review and Audit > Advanced Audit > External Report Values
 ```
 
 Shows manual or externally supplied report values, especially for tax-package review.
@@ -43,9 +43,9 @@ Shows manual or externally supplied report values, especially for tax-package re
 ## Source Report Evidence
 
 ```text
-Accounting > Review > Rebuild Evidence > Source Report Catalogue
-Accounting > Review > Rebuild Evidence > Source Report Lines
-Accounting > Review > Rebuild Evidence > Source Report Expressions
+Accounting > Review and Audit > Advanced Audit > Source Report Catalogue
+Accounting > Review and Audit > Advanced Audit > Source Report Lines
+Accounting > Review and Audit > Advanced Audit > Source Report Expressions
 ```
 
 Use these screens to inspect the source Odoo Online report definitions as evidence for parity review. They do not copy Enterprise report code.
@@ -97,10 +97,21 @@ Use these to inspect asset, depreciation and deferred evidence.
 ## Report Export Wizard
 
 ```text
-Accounting > Review > Rebuild Evidence > Accounting Reconstruction Review > Report Export
+Accounting > Review Issues > Report Export
 ```
 
 Also available through Accounting reporting launchers.
 
 Purpose: preview and export supported reports.
 
+## Priority Workflows
+
+The Accounting app exposes these first-level destinations for frequent work:
+
+- `Review Issues`
+- `Reconcile Bank Transactions`
+- `Customers`
+- `Suppliers and Expenses`
+- `Reports and Declarations`
+
+Technical source mappings, raw imported report rows and comparison evidence are intentionally grouped under `Review and Audit > Advanced Audit`.

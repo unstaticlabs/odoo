@@ -271,7 +271,9 @@ Evidence: the upstream Community menu root is named `Invoicing` in `addons/accou
 
 Impact: users should no longer need to manually discover `/odoo/accounting` to reach the accounting dashboard.
 
-Remaining work: validate the app-launcher behavior in the browser and continue the broader menu/workbench redesign.
+Additional menu work now exposes first-level `Review Issues` and `Reconcile Bank Transactions` entries, renames the supplier area to `Suppliers and Expenses`, renames reporting to `Reports and Declarations`, and groups raw source/import evidence under `Review and Audit > Advanced Audit`.
+
+Remaining work: validate the app-launcher behavior in the browser and continue the broader menu/workbench redesign after customer/vendor/expense reconstruction and report parity are implemented.
 
 ### Missing/equivalent reconciliation view
 
@@ -295,13 +297,13 @@ Required work: replace or wrap the current report wizard with a user-facing dyna
 
 ### Menus and documentation are hard to read
 
-Status: confirmed UX debt.
+Status: first pass implemented; final workflow polish remains.
 
-Evidence: the custom menu tree exposes many granular imported report and evidence views under Accounting. This is useful for debugging and audit, but not optimized for CEO/accountant daily routines.
+Evidence: the custom menu tree previously exposed many granular imported report and evidence views under normal Accounting reporting menus. The active menu tree now keeps raw `Imported ...` evidence views under `Review and Audit > Advanced Audit`, and first-level Accounting destinations include `Review Issues`, `Reconcile Bank Transactions`, `Customers`, `Suppliers and Expenses`, and `Reports and Declarations`.
 
-Impact: users can access detail, but important workflows are not reliably two clicks away.
+Impact: users have clearer entry points for the five priority workflows while technical evidence remains reachable.
 
-Required work: create a role-oriented accounting workbench with priority groups such as Overview, Customers, Suppliers, Bank and Reconciliation, Review Issues, Reports, Tax and FEC, Evidence, and Advanced Audit.
+Required work: continue polishing once the OCA report screens, business documents, expenses and reconciliation workflows are validated. Menu polish is not complete until the final report/declaration screens have stable names and destinations.
 
 ### FEC access error
 

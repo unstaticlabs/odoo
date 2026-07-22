@@ -19,7 +19,7 @@ Prerequisites:
 3. Go to:
 
 ```text
-Accounting > Review > Rebuild Evidence > Accounting Reconstruction Review
+Accounting > Review Issues
 ```
 
 You should see one row per imported company. For Unstatic Labs, check these columns:
@@ -119,7 +119,7 @@ The metadata tells an accountant what company, dates, report type, target move s
 1. Go to:
 
 ```text
-Accounting > Review > Rebuild Evidence > Discrepancies
+Accounting > Review and Audit > Advanced Audit > Discrepancies
 ```
 
 2. Filter for open items.
@@ -181,4 +181,3 @@ Next, use the how-to guides for real work:
 - [Generate, Preview and Export Accounting Reports](../how-to/generate-accounting-reports.md)
 - [Review Discrepancies and Record Decisions](../how-to/review-discrepancies-and-decisions.md)
 - [Generate and Review the FEC](../how-to/generate-and-review-fec.md)
-

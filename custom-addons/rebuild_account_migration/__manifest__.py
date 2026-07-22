@@ -8,8 +8,14 @@
     "depends": [
         "account",
         "account_payment",
+        "account_financial_report",
+        "account_reconcile_oca",
+        "account_statement_import_file",
+        "account_tax_balance",
         "analytic",
         "l10n_fr_account",
+        "mis_builder",
+        "partner_statement",
     ],
     "data": [
         "security/rebuild_account_security.xml",

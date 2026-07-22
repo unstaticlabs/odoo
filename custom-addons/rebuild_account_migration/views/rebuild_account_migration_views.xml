@@ -4,6 +4,37 @@
         <field name="name">Accounting</field>
         <field name="action" eval="'ir.actions.act_window,%d' % ref('account.open_account_journal_dashboard_kanban')"/>
     </record>
+    <record id="account.menu_finance_receivables" model="ir.ui.menu">
+        <field name="sequence">10</field>
+    </record>
+    <record id="account.menu_finance_payables" model="ir.ui.menu">
+        <field name="name">Suppliers and Expenses</field>
+        <field name="sequence">20</field>
+    </record>
+    <record id="account.menu_finance_reports" model="ir.ui.menu">
+        <field name="name">Reports and Declarations</field>
+        <field name="sequence">30</field>
+    </record>
+    <record id="account.account_audit_menu" model="ir.ui.menu">
+        <field name="name">Review and Audit</field>
+        <field name="sequence">40</field>
+    </record>
+    <record id="account_financial_report.menu_oca_reports" model="ir.ui.menu">
+        <field name="name">Interactive Reports</field>
+        <field name="sequence">1</field>
+    </record>
+
+    <record id="action_rebuild_account_reconcile_bank_transactions" model="ir.actions.act_window">
+        <field name="name">Reconcile Bank Transactions</field>
+        <field name="res_model">account.bank.statement.line</field>
+        <field name="domain">[('is_reconciled', '=', False)]</field>
+        <field name="context">{'search_default_not_reconciled': True, 'view_ref': 'account_reconcile_oca.bank_statement_line_form_reconcile_view'}</field>
+        <field name="view_mode">kanban,list</field>
+        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'kanban', 'view_id': ref('account_reconcile_oca.bank_statement_line_reconcile_view')}), (0, 0, {'view_mode': 'list', 'view_id': ref('account_statement_base.account_bank_statement_line_tree')})]"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No unreconciled bank transaction is currently visible.</p>
+        </field>
+    </record>
 
     <record id="view_rebuild_account_review_summary_list" model="ir.ui.view">
         <field name="name">rebuild.account.review.summary.list</field>
@@ -3204,9 +3235,23 @@
 
     <menuitem
         id="menu_rebuild_account_migration"
-        name="Rebuild Evidence"
+        name="Advanced Audit"
         parent="account.account_audit_menu"
         sequence="90"
+        groups="account.group_account_readonly"/>
+    <menuitem
+        id="menu_rebuild_account_review_issues_priority"
+        name="Review Issues"
+        parent="account.menu_finance"
+        action="action_rebuild_account_review_summary"
+        sequence="2"
+        groups="account.group_account_readonly"/>
+    <menuitem
+        id="menu_rebuild_account_reconcile_bank_transactions_priority"
+        name="Reconcile Bank Transactions"
+        parent="account.menu_finance"
+        action="action_rebuild_account_reconcile_bank_transactions"
+        sequence="3"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_review_summary"
@@ -3864,4 +3909,92 @@
         action="action_rebuild_account_external_report_value"
         sequence="60"
         groups="account.group_account_readonly"/>
+
+    <record id="menu_rebuild_account_aged_receivable_line" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="menu_rebuild_account_aged_payable_line" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="menu_rebuild_account_partner_ledger_reporting" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="menu_rebuild_account_open_items_reporting" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="menu_rebuild_account_trial_balance_reporting" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="menu_rebuild_account_source_report_reporting" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="menu_rebuild_account_general_ledger_reporting" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="menu_rebuild_account_journal_report_reporting" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="menu_rebuild_account_balance_sheet_reporting" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="menu_rebuild_account_profit_loss_reporting" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="menu_rebuild_account_french_balance_sheet_reporting" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="menu_rebuild_account_french_profit_loss_reporting" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="menu_rebuild_account_sig_caf_reporting" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="menu_rebuild_account_french_tax_package_reporting" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="menu_rebuild_account_deferred_expense_reporting" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="menu_rebuild_account_deferred_revenue_reporting" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="menu_rebuild_account_bank_reconciliation_reporting" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="menu_rebuild_account_reconciliation_review_reporting" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="menu_rebuild_account_currency_reporting" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="menu_rebuild_account_cash_flow_reporting" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="menu_rebuild_account_executive_summary_reporting" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="menu_rebuild_account_analytic_reporting" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="menu_rebuild_account_report_export_wizard_reporting" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="menu_rebuild_account_tax_report_reporting" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="menu_rebuild_account_ec_sales_reporting" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="menu_rebuild_account_oss_sales_reporting" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="menu_rebuild_account_oss_imports_reporting" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="menu_rebuild_account_french_tax_package_tax_reporting" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="menu_rebuild_account_external_report_value_tax_reporting" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
 </odoo>
