@@ -48,6 +48,26 @@ class ResCurrencyRate(models.Model):
     rebuild_rate_retrieved_at = fields.Datetime(readonly=True, copy=False)
 
 
+class AccountFiscalPosition(models.Model):
+    _name = "account.fiscal.position"
+    _inherit = ["account.fiscal.position", "rebuild.source.trace.mixin"]
+
+
+class AccountFiscalPositionAccount(models.Model):
+    _name = "account.fiscal.position.account"
+    _inherit = ["account.fiscal.position.account", "rebuild.source.trace.mixin"]
+
+
+class AccountPaymentTerm(models.Model):
+    _name = "account.payment.term"
+    _inherit = ["account.payment.term", "rebuild.source.trace.mixin"]
+
+
+class AccountPaymentTermLine(models.Model):
+    _name = "account.payment.term.line"
+    _inherit = ["account.payment.term.line", "rebuild.source.trace.mixin"]
+
+
 class AccountAccount(models.Model):
     _name = "account.account"
     _inherit = ["account.account", "rebuild.source.trace.mixin"]

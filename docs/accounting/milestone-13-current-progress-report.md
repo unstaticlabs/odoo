@@ -244,6 +244,7 @@ Validated by artifacts or code inspection:
 - Posted imported moves balance in the validated ledger slice.
 - Source and target control comparisons pass for the validated posted ledger slice.
 - Source currency-rate reconstruction now passes exact broad-snapshot parity: all `1,877` native EUR, USD and GBP rates from `2024-01-01` through `2026-07-20` match by source ID, company, date, technical rate, ECB provider and retained source retrieval timestamp. The importer is idempotent and uses Odoo's native rate semantics rather than inventing or inverting rates. Browser smoke testing verified the USD rate history and visible `Source Provider = ecb` provenance in the native currency form, including the `2026-06-30` rate of `1.1394` USD per EUR.
+- Track B now has a separate disposable `odoo_rebuild_accounting_track_b` database and a clean native business-document replay for `2025-10-01` through `2026-06-30`. All `284` source documents (`36` customer invoices, `161` vendor bills, `3` supplier refunds and `84` purchase receipts) are created from commercial fields and posted through normal Odoo `action_post`; `284/284` match source header amounts, due dates and per-account debit/credit/balance/amount-currency effects, with `0` blocked cases and `0` mismatches across `170` EUR and `114` USD documents. Three legacy single-line documents use Odoo's supported manual-tax metadata and are explicitly classified. No finalized source journal line is passed into document creation.
 - Reconciliation records are imported and compared as data.
 - Attachment metadata and selected binaries are imported and checked.
 - The custom report export wizard can generate CSV, XLSX, PDF and FEC TXT payloads.
@@ -252,7 +253,7 @@ Validated by artifacts or code inspection:
 Not yet validated as finished product behavior:
 
 - end-to-end accounting effects for bank matching and general reconciliation, including write-offs, partial matches and undo
-- native multicurrency invoice, payment, reconciliation and exchange-difference replay for the Track B period
+- native payment, bank-matching, reconciliation and exchange-difference replay for the Track B period; invoice/bill/refund/receipt posting itself now passes
 - a maintained Odoo 19 automatic future-rate provider; the restored historical source rates retain their ECB provenance, but automatic refresh is not yet configured
 - dynamic Odoo Online-style accounting reports
 - readable templated PDF/XLSX reports

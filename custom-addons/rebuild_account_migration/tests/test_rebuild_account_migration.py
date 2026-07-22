@@ -301,6 +301,146 @@ class TestRebuildAccountMigration(TransactionCase):
         ]), 1)
         self.assertAlmostEqual(existing_rate.rate, 1.30)
 
+    def test_native_replay_uses_supported_manual_tax_metadata(self):
+        self.company.tax_calculation_rounding_method = "round_globally"
+        expense_account = self._account("T606441", "Track B expense", "expense")
+        payable_account = self._account("T401266", "Track B payable", "liability_payable")
+        tax_account = self._account("T445321", "Track B input VAT", "asset_current")
+        expense_account.write({
+            "rebuild_source_model": "account.account",
+            "rebuild_source_id": 441,
+            "rebuild_source_snapshot": "unit-track-b",
+        })
+        payable_account.write({
+            "rebuild_source_model": "account.account",
+            "rebuild_source_id": 266,
+            "rebuild_source_snapshot": "unit-track-b",
+        })
+        tax_account.write({
+            "rebuild_source_model": "account.account",
+            "rebuild_source_id": 321,
+            "rebuild_source_snapshot": "unit-track-b",
+        })
+        partner = self.env["res.partner"].create({"name": "Track B supplier"})
+        partner.with_company(self.company).property_account_payable_id = payable_account
+        tax_group = self.env["account.tax.group"].create({
+            "name": "Track B VAT",
+            "company_id": self.company.id,
+        })
+
+        def make_tax(source_id, amount):
+            return self.env["account.tax"].create({
+                "name": f"Track B {amount}%",
+                "company_id": self.company.id,
+                "tax_group_id": tax_group.id,
+                "type_tax_use": "purchase",
+                "amount_type": "percent",
+                "amount": amount,
+                "invoice_repartition_line_ids": [
+                    Command.create({"repartition_type": "base"}),
+                    Command.create({
+                        "repartition_type": "tax",
+                        "factor_percent": 100.0,
+                        "account_id": tax_account.id,
+                    }),
+                ],
+                "refund_repartition_line_ids": [
+                    Command.create({"repartition_type": "base"}),
+                    Command.create({
+                        "repartition_type": "tax",
+                        "factor_percent": 100.0,
+                        "account_id": tax_account.id,
+                    }),
+                ],
+                "rebuild_source_model": "account.tax",
+                "rebuild_source_id": source_id,
+                "rebuild_source_snapshot": "unit-track-b",
+            })
+
+        import_run = self.env["rebuild.account.import.run"].create({
+            "name": "Track B native tax replay",
+            "source_snapshot_id": "unit-track-b",
+        })
+        journal = self._journal("purchase")
+
+        def make_move(source_move_id, source_line_id, price_unit, tax):
+            return self.env["account.move"].create({
+                "move_type": "in_invoice",
+                "journal_id": journal.id,
+                "company_id": self.company.id,
+                "partner_id": partner.id,
+                "invoice_date": fields.Date.from_string("2026-02-25"),
+                "invoice_line_ids": [
+                    Command.create({
+                        "name": "Track B taxable line",
+                        "account_id": expense_account.id,
+                        "quantity": 1.0,
+                        "price_unit": price_unit,
+                        "tax_ids": [Command.set(tax.ids)],
+                        "rebuild_source_model": "account.move.line.native_engine_input",
+                        "rebuild_source_id": source_line_id,
+                        "rebuild_source_snapshot": "unit-track-b",
+                    }),
+                    Command.create({
+                        "name": "Accountless note",
+                        "display_type": "line_note",
+                    }),
+                ],
+                "rebuild_source_model": "account.move.native_engine_replay",
+                "rebuild_source_id": source_move_id,
+                "rebuild_source_snapshot": "unit-track-b",
+            })
+
+        tax_20 = make_tax(5, 20.0)
+        rounding_move = make_move(5860, 20715, 49.42, tax_20)
+        self.assertEqual(rounding_move.amount_tax, 9.88)
+        evidence = import_run._native_replay_apply_manual_tax_override(
+            rounding_move,
+            [{
+                "id": 20715,
+                "move_id": 5860,
+                "display_type": "product",
+                "quantity": 1.0,
+                "price_unit": 49.42,
+                "discount": 0.0,
+                "price_subtotal": 49.42,
+                "price_total": 59.30,
+                "balance": 49.42,
+                "tax_ids": [5],
+            }],
+            {5: {"balance": 9.90, "amount_currency": 9.90, "tax_base_amount": 49.42}},
+            {5: tax_20},
+        )
+        self.assertEqual(evidence["classification"], "supported_native_manual_tax_override")
+        self.assertEqual(rounding_move.amount_untaxed, 49.42)
+        self.assertEqual(rounding_move.amount_tax, 9.90)
+        self.assertEqual(rounding_move.amount_total, 59.32)
+        rounding_move.action_post()
+        self.assertNotIn("0", import_run._native_replay_target_account_totals(rounding_move))
+
+        tax_5_5 = make_tax(8, 5.5)
+        included_move = make_move(5391, 11052, 37.00, tax_5_5)
+        import_run._native_replay_apply_manual_tax_override(
+            included_move,
+            [{
+                "id": 11052,
+                "move_id": 5391,
+                "display_type": "product",
+                "quantity": 1.0,
+                "price_unit": 37.00,
+                "discount": 0.0,
+                "price_subtotal": 35.07,
+                "price_total": 37.00,
+                "balance": 35.07,
+                "tax_ids": [8],
+            }],
+            {8: {"balance": 1.93, "amount_currency": 1.93, "tax_base_amount": 35.07}},
+            {8: tax_5_5},
+        )
+        self.assertEqual(included_move.amount_untaxed, 35.07)
+        self.assertEqual(included_move.amount_tax, 1.93)
+        self.assertEqual(included_move.amount_total, 37.00)
+
     def test_accountant_reviewer_can_prepare_test_fec_only(self):
         reviewer = self.env["res.users"].with_context(no_reset_password=True).create({
             "name": "FEC Reviewer",

@@ -27,6 +27,7 @@ if TYPE_CHECKING:
 TOOL_VERSION = "0.1.0"
 SOURCE_DB = "odoo_online_source_saas_19_2"
 TARGET_DB = "odoo_rebuild_accounting_test"
+TRACK_B_DB = "odoo_rebuild_accounting_track_b"
 READONLY_ROLE = "accounting_source_ro"
 DEFAULT_SOURCE_DIR = "usl-online-dump"
 DEFAULT_POSTGRES_IMAGE = "pgvector/pgvector:pg16-bookworm"
@@ -2059,6 +2060,185 @@ def target_reset(args: argparse.Namespace) -> dict[str, Any]:
         "record_counts": target_table_counts(TARGET_DB),
     }
     write_json(PRIVATE_ARTIFACTS / "target-reset-status.json", status)
+    return status
+
+
+def track_b_reset(args: argparse.Namespace) -> dict[str, Any]:
+    """Create the isolated database used for native Track B recomputation."""
+    ensure_dirs()
+    ensure_oca_addons_available()
+    wait_for_postgres_service(TARGET_DB_SERVICE)
+    db_user = database_user(TARGET_DB_SERVICE)
+    run(compose_args(
+        "exec", "-T", TARGET_DB_SERVICE,
+        "dropdb", "-U", db_user, "--if-exists", "--force", TRACK_B_DB,
+    ))
+    run(compose_args(
+        "exec", "-T", TARGET_DB_SERVICE,
+        "createdb", "-U", db_user, "-E", "UTF8", "-T", "template0", TRACK_B_DB,
+    ))
+    run(
+        compose_args(
+            "--profile",
+            "init",
+            "run",
+            "--rm",
+            "-e",
+            "ODOO_DEFAULT_PRODUCTIVITY_APPS=False",
+            "-e",
+            f"ODOO_ADDONS_PATH={TARGET_ODOO_ADDONS_PATH}",
+            "init-db",
+            "odoo",
+            "--config=/etc/odoo/odoo.conf",
+            f"--database={TRACK_B_DB}",
+            f"--init={','.join(TARGET_INIT_MODULES)}",
+            "--without-demo=true",
+            "--stop-after-init",
+        ),
+    )
+    if not table_exists(TRACK_B_DB, "rebuild_account_import_run"):
+        status = {
+            "generated_at": utc_now(),
+            "tool_version": TOOL_VERSION,
+            "stage": "track-b-reset",
+            "status": "failed",
+            "database": TRACK_B_DB,
+            "reason": "Track B database initialization did not install rebuild_account_migration.",
+        }
+        write_json(PRIVATE_ARTIFACTS / "track-b-reset-status.json", status)
+        raise HarnessError(status["reason"])
+    psql_exec(
+        TRACK_B_DB,
+        """
+        DO $$
+        BEGIN
+            IF to_regclass('public.ir_cron') IS NOT NULL THEN
+                UPDATE ir_cron SET active = false;
+            END IF;
+            IF to_regclass('public.ir_mail_server') IS NOT NULL THEN
+                UPDATE ir_mail_server SET active = false;
+            END IF;
+            IF to_regclass('public.fetchmail_server') IS NOT NULL THEN
+                UPDATE fetchmail_server SET active = false;
+            END IF;
+        END
+        $$;
+        """,
+    )
+    status = {
+        "generated_at": utc_now(),
+        "tool_version": TOOL_VERSION,
+        "stage": "track-b-reset",
+        "status": "passed",
+        "database": TRACK_B_DB,
+        "purpose": "Isolated 2025-10-01 through 2026-06-30 native accounting-engine replay",
+        "init_modules": TARGET_INIT_MODULES,
+        "neutralization": {
+            "ir_cron_active_count": active_row_count(TRACK_B_DB, "ir_cron"),
+            "mail_server_active_count": active_row_count(TRACK_B_DB, "ir_mail_server"),
+            "fetchmail_server_active_count": active_row_count(TRACK_B_DB, "fetchmail_server"),
+        },
+        "installed_modules": target_installed_modules(TRACK_B_DB),
+        "record_counts": target_table_counts(TRACK_B_DB),
+    }
+    write_json(PRIVATE_ARTIFACTS / "track-b-reset-status.json", status)
+    return status
+
+
+def track_b_documents(args: argparse.Namespace) -> dict[str, Any]:
+    """Rebuild and post source business documents through native Odoo logic."""
+    ensure_dirs()
+    validation = validate_source(args)
+    dump_sha = validation["dump"]["sha256"] or "unknown"
+    snapshot_id = f"source-{dump_sha[:12]}"
+    if not table_exists(TRACK_B_DB, "rebuild_account_import_run"):
+        message = "Run make accounting-track-b-reset before Track B document replay."
+        raise HarnessError(message)
+
+    script_path = PRIVATE_ARTIFACTS / "track-b-native-documents.py"
+    script_path.write_text(
+        "\n".join([
+            "import json",
+            "run = env['rebuild.account.import.run'].create({",
+            "    'name': 'USL Track B native business-document replay',",
+            "    'mode': 'native_engine_replay',",
+            "    'source_database': 'odoo_online_source_saas_19_2',",
+            f"    'source_dump_sha256': {dump_sha!r},",
+            f"    'source_snapshot_id': {snapshot_id!r},",
+            "    'source_version': 'Odoo Online Enterprise saas~19.2',",
+            f"    'target_database': {TRACK_B_DB!r},",
+            "})",
+            "stats = run.run_native_engine_replay_from_source({",
+            "    'source_database': 'odoo_online_source_saas_19_2',",
+            f"    'source_dump_sha256': {dump_sha!r},",
+            f"    'source_snapshot_id': {snapshot_id!r},",
+            "    'source_version': 'Odoo Online Enterprise saas~19.2',",
+            f"    'target_database': {TRACK_B_DB!r},",
+            f"    'date_from': {USL_CURRENT_START!r},",
+            "    'date_to': '2026-06-30',",
+            "    'source_company_ids': [1],",
+            "})",
+            "env.cr.commit()",
+            "print('REBUILD_TRACK_B_RESULT=' + json.dumps({",
+            "    'run_id': run.id,",
+            "    'status': run.status,",
+            "    'stats': stats,",
+            "}, sort_keys=True, default=str))",
+            "",
+        ]),
+        encoding="utf-8",
+    )
+    result = run(
+        compose_args(
+            "--profile",
+            "init",
+            "run",
+            "--rm",
+            "-e",
+            f"ODOO_ADDONS_PATH={TARGET_ODOO_ADDONS_PATH}",
+            "init-db",
+            "odoo",
+            "shell",
+            "--config=/etc/odoo/odoo.conf",
+            f"--database={TRACK_B_DB}",
+        ),
+        input_file=script_path,
+        check=False,
+    )
+    marker = None
+    for line in (result.stdout + result.stderr).splitlines():
+        if line.startswith("REBUILD_TRACK_B_RESULT="):
+            marker = line.removeprefix("REBUILD_TRACK_B_RESULT=")
+    if result.returncode or not marker:
+        status = {
+            "generated_at": utc_now(),
+            "tool_version": TOOL_VERSION,
+            "stage": "track-b-documents",
+            "status": "failed",
+            "classification": "TRACK_B_EXECUTION_DEFECT",
+            "database": TRACK_B_DB,
+            "exit_code": result.returncode,
+            "output_tail": (result.stdout + result.stderr)[-12000:],
+        }
+        write_json(PRIVATE_ARTIFACTS / "track-b-documents-status.json", status)
+        if not getattr(args, "allow_errors", False):
+            message = "Track B document replay failed. See the private status artifact."
+            raise HarnessError(message)
+        return status
+    payload = json.loads(marker)
+    status = {
+        "generated_at": utc_now(),
+        "tool_version": TOOL_VERSION,
+        "stage": "track-b-documents",
+        "database": TRACK_B_DB,
+        "run_id": payload["run_id"],
+        "status": payload["status"],
+        **payload["stats"],
+    }
+    write_json(PRIVATE_ARTIFACTS / "track-b-documents-status.json", status)
+    if status["status"] != "passed" and not getattr(args, "allow_errors", False):
+        message = "Track B document replay has blocked or mismatched cases."
+        raise HarnessError(message)
     return status
 
 
@@ -10975,6 +11155,8 @@ def run_all(args: argparse.Namespace) -> dict[str, Any]:
         "target_idempotence": target_idempotence(args),
         "target_failure_tests": target_failure_tests(args),
         "document_regeneration": document_regeneration(args),
+        "track_b_reset": track_b_reset(args),
+        "track_b_documents": track_b_documents(args),
         "target_reconciliation_probe": target_reconciliation_probe(args),
         "reports": reports(args),
         "fec": fec(args),
@@ -11002,6 +11184,8 @@ def build_parser() -> argparse.ArgumentParser:
         "target-idempotence",
         "target-failure-tests",
         "document-regeneration",
+        "track-b-reset",
+        "track-b-documents",
         "target-reconciliation-probe",
         "reports",
         "fec",
@@ -11043,6 +11227,10 @@ def main(argv: list[str] | None = None) -> int:
             print_summary(args.stage, target_failure_tests(args))
         elif args.stage == "document-regeneration":
             print_summary(args.stage, document_regeneration(args))
+        elif args.stage == "track-b-reset":
+            print_summary(args.stage, track_b_reset(args))
+        elif args.stage == "track-b-documents":
+            print_summary(args.stage, track_b_documents(args))
         elif args.stage == "target-reconciliation-probe":
             print_summary(args.stage, target_reconciliation_probe(args))
         elif args.stage == "reports":

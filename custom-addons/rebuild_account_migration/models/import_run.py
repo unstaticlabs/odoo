@@ -18,6 +18,7 @@ class RebuildAccountImportRun(models.Model):
     mode = fields.Selection(
         [
             ("exact_ledger_replay", "Exact Ledger Replay"),
+            ("native_engine_replay", "Native Engine Replay"),
             ("document_regeneration", "Document Regeneration"),
             ("controls_only", "Controls Only"),
         ],
@@ -998,6 +999,7 @@ class RebuildAccountImportRun(models.Model):
             SELECT c.id, c.name, c.fiscalyear_last_day, c.fiscalyear_last_month,
                    c.fiscalyear_lock_date, c.tax_lock_date, c.sale_lock_date,
                    c.purchase_lock_date, c.hard_lock_date, c.account_fiscal_country_id,
+                   c.tax_calculation_rounding_method,
                    rp.country_id AS partner_country_id, rp.vat, rp.company_registry,
                    rc.name AS currency_name
             FROM res_company c
@@ -1028,6 +1030,9 @@ class RebuildAccountImportRun(models.Model):
                 "currency_id": currency.id if currency else False,
                 "fiscalyear_last_day": row["fiscalyear_last_day"] or 31,
                 "fiscalyear_last_month": row["fiscalyear_last_month"] or "12",
+                "tax_calculation_rounding_method": (
+                    row["tax_calculation_rounding_method"] or "round_per_line"
+                ),
                 **self._trace_values("res.company", row["id"], options),
             }
             if row["account_fiscal_country_id"] in countries:
@@ -1440,6 +1445,89 @@ class RebuildAccountImportRun(models.Model):
         self._archive_empty_bootstrap_unaffected_earnings_accounts(rows, options, companies)
         return accounts, archive_after_post
 
+    def _sync_partner_accounting_properties(
+        self,
+        conn,
+        options,
+        companies,
+        partners,
+        accounts,
+        fiscal_positions,
+    ):
+        default_rows = self._fetchall(
+            conn,
+            """
+            SELECT defaults.company_id, fields.name AS field_name,
+                   defaults.json_value::integer AS source_record_id
+            FROM ir_default defaults
+            JOIN ir_model_fields fields ON fields.id = defaults.field_id
+            WHERE fields.model = 'res.partner'
+              AND fields.name IN (
+                  'property_account_receivable_id',
+                  'property_account_payable_id'
+              )
+              AND defaults.company_id = ANY(%(source_company_ids)s)
+              AND defaults.user_id IS NULL
+              AND COALESCE(defaults.condition, '') = ''
+            ORDER BY defaults.company_id, fields.name
+            """,
+            options,
+        )
+        specific_rows = self._fetchall(
+            conn,
+            """
+            SELECT partner.id AS partner_id,
+                   source_company_id AS company_id,
+                   NULLIF(partner.property_account_receivable_id ->> source_company_id::text, '')::integer
+                       AS receivable_account_id,
+                   NULLIF(partner.property_account_payable_id ->> source_company_id::text, '')::integer
+                       AS payable_account_id,
+                   NULLIF(partner.property_account_position_id ->> source_company_id::text, '')::integer
+                       AS fiscal_position_id
+            FROM res_partner partner
+            CROSS JOIN unnest(%(source_company_ids)s::integer[]) source_company_id
+            WHERE partner.property_account_receivable_id ? source_company_id::text
+               OR partner.property_account_payable_id ? source_company_id::text
+               OR partner.property_account_position_id ? source_company_id::text
+            ORDER BY partner.id, source_company_id
+            """,
+            options,
+        )
+        default_count = 0
+        for row in default_rows:
+            company = companies.get(row["company_id"])
+            account = accounts.get(row["source_record_id"])
+            if not company or not account:
+                continue
+            self.env["ir.default"].set(
+                "res.partner",
+                row["field_name"],
+                account.id,
+                company_id=company.id,
+            )
+            default_count += 1
+
+        specific_count = 0
+        for row in specific_rows:
+            partner = partners.get(row["partner_id"])
+            company = companies.get(row["company_id"])
+            if not partner or not company:
+                continue
+            vals = {}
+            if row["receivable_account_id"] in accounts:
+                vals["property_account_receivable_id"] = accounts[row["receivable_account_id"]].id
+            if row["payable_account_id"] in accounts:
+                vals["property_account_payable_id"] = accounts[row["payable_account_id"]].id
+            if row["fiscal_position_id"] in fiscal_positions:
+                vals["property_account_position_id"] = fiscal_positions[row["fiscal_position_id"]].id
+            if vals:
+                partner.with_company(company).write(vals)
+                specific_count += 1
+        return {
+            "company_default_account_property_count": default_count,
+            "partner_specific_property_count": specific_count,
+        }
+
     def _archive_empty_bootstrap_unaffected_earnings_accounts(self, rows, options, companies):
         """Keep one source-traced unaffected earnings account per imported company.
 
@@ -1790,6 +1878,203 @@ class RebuildAccountImportRun(models.Model):
             "tax_repartition_tag_relation_count": len(repartition_tag_rows),
             "tax_child_relation_count": len(child_rows),
             "tax_alternative_relation_count": len(alternative_rows),
+        }
+
+    def _payment_term_map(self, conn, options, companies):
+        term_rows = self._fetchall(
+            conn,
+            """
+            SELECT id, company_id, sequence, discount_days,
+                   early_pay_discount_computation, name, note, active,
+                   display_on_invoice, early_discount, discount_percentage
+            FROM account_payment_term
+            WHERE company_id IS NULL OR company_id = ANY(%(source_company_ids)s)
+            ORDER BY company_id NULLS FIRST, sequence, id
+            """,
+            options,
+        )
+        line_rows = self._fetchall(
+            conn,
+            """
+            SELECT line.id, line.payment_id, line.nb_days, line.value,
+                   line.delay_type, line.days_next_month, line.value_amount
+            FROM account_payment_term_line line
+            JOIN account_payment_term term ON term.id = line.payment_id
+            WHERE term.company_id IS NULL OR term.company_id = ANY(%(source_company_ids)s)
+            ORDER BY line.payment_id, line.id
+            """,
+            options,
+        )
+        lines_by_term = defaultdict(list)
+        for row in line_rows:
+            lines_by_term[row["payment_id"]].append(row)
+
+        terms = {}
+        PaymentTerm = self.env["account.payment.term"].with_context(active_test=False)
+        for row in term_rows:
+            company = companies.get(row["company_id"]) if row["company_id"] else False
+            name = self._source_text(row["name"]) or f"Source payment term {row['id']}"
+            term = PaymentTerm.search([
+                ("rebuild_source_model", "=", "account.payment.term"),
+                ("rebuild_source_id", "=", row["id"]),
+                ("rebuild_source_snapshot", "=", options.get("source_snapshot_id")),
+            ], limit=1)
+            if not term:
+                term = PaymentTerm.search([
+                    ("name", "=", name),
+                    ("company_id", "=", company.id if company else False),
+                ], limit=1)
+            vals = {
+                "name": name,
+                "company_id": company.id if company else False,
+                "sequence": row["sequence"] or 10,
+                "note": self._source_text(row["note"]),
+                "active": bool(row["active"]),
+                "display_on_invoice": bool(row["display_on_invoice"]),
+                "early_discount": bool(row["early_discount"]),
+                "discount_percentage": self._amount(row["discount_percentage"]),
+                "discount_days": row["discount_days"] or 0,
+                "early_pay_discount_computation": row["early_pay_discount_computation"] or "included",
+                **self._trace_values("account.payment.term", row["id"], options),
+            }
+            source_lines = lines_by_term[row["id"]]
+            line_commands = [
+                Command.create({
+                    "value": line["value"] or "percent",
+                    "value_amount": self._amount(line["value_amount"]),
+                    "delay_type": line["delay_type"] or "days_after",
+                    "days_next_month": line["days_next_month"] or "10",
+                    "nb_days": line["nb_days"] or 0,
+                    **self._trace_values("account.payment.term.line", line["id"], options),
+                })
+                for line in source_lines
+            ]
+            if term:
+                term.write(vals)
+                term.write({"line_ids": [Command.clear(), *line_commands]})
+            else:
+                term = PaymentTerm.create({**vals, "line_ids": line_commands})
+            terms[row["id"]] = term
+        return terms, {
+            "payment_term_count": len(terms),
+            "payment_term_line_count": len(line_rows),
+        }
+
+    def _fiscal_position_map(self, conn, options, companies, accounts, taxes, countries):
+        position_rows = self._fetchall(
+            conn,
+            """
+            SELECT position.id, position.sequence, position.company_id,
+                   position.country_id, position.country_group_id,
+                   position.zip_from, position.zip_to, position.foreign_vat,
+                   position.name, position.note, position.active,
+                   position.auto_apply, position.vat_required,
+                   CASE WHEN group_data.id IS NOT NULL
+                        THEN group_data.module || '.' || group_data.name
+                        ELSE NULL
+                   END AS country_group_xmlid
+            FROM account_fiscal_position position
+            LEFT JOIN ir_model_data group_data
+                   ON group_data.model = 'res.country.group'
+                  AND group_data.res_id = position.country_group_id
+            WHERE position.company_id = ANY(%(source_company_ids)s)
+            ORDER BY position.company_id, position.sequence, position.id
+            """,
+            options,
+        )
+        account_rows = self._fetchall(
+            conn,
+            """
+            SELECT mapping.id, mapping.position_id,
+                   mapping.account_src_id, mapping.account_dest_id
+            FROM account_fiscal_position_account mapping
+            JOIN account_fiscal_position position ON position.id = mapping.position_id
+            WHERE position.company_id = ANY(%(source_company_ids)s)
+            ORDER BY mapping.position_id, mapping.id
+            """,
+            options,
+        )
+        tax_rows = self._fetchall(
+            conn,
+            """
+            SELECT relation.account_fiscal_position_id AS position_id,
+                   relation.account_tax_id AS tax_id
+            FROM account_fiscal_position_account_tax_rel relation
+            JOIN account_fiscal_position position
+              ON position.id = relation.account_fiscal_position_id
+            WHERE position.company_id = ANY(%(source_company_ids)s)
+            ORDER BY relation.account_fiscal_position_id, relation.account_tax_id
+            """,
+            options,
+        )
+        accounts_by_position = defaultdict(list)
+        for row in account_rows:
+            accounts_by_position[row["position_id"]].append(row)
+        taxes_by_position = defaultdict(list)
+        for row in tax_rows:
+            if row["tax_id"] in taxes:
+                taxes_by_position[row["position_id"]].append(taxes[row["tax_id"]].id)
+
+        positions = {}
+        FiscalPosition = self.env["account.fiscal.position"].with_context(active_test=False)
+        for row in position_rows:
+            company = companies[row["company_id"]]
+            country = countries.get(row["country_id"])
+            country_group = (
+                self.env.ref(row["country_group_xmlid"], raise_if_not_found=False)
+                if row["country_group_xmlid"]
+                else False
+            )
+            name = self._source_text(row["name"]) or f"Source fiscal position {row['id']}"
+            position = FiscalPosition.search([
+                ("rebuild_source_model", "=", "account.fiscal.position"),
+                ("rebuild_source_id", "=", row["id"]),
+                ("rebuild_source_snapshot", "=", options.get("source_snapshot_id")),
+            ], limit=1)
+            if not position:
+                position = FiscalPosition.search([
+                    ("name", "=", name),
+                    ("company_id", "=", company.id),
+                ], limit=1)
+            vals = {
+                "name": name,
+                "sequence": row["sequence"] or 10,
+                "company_id": company.id,
+                "country_id": country.id if country else False,
+                "country_group_id": country_group.id if country_group else False,
+                "zip_from": row["zip_from"],
+                "zip_to": row["zip_to"],
+                "foreign_vat": row["foreign_vat"],
+                "note": self._source_text(row["note"]),
+                "active": bool(row["active"]),
+                "auto_apply": bool(row["auto_apply"]),
+                "vat_required": bool(row["vat_required"]),
+                **self._trace_values("account.fiscal.position", row["id"], options),
+            }
+            if position:
+                position.write(vals)
+            else:
+                position = FiscalPosition.create(vals)
+            position.tax_ids = [Command.set(taxes_by_position[row["id"]])]
+            position.account_ids = [Command.clear()]
+            for mapping in accounts_by_position[row["id"]]:
+                source_account = accounts.get(mapping["account_src_id"])
+                destination_account = accounts.get(mapping["account_dest_id"])
+                if source_account and destination_account:
+                    position.account_ids = [Command.create({
+                        "account_src_id": source_account.id,
+                        "account_dest_id": destination_account.id,
+                        **self._trace_values(
+                            "account.fiscal.position.account",
+                            mapping["id"],
+                            options,
+                        ),
+                    })]
+            positions[row["id"]] = position
+        return positions, {
+            "fiscal_position_count": len(positions),
+            "fiscal_position_account_mapping_count": len(account_rows),
+            "fiscal_position_tax_link_count": len(tax_rows),
         }
 
     def _journal_map(self, conn, options, companies, accounts, currencies):
@@ -4277,6 +4562,604 @@ class RebuildAccountImportRun(models.Model):
             "source_not_replayed_count": representation_counts.get("source_not_replayed", 0),
         }
 
+    def _native_replay_document_rows(self, conn, options):
+        return self._fetchall(
+            conn,
+            """
+            SELECT move.id, move.name, move.ref, move.move_type,
+                   move.journal_id, move.company_id, move.partner_id,
+                   move.currency_id, move.date, move.invoice_date,
+                   move.invoice_date_due, move.payment_reference,
+                   move.fiscal_position_id, move.invoice_payment_term_id,
+                   move.invoice_currency_rate,
+                   move.amount_untaxed, move.amount_tax, move.amount_total,
+                   move.amount_untaxed_signed, move.amount_tax_signed,
+                   move.amount_total_signed, move.payment_state
+            FROM account_move move
+            WHERE move.company_id = ANY(%(source_company_ids)s)
+              AND move.state = 'posted'
+              AND move.move_type IN (
+                  'out_invoice', 'out_refund', 'in_invoice',
+                  'in_refund', 'out_receipt', 'in_receipt'
+              )
+              AND move.date BETWEEN %(date_from)s AND %(date_to)s
+            ORDER BY move.date, move.id
+            """,
+            options,
+        )
+
+    def _native_replay_line_rows_by_move(self, conn, options):
+        rows = self._fetchall(
+            conn,
+            """
+            SELECT line.id, line.move_id, line.sequence, line.account_id,
+                   line.name, line.display_type, line.quantity,
+                   line.price_unit, line.discount, line.price_subtotal,
+                   line.price_total, line.balance, line.amount_currency,
+                   line.analytic_distribution,
+                   COALESCE((
+                       SELECT array_agg(relation.account_tax_id ORDER BY relation.account_tax_id)
+                       FROM account_move_line_account_tax_rel relation
+                       WHERE relation.account_move_line_id = line.id
+                   ), ARRAY[]::integer[]) AS tax_ids
+            FROM account_move_line line
+            JOIN account_move move ON move.id = line.move_id
+            WHERE move.company_id = ANY(%(source_company_ids)s)
+              AND move.state = 'posted'
+              AND move.move_type IN (
+                  'out_invoice', 'out_refund', 'in_invoice',
+                  'in_refund', 'out_receipt', 'in_receipt'
+              )
+              AND move.date BETWEEN %(date_from)s AND %(date_to)s
+              AND line.display_type IN ('product', 'line_section', 'line_note')
+            ORDER BY line.move_id, line.sequence, line.id
+            """,
+            options,
+        )
+        rows_by_move = defaultdict(list)
+        for row in rows:
+            rows_by_move[row["move_id"]].append(row)
+        return rows_by_move
+
+    def _native_replay_source_account_totals(self, conn, options):
+        rows = self._fetchall(
+            conn,
+            """
+            SELECT line.move_id, line.account_id,
+                   round(sum(line.debit)::numeric, 2) AS debit,
+                   round(sum(line.credit)::numeric, 2) AS credit,
+                   round(sum(line.balance)::numeric, 2) AS balance,
+                   round(sum(line.amount_currency)::numeric, 2) AS amount_currency
+            FROM account_move_line line
+            JOIN account_move move ON move.id = line.move_id
+            WHERE move.company_id = ANY(%(source_company_ids)s)
+              AND move.state = 'posted'
+              AND move.move_type IN (
+                  'out_invoice', 'out_refund', 'in_invoice',
+                  'in_refund', 'out_receipt', 'in_receipt'
+              )
+              AND move.date BETWEEN %(date_from)s AND %(date_to)s
+              AND line.account_id IS NOT NULL
+            GROUP BY line.move_id, line.account_id
+            ORDER BY line.move_id, line.account_id
+            """,
+            options,
+        )
+        totals_by_move = defaultdict(dict)
+        for row in rows:
+            totals_by_move[row["move_id"]][str(row["account_id"])] = {
+                "debit": round(self._amount(row["debit"]), 2),
+                "credit": round(self._amount(row["credit"]), 2),
+                "balance": round(self._amount(row["balance"]), 2),
+                "amount_currency": round(self._amount(row["amount_currency"]), 2),
+            }
+        return totals_by_move
+
+    def _native_replay_source_tax_totals(self, conn, options):
+        rows = self._fetchall(
+            conn,
+            """
+            SELECT line.move_id, line.tax_line_id AS tax_id,
+                   round(sum(line.balance)::numeric, 2) AS balance,
+                   round(sum(line.amount_currency)::numeric, 2) AS amount_currency,
+                   round(max(abs(line.tax_base_amount))::numeric, 2) AS tax_base_amount
+            FROM account_move_line line
+            JOIN account_move move ON move.id = line.move_id
+            WHERE move.company_id = ANY(%(source_company_ids)s)
+              AND move.state = 'posted'
+              AND move.move_type IN (
+                  'out_invoice', 'out_refund', 'in_invoice',
+                  'in_refund', 'out_receipt', 'in_receipt'
+              )
+              AND move.date BETWEEN %(date_from)s AND %(date_to)s
+              AND line.display_type = 'tax'
+              AND line.tax_line_id IS NOT NULL
+            GROUP BY line.move_id, line.tax_line_id
+            ORDER BY line.move_id, line.tax_line_id
+            """,
+            options,
+        )
+        totals_by_move = defaultdict(dict)
+        for row in rows:
+            totals_by_move[row["move_id"]][row["tax_id"]] = {
+                "balance": round(self._amount(row["balance"]), 2),
+                "amount_currency": round(self._amount(row["amount_currency"]), 2),
+                "tax_base_amount": round(self._amount(row["tax_base_amount"]), 2),
+            }
+        return totals_by_move
+
+    def _native_replay_analytic_distribution(self, distribution, analytic_accounts):
+        if not distribution:
+            return False
+        translated = {}
+        for source_key, percentage in distribution.items():
+            target_ids = []
+            for source_id_text in str(source_key).split(","):
+                try:
+                    source_id = int(source_id_text)
+                except (TypeError, ValueError):
+                    continue
+                target = analytic_accounts.get(source_id)
+                if target:
+                    target_ids.append(str(target.id))
+            if target_ids:
+                translated[",".join(target_ids)] = percentage
+        return translated or False
+
+    def _native_replay_target_account_totals(self, move):
+        totals = defaultdict(lambda: {
+            "debit": 0.0,
+            "credit": 0.0,
+            "balance": 0.0,
+            "amount_currency": 0.0,
+        })
+        for line in move.line_ids:
+            if not line.account_id:
+                continue
+            source_account_id = line.account_id.rebuild_source_id
+            key = str(source_account_id or 0)
+            totals[key]["debit"] += line.debit
+            totals[key]["credit"] += line.credit
+            totals[key]["balance"] += line.balance
+            totals[key]["amount_currency"] += line.amount_currency
+        return {
+            key: {field: round(value, 2) for field, value in amounts.items()}
+            for key, amounts in sorted(totals.items())
+        }
+
+    def _native_replay_apply_manual_tax_override(
+        self,
+        move,
+        source_lines,
+        source_tax_totals,
+        taxes,
+    ):
+        """Replay an unambiguous source tax edit through native tax metadata.
+
+        The source predates ``extra_tax_data`` persistence, but a few documents
+        contain user-edited base or tax totals that cannot be derived from their
+        price, quantity, discount and tax definition.  A single taxable product
+        line gives an unambiguous allocation, so reconstruct Odoo's supported
+        business-level override and still let ``action_post`` generate the entry.
+        Multi-line cases deliberately remain mismatches instead of being guessed.
+        """
+        product_lines = [
+            line for line in source_lines if line["display_type"] == "product"
+        ]
+        if len(product_lines) != 1:
+            return False
+        source_line = product_lines[0]
+        source_tax_ids = list(source_line["tax_ids"])
+        if not source_tax_ids or set(source_tax_ids) != set(source_tax_totals):
+            return False
+
+        target_line = move.invoice_line_ids.filtered(
+            lambda line: (
+                line.rebuild_source_model == "account.move.line.native_engine_input"
+                and line.rebuild_source_id == source_line["id"]
+            ),
+        )
+        if len(target_line) != 1:
+            return False
+
+        source_subtotal = abs(self._amount(source_line["price_subtotal"]))
+        source_total = abs(self._amount(source_line["price_total"]))
+        source_tax_total = round(sum(
+            abs(values["amount_currency"])
+            for values in source_tax_totals.values()
+        ), 2)
+        computed_matches = (
+            move.currency_id.compare_amounts(target_line.price_subtotal, source_subtotal) == 0
+            and move.currency_id.compare_amounts(target_line.price_total, source_total) == 0
+            and move.currency_id.compare_amounts(move.amount_tax, source_tax_total) == 0
+        )
+        if computed_matches:
+            return False
+
+        manual_tax_amounts = {}
+        for source_tax_id in source_tax_ids:
+            target_tax = taxes.get(source_tax_id)
+            source_tax = source_tax_totals[source_tax_id]
+            if not target_tax:
+                return False
+            manual_tax_amounts[str(target_tax.id)] = {
+                "tax_amount_currency": abs(source_tax["amount_currency"]),
+                "tax_amount": abs(source_tax["balance"]),
+                "base_amount_currency": source_subtotal,
+                "base_amount": abs(source_tax["tax_base_amount"]),
+            }
+
+        extra_tax_data = {
+            "currency_id": move.currency_id.id,
+            "price_unit": self._amount(source_line["price_unit"]),
+            "discount": self._amount(source_line["discount"]),
+            "quantity": self._amount(source_line["quantity"]),
+            "rate": move.invoice_currency_rate,
+            "manual_total_excluded_currency": source_subtotal,
+            "manual_total_excluded": abs(self._amount(source_line["balance"])),
+            "manual_tax_amounts": manual_tax_amounts,
+        }
+        target_tax_ids = target_line.tax_ids.ids
+        target_line.write({
+            "extra_tax_data": extra_tax_data,
+            "tax_ids": [Command.clear()],
+        })
+        target_line.write({"tax_ids": [Command.set(target_tax_ids)]})
+        return {
+            "source_move_id": source_line["move_id"],
+            "source_line_id": source_line["id"],
+            "classification": "supported_native_manual_tax_override",
+            "source_subtotal": source_subtotal,
+            "source_total": source_total,
+            "source_tax_total": source_tax_total,
+            "source_tax_ids": source_tax_ids,
+        }
+
+    def run_native_engine_replay_from_source(self, options):
+        """Recompute Track B business documents through native invoice posting.
+
+        This mode runs only in the dedicated replay database.  It imports
+        configuration, reconstructs commercial invoice lines, and calls normal
+        ``action_post`` so taxes, due lines, currencies and analytics are
+        generated by Odoo rather than copied from the finalized source entry.
+        """
+        self.ensure_one()
+        options = {
+            "source_database": "odoo_online_source_saas_19_2",
+            "source_snapshot_id": "source-unknown",
+            "source_dump_sha256": "",
+            "source_version": "Odoo Online Enterprise saas~19.2",
+            "target_database": self.env.cr.dbname,
+            "date_from": "2025-10-01",
+            "date_to": "2026-06-30",
+            "source_company_ids": [1],
+            **(options or {}),
+        }
+        options["source_company_ids"] = self._source_company_ids(options)
+        self.write({
+            "status": "running",
+            "mode": "native_engine_replay",
+            "source_database": options["source_database"],
+            "source_dump_sha256": options.get("source_dump_sha256"),
+            "source_snapshot_id": options["source_snapshot_id"],
+            "source_version": options.get("source_version"),
+            "target_database": options["target_database"],
+        })
+        conn = self._source_connection(options)
+        try:
+            currencies = self._currency_map(conn)
+            countries = self._country_map(conn)
+            companies, _company_rows = self._company_map(conn, options, countries)
+            currency_rate_stats = self._import_currency_rates(conn, options, companies, currencies)
+            partners = self._partner_map(conn, options)
+            accounts, account_ids_to_archive_after_post = self._account_map(
+                conn,
+                options,
+                companies,
+                currencies,
+            )
+            tax_tags = self._tax_tag_map(conn, options, countries)
+            tax_groups = self._tax_group_map(conn, options, companies, accounts, countries)
+            taxes, _tax_repartition_lines, tax_stats = self._tax_map(
+                conn,
+                options,
+                companies,
+                accounts,
+                tax_groups,
+                tax_tags,
+                countries,
+            )
+            cash_basis_companies = self._sync_company_cash_basis_flags(companies)
+            tax_stats["company_cash_basis_setting_count"] = len(cash_basis_companies)
+            payment_terms, payment_term_stats = self._payment_term_map(conn, options, companies)
+            fiscal_positions, fiscal_position_stats = self._fiscal_position_map(
+                conn,
+                options,
+                companies,
+                accounts,
+                taxes,
+                countries,
+            )
+            partner_property_stats = self._sync_partner_accounting_properties(
+                conn,
+                options,
+                companies,
+                partners,
+                accounts,
+                fiscal_positions,
+            )
+            journals = self._journal_map(conn, options, companies, accounts, currencies)
+            analytic_plans = self._analytic_plan_map(conn, options)
+            analytic_accounts = self._analytic_account_map(
+                conn,
+                options,
+                companies,
+                partners,
+                analytic_plans,
+            )
+            document_rows = self._native_replay_document_rows(conn, options)
+            lines_by_move = self._native_replay_line_rows_by_move(conn, options)
+            source_totals_by_move = self._native_replay_source_account_totals(conn, options)
+            source_tax_totals_by_move = self._native_replay_source_tax_totals(conn, options)
+
+            Move = self.env["account.move"]
+            passed_cases = []
+            mismatch_cases = []
+            blocked_cases = []
+            manual_tax_override_cases = []
+            created_count = 0
+            reused_count = 0
+            type_counts = defaultdict(int)
+            currency_counts = defaultdict(int)
+
+            for source_move in document_rows:
+                type_counts[source_move["move_type"]] += 1
+                source_currency = currencies.get(source_move["currency_id"])
+                currency_counts[source_currency.name if source_currency else "unmapped"] += 1
+                company = companies.get(source_move["company_id"])
+                journal = journals.get(source_move["journal_id"])
+                partner = partners.get(source_move["partner_id"])
+                source_lines = lines_by_move[source_move["id"]]
+                missing_accounts = sorted({
+                    line["account_id"]
+                    for line in source_lines
+                    if line["display_type"] == "product" and line["account_id"] not in accounts
+                })
+                missing_taxes = sorted({
+                    source_tax_id
+                    for line in source_lines
+                    for source_tax_id in line["tax_ids"]
+                    if source_tax_id not in taxes
+                })
+                blockers = []
+                if not company:
+                    blockers.append("company")
+                if not journal:
+                    blockers.append("journal")
+                if not partner:
+                    blockers.append("partner")
+                if not source_currency:
+                    blockers.append("currency")
+                if not source_lines:
+                    blockers.append("commercial_lines")
+                if missing_accounts:
+                    blockers.append("accounts")
+                if missing_taxes:
+                    blockers.append("taxes")
+                if blockers:
+                    blocked_cases.append({
+                        "source_move_id": source_move["id"],
+                        "source_name": source_move["name"],
+                        "move_type": source_move["move_type"],
+                        "classification": "insufficient_source_or_mapping_data",
+                        "blockers": blockers,
+                        "missing_source_account_ids": missing_accounts,
+                        "missing_source_tax_ids": missing_taxes,
+                    })
+                    continue
+
+                move = Move.search([
+                    ("rebuild_source_model", "=", "account.move.native_engine_replay"),
+                    ("rebuild_source_id", "=", source_move["id"]),
+                    ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
+                ], limit=1)
+                if move:
+                    reused_count += 1
+                else:
+                    line_commands = []
+                    for source_line in source_lines:
+                        line_vals = {
+                            "sequence": source_line["sequence"] or 10,
+                            "name": source_line["name"] or "/",
+                            "display_type": source_line["display_type"],
+                            **self._trace_values(
+                                "account.move.line.native_engine_input",
+                                source_line["id"],
+                                options,
+                            ),
+                        }
+                        if source_line["display_type"] == "product":
+                            line_vals.update({
+                                "account_id": accounts[source_line["account_id"]].id,
+                                "quantity": self._amount(source_line["quantity"]),
+                                "price_unit": self._amount(source_line["price_unit"]),
+                                "discount": self._amount(source_line["discount"]),
+                                "tax_ids": [Command.set([
+                                    taxes[source_tax_id].id
+                                    for source_tax_id in source_line["tax_ids"]
+                                ])],
+                                "analytic_distribution": self._native_replay_analytic_distribution(
+                                    source_line["analytic_distribution"],
+                                    analytic_accounts,
+                                ),
+                            })
+                        line_commands.append(Command.create(line_vals))
+
+                    move_vals = {
+                        "move_type": source_move["move_type"],
+                        "journal_id": journal.id,
+                        "company_id": company.id,
+                        "partner_id": partner.id,
+                        "currency_id": source_currency.id,
+                        "invoice_currency_rate": self._amount(source_move["invoice_currency_rate"]),
+                        "date": source_move["date"],
+                        "invoice_date": source_move["invoice_date"],
+                        "ref": source_move["ref"] or source_move["name"],
+                        "payment_reference": source_move["payment_reference"],
+                        "fiscal_position_id": (
+                            fiscal_positions[source_move["fiscal_position_id"]].id
+                            if source_move["fiscal_position_id"] in fiscal_positions
+                            else False
+                        ),
+                        "invoice_payment_term_id": (
+                            payment_terms[source_move["invoice_payment_term_id"]].id
+                            if source_move["invoice_payment_term_id"] in payment_terms
+                            else False
+                        ),
+                        "invoice_line_ids": line_commands,
+                        "rebuild_source_move_type": source_move["move_type"],
+                        "rebuild_import_note": (
+                            "Track B native-engine replay: commercial invoice lines were reconstructed "
+                            "from source business fields and posted through normal Odoo action_post."
+                        ),
+                        **self._trace_values(
+                            "account.move.native_engine_replay",
+                            source_move["id"],
+                            options,
+                        ),
+                    }
+                    if not move_vals["invoice_payment_term_id"]:
+                        move_vals["invoice_date_due"] = source_move["invoice_date_due"]
+                    try:
+                        with self.env.cr.savepoint():
+                            move = Move.with_company(company).with_context(
+                                allowed_company_ids=[company.id],
+                                tracking_disable=True,
+                                mail_create_nolog=True,
+                            ).create(move_vals)
+                            manual_tax_override = self._native_replay_apply_manual_tax_override(
+                                move,
+                                source_lines,
+                                source_tax_totals_by_move[source_move["id"]],
+                                taxes,
+                            )
+                            if manual_tax_override:
+                                manual_tax_override_cases.append(manual_tax_override)
+                            move.action_post()
+                        created_count += 1
+                    except Exception as exc:  # noqa: BLE001 - classify every native posting defect.
+                        blocked_cases.append({
+                            "source_move_id": source_move["id"],
+                            "source_name": source_move["name"],
+                            "move_type": source_move["move_type"],
+                            "classification": "native_posting_error",
+                            "exception_type": type(exc).__name__,
+                            "exception_message": str(exc),
+                        })
+                        continue
+
+                source_account_totals = source_totals_by_move[source_move["id"]]
+                target_account_totals = self._native_replay_target_account_totals(move)
+                amount_checks = {
+                    "amount_untaxed": {
+                        "source": round(self._amount(source_move["amount_untaxed"]), 2),
+                        "target": round(move.amount_untaxed, 2),
+                    },
+                    "amount_tax": {
+                        "source": round(self._amount(source_move["amount_tax"]), 2),
+                        "target": round(move.amount_tax, 2),
+                    },
+                    "amount_total": {
+                        "source": round(self._amount(source_move["amount_total"]), 2),
+                        "target": round(move.amount_total, 2),
+                    },
+                }
+                amounts_match = all(
+                    check["source"] == check["target"]
+                    for check in amount_checks.values()
+                )
+                due_date_matches = move.invoice_date_due == source_move["invoice_date_due"]
+                account_totals_match = source_account_totals == target_account_totals
+                result = {
+                    "source_move_id": source_move["id"],
+                    "source_name": source_move["name"],
+                    "target_move_id": move.id,
+                    "target_name": move.name,
+                    "move_type": move.move_type,
+                    "currency": move.currency_id.name,
+                    "invoice_date": str(move.invoice_date or ""),
+                    "accounting_date": str(move.date or ""),
+                    "due_date": str(move.invoice_date_due or ""),
+                    "state": move.state,
+                    "amount_checks": amount_checks,
+                    "due_date_matches": due_date_matches,
+                    "account_totals_match": account_totals_match,
+                }
+                if move.state == "posted" and amounts_match and due_date_matches and account_totals_match:
+                    passed_cases.append(result)
+                else:
+                    mismatch_cases.append({
+                        **result,
+                        "source_account_totals": source_account_totals,
+                        "target_account_totals": target_account_totals,
+                    })
+
+            for source_account_id in account_ids_to_archive_after_post:
+                accounts[source_account_id].active = False
+
+            status = "passed" if not blocked_cases and not mismatch_cases else "partial"
+            stats = {
+                "classification": "TRACK_B_NATIVE_BUSINESS_DOCUMENT_REPLAY",
+                "date_from": options["date_from"],
+                "date_to": options["date_to"],
+                "source_company_ids": options["source_company_ids"],
+                "source_document_count": len(document_rows),
+                "created_document_count": created_count,
+                "reused_document_count": reused_count,
+                "posted_document_count": len(passed_cases) + len(mismatch_cases),
+                "passed_document_count": len(passed_cases),
+                "mismatch_document_count": len(mismatch_cases),
+                "blocked_document_count": len(blocked_cases),
+                "manual_tax_override_count": len(manual_tax_override_cases),
+                "move_type_counts": dict(sorted(type_counts.items())),
+                "currency_counts": dict(sorted(currency_counts.items())),
+                "passed_examples": passed_cases[:20],
+                "mismatch_examples": mismatch_cases[:20],
+                "blocked_examples": blocked_cases[:20],
+                "manual_tax_override_examples": manual_tax_override_cases[:20],
+                "currency_rates": currency_rate_stats,
+                "tax_configuration": tax_stats,
+                "payment_terms": payment_term_stats,
+                "fiscal_positions": fiscal_position_stats,
+                "partner_accounting_properties": partner_property_stats,
+            }
+            self.write({
+                "status": status,
+                "finished_at": fields.Datetime.now(),
+                "company_ids": [Command.set([company.id for company in companies.values()])],
+                "imported_company_count": len(companies),
+                "imported_currency_rate_count": currency_rate_stats["imported_currency_rate_count"],
+                "imported_account_count": len(accounts),
+                "imported_journal_count": len(journals),
+                "imported_partner_count": len(partners),
+                "imported_move_count": len(passed_cases) + len(mismatch_cases),
+                "warning_count": len(blocked_cases) + len(mismatch_cases),
+                "statistics_json": stats,
+                "notes": (
+                    "Dedicated Track B replay. Finalized source journal entries are not imported; "
+                    "business-document lines are reconstructed as native drafts and posted through Odoo."
+                ),
+            })
+            return stats
+        except Exception:
+            self.write({
+                "status": "failed",
+                "finished_at": fields.Datetime.now(),
+            })
+            raise
+        finally:
+            conn.close()
+
     def run_exact_ledger_replay_from_source(self, options):
         self.ensure_one()
         options = {
@@ -4318,6 +5201,23 @@ class RebuildAccountImportRun(models.Model):
             taxes, tax_repartition_lines, tax_stats = self._tax_map(conn, options, companies, accounts, tax_groups, tax_tags, countries)
             cash_basis_companies = self._sync_company_cash_basis_flags(companies)
             tax_stats["company_cash_basis_setting_count"] = len(cash_basis_companies)
+            _payment_terms, payment_term_stats = self._payment_term_map(conn, options, companies)
+            fiscal_positions, fiscal_position_stats = self._fiscal_position_map(
+                conn,
+                options,
+                companies,
+                accounts,
+                taxes,
+                countries,
+            )
+            partner_property_stats = self._sync_partner_accounting_properties(
+                conn,
+                options,
+                companies,
+                partners,
+                accounts,
+                fiscal_positions,
+            )
             journals = self._journal_map(conn, options, companies, accounts, currencies)
             analytic_plans = self._analytic_plan_map(conn, options)
             analytic_accounts = self._analytic_account_map(conn, options, companies, partners, analytic_plans)
@@ -4751,6 +5651,9 @@ class RebuildAccountImportRun(models.Model):
                 "company_count": len(companies),
                 "currency_rates": currency_rate_stats,
                 "tax_configuration": tax_stats,
+                "payment_terms": payment_term_stats,
+                "fiscal_positions": fiscal_position_stats,
+                "partner_accounting_properties": partner_property_stats,
                 "reconciliations": reconciliation_stats,
                 "payments": payment_stats,
                 "move_reviews": move_review_stats,

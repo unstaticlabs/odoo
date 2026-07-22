@@ -37,7 +37,7 @@ Overall status: **Substantially progressed, implementation continues**. The post
 
 ### Partial or evidence-only
 
-- [ ] Customer invoices, customer credit notes, vendor bills, supplier refunds and historical source expenses are represented as ledger/review evidence but are not yet complete native user-facing business workflows.
+- [x] Current-period source customer invoices, vendor bills, supplier refunds and purchase receipts are reconstructed in isolated Track B from commercial fields and posted through native Odoo (`284/284` exact accounting outcomes, `0` blocked/mismatched). The source period contains no customer credit note case; historical `hr.expense` reconstruction remains separate and incomplete.
 - [ ] Native Odoo Expenses is installed and reachable from Accounting, but no historical `hr.expense` records are reconstructed in the current imported target.
 - [ ] Historical reconciliation evidence is imported and the OCA reconciliation workbench is reachable, but operational reconciliation parity is not validated end to end.
 - [ ] French annual statements, SIG, CAF, tax package mappings and VAT evidence are generated as technical artifacts; declaration workflows and accountant acceptance remain incomplete.
@@ -46,7 +46,7 @@ Overall status: **Substantially progressed, implementation continues**. The post
 
 ### Not started or still milestone-blocking
 
-- [ ] Complete native reconstruction and validation of source customer/vendor/refund/expense workflows where source data permits.
+- [ ] Complete native reconstruction and validation of historical `hr.expense`, payment, bank-matching and reconciliation workflows; current-period invoice/bill/refund/receipt posting is proven in Track B.
 - [ ] Complete Level 4 parity for mandatory interactive reports: filters, drill-down, exports, benchmark reconciliation and accountant-readable presentation.
 - [ ] Complete French declaration preparation for CA12, 2065/2033, CERFA/DGFiP box mappings, deadlines, filing status and review evidence.
 - [ ] Complete final FEC acceptance dossier with official validation rerun, checksum, reconciliation to accepted statements and accountant approval.

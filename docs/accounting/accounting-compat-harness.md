@@ -19,6 +19,8 @@ make accounting-target-validate
 make accounting-target-idempotence
 make accounting-target-failure-tests
 make accounting-document-regeneration
+make accounting-track-b-reset
+make accounting-track-b-documents
 make accounting-target-reconciliation-probe
 make accounting-reports
 make accounting-fec
@@ -49,6 +51,8 @@ source package validation
 → repeated target import idempotence guardrail
 → rollback-only target conflict failure guardrail
 → isolated native draft-generation checks for candidate-ready non-posted source moves
+→ dedicated Track B database reset
+→ native business-document reconstruction and posting for 2025-10-01 through 2026-06-30
 → rollback-only native reconciliation probe for generated draft endpoints
 → Odoo-facing report view, drill-down and export-wizard checks
 → FEC test-mode export
@@ -59,7 +63,7 @@ source package validation
 → evidence index
 ```
 
-The live `odoo19` database is not reset or modified by these stages. Target reconstruction uses the disposable `odoo_rebuild_accounting_test` database.
+The live `odoo19` database is not reset or modified by these stages. Exact reconstruction uses the disposable `odoo_rebuild_accounting_test` database. Native-engine Track B proof uses a second disposable database, `odoo_rebuild_accounting_track_b`, so recomputed current-period documents cannot alter the exact historical replay.
 
 `make accounting-failure-tests` validates six non-destructive source-package guardrails: missing source directory, missing `dump.sql`, missing filestore directory, filestore path that is not a directory, unsupported dump format and a minimal valid plain-SQL source package. These tests use temporary private packages under `artifacts/accounting-compat/private/failure-tests/` and never mutate the real source backup.
 
@@ -94,6 +98,7 @@ The important databases are:
 | --- | --- |
 | `odoo_online_source_saas_19_2` | Read-only source database restored from `usl-online-dump/dump.sql`. |
 | `odoo_rebuild_accounting_test` | Clean target Odoo database rebuilt from the extracted snapshot. |
+| `odoo_rebuild_accounting_track_b` | Separate clean target for native current-period business-document recomputation. |
 | `odoo19` | Normal local demo/development database. It is not the imported accounting target. |
 
 Stage dependencies:
@@ -105,6 +110,8 @@ Stage dependencies:
 | `make accounting-target-reset` | Compose target PostgreSQL service `db` | Fresh `odoo_rebuild_accounting_test` database | It removes old target state so the import is deterministic and not mixed with previous attempts. |
 | `make accounting-target-import` | Canonical snapshot; source database for source metadata; clean target database | Target Odoo records and source-trace metadata | It reconstructs accounting evidence through the target Odoo ORM. |
 | `make accounting-target-validate` | Imported target database | Target validation artifacts and discrepancy records | It proves the imported target is internally consistent before report checks run. |
+| `make accounting-track-b-reset` | Installed target/OCA add-ons | Fresh `odoo_rebuild_accounting_track_b` database | It creates a clean, neutralized proof environment without touching the exact replay target. |
+| `make accounting-track-b-documents` | Read-only restored source business fields and Track B configuration | Native posted invoices, bills, supplier refunds and receipts in the Track B database; private proof artifact | It calls normal Odoo draft creation and `action_post`, then compares headers, due dates and per-account effects to source. |
 | `make accounting-reports` | Imported and validated target database | Report preview/export/drill-down evidence artifacts | It proves the user-facing report surfaces can generate and trace values. |
 
 Do not stop `accounting-source-db` after `accounting-source-restore`. Later stages still query it for source metadata, snapshot dates, controls and comparisons. If a later stage fails with `service "accounting-source-db" is not running`, restart it:
@@ -166,6 +173,8 @@ artifacts/accounting-compat/private/target-import-status.json
 artifacts/accounting-compat/private/target-validate-status.json
 artifacts/accounting-compat/private/target-idempotence-status.json
 artifacts/accounting-compat/private/target-failure-tests-status.json
+artifacts/accounting-compat/private/track-b-reset-status.json
+artifacts/accounting-compat/private/track-b-documents-status.json
 artifacts/accounting-compat/private/target-reconciliation-probe-status.json
 artifacts/accounting-compat/private/reports-status.json
 artifacts/accounting-compat/private/fec-status.json
@@ -209,6 +218,22 @@ As of the latest clean rehearsal on 2026-07-22:
 - benchmark source and target credit: `1,064,045.02`;
 - benchmark source and target move count: `2,046`;
 - benchmark source and target accounting-line count: `4,809`.
+
+## Track B native business-document proof
+
+Track B is deliberately separate from the exact replay. Three approaches were considered:
+
+1. create recomputed documents inside `odoo_rebuild_accounting_test`, which would mix generated current-period effects with the historical-truth baseline;
+2. create a dedicated clean database with the same Community/OCA configuration and replay source business fields through native Odoo posting;
+3. calculate expected taxes, currencies and due lines in a custom migration engine and write the resulting journal entries.
+
+Option 2 is selected. It preserves the exact target as an audit baseline and proves the target product through Odoo's own engines. Option 1 makes later parity controls ambiguous. Option 3 would duplicate the accounting engine and would be another exact-line importer rather than a native workflow proof.
+
+`make accounting-track-b-documents` currently reconstructs all `284` posted source business documents dated `2025-10-01` through `2026-06-30` for Unstatic Labs: `36` customer invoices, `161` vendor bills, `3` supplier refunds and `84` purchase receipts. It creates drafts from commercial lines, accounts, quantities, unit prices, discounts, taxes, analytic distributions, fiscal positions, payment terms, partners, dates and the source transaction currency rate, then calls normal `action_post`. The latest clean run posts and validates `284/284`, with `0` blocked cases and `0` mismatches. Coverage is `170` EUR and `114` USD documents.
+
+Validation compares untaxed, tax and total amounts, due dates, and debit/credit/balance/amount-currency aggregates by source account. Finalized source journal lines are never passed to document creation. The three source documents whose stored tax/base totals cannot be derived from their price fields are replayed through Odoo's native `extra_tax_data` manual-tax mechanism. That path is guarded to one unambiguous taxable product line and recorded as `supported_native_manual_tax_override`; ambiguous multi-line allocations remain mismatches rather than guesses.
+
+This proves current-period native invoice/bill/refund/receipt posting. It does not yet prove native payments, bank matching, reconciliation, exchange differences, `hr.expense`, assets or closing; those remain separate Track B stages.
 
 `make accounting-target-validate` also proves:
 
