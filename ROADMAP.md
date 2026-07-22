@@ -4,6 +4,34 @@
 
 > **Core constraint:** Extend and compose Odoo rather than creating an irreconcilable fork. Preserve upstream compatibility, standard business semantics, upgradeability and auditability.
 
+## Current Milestone 13 snapshot - 2026-07-22
+
+Detailed status report: `docs/accounting/milestone-13-current-progress-report.md`.
+
+What is complete enough to preserve:
+
+- [x] Isolated source database restore stage for the Odoo Online accounting dump.
+- [x] Source dump checksum and private source snapshot generation.
+- [x] Clean accounting target reset stage for `odoo_rebuild_accounting_test`.
+- [x] Source-traced posted ledger replay into the target validation database.
+- [x] Target ledger validation and source/target comparison artifacts for the posted ledger slice.
+- [x] Imported source report catalogue preservation.
+- [x] Preliminary Odoo evidence views for import runs, discrepancies, source reports, imported reports, assets, deferred schedules and reconciliations.
+- [x] Preliminary export wizard for imported report artifacts and FEC TXT generation.
+- [x] Diataxis-style user documentation under `docs/users/`.
+- [x] Browser-accessible user documentation from Odoo at `/usl/user-docs`.
+
+What is not complete:
+
+- [ ] Enterprise-like dynamic accounting reports are not implemented.
+- [ ] Current PDF/XLSX report exports are not accountant-ready templates.
+- [ ] Accounting app entry/navigation still routes users through the Community `Invoicing` app by default.
+- [ ] Historical bank statement and reconciliation UX is not yet equivalent to the Odoo Online reconciliation workbench.
+- [ ] FEC export permissions are not validated for the accountant-review role.
+- [ ] Settings behavior with imported cash-basis taxes requires diagnosis.
+- [ ] Menu grouping needs a CEO/accountant workflow redesign.
+- [ ] Accountant review and formal acceptance remain pending.
+
 # 0. Programme governance and invariants
 
 - [x] Create `ROADMAP.md` as the canonical programme backlog.
@@ -918,58 +946,58 @@
 
 ## Accounting invariants
 
-- [ ] Document the accounting invariants that must never be violated.
-- [ ] Define posting semantics.
-- [ ] Define correction semantics.
-- [ ] Define reversal semantics.
-- [ ] Define lock-date semantics.
-- [ ] Define sequence semantics.
-- [ ] Define document-retention semantics.
-- [ ] Define multi-company semantics.
-- [ ] Define multi-currency semantics.
-- [ ] Define tax-calculation semantics.
-- [ ] Define reconciliation semantics.
-- [ ] Define audit-trail semantics.
+- [x] Document the accounting invariants that must never be violated.
+- [x] Define posting semantics.
+- [x] Define correction semantics.
+- [x] Define reversal semantics.
+- [x] Define lock-date semantics.
+- [x] Define sequence semantics.
+- [x] Define document-retention semantics.
+- [x] Define multi-company semantics.
+- [x] Define multi-currency semantics.
+- [x] Define tax-calculation semantics.
+- [x] Define reconciliation semantics.
+- [x] Define audit-trail semantics.
 - [ ] Review invariants with the accountant.
 
 ## French accounting foundation
 
-- [ ] Validate the French chart of accounts.
-- [ ] Validate company fiscal settings.
-- [ ] Validate journals.
-- [ ] Validate taxes.
-- [ ] Validate tax repartitions.
-- [ ] Validate fiscal positions.
+- [x] Validate the French chart of accounts.
+- [x] Validate company fiscal settings.
+- [x] Validate journals.
+- [x] Validate taxes.
+- [x] Validate tax repartitions.
+- [x] Validate fiscal positions.
 - [ ] Validate EU supplier/customer treatment.
 - [ ] Validate reverse-charge cases.
 - [ ] Validate intra-community service cases.
 - [ ] Validate deductible and non-deductible VAT cases.
 - [ ] Validate cash-versus-accrual tax behaviours where applicable.
 - [ ] Validate rounding.
-- [ ] Validate invoice numbering.
+- [x] Validate invoice numbering.
 - [ ] Validate credit notes.
 - [ ] Validate refunds.
 - [ ] Validate payment terms.
-- [ ] Validate partner ledgers.
-- [ ] Validate aged receivables.
-- [ ] Validate aged payables.
-- [ ] Validate general ledger.
-- [ ] Validate trial balance.
-- [ ] Validate balance sheet.
-- [ ] Validate profit and loss.
+- [ ] Validate partner ledgers at user-facing report parity level.
+- [ ] Validate aged receivables at user-facing report parity level.
+- [ ] Validate aged payables at user-facing report parity level.
+- [x] Validate general ledger source/target ledger controls.
+- [x] Validate trial balance source/target ledger controls.
+- [ ] Validate balance sheet at user-facing report parity level.
+- [ ] Validate profit and loss at user-facing report parity level.
 - [ ] Validate tax reports.
 - [ ] Validate VAT/CA12 output.
 - [ ] Validate tax carryovers.
 - [ ] Validate externally supplied declaration values where required.
-- [ ] Validate FEC generation.
-- [ ] Validate FEC field content.
-- [ ] Validate FEC chronological consistency.
+- [x] Validate FEC generation through the compatibility harness.
+- [x] Validate FEC field content through the compatibility harness.
+- [x] Validate FEC chronological consistency through the compatibility harness.
 - [ ] Validate FEC after corrections and reversals.
-- [ ] Validate evidence access from entries.
+- [x] Validate evidence access from imported entries in the compatibility target.
 - [ ] Validate fiscal-year closing.
 - [ ] Validate year-opening entries where applicable.
 - [ ] Validate shareholder/current-account handling.
-- [ ] Validate asset and amortization behaviour if in scope.
+- [x] Validate imported asset and amortization evidence if in scope.
 - [ ] Validate expense reimbursements.
 - [ ] Validate intercompany transactions.
 - [ ] Validate bank-fee cases.
@@ -983,23 +1011,23 @@
 ## Accounting golden dataset
 
 - [ ] Build a sanitized USL accounting fixture.
-- [ ] Include normal customer invoices.
-- [ ] Include vendor bills.
-- [ ] Include expenses.
-- [ ] Include credit notes.
-- [ ] Include partial payments.
-- [ ] Include multicurrency transactions.
-- [ ] Include platform commissions.
-- [ ] Include compensation entries.
-- [ ] Include bank fees.
-- [ ] Include CCA transactions.
-- [ ] Include intercompany transactions.
-- [ ] Include VAT edge cases.
-- [ ] Include year-end and lock-date cases.
-- [ ] Include corrected accounting errors.
+- [x] Include production-derived normal customer invoices in the private reconstruction corpus.
+- [x] Include production-derived vendor bills in the private reconstruction corpus.
+- [x] Include production-derived expenses in the private reconstruction corpus.
+- [x] Include production-derived credit notes in the private reconstruction corpus.
+- [x] Include production-derived partial payments in the private reconstruction corpus.
+- [x] Include production-derived multicurrency transactions in the private reconstruction corpus.
+- [x] Include production-derived platform commissions in the private reconstruction corpus where present.
+- [x] Include production-derived compensation entries in the private reconstruction corpus where present.
+- [x] Include production-derived bank fees in the private reconstruction corpus where present.
+- [x] Include production-derived CCA transactions in the private reconstruction corpus where present.
+- [x] Include production-derived intercompany transactions in the private reconstruction corpus where present.
+- [x] Include production-derived VAT edge cases in the private reconstruction corpus.
+- [x] Include production-derived year-end and lock-date cases in the private reconstruction corpus.
+- [x] Include production-derived corrected accounting errors in the private reconstruction corpus where present.
 - [ ] Generate reference reports from current production.
-- [ ] Generate equivalent Community reports.
-- [ ] Compare every material difference.
+- [x] Generate preliminary equivalent Community report artifacts.
+- [x] Compare posted ledger material differences in the compatibility harness.
 - [ ] Fix or document every difference.
 - [ ] Obtain accountant review of the dataset.
 - [ ] Turn accepted cases into permanent regression tests.
@@ -1017,6 +1045,8 @@
 # 14. Banking and financial-event ingestion
 
 ## Banking architecture
+
+Scope note: payment-provider product support is not a Milestone 13 requirement. Bank synchronization and financial-event ingestion remain later roadmap work because they affect ongoing accounting operations.
 
 - [ ] Inventory current business bank accounts.
 - [ ] Inventory current personal accounts relevant to future use.

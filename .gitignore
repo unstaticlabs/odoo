@@ -59,3 +59,6 @@ package.json
 /src/
 
 usl-online-dump/
+/accounting_compat/private/
+/artifacts/accounting-compat/private/
+/artifacts/user-docs/site/

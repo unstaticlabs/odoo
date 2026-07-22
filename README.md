@@ -231,6 +231,16 @@ Installed application domains: Contacts, Discuss, Accounting/Invoicing, French a
 
 Known first-iteration gaps compared with the current Odoo Online environment: Community does not provide the Enterprise application launcher experience, Documents, Sign, Knowledge, Dashboards, To-do, AI features, TESE Payroll, Platform Invoicing, or live bank synchronization. Brands such as SBFH, GBC, Yoshi, Smash, and KinkVerse are represented as projects or analytic contexts under the single legal company only.
 
+### Production-derived accounting reconstruction
+
+To try the imported accounting data from the Odoo Online backup, use the dedicated guide:
+
+```text
+docs/operations/run-imported-accounting-dev.md
+```
+
+Important: run `make accounting-*` from the host shell, not from inside the Dev Container. The Dev Container runs Odoo, but it does not currently include the Docker CLI required by the accounting harness.
+
 After changing Python, system, or Docker dependencies:
 
 ```bash

@@ -16,4 +16,4 @@ limit_time_cpu = ${ODOO_LIMIT_TIME_CPU}
 limit_time_real = ${ODOO_LIMIT_TIME_REAL}
 dbfilter = ${ODOO_DB_FILTER}
 dev_mode = ${ODOO_DEV_MODE}
-default_productivity_apps = True
+default_productivity_apps = ${ODOO_DEFAULT_PRODUCTIVITY_APPS}

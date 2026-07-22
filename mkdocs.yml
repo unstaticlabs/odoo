@@ -1,0 +1,42 @@
+site_name: USL Odoo User Guide
+site_description: User-facing documentation for the USL Odoo fork.
+docs_dir: docs/users
+site_dir: artifacts/user-docs/site
+theme:
+  name: material
+  language: en
+  features:
+    - navigation.indexes
+    - navigation.sections
+    - navigation.top
+    - search.highlight
+    - search.suggest
+plugins:
+  - search
+nav:
+  - Home: README.md
+  - Tutorial:
+      - First Accounting Review: tutorials/first-accounting-review.md
+  - How-To Guides:
+      - Check Reconstruction Status: how-to/check-reconstruction-status.md
+      - Generate Accounting Reports: how-to/generate-accounting-reports.md
+      - Review Customer and Supplier Accounting: how-to/review-customer-and-supplier-accounting.md
+      - Drill Down to Sources: how-to/drill-down-to-sources.md
+      - Review Discrepancies and Decisions: how-to/review-discrepancies-and-decisions.md
+      - Review Source Report Evidence: how-to/review-source-report-evidence.md
+      - Review French Tax and CA12: how-to/review-french-tax-and-ca12.md
+      - Review Management Reports: how-to/review-management-reports.md
+      - Generate and Review FEC: how-to/generate-and-review-fec.md
+      - Review Assets and Deferred Schedules: how-to/review-assets-and-deferred.md
+      - Review Reconciliation Boundaries: how-to/review-reconciliation-boundaries.md
+      - Use Accountant Access: how-to/use-accountant-access.md
+  - Reference:
+      - Accounting Screens: reference/accounting-screens.md
+      - Reports: reference/reports.md
+      - Review Statuses: reference/review-statuses.md
+      - Access Roles: reference/access-roles.md
+  - Explanation:
+      - Rebuilt Accounting Evidence: explanation/rebuilt-accounting-evidence.md
+      - Imported vs Generated Accounting: explanation/imported-vs-generated-accounting.md
+      - Accountant Review Boundaries: explanation/accountant-review-boundaries.md
+      - French SASU Accounting Context: explanation/french-sasu-accounting-context.md
