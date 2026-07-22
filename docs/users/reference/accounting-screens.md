@@ -114,6 +114,6 @@ The Accounting app exposes these first-level destinations for frequent work:
 - `Suppliers and Expenses`
 - `Reports and Declarations`
 
-`Reconcile Bank Transactions` currently opens a list of unreconciled imported bank statement lines. Use it to review transactions, amounts, partners and running balances. The final operational reconciliation workbench is still under implementation.
+`Reconcile Bank Transactions` opens the bank reconciliation workbench for unreconciled imported bank statement lines. Use it to review transactions, amounts, partners and running balances. Full operational validation of matching, write-offs and partial reconciliations is still in progress.
 
 Technical source mappings, raw imported report rows and comparison evidence are intentionally grouped under `Review and Audit > Advanced Audit`.

@@ -32,10 +32,10 @@ What is not complete:
 - [ ] Current PDF/XLSX report exports are not accountant-ready templates.
 - [x] Accounting app entry now targets the accounting dashboard directly.
 - [x] Accounting now exposes first-level Review Issues and Reconcile Bank Transactions entries.
-- [x] Reconcile Bank Transactions opens a stable unreconciled bank-transaction list on `odoo_rebuild_accounting_test`.
+- [x] Reconcile Bank Transactions opens the OCA reconciliation kanban workbench with imported bank transactions on `odoo_rebuild_accounting_test`.
 - [x] Raw imported report/evidence screens are grouped under Review and Audit > Advanced Audit.
 - [ ] Historical bank statement and reconciliation UX is not yet equivalent to the Odoo Online reconciliation workbench.
-- [ ] OCA `account_reconcile_oca` kanban workbench is installed but still fails in the Odoo 19 web client and needs compatibility work.
+- [x] OCA `account_reconcile_oca` kanban workbench no longer fails in the Odoo 19 web client after a compatible card override.
 - [ ] Customer invoices, vendor bills, refunds and expenses are not yet complete user-facing reconstructed business workflows.
 - [ ] French declaration guidance for CFS Pro and Portailpro field entry is not yet implemented.
 - [x] FEC test export is available through the custom reviewed export path for accountant-review users.

@@ -24,13 +24,52 @@
         <field name="sequence">1</field>
     </record>
 
+    <record id="account_reconcile_oca.bank_statement_line_reconcile_view" model="ir.ui.view">
+        <field name="arch" type="xml">
+            <kanban js_class="reconcile">
+                <field name="is_reconciled"/>
+                <field name="currency_id"/>
+                <field name="foreign_currency_id"/>
+                <field name="statement_id"/>
+                <field name="statement_balance_end_real"/>
+                <field name="checked"/>
+                <field name="reconcile_aggregate"/>
+                <field name="aggregate_id"/>
+                <field name="aggregate_name"/>
+                <field name="date"/>
+                <field name="amount"/>
+                <field name="amount_currency"/>
+                <field name="partner_id"/>
+                <field name="payment_ref"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex justify-content-between">
+                            <span t-esc="record.date.value"/>
+                            <span t-if="!record.foreign_currency_id.raw_value" t-esc="record.amount.value"/>
+                            <span t-if="record.foreign_currency_id.raw_value" t-esc="record.amount_currency.value"/>
+                        </div>
+                        <div class="mt-1">
+                            <span t-esc="record.payment_ref.value"/>
+                        </div>
+                        <div class="mt-1 d-flex justify-content-between align-items-center">
+                            <span class="badge rounded-pill text-bg-300" t-if="record.partner_id.raw_value" t-esc="record.partner_id.value"/>
+                            <span/>
+                            <span t-if="!record.checked.raw_value" class="badge text-bg-warning">To check</span>
+                            <span t-if="record.is_reconciled.raw_value" class="badge text-bg-success">Reconciled</span>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
     <record id="action_rebuild_account_reconcile_bank_transactions" model="ir.actions.act_window">
         <field name="name">Reconcile Bank Transactions</field>
         <field name="res_model">account.bank.statement.line</field>
         <field name="domain">[('is_reconciled', '=', False)]</field>
-        <field name="context">{'search_default_not_reconciled': True}</field>
-        <field name="view_mode">list,form</field>
-        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'list', 'view_id': ref('account_statement_base.account_bank_statement_line_tree')})]"/>
+        <field name="context">{'search_default_not_reconciled': True, 'view_ref': 'account_reconcile_oca.bank_statement_line_form_reconcile_view'}</field>
+        <field name="view_mode">kanban,list</field>
+        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'kanban', 'view_id': ref('account_reconcile_oca.bank_statement_line_reconcile_view')}), (0, 0, {'view_mode': 'list', 'view_id': ref('account_statement_base.account_bank_statement_line_tree')})]"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">No unreconciled bank transaction is currently visible.</p>
         </field>

@@ -30,7 +30,7 @@ The implemented user-facing accounting features are centered on reconstructed ac
 
 - open Accounting directly from the application menu;
 - open Review Issues from the first Accounting menu level;
-- open Reconcile Bank Transactions from the first Accounting menu level as a review list of unreconciled imported bank statement lines;
+- open Reconcile Bank Transactions from the first Accounting menu level to review imported bank statement lines in the reconciliation workbench;
 - use OCA interactive report wizards for Trial Balance, General Ledger, Journal Ledger, Open Items, Aged Partner Balance and VAT;
 - open a reconstruction summary for each imported company;
 - inspect imported posted journal items;
@@ -92,7 +92,7 @@ Use this if this is your first time opening the rebuilt accounting evidence in O
 - Do not manually change imported posted accounting entries unless an authorized correction process exists.
 - Do not record acceptance decisions unless you have reviewed the evidence and have the authority to approve.
 - Do not apply native cross-boundary reconciliations without an accepted review decision.
-- Do not treat the current bank-transaction list as the final Odoo Online-style reconciliation workbench. It is a usable review surface while the richer reconciliation workflow is still being completed.
+- Do not treat access to the reconciliation workbench as proof that every reconciliation behavior is accepted. Matching, write-off, partial-reconciliation and historical-reconciliation behavior still require validation before Milestone 13 closure.
 - Do not use synthetic bootstrap data as production accounting evidence.
 
 ## Normal Starting Point in Odoo

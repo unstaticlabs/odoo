@@ -56,6 +56,17 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(menu.action, dashboard_action)
         self.assertEqual(dashboard_action.path, "accounting")
 
+    def test_reconcile_shortcut_uses_compatible_kanban_workbench(self):
+        action = self.env.ref("rebuild_account_migration.action_rebuild_account_reconcile_bank_transactions")
+        reconcile_view = self.env.ref("account_reconcile_oca.bank_statement_line_reconcile_view")
+        card_arch = reconcile_view.arch_db.partition("<templates>")[2]
+
+        self.assertEqual(action.view_mode, "kanban,list")
+        self.assertEqual(action.view_ids[0].view_id, reconcile_view)
+        self.assertIn("'view_ref': 'account_reconcile_oca.bank_statement_line_form_reconcile_view'", action.context)
+        self.assertNotIn("<field ", card_arch)
+        self.assertIn("record.payment_ref.value", card_arch)
+
     def test_accountant_reviewer_is_read_only_for_discrepancies(self):
         self.assertIn(self.readonly_group, self.reviewer_group.implied_ids)
         reviewer = self.env["res.users"].with_context(no_reset_password=True).create({

@@ -289,13 +289,13 @@ Remaining work: validate the app-launcher behavior in the browser and continue t
 
 Status: partially improved, not complete.
 
-Evidence: imported bank statement lines and reconciliation records exist in the target import status, and custom review views exist for reconciliation evidence. The Accounting dashboard now exposes a first-level `Reconcile Bank Transactions` entry, and browser smoke testing on `odoo_rebuild_accounting_test` showed it opens a list of unreconciled imported bank statement lines such as Shine, Revolut and Wise transactions. This is a usable review surface, but it is not yet an Enterprise-like operational reconciliation workbench.
+Evidence: imported bank statement lines and reconciliation records exist in the target import status, and custom review views exist for reconciliation evidence. The Accounting dashboard now exposes a first-level `Reconcile Bank Transactions` entry, and browser smoke testing on `odoo_rebuild_accounting_test` showed it opens the OCA reconciliation kanban workbench with unreconciled imported bank statement lines such as Shine, Revolut and Wise transactions. Browser smoke testing of the Banque Shine dashboard card also opened `Statement lines`, displayed `63` items and showed the journal `Global Balance` without a visible client error.
 
-Observed blocker: the OCA `account_reconcile_oca` kanban workbench is installed and its JS registry asset loads after fixing the OCA add-on path, but the kanban view currently fails in Odoo 19 with a web-client `KanbanArchParser` error: `Cannot read properties of undefined (reading 'type')`. The first-level menu was therefore changed to a stable `list,form` action while the OCA kanban compatibility issue remains open.
+Resolved implementation issue: the OCA `account_reconcile_oca` kanban workbench originally failed in Odoo 19 with a web-client `KanbanArchParser` error: `Cannot read properties of undefined (reading 'type')`. The custom add-on now overrides the OCA kanban card with an Odoo-19-compatible card that keeps required fields at the kanban root and renders card values without nested `<field>` tags.
 
 Impact: historical bank balances may be visible on the dashboard while the transaction/reconciliation workspace feels empty or disconnected.
 
-Required work: fix or adapt the OCA kanban reconciliation workbench, then validate the native operational reconciliation flow and the historical reconciliation/audit flow separately. This is a product/accounting UX blocker for Milestone 13.
+Required work: validate the native operational reconciliation flow end to end, including matching invoices/bills/payments, write-offs, partial reconciliations, and interaction with imported historical reconciliation evidence. This remains a product/accounting UX blocker for Milestone 13 until behavior and accounting effects are verified.
 
 ### Poor PDF and XLSX report readability
 
@@ -433,12 +433,11 @@ Required work: implement human-readable dynamic report screens and exports, then
 
 ## Remaining questions and doubts
 
-- Is the target product expected to rebuild a Community-compatible dynamic report engine, or is an OCA reporting stack acceptable if a maintained Odoo 19-compatible option exists?
-- Should historical bank statement lines be represented as native bank statement records for reconciliation UX, or as immutable historical evidence with a separate reconciliation review workbench?
-- Which users should be allowed to export FEC: accountant reviewer, full accountant, finance operator, or only accounting manager?
-- Which cash-basis VAT behavior in the source is legally required for USL, and which behavior is only a side effect of imported localization configuration?
-- Which source report definitions are mandatory for daily use versus evidence-only parity?
-- Which generated PDFs/XLSX should match Odoo Online's visual structure, and which can remain machine-oriented evidence exports?
+- Validation question: do the selected OCA report screens produce USL/Odoo Online-equivalent interactive results once mapped to the imported ledger, or do specific reports still need a custom USL implementation?
+- Validation question: does the OCA reconciliation workbench correctly perform operational matching, write-offs and partial reconciliations on imported statement lines without damaging historical source-traced reconciliation evidence?
+- Accounting question: which cash-basis VAT behavior in the source is legally required for USL, and which behavior is only a side effect of imported localization configuration?
+- Accounting question: which generated statutory PDFs/XLSX must match the accountant benchmark visual structure, and which can remain machine-oriented evidence exports under Advanced Audit?
+- Access question: which exact source documents or attachments should be visible to the accountant as evidence versus restricted accounting evidence?
 - What exact accountant review workflow is required before Milestone 13 can close?
 
 ## Bottom line
