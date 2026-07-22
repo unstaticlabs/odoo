@@ -6,7 +6,7 @@ import json
 from decimal import Decimal
 
 from odoo import Command, api, fields, models
-from odoo.exceptions import UserError
+from odoo.exceptions import AccessError, UserError
 
 
 ACCOUNT_CODE_SQL = "COALESCE(account.code_store->>company.rebuild_source_id::text, account.code_store->>'1', account.code_store::text)"
@@ -770,6 +770,10 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         if for_drilldown:
             return
         if self.report_type == "fec":
+            if self.company_id not in self.env.companies:
+                raise AccessError("You cannot export a FEC for a company outside your allowed companies.")
+            if not self.fec_test_mode and not self.env.user.has_group("account.group_account_manager"):
+                raise UserError("Only an Accounting Manager can generate an official non-test FEC because it may update lock dates.")
             if self.export_format != "txt":
                 raise UserError("FEC exports must use the FEC TXT format.")
             if self.target_move != "posted":
@@ -789,7 +793,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
     def _fec_export_payload(self):
         if "l10n_fr.fec.export.wizard" not in self.env:
             raise UserError("French FEC generation requires the l10n_fr_account module.")
-        Wizard = self.env["l10n_fr.fec.export.wizard"].with_company(self.company_id).with_context(
+        Wizard = self.env["l10n_fr.fec.export.wizard"].sudo().with_company(self.company_id).with_context(
             allowed_company_ids=self.company_id.ids,
             fec_test_mode=self.fec_test_mode,
         )

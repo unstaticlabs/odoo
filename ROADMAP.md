@@ -31,7 +31,7 @@ What is not complete:
 - [ ] Historical bank statement and reconciliation UX is not yet equivalent to the Odoo Online reconciliation workbench.
 - [ ] Customer invoices, vendor bills, refunds and expenses are not yet complete user-facing reconstructed business workflows.
 - [ ] French declaration guidance for CFS Pro and Portailpro field entry is not yet implemented.
-- [ ] FEC export permissions are not validated for the accountant-review role.
+- [x] FEC test export is available through the custom reviewed export path for accountant-review users.
 - [ ] Settings behavior with imported cash-basis taxes requires diagnosis.
 - [ ] Menu grouping needs a CEO/accountant workflow redesign.
 - [ ] Accountant review and formal acceptance remain pending.

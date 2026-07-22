@@ -170,7 +170,7 @@ Not yet validated as finished product behavior:
 - dynamic Odoo Online-style accounting reports
 - readable templated PDF/XLSX reports
 - report UX parity with filters, unfold, annotations and exports as seen on screen
-- accountant access for native FEC export
+- accountant access for official non-test FEC export
 - Settings behavior with cash-basis taxes
 - accountant review of FEC and statutory/tax outputs
 - complete second clean rehearsal evidence after the latest UX changes
@@ -275,13 +275,13 @@ Required work: create a role-oriented accounting workbench with priority groups 
 
 ### FEC access error
 
-Status: confirmed likely permission mismatch, not fixed in this report.
+Status: fixed for accountant-review test exports through the custom USL export wizard; official non-test export remains manager-only.
 
-Evidence: the custom FEC export delegates to the native `l10n_fr.fec.export.wizard`. The user error states that `l10n_fr.fec.export.wizard` creation requires the `Show Full Accounting Features` group. The custom report wizard grants create access to `account.group_account_readonly`, but that does not grant create access on the native FEC wizard.
+Evidence: the native `l10n_fr.fec.export.wizard` creation ACL remains limited to `account.group_account_user`. The custom FEC export now checks company access, blocks non-test official FEC generation for non-managers, and uses the custom wizard as the reviewed export boundary for accountant-review users.
 
-Impact: a read-only accounting reviewer can open the custom FEC action but may fail when the native FEC wizard is created.
+Impact: accountant-review users can generate review/test FEC files through the USL Accounting report export screen without gaining full accounting write access. They still cannot generate official non-test FEC files because that path may update fiscal lock dates.
 
-Required work: define the desired security policy for FEC exports, then adjust groups or route the custom wizard through a reviewed safe service path. This affects accountant access and must be tested with realistic users.
+Remaining work: browser-smoke the FEC menu action with the intended accountant user and define whether any non-manager role should ever be allowed to generate official non-test FEC files.
 
 ### Settings cash-basis error
 
@@ -331,7 +331,7 @@ Required work: implement human-readable dynamic report screens and exports, then
 - Odoo Online-style report interaction
 - reconciliation user experience
 - tax-return workflow UX
-- FEC access through normal accountant permissions
+- official non-test FEC access policy
 - broader accounting menu hierarchy and daily workflow naming
 - settings behavior with cash-basis taxes
 

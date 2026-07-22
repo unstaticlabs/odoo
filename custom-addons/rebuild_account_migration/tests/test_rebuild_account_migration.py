@@ -769,6 +769,48 @@ class TestRebuildAccountMigration(TransactionCase):
         with self.assertRaisesRegex(UserError, "Use Generate Export"):
             fec_wizard.action_preview_report()
 
+    def test_accountant_reviewer_can_generate_fec_through_custom_export_only(self):
+        reviewer = self.env["res.users"].with_context(no_reset_password=True).create({
+            "name": "FEC Reviewer",
+            "login": "fec.reviewer@example.invalid",
+            "email": "fec.reviewer@example.invalid",
+            "company_id": self.company.id,
+            "company_ids": [Command.set([self.company.id])],
+            "group_ids": [Command.set([self.reviewer_group.id])],
+        })
+
+        with self.assertRaises(AccessError):
+            self.env["l10n_fr.fec.export.wizard"].with_user(reviewer).create({
+                "date_from": "2099-01-01",
+                "date_to": "2099-12-31",
+                "test_file": True,
+                "export_type": "official",
+            })
+
+        fec_wizard = self.env["rebuild.account.report.export.wizard"].with_user(reviewer).create({
+            "company_id": self.company.id,
+            "report_type": "fec",
+            "date_from": "2099-01-01",
+            "date_to": "2099-12-31",
+            "target_move": "posted",
+            "export_format": "txt",
+            "fec_test_mode": True,
+        })
+        action = fec_wizard.action_generate_export()
+
+        self.assertEqual(action["res_model"], "rebuild.account.report.export.wizard")
+        self.assertEqual(action["res_id"], fec_wizard.id)
+        self.assertTrue(fec_wizard.export_file)
+        self.assertTrue(fec_wizard.export_filename.endswith(".txt"))
+        metadata = json.loads(fec_wizard.export_metadata)
+        self.assertEqual(metadata["report_type"], "fec")
+        self.assertEqual(metadata["format"], "txt")
+        self.assertEqual(metadata["validation"], "not_official_dgfip_validation")
+
+        fec_wizard.write({"fec_test_mode": False})
+        with self.assertRaisesRegex(UserError, "Only an Accounting Manager"):
+            fec_wizard.action_generate_export()
+
     def test_reconciliation_review_action_uses_only_source_traced_endpoints(self):
         expense_account = self._account("T600003", "Generated Endpoint Expense", "expense")
         payable_account = self._account("T401003", "Generated Endpoint Payable", "liability_payable")
