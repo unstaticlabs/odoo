@@ -23,6 +23,7 @@ make accounting-track-b-reset
 make accounting-track-b-expenses
 make accounting-track-b-documents
 make accounting-track-b-expense-settlement
+make accounting-track-b-document-settlement
 make accounting-target-reconciliation-probe
 make accounting-reports
 make accounting-fec
@@ -57,6 +58,7 @@ source package validation
 → native expense approval, refusal and posting reconstruction for 2025-10-01 through 2026-06-30
 → native business-document reconstruction and posting for 2025-10-01 through 2026-06-30
 → native bank matching and employee-expense settlement for the current-period expense slice
+→ native bank matching for current-period commercial documents
 → rollback-only native reconciliation probe for generated draft endpoints
 → Odoo-facing report view, drill-down and export-wizard checks
 → FEC test-mode export
@@ -118,6 +120,7 @@ Stage dependencies:
 | `make accounting-track-b-expenses` | Read-only restored source expense/business fields and Track B configuration | Native employees, products, expenses, company payments and employee receipts in the Track B database; private proof artifact | It uses normal expense submission, approval/refusal, receipt preparation and payment posting APIs, then compares every expense and generated accounting effect to source. Run it before the document stage so expense-generated receipts can be reused. |
 | `make accounting-track-b-documents` | Read-only restored source business fields and Track B configuration | Native posted invoices, bills, supplier refunds and receipts in the Track B database; private proof artifact | It calls normal Odoo draft creation and `action_post`, then compares headers, due dates and per-account effects to source. |
 | `make accounting-track-b-expense-settlement` | Native Track B expenses plus the read-only source bank/reconciliation graph | Native bank transactions, OCA-generated partial reconciliations, paid company payments and paid employee expenses; private proof artifact | It runs after expenses/documents, replays source operator allocations chronologically, and keeps mixed-transfer non-expense balances explicit for General Reconciliation. |
+| `make accounting-track-b-document-settlement` | Native Track B documents, expense settlement and the read-only source bank/reconciliation graph | Native commercial-document bank transactions, exact OCA-generated partial reconciliations and bounded residuals for General Reconciliation; private proof artifact | It reuses overlapping expense bank lines, creates the remaining bank transactions, applies every direct document/bank edge and validates company/transaction-currency partials plus due-line residuals. |
 | `make accounting-reports` | Imported and validated target database | Report preview/export/drill-down evidence artifacts | It proves the user-facing report surfaces can generate and trace values. |
 
 Do not stop `accounting-source-db` after `accounting-source-restore`. Later stages still query it for source metadata, snapshot dates, controls and comparisons. If a later stage fails with `service "accounting-source-db" is not running`, restart it:
@@ -183,6 +186,7 @@ artifacts/accounting-compat/private/track-b-reset-status.json
 artifacts/accounting-compat/private/track-b-expenses-status.json
 artifacts/accounting-compat/private/track-b-documents-status.json
 artifacts/accounting-compat/private/track-b-expense-settlement-status.json
+artifacts/accounting-compat/private/track-b-document-settlement-status.json
 artifacts/accounting-compat/private/target-reconciliation-probe-status.json
 artifacts/accounting-compat/private/reports-status.json
 artifacts/accounting-compat/private/fec-status.json
@@ -265,7 +269,17 @@ The bounded expense-settlement run creates `106` native bank transactions: `98` 
 
 All `98` company-account bank lines and `2` reimbursement transfers contain only current-period expense allocations. The other `6` reimbursement transfers also settle older or non-expense shareholder-account items in the source. Track B replays only the source edges backed by current-period native expenses; OCA posts the remaining transfer balance as an open aggregate on mapped account `455100`. The six target open aggregates total `5,942.24`, exactly matching the source bank-line balance not allocated to the current-period expense edges. The bank transaction is therefore matched, while the unallocated shareholder detail remains visible in General Reconciliation. This is an intentional evidence boundary, not invented reconciliation detail.
 
-This proves current-period native expense approval/refusal/posting, invoice/bill/refund/receipt posting, expense-related bank matching, partial reimbursement allocation and final expense/payment state. It does not yet prove all `1,841` current-period bank transactions, non-expense matching/write-offs, undo behavior, the remaining exchange-difference cases, assets or closing; those remain separate Track B stages.
+`make accounting-track-b-document-settlement` next proves the direct bank transition for all current-period commercial documents. Three credible approaches were compared:
+
+1. create standard bank transactions and replay the source operator's exact document candidates through OCA Bank Matching, using supported transaction countervalues plus a narrow custom-rate adapter where OCA would otherwise replace the historical company/foreign amount pair;
+2. copy finalized source bank journal items and partial-reconciliation rows into the exact target;
+3. implement a project-specific matching and foreign-exchange engine.
+
+Option 1 is selected. It preserves the native statement/OCA workflow and uses Odoo's supported foreign-currency countervalue on `34` newly created foreign-journal transactions whose historical EUR countervalue no longer equals the current date rate. The adapter removes only OCA's proposed exchange candidate and retains the source operator's exact company/transaction-currency candidate pair; OCA still creates the bank journal items and partial reconciliations. Option 2 remains the historical truth path but cannot prove an operational workflow. Option 3 is rejected because it would duplicate maintained Odoo/OCA matching behavior.
+
+The clean stage covers `233` source bank transactions and `339` direct document/bank partial-reconciliation edges against `241` native receivable/payable lines. It reuses `8` bank lines and `83` partials already proved by expense settlement, creates the remaining `225` bank lines, creates `256` additional partials, and extends one prior mixed employee transfer through native General Reconciliation. All `339` source company-currency and transaction-currency partial amounts and endpoints match; all `241` due-line transaction-currency residuals match; a rerun reuses all `233` bank lines and `339` document edges with no duplicate trace. `170` bank lines contain only current document allocations. The other `63` also contain source allocations outside the current commercial-document perimeter, so their open aggregate detail is deliberately deferred to the next General Reconciliation stage.
+
+This proves current-period native expense approval/refusal/posting, invoice/bill/refund/receipt posting, expense-related bank matching, partial reimbursement allocation, direct commercial-document bank matching and final expense/payment state. It does not yet prove the other current-period bank transactions, the `114` non-bank document reconciliation edges, remaining aggregate allocation/write-offs, undo behavior, assets or closing; those remain separate Track B stages.
 
 `make accounting-target-validate` also proves:
 

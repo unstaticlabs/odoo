@@ -203,9 +203,22 @@ class TestRebuildAccountMigration(TransactionCase):
             manual_reference = False
             manual_amount = 0.0
             manual_amount_in_currency = 0.0
+            previous_manual_amount_in_currency = 100.0
 
             def __init__(self):
                 self.calls = []
+                self.reconcile_data_info = {
+                    "data": [
+                        {
+                            "reference": "account.move.line;42",
+                            "amount": 100.0,
+                            "credit": 0.0,
+                            "debit": 100.0,
+                            "currency_amount": 100.0,
+                        },
+                    ],
+                    "reconcile_auxiliary_id": 1,
+                }
 
             def _add_account_move_line(self, target_line):
                 self.calls.append(("add", target_line.id))
@@ -215,6 +228,12 @@ class TestRebuildAccountMigration(TransactionCase):
 
             def _onchange_manual_reconcile_vals(self):
                 self.calls.append(("amount", self.manual_amount))
+
+            def _recompute_suspense_line(self, data, auxiliary_id, manual_reference):
+                return {
+                    "data": data,
+                    "reconcile_auxiliary_id": auxiliary_id,
+                }
 
         bank_line = BankLine()
         import_run._native_expense_settlement_add_edge(
@@ -229,6 +248,17 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(bank_line.manual_reference, "account.move.line;42")
         self.assertEqual(bank_line.manual_amount, 70.0)
         self.assertEqual(bank_line.manual_amount_in_currency, 84.0)
+        self.assertEqual(bank_line.previous_manual_amount_in_currency, 84.0)
+        self.assertEqual(
+            bank_line.reconcile_data_info["data"][0],
+            {
+                "reference": "account.move.line;42",
+                "amount": 70.0,
+                "credit": 0.0,
+                "debit": 70.0,
+                "currency_amount": 84.0,
+            },
+        )
         self.assertEqual(
             bank_line.calls,
             [
@@ -236,6 +266,44 @@ class TestRebuildAccountMigration(TransactionCase):
                 ("select", "account.move.line;42"),
                 ("amount", 70.0),
             ],
+        )
+
+    def test_native_expense_settlement_removes_generated_exchange_candidate(self):
+        import_run = self.env["rebuild.account.import.run"]
+
+        class TargetLine:
+            id = 42
+
+        class BankLine:
+            manual_reference = False
+
+            def __init__(self):
+                self.reconcile_data_info = {
+                    "data": [
+                        {"reference": "account.move.line;42", "id": 42},
+                        {
+                            "reference": "reconcile_auxiliary;7",
+                            "original_exchange_line_id": 42,
+                        },
+                    ],
+                    "reconcile_auxiliary_id": 8,
+                }
+
+            def _recompute_suspense_line(self, data, auxiliary_id, manual_reference):
+                return {
+                    "data": data,
+                    "reconcile_auxiliary_id": auxiliary_id,
+                }
+
+        bank_line = BankLine()
+        import_run._native_expense_settlement_remove_exchange_candidates(
+            bank_line,
+            TargetLine(),
+        )
+
+        self.assertEqual(
+            bank_line.reconcile_data_info["data"],
+            [{"reference": "account.move.line;42", "id": 42}],
         )
 
     def test_native_expense_settlement_accepts_only_complete_auto_match(self):

@@ -268,16 +268,25 @@ class RebuildAccountImportRun(models.Model):
         source_line_rows,
         edge_rows,
         options,
+        target_move_models=None,
+        input_trace_model="account.move.line.native_expense_settlement_input",
+        input_trace_note=(
+            "Track B source accounting line selected as an OCA bank-matching "
+            "candidate for native expense settlement."
+        ),
     ):
         Move = self.env["account.move"].sudo()
+        target_move_models = target_move_models or [
+            "account.move.native_expense_replay",
+        ]
         source_move_ids = sorted({row["move_id"] for row in source_line_rows})
         target_moves = {
             move.rebuild_source_id: move
             for move in Move.search([
                 (
                     "rebuild_source_model",
-                    "=",
-                    "account.move.native_expense_replay",
+                    "in",
+                    target_move_models,
                 ),
                 ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
                 ("rebuild_source_id", "in", source_move_ids or [0]),
@@ -294,7 +303,7 @@ class RebuildAccountImportRun(models.Model):
             if not target_move:
                 blocked.append({
                     "source_move_id": source_move_id,
-                    "classification": "missing_native_expense_move",
+                    "classification": "missing_native_target_move",
                 })
                 continue
             source_groups = defaultdict(list)
@@ -308,7 +317,7 @@ class RebuildAccountImportRun(models.Model):
             if set(source_groups) != set(target_groups):
                 blocked.append({
                     "source_move_id": source_move_id,
-                    "classification": "native_expense_line_signature_mismatch",
+                    "classification": "native_target_line_signature_mismatch",
                     "source_signatures": [str(key) for key in sorted(source_groups, key=str)],
                     "target_signatures": [str(key) for key in sorted(target_groups, key=str)],
                 })
@@ -326,7 +335,7 @@ class RebuildAccountImportRun(models.Model):
                 if len(source_group) != len(target_group):
                     blocked.append({
                         "source_move_id": source_move_id,
-                        "classification": "native_expense_line_count_mismatch",
+                        "classification": "native_target_line_count_mismatch",
                         "signature": str(key),
                         "source_count": len(source_group),
                         "target_count": len(target_group),
@@ -345,12 +354,9 @@ class RebuildAccountImportRun(models.Model):
             if not target_line:
                 continue
             target_line.write({
-                "rebuild_import_note": (
-                    "Track B source accounting line selected as an OCA bank-matching "
-                    "candidate for native expense settlement."
-                ),
+                "rebuild_import_note": input_trace_note,
                 **self._trace_values(
-                    "account.move.line.native_expense_settlement_input",
+                    input_trace_model,
                     source_line_id,
                     options,
                 ),
@@ -405,18 +411,87 @@ class RebuildAccountImportRun(models.Model):
         }
 
     @staticmethod
+    def _native_expense_settlement_remove_exchange_candidates(
+        bank_line,
+        target_line,
+    ):
+        """Remove OCA's derived FX row when replaying an operator-fixed rate.
+
+        The source bank matching can preserve a document's custom transaction
+        rate instead of accepting the date-rate exchange difference proposed by
+        the widget. This bounded adapter discards only that generated candidate
+        before setting both exact amounts; OCA still builds and reconciles the
+        resulting bank journal items.
+        """
+        info = bank_line.reconcile_data_info
+        data = [
+            line
+            for line in info.get("data", [])
+            if line.get("original_exchange_line_id") != target_line.id
+        ]
+        bank_line.reconcile_data_info = bank_line._recompute_suspense_line(
+            data,
+            info["reconcile_auxiliary_id"],
+            bank_line.manual_reference,
+        )
+
+    @staticmethod
+    def _native_expense_settlement_preserve_operator_amounts(
+        bank_line,
+        target_line,
+        amount,
+        amount_currency,
+    ):
+        """Keep a custom-rate amount pair that OCA's widget otherwise derives."""
+        info = bank_line.reconcile_data_info
+        reference = f"account.move.line;{target_line.id}"
+        matches = [
+            line for line in info.get("data", []) if line["reference"] == reference
+        ]
+        if len(matches) != 1:
+            message = (
+                f"Expected one OCA candidate for move line {target_line.id}, "
+                f"got {len(matches)}"
+            )
+            raise ValueError(message)
+        matches[0].update({
+            "amount": amount,
+            "credit": -amount if amount < 0 else 0.0,
+            "debit": amount if amount > 0 else 0.0,
+            "currency_amount": amount_currency,
+        })
+        bank_line.reconcile_data_info = bank_line._recompute_suspense_line(
+            info["data"],
+            info["reconcile_auxiliary_id"],
+            bank_line.manual_reference,
+        )
+
+    @staticmethod
     def _native_expense_settlement_add_edge(bank_line, target_line, source_edge):
         """Add one candidate and retain the operator's exact partial amount."""
         bank_line._add_account_move_line(target_line)
+        RebuildAccountImportRun._native_expense_settlement_remove_exchange_candidates(
+            bank_line,
+            target_line,
+        )
         bank_line.manual_reference = f"account.move.line;{target_line.id}"
         bank_line._onchange_manual_reconcile_reference()
         direction = -1.0 if target_line.balance > 0 else 1.0
-        bank_line.manual_amount = direction * float(source_edge["partial_amount"])
+        amount = direction * float(source_edge["partial_amount"])
+        amount_currency = direction * float(source_edge["partial_amount_currency"])
+        bank_line.manual_amount = amount
         if bank_line.manual_in_currency:
-            bank_line.manual_amount_in_currency = direction * float(
-                source_edge["partial_amount_currency"],
+            bank_line.manual_amount_in_currency = amount_currency
+            bank_line.previous_manual_amount_in_currency = (
+                bank_line.manual_amount_in_currency
             )
         bank_line._onchange_manual_reconcile_vals()
+        RebuildAccountImportRun._native_expense_settlement_preserve_operator_amounts(
+            bank_line,
+            target_line,
+            amount,
+            amount_currency,
+        )
 
     def run_native_expense_settlement_from_source(self, options):
         """Replay expense bank matching through native statement/OCA APIs.
