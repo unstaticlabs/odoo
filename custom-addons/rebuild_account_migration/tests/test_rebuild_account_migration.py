@@ -336,6 +336,53 @@ class TestRebuildAccountMigration(TransactionCase):
                 990042,
             )
 
+    def test_native_bank_categorization_converts_partner_suspense_candidate(self):
+        import_run = self.env["rebuild.account.import.run"]
+        payable_account = self._account(
+            "T401229",
+            "Track B direct payable",
+            "liability_payable",
+        )
+        partner = self.env["res.partner"].create({
+            "name": "Track B direct bank supplier",
+        })
+        partner.with_company(self.company).property_account_payable_id = (
+            payable_account
+        )
+        journal = self._journal("bank")
+        journal.reconcile_mode = "edit"
+        bank_line = self.env["account.bank.statement.line"].create({
+            "journal_id": journal.id,
+            "date": fields.Date.today(),
+            "partner_id": partner.id,
+            "payment_ref": "Direct supplier allocation",
+            "amount": -25.0,
+        })
+
+        import_run._native_bank_categorization_apply(
+            bank_line,
+            {
+                "id": 990229,
+                "payment_ref": "Direct supplier allocation",
+                "counterpart_name": "Direct supplier allocation",
+                "counterpart_balance": 25.0,
+                "counterpart_amount_currency": 25.0,
+            },
+            payable_account,
+            partner,
+            self.company.currency_id,
+            False,
+        )
+
+        counterpart = bank_line.line_ids.filtered(
+            lambda line: line.account_id != journal.default_account_id,
+        )
+        self.assertTrue(bank_line.is_reconciled)
+        self.assertEqual(len(counterpart), 1)
+        self.assertEqual(counterpart.account_id, payable_account)
+        self.assertEqual(counterpart.partner_id, partner)
+        self.assertEqual(counterpart.balance, 25.0)
+
     def test_reconcile_shortcut_uses_compatible_kanban_workbench(self):
         action = self.env.ref("rebuild_account_migration.action_rebuild_account_reconcile_bank_transactions")
         reconcile_view = self.env.ref("account_reconcile_oca.bank_statement_line_reconcile_view")

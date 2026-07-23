@@ -356,7 +356,7 @@ Out of Milestone 13 scope:
 - [ ] Bank transactions and reconciliation state are visible in a coherent workbench.
 - [ ] Customer invoices and refunds are usable as business documents where source data supports them.
 - [ ] Vendor bills and refunds are usable as business documents where source data supports them.
-- [x] Expenses and direct commercial-document bank settlement are reconstructed and explicitly classified: isolated Track B validates all `325` current-period source expenses, `106` expense-related bank transactions, `181` expense allocations, all `97` company-payment transitions and all `95` employee reimbursements; it also validates all `233` bank transactions directly linked to current commercial documents and `339` document/bank edges. The remaining bank/non-bank reconciliation perimeter and replacement-target integration remain separate acceptance items.
+- [x] Expenses, direct commercial-document settlement, General Reconciliation and direct bank categorization are reconstructed and explicitly classified: isolated Track B validates all `325` current-period source expenses, all `97` company-payment transitions and all `95` employee reimbursements; `233` bank transactions and `339` edges directly linked to current commercial documents; all `111` non-bank document partials and `40` native exchange partials; and `1,415` direct/source-open bank transactions. Native bank coverage is now `1,746/1,841`; the final `95` external-endpoint lines and replacement-target integration remain separate acceptance items.
 - [ ] Reports open as dynamic views before export.
 - [ ] PDFs are readable, aligned and accountant-ready.
 - [ ] XLSX exports are templated and reviewable.

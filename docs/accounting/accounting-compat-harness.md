@@ -25,6 +25,7 @@ make accounting-track-b-documents
 make accounting-track-b-expense-settlement
 make accounting-track-b-document-settlement
 make accounting-track-b-general-reconciliation
+make accounting-track-b-bank-categorization
 make accounting-target-reconciliation-probe
 make accounting-reports
 make accounting-fec
@@ -123,6 +124,7 @@ Stage dependencies:
 | `make accounting-track-b-expense-settlement` | Native Track B expenses plus the read-only source bank/reconciliation graph | Native bank transactions, OCA-generated partial reconciliations, paid company payments and paid employee expenses; private proof artifact | It runs after expenses/documents, replays source operator allocations chronologically, and keeps mixed-transfer non-expense balances explicit for General Reconciliation. |
 | `make accounting-track-b-document-settlement` | Native Track B documents, expense settlement and the read-only source bank/reconciliation graph | Native commercial-document bank transactions, exact OCA-generated partial reconciliations and bounded residuals for General Reconciliation; private proof artifact | It reuses overlapping expense bank lines, creates the remaining bank transactions, applies every direct document/bank edge and validates company/transaction-currency partials plus due-line residuals. |
 | `make accounting-track-b-general-reconciliation` | Native Track B documents and direct bank settlement plus the read-only source non-bank reconciliation graph | Native posted manual entries, document netting, General Reconciliation partials and traced Odoo/OCA exchange-difference moves; private proof artifact | It posts shareholder-current-account and clearing entries through standard journal APIs, reconciles them with documents, and classifies native timing and one-cent exchange differences without copying finalized source journal rows. |
+| `make accounting-track-b-bank-categorization` | Track B through General Reconciliation plus source bank transactions without external partial endpoints | Native OCA-categorized interest, fees, transfers and account allocations plus source-open transactions retained for review; private proof artifact | It replays the operator's account, partner, analytic and currency inputs for direct categorizations and deliberately leaves source-unreconciled transactions open. |
 | `make accounting-reports` | Imported and validated target database | Report preview/export/drill-down evidence artifacts | It proves the user-facing report surfaces can generate and trace values. |
 
 Do not stop `accounting-source-db` after `accounting-source-restore`. Later stages still query it for source metadata, snapshot dates, controls and comparisons. If a later stage fails with `service "accounting-source-db" is not running`, restart it:
@@ -190,6 +192,7 @@ artifacts/accounting-compat/private/track-b-documents-status.json
 artifacts/accounting-compat/private/track-b-expense-settlement-status.json
 artifacts/accounting-compat/private/track-b-document-settlement-status.json
 artifacts/accounting-compat/private/track-b-general-reconciliation-status.json
+artifacts/accounting-compat/private/track-b-bank-categorization-status.json
 artifacts/accounting-compat/private/target-reconciliation-probe-status.json
 artifacts/accounting-compat/private/reports-status.json
 artifacts/accounting-compat/private/fec-status.json
@@ -292,7 +295,17 @@ Option 1 is selected. Standard draft `account.move` creation and `action_post` p
 
 The clean run covers all `111` source non-bank partial reconciliations and their `114` current-document endpoints. It posts `18` manual entries with `66` exact accounting-input lines, creates `68` manual-entry/document partials plus `3` document-netting partials, and traces all `40` native exchange-difference partials. All manual moves are posted and balanced, all source transaction-currency partial amounts and endpoints match, and the final payment-state distribution exactly equals source: `159` paid and `2` reversed vendor bills, `84` paid purchase receipts, `1` paid and `2` partially paid supplier refunds, and `36` paid customer invoices. Odoo's native reconciliation produces two bounded one-cent company-currency differences; one case also has an extra one-cent exchange segment. These are retained as explicit rounding evidence rather than rewriting posted entries. A rerun creates nothing and reuses all `18` moves, `71` input partials and `40` exchange partials without duplicate traces.
 
-This proves current-period native expense approval/refusal/posting, invoice/bill/refund/receipt posting, expense-related bank matching, partial reimbursement allocation, direct commercial-document bank matching, non-bank document netting/manual-entry reconciliation, exchange-difference generation and final document/payment state. It does not yet prove the other current-period bank transactions, remaining outside-perimeter aggregate allocation/write-offs, undo behavior, assets or closing; those remain separate Track B stages.
+`make accounting-track-b-bank-categorization` next covers every source bank transaction that has no external partial-reconciliation endpoint. Three credible approaches were compared:
+
+1. recreate each bank transaction and replay the source operator's account, partner, analytic and transaction-currency categorization through OCA Bank Matching, while leaving source-unreconciled transactions open;
+2. copy finalized source bank journal lines, which preserves history but does not prove operational categorization;
+3. write counterpart journal lines directly through a project-specific categorization engine.
+
+Option 1 is selected. The clean run creates `1,415` additional bank transactions, categorizes `1,229` through OCA and retains the source's `186` open transactions as open. The categorized population consists of interest, bank fees, internal-transfer allocations and bounded payable, shareholder, corporate-tax and investment-account allocations; exactly `5` carry analytic distributions. `908` foreign-journal transactions use Odoo's supported explicit company-currency countervalue while retaining the source journal-currency amount. Every bank header, liquidity effect and categorized counterpart account/partner/currency/analytic effect matches; all moves balance; there are no duplicate traces. A rerun creates or categorizes nothing and reuses all `1,415` bank lines and `1,229` categorizations.
+
+Together with expense and document settlement, native Track B now contains `1,746` of the source's `1,841` current-period bank transactions. The remaining `95` all have external endpoints: draft or future documents, payroll/tax/clearing entries, or boundary exchange/suspense entries. They remain a separately classified replay stage rather than being mislabeled as direct categorization.
+
+This proves current-period native expense approval/refusal/posting, invoice/bill/refund/receipt posting, expense-related bank matching, partial reimbursement allocation, direct commercial-document bank matching, non-bank document netting/manual-entry reconciliation, exchange-difference generation, direct bank categorization and final document/payment state. It does not yet prove the final `95` external-endpoint bank transactions, remaining outside-perimeter aggregate allocation/write-offs, undo behavior, assets or closing; those remain separate Track B stages.
 
 `make accounting-target-validate` also proves:
 

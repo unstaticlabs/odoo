@@ -39,6 +39,7 @@ Use four separate states:
 | Track B expense settlement changes | Track B reset, expenses, documents, `accounting-track-b-expense-settlement`; repeat settlement for idempotence | source restore, exact-target reset/import |
 | Track B document settlement changes | Track B reset, expenses, documents, expense settlement, `accounting-track-b-document-settlement`; repeat document settlement for idempotence | source restore, exact-target reset/import |
 | Track B General Reconciliation changes | Track B reset, expenses, documents, expense settlement, document settlement, `accounting-track-b-general-reconciliation`; repeat General Reconciliation for idempotence | source restore, exact-target reset/import |
+| Track B direct bank categorization changes | Track B reset through General Reconciliation, then `accounting-track-b-bank-categorization`; repeat bank categorization for idempotence | source restore, exact-target reset/import |
 | Source dump or restore script changes | full source restore and downstream stages | none |
 | Closing/report parity milestone proof | full `make accounting-compat` rehearsal | partial validation |
 
