@@ -212,7 +212,8 @@ class RebuildAccountImportRun(models.Model):
             """
             SELECT line.id, line.move_id, line.sequence, line.account_id,
                    line.partner_id, line.currency_id, line.name,
-                   line.balance, line.amount_currency, line.date_maturity
+                   line.balance, line.amount_currency, line.date_maturity,
+                   line.analytic_distribution
             FROM account_move_line line
             WHERE line.move_id = ANY(%(source_move_ids)s)
               AND line.account_id IS NOT NULL
@@ -303,6 +304,7 @@ class RebuildAccountImportRun(models.Model):
         accounts,
         partners,
         currencies,
+        analytic_accounts=None,
     ):
         Move = self.env["account.move"].sudo().with_context(
             tracking_disable=True,
@@ -346,6 +348,14 @@ class RebuildAccountImportRun(models.Model):
                 balance = self._amount(source_line["balance"])
                 partner = partners.get(source_line["partner_id"])
                 currency = currencies.get(source_line["currency_id"])
+                analytic_distribution = False
+                if analytic_accounts is not None:
+                    analytic_distribution = (
+                        self._native_replay_analytic_distribution(
+                            source_line["analytic_distribution"],
+                            analytic_accounts,
+                        )
+                    )
                 commands.append((0, 0, {
                     "name": source_line["name"] or "/",
                     "sequence": source_line["sequence"],
@@ -358,6 +368,7 @@ class RebuildAccountImportRun(models.Model):
                     "debit": balance if balance > 0 else 0.0,
                     "credit": -balance if balance < 0 else 0.0,
                     "date_maturity": source_line["date_maturity"],
+                    "analytic_distribution": analytic_distribution,
                     "rebuild_import_note": (
                         "Track B native manual general-entry input for document "
                         "settlement and General Reconciliation."

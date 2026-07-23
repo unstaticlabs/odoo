@@ -1,6 +1,6 @@
 # Milestone 13 reporting and closing UX target
 
-Last updated: 2026-07-22
+Last updated: 2026-07-23
 
 Audience: product owner, accountant, finance operator, and implementation agents.
 
@@ -356,7 +356,7 @@ Out of Milestone 13 scope:
 - [ ] Bank transactions and reconciliation state are visible in a coherent workbench.
 - [ ] Customer invoices and refunds are usable as business documents where source data supports them.
 - [ ] Vendor bills and refunds are usable as business documents where source data supports them.
-- [x] Expenses, direct commercial-document settlement, General Reconciliation and direct bank categorization are reconstructed and explicitly classified: isolated Track B validates all `325` current-period source expenses, all `97` company-payment transitions and all `95` employee reimbursements; `233` bank transactions and `339` edges directly linked to current commercial documents; all `111` non-bank document partials and `40` native exchange partials; and `1,415` direct/source-open bank transactions. Native bank coverage is now `1,746/1,841`; the final `95` external-endpoint lines and replacement-target integration remain separate acceptance items.
+- [x] Expenses, direct commercial-document settlement, General Reconciliation and all bank transactions are reconstructed and explicitly classified: isolated Track B validates all `325` current-period source expenses, all `97` company-payment transitions and all `95` employee reimbursements; `233` bank transactions and `339` edges directly linked to current commercial documents; all `111` non-bank document partials and `40` native exchange partials; `1,415` direct/source-open bank transactions; and the final `95` external-endpoint transactions with `125` exact counterpart lines. Native bank coverage is `1,841/1,841`; five earlier bounded aggregates, deliberate cutoff-boundary acceptance and replacement-target integration remain separate acceptance items.
 - [ ] Reports open as dynamic views before export.
 - [ ] PDFs are readable, aligned and accountant-ready.
 - [ ] XLSX exports are templated and reviewable.

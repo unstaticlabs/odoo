@@ -8,7 +8,7 @@
 
 Authoritative checkpoint: `docs/accounting/milestone-13-checkpoint-2026-07-22.md`.
 
-Overall status: **Substantially progressed, implementation continues**. The posted USL benchmark ledger slice is technically reconstructed and compared, and isolated Track B now proves native current-period documents, expenses, document/expense settlement, General Reconciliation and `1,746/1,841` bank transactions. Milestone 13 is not complete because the final `95` external-endpoint bank lines, dynamic report parity, declarations, final FEC acceptance and accountant workflow remain incomplete.
+Overall status: **Substantially progressed, implementation continues**. The posted USL benchmark ledger slice is technically reconstructed and compared, and isolated Track B now proves native current-period documents, expenses, document/expense settlement, General Reconciliation and all `1,841/1,841` bank transactions. Milestone 13 is not complete because five earlier bounded bank aggregates, deliberate draft/post-cutoff reconciliation boundaries, dynamic report parity, declarations, final FEC acceptance and accountant workflow remain incomplete.
 
 ### Verified complete enough to preserve
 
@@ -39,7 +39,8 @@ Overall status: **Substantially progressed, implementation continues**. The post
 
 - [x] Current-period source customer invoices, vendor bills, supplier refunds and purchase receipts are reconstructed in isolated Track B from commercial fields and posted through native Odoo (`284/284` exact accounting outcomes, `0` blocked/mismatched). The source period contains no customer credit note case.
 - [x] All `325` source `hr.expense` records dated `2025-10-01` through `2026-06-30` are source-traced and reconstructed through native Odoo approval/refusal/posting workflows in isolated Track B, including `97` company payments and `79` grouped employee receipts, with `0` blocked/mismatched cases and a passing no-duplication rerun. All `97` company payments and `95` employee reimbursements now complete through native bank settlement.
-- [ ] Historical reconciliation evidence is imported and the OCA reconciliation workbench is reachable, but operational reconciliation parity is not validated end to end.
+- [x] All `1,841` current-period bank transactions are reconstructed through native Odoo/OCA workflows. The final external stage preserves `125` exact counterpart lines, posts `17` manual payroll/tax/clearing moves, applies `70` input partials and traces `11` native FX partials. Draft/post-cutoff relationships and five earlier bounded aggregates remain explicit acceptance/refinement boundaries rather than forged reconciliations.
+- [ ] Historical reconciliation evidence is imported and the OCA reconciliation workbench is reachable, but replacement-target integration, the five bounded aggregates and deliberate cutoff-boundary acceptance are not validated end to end.
 - [ ] French annual statements, SIG, CAF, tax package mappings and VAT evidence are generated as technical artifacts; declaration workflows and accountant acceptance remain incomplete.
 - [ ] Report PDFs/XLSX exist, but they are not yet accountant-ready templates matching the supplied annual-account/SIG/tax-report expectations.
 - [ ] External report values are represented, but their declaration lifecycle, reviewer state and evidence workflow are not final.

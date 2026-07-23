@@ -383,6 +383,99 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(counterpart.partner_id, partner)
         self.assertEqual(counterpart.balance, 25.0)
 
+    def test_native_external_bank_categorization_preserves_multiple_lines(self):
+        import_run = self.env["rebuild.account.import.run"]
+        first_account = self._account(
+            "T627229",
+            "Track B external bank first allocation",
+            "expense",
+        )
+        second_account = self._account(
+            "T658229",
+            "Track B external bank second allocation",
+            "expense",
+        )
+        journal = self._journal("bank")
+        journal.reconcile_mode = "edit"
+        bank_line = self.env["account.bank.statement.line"].create({
+            "journal_id": journal.id,
+            "date": fields.Date.today(),
+            "payment_ref": "External multi-line allocation",
+            "amount": -100.0,
+        })
+        source_lines = [
+            {
+                "source_bank_statement_line_id": 990230,
+                "id": 990231,
+                "account_id": 990241,
+                "partner_id": False,
+                "currency_id": 990251,
+                "name": "First external allocation",
+                "balance": 60.0,
+                "amount_currency": 60.0,
+                "analytic_distribution": False,
+            },
+            {
+                "source_bank_statement_line_id": 990230,
+                "id": 990232,
+                "account_id": 990242,
+                "partner_id": False,
+                "currency_id": 990251,
+                "name": "Second external allocation",
+                "balance": 40.0,
+                "amount_currency": 40.0,
+                "analytic_distribution": False,
+            },
+        ]
+
+        import_run._native_bank_external_categorize(
+            bank_line,
+            source_lines,
+            {990241: first_account, 990242: second_account},
+            {},
+            {990251: self.company.currency_id},
+            {},
+        )
+
+        counterpart = bank_line.line_ids.filtered(
+            lambda line: line.account_id != journal.default_account_id,
+        )
+        self.assertTrue(bank_line.is_reconciled)
+        self.assertEqual(len(counterpart), 2)
+        self.assertEqual(set(counterpart.mapped("account_id")), {
+            first_account,
+            second_account,
+        })
+        self.assertEqual(sorted(counterpart.mapped("balance")), [40.0, 60.0])
+
+    def test_native_external_bank_classifies_cutoff_boundaries(self):
+        import_run = self.env["rebuild.account.import.run"]
+
+        self.assertEqual(
+            import_run._native_bank_external_boundary_kind(
+                {
+                    "endpoint_state": "draft",
+                    "endpoint_move_type": "in_invoice",
+                    "endpoint_date": fields.Date.to_date("2026-06-01"),
+                    "endpoint_bank_statement_line_id": False,
+                },
+                [],
+            ),
+            "draft_document_prepayment",
+        )
+        self.assertEqual(
+            import_run._native_bank_external_boundary_kind(
+                {
+                    "endpoint_state": "posted",
+                    "endpoint_move_type": "out_invoice",
+                    "endpoint_date": fields.Date.to_date("2026-07-01"),
+                    "endpoint_bank_statement_line_id": False,
+                },
+                [],
+            ),
+            "future_document_prepayment",
+        )
+
     def test_reconcile_shortcut_uses_compatible_kanban_workbench(self):
         action = self.env.ref("rebuild_account_migration.action_rebuild_account_reconcile_bank_transactions")
         reconcile_view = self.env.ref("account_reconcile_oca.bank_statement_line_reconcile_view")

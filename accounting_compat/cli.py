@@ -2742,6 +2742,104 @@ def track_b_bank_categorization(args: argparse.Namespace) -> dict[str, Any]:
     return status
 
 
+def track_b_bank_external(args: argparse.Namespace) -> dict[str, Any]:
+    """Replay the final current-period external-endpoint bank perimeter."""
+    ensure_dirs()
+    validation = validate_source(args)
+    dump_sha = validation["dump"]["sha256"] or "unknown"
+    snapshot_id = f"source-{dump_sha[:12]}"
+    if not table_exists(TRACK_B_DB, "rebuild_account_import_run"):
+        message = "Run make accounting-track-b-reset before external bank replay."
+        raise HarnessError(message)
+
+    script_path = PRIVATE_ARTIFACTS / "track-b-native-bank-external.py"
+    script_path.write_text(
+        "\n".join([
+            "import json",
+            "run = env['rebuild.account.import.run'].create({",
+            "    'name': 'USL Track B native external bank replay',",
+            "    'mode': 'native_engine_replay',",
+            "    'source_database': 'odoo_online_source_saas_19_2',",
+            f"    'source_dump_sha256': {dump_sha!r},",
+            f"    'source_snapshot_id': {snapshot_id!r},",
+            "    'source_version': 'Odoo Online Enterprise saas~19.2',",
+            f"    'target_database': {TRACK_B_DB!r},",
+            "})",
+            "stats = run.run_native_bank_external_replay_from_source({",
+            "    'source_database': 'odoo_online_source_saas_19_2',",
+            f"    'source_dump_sha256': {dump_sha!r},",
+            f"    'source_snapshot_id': {snapshot_id!r},",
+            "    'source_version': 'Odoo Online Enterprise saas~19.2',",
+            f"    'target_database': {TRACK_B_DB!r},",
+            f"    'date_from': {USL_CURRENT_START!r},",
+            "    'date_to': '2026-06-30',",
+            "    'source_company_ids': [1],",
+            "})",
+            "env.cr.commit()",
+            "print('REBUILD_TRACK_B_BANK_EXTERNAL_RESULT=' + json.dumps({",
+            "    'run_id': run.id,",
+            "    'status': run.status,",
+            "    'stats': stats,",
+            "}, sort_keys=True, default=str))",
+            "",
+        ]),
+        encoding="utf-8",
+    )
+    result = run(
+        compose_args(
+            "--profile",
+            "init",
+            "run",
+            "--rm",
+            "-e",
+            f"ODOO_ADDONS_PATH={TARGET_ODOO_ADDONS_PATH}",
+            "init-db",
+            "odoo",
+            "shell",
+            "--config=/etc/odoo/odoo.conf",
+            f"--database={TRACK_B_DB}",
+        ),
+        input_file=script_path,
+        check=False,
+    )
+    marker = None
+    for line in (result.stdout + result.stderr).splitlines():
+        if line.startswith("REBUILD_TRACK_B_BANK_EXTERNAL_RESULT="):
+            marker = line.removeprefix("REBUILD_TRACK_B_BANK_EXTERNAL_RESULT=")
+    artifact_path = PRIVATE_ARTIFACTS / "track-b-bank-external-status.json"
+    if result.returncode or not marker:
+        status = {
+            "generated_at": utc_now(),
+            "tool_version": TOOL_VERSION,
+            "stage": "track-b-bank-external",
+            "status": "failed",
+            "classification": "TRACK_B_BANK_EXTERNAL_EXECUTION_DEFECT",
+            "database": TRACK_B_DB,
+            "exit_code": result.returncode,
+            "output_tail": (result.stdout + result.stderr)[-12000:],
+        }
+        write_json(artifact_path, status)
+        if not getattr(args, "allow_errors", False):
+            message = "Track B external bank replay failed. See private status."
+            raise HarnessError(message)
+        return status
+    payload = json.loads(marker)
+    status = {
+        "generated_at": utc_now(),
+        "tool_version": TOOL_VERSION,
+        "stage": "track-b-bank-external",
+        "database": TRACK_B_DB,
+        "run_id": payload["run_id"],
+        "status": payload["status"],
+        **payload["stats"],
+    }
+    write_json(artifact_path, status)
+    if status["status"] != "passed" and not getattr(args, "allow_errors", False):
+        message = "Track B external bank replay has blocked or mismatched cases."
+        raise HarnessError(message)
+    return status
+
+
 def target_import(args: argparse.Namespace) -> dict[str, Any]:
     ensure_dirs()
     validation = validate_source(args)
@@ -11462,6 +11560,9 @@ def readiness(args: argparse.Namespace) -> dict[str, Any]:
         "track_b_bank_categorization": (
             PRIVATE_ARTIFACTS / "track-b-bank-categorization-status.json"
         ),
+        "track_b_bank_external": (
+            PRIVATE_ARTIFACTS / "track-b-bank-external-status.json"
+        ),
         "target_reconciliation_probe": PRIVATE_ARTIFACTS / "target-reconciliation-probe-status.json",
         "reports": PRIVATE_ARTIFACTS / "reports-status.json",
         "fec": PRIVATE_ARTIFACTS / "fec-status.json",
@@ -11487,6 +11588,7 @@ def readiness(args: argparse.Namespace) -> dict[str, Any]:
         "track_b_document_settlement": {"passed"},
         "track_b_general_reconciliation": {"passed"},
         "track_b_bank_categorization": {"passed"},
+        "track_b_bank_external": {"passed"},
         "target_reconciliation_probe": {"passed"},
         "reports": {"passed", "partial"},
         "fec": {"passed"},
@@ -11640,6 +11742,9 @@ def evidence(args: argparse.Namespace) -> dict[str, Any]:
         "track_b_bank_categorization": (
             PRIVATE_ARTIFACTS / "track-b-bank-categorization-status.json"
         ),
+        "track_b_bank_external": (
+            PRIVATE_ARTIFACTS / "track-b-bank-external-status.json"
+        ),
         "target_reconciliation_probe": PRIVATE_ARTIFACTS / "target-reconciliation-probe-status.json",
         "reports": PRIVATE_ARTIFACTS / "reports-status.json",
         "vat_benchmark_investigation": PRIVATE_ARTIFACTS / "vat-benchmark-investigation-2025-09-30.json",
@@ -11699,6 +11804,7 @@ def run_all(args: argparse.Namespace) -> dict[str, Any]:
         "track_b_document_settlement": track_b_document_settlement(args),
         "track_b_general_reconciliation": track_b_general_reconciliation(args),
         "track_b_bank_categorization": track_b_bank_categorization(args),
+        "track_b_bank_external": track_b_bank_external(args),
         "target_reconciliation_probe": target_reconciliation_probe(args),
         "reports": reports(args),
         "fec": fec(args),
@@ -11733,6 +11839,7 @@ def build_parser() -> argparse.ArgumentParser:
         "track-b-document-settlement",
         "track-b-general-reconciliation",
         "track-b-bank-categorization",
+        "track-b-bank-external",
         "target-reconciliation-probe",
         "reports",
         "fec",
@@ -11788,6 +11895,8 @@ def main(argv: list[str] | None = None) -> int:
             print_summary(args.stage, track_b_general_reconciliation(args))
         elif args.stage == "track-b-bank-categorization":
             print_summary(args.stage, track_b_bank_categorization(args))
+        elif args.stage == "track-b-bank-external":
+            print_summary(args.stage, track_b_bank_external(args))
         elif args.stage == "target-reconciliation-probe":
             print_summary(args.stage, target_reconciliation_probe(args))
         elif args.stage == "reports":
