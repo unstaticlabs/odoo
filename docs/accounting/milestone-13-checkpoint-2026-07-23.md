@@ -140,8 +140,9 @@ attachment workbench, rendered thumbnail and PDF viewer rather than copying the
 Enterprise split-pane layout. The standard expense form exposes the source
 receipt filename, count and thumbnail. This is an equivalent native evidence
 path, not a pixel-parity claim. The records are now integrated with exact
-benchmark history in a disposable hybrid candidate; professional acceptance,
-replacement browser journeys and promotion remain deliberate open boundaries.
+benchmark history in a disposable hybrid candidate. Manager/reviewer report,
+bill and expense browser journeys pass there; professional acceptance and
+promotion remain deliberate open boundaries.
 
 The native deferral replay represents all `5` source originals as operational
 schedules with `82` lines: `34` posted current-period entries and `48` future
@@ -173,8 +174,9 @@ bank-allocation segmentation. The `12` account differences net to EUR `0.00`;
 the remaining profit-and-loss difference is EUR `2.64` and is attributable to
 native exchange timing. Validation therefore remains `partial`, classified as
 `HYBRID_REPLACEMENT_TARGET_EXPLAINED_NATIVE_DIFFERENCES`. Professional
-acceptance, replacement report/role/browser journeys and an explicit promotion
-decision remain open.
+acceptance and an explicit promotion decision remain open. Replacement
+report/role/browser journeys now pass for both Accounting Manager and the
+single-company accountant reviewer.
 
 The first clean native rebuild after adding standalone operator entries failed
 the external-bank stage with `40` blocked cases and `46` mismatches. The
@@ -394,6 +396,32 @@ Native document-evidence journey:
 - private proof:
   `artifacts/accounting-compat/private/track-b-native-attachments-browser-status.json`.
 
+Hybrid replacement journey:
+
+- Accounting Home opened on the combined candidate with `3,005` bank
+  transactions, `186` to match, `0` draft customer/vendor documents, `128`
+  expenses to process, `30` open receivables and `122` open payables;
+- the native Trial Balance refreshed for All Native Accounting and fiscal
+  year-to-date `2025-10-01` through `2026-07-23`, producing `105` preview rows;
+- the manager opened `245` vendor documents (`161` bills and `84` receipts),
+  a paid OpenAI bill with its source attachment, and all `325` native expenses;
+- the reviewer opened the same Home, `105`-row report, `245` documents and
+  `325` expenses without Configuration, Accounting Settings, New, Upload,
+  credit-note, reset, expense-submit or expense-receipt mutation controls;
+- the first expense pass exposed two standard-boundary defects: base internal
+  access rendered New/Upload, and migration-only employee provenance fields
+  crossed into `hr.employee.public`. The final implementation makes native
+  expenses read-only in both server methods and combined view architecture,
+  gates list/kanban upload controls on create access, and restricts private
+  employee trace fields to `hr.group_hr_user`;
+- granting the reviewer private `hr.employee` access was rejected because it
+  would expose unrelated HR data. The final expense form links Valentin
+  through `hr.employee.public`, retains the source receipt/accounting evidence,
+  and shows zero New, Upload, Submit or Attach Receipt controls;
+- the temporary reviewer and temporary shell scripts were removed;
+- private proof:
+  `artifacts/accounting-compat/private/replacement-browser-status.json`.
+
 The full screenshot mapping, user-journey scorecard and permission matrix are
 recorded in
 [Milestone 13 screenshot parity and user-journey scorecard](milestone-13-screenshot-parity-matrix.md).
@@ -429,7 +457,8 @@ make accounting-compare
 make accounting-readiness
 make accounting-evidence
 make accounting-addon-tests ACCOUNTING_TEST_DB=odoo_m13_unusual_balance_unit_20260723_2
-jq empty artifacts/accounting-compat/private/accounting-hygiene-browser-status.json artifacts/accounting-compat/private/readiness-assessment.json artifacts/accounting-compat/private/evidence-index.json
+make accounting-addon-tests ACCOUNTING_TEST_DB=odoo_m13_replacement_unit_20260723_7
+jq empty artifacts/accounting-compat/private/accounting-hygiene-browser-status.json artifacts/accounting-compat/private/replacement-browser-status.json artifacts/accounting-compat/private/readiness-assessment.json artifacts/accounting-compat/private/evidence-index.json
 ```
 
 The scoped declaration/closing Odoo tests and the broader
@@ -439,10 +468,13 @@ Hygiene routing, operational aggregation, reviewer company isolation,
 manager-only refresh, configurable natural-balance rules, current-fiscal-year
 scope, unusual-balance drilldown, frontend asset registration and
 checksum/main-selection preservation for a native document attachment. The
-suite also includes the three ECB provider/idempotence/access tests. Module
-initialization emitted the existing docutils indentation warnings but no test
-failure or error. The disposable Hygiene unit database was dropped after
-validation.
+latest replacement-focused run also covers reviewer access to all
+company-scoped expenses, employee provenance privacy, disabled create/edit/
+delete architecture, hidden header mutation controls, server-side create/
+write/unlink denial and backend asset registration. The suite also includes
+the three ECB provider/idempotence/access tests. Module initialization emitted
+the existing docutils indentation warnings but no test failure or error. The
+disposable unit databases were dropped after validation.
 
 The first document replay after introducing the gate correctly returned
 `partial`: `74` attachments belonged to valid expense-generated receipt moves
@@ -467,6 +499,11 @@ reviewer browser pass also revealed the standard supplier-list `Upload`
 control. Adding a QWeb group condition did not alter the rendered inherited
 controller, so the final implementation gates that controller state through
 the accountant group; the repeat manager and reviewer journeys passed.
+The host also has no `ruff` executable, so replacement-role lint ran in the
+repository devcontainer and passed. The final replacement-role change was
+validated with Python compilation, focused Ruff, XML parsing,
+`git diff --check`, a fresh full tagged Odoo suite, a module-only update on the
+replacement candidate and the repeated manager/reviewer browser journey.
 
 ## Remaining P0/P1 decisions
 

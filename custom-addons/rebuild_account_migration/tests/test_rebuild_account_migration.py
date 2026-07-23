@@ -5,6 +5,8 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
+from lxml import etree
+
 from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError
 from odoo.tests import TransactionCase, tagged
@@ -308,6 +310,93 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(expenses_menu.parent_id, self.env.ref("account.menu_finance_payables"))
         self.assertEqual(expenses_menu.action, self.env.ref("hr_expense.action_hr_expense_account"))
 
+    def test_accountant_reviewer_can_read_native_expenses_but_not_change_them(self):
+        reviewer = self.env["res.users"].with_context(
+            no_reset_password=True,
+        ).create({
+            "name": "Native Expense Reviewer",
+            "login": "native.expense.reviewer@example.invalid",
+            "email": "native.expense.reviewer@example.invalid",
+            "company_id": self.company.id,
+            "company_ids": [Command.set([self.company.id])],
+            "group_ids": [Command.set([self.reviewer_group.id])],
+        })
+        employee = self.env["hr.employee"].create({
+            "name": "Unit Expense Employee",
+            "company_id": self.company.id,
+        })
+        product = self.env["product.product"].create({
+            "name": "Unit Expense Category",
+            "can_be_expensed": True,
+            "standard_price": 10.0,
+        })
+        expense = self.env["hr.expense"].create({
+            "name": "Unit native expense evidence",
+            "employee_id": employee.id,
+            "product_id": product.id,
+            "company_id": self.company.id,
+            "payment_mode": "own_account",
+            "total_amount_currency": 10.0,
+        })
+        reviewer_expenses = self.env["hr.expense"].with_user(reviewer)
+
+        self.assertIn(expense, reviewer_expenses.search([
+            ("id", "=", expense.id),
+        ]))
+        for view_type, view_xmlid in (
+            ("list", "hr_expense.view_my_expenses_tree"),
+            ("kanban", "hr_expense.hr_expense_kanban_view_header"),
+            ("form", "hr_expense.hr_expense_view_form"),
+        ):
+            view = reviewer_expenses.get_view(
+                self.env.ref(view_xmlid).id,
+                view_type,
+            )
+            arch = etree.fromstring(view["arch"])
+            self.assertEqual(arch.get("create"), "false")
+            self.assertEqual(arch.get("edit"), "false")
+            self.assertEqual(arch.get("delete"), "false")
+            if view_type == "form":
+                self.assertFalse(
+                    arch.xpath("//header/button | //header/widget"),
+                )
+
+        with self.assertRaisesRegex(
+            AccessError,
+            "read-only for native expenses",
+        ):
+            reviewer_expenses.create({
+                "name": "Forbidden reviewer expense",
+                "employee_id": employee.id,
+                "product_id": product.id,
+                "company_id": self.company.id,
+                "payment_mode": "own_account",
+                "total_amount_currency": 10.0,
+            })
+        with self.assertRaisesRegex(
+            AccessError,
+            "read-only for native expenses",
+        ):
+            expense.with_user(reviewer).write({"name": "Changed"})
+        with self.assertRaisesRegex(
+            AccessError,
+            "read-only for native expenses",
+        ):
+            expense.with_user(reviewer).unlink()
+
+        backend_assets = self.env["ir.asset"]._get_asset_paths(
+            "web.assets_backend",
+            {},
+        )
+        self.assertTrue(
+            any(
+                path.endswith(
+                    "/static/src/xml/hr_expense_reviewer_controls.xml",
+                )
+                for path, *_metadata in backend_assets
+            ),
+        )
+
     def test_native_asset_mutation_controls_require_accounting_write_access(self):
         view = self.env.ref(
             "account_asset_management.account_asset_view_form",
@@ -346,6 +435,18 @@ class TestRebuildAccountMigration(TransactionCase):
 
         for model_name in ("hr.employee", "hr.expense", "product.product"):
             self.assertTrue(trace_fields.issubset(self.env[model_name]._fields))
+
+        employee_trace_fields = {
+            field_name
+            for field_name in self.env["hr.employee"]._fields
+            if field_name.startswith("rebuild_")
+        }
+        self.assertTrue(trace_fields.issubset(employee_trace_fields))
+        for field_name in employee_trace_fields:
+            self.assertEqual(
+                self.env["hr.employee"]._fields[field_name].groups,
+                "hr.group_hr_user",
+            )
 
     def test_native_document_attachment_preserves_binary_and_main_selection(self):
         snapshot = "unit-native-document-attachment"

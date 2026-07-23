@@ -1,4 +1,7 @@
-from odoo import fields, models
+from lxml import etree
+
+from odoo import _, api, fields, models
+from odoo.exceptions import AccessError
 
 
 class RebuildSourceTraceMixin(models.AbstractModel):
@@ -72,10 +75,105 @@ class HrEmployee(models.Model):
     _name = "hr.employee"
     _inherit = ["hr.employee", "rebuild.source.trace.mixin"]
 
+    # Keep migration provenance on the private employee model. Odoo exposes
+    # non-HR users to hr.employee.public, so trace fields must follow the same
+    # boundary as other private employee-only fields.
+    rebuild_source_database = fields.Char(
+        index=True,
+        copy=False,
+        groups="hr.group_hr_user",
+    )
+    rebuild_source_model = fields.Char(
+        index=True,
+        copy=False,
+        groups="hr.group_hr_user",
+    )
+    rebuild_source_id = fields.Integer(
+        index=True,
+        copy=False,
+        groups="hr.group_hr_user",
+    )
+    rebuild_source_xmlid = fields.Char(
+        index=True,
+        copy=False,
+        groups="hr.group_hr_user",
+    )
+    rebuild_source_snapshot = fields.Char(
+        index=True,
+        copy=False,
+        groups="hr.group_hr_user",
+    )
+    rebuild_import_run_id = fields.Many2one(
+        "rebuild.account.import.run",
+        index=True,
+        copy=False,
+        ondelete="set null",
+        groups="hr.group_hr_user",
+    )
+    rebuild_import_status = fields.Selection(
+        [
+            ("imported", "Imported"),
+            ("reused", "Reused Existing Record"),
+            ("transformed", "Transformed"),
+            ("skipped", "Skipped"),
+            ("failed", "Failed"),
+        ],
+        index=True,
+        copy=False,
+        groups="hr.group_hr_user",
+    )
+    rebuild_import_note = fields.Text(
+        copy=False,
+        groups="hr.group_hr_user",
+    )
+
 
 class HrExpense(models.Model):
     _name = "hr.expense"
     _inherit = ["hr.expense", "rebuild.source.trace.mixin"]
+
+    def _check_rebuild_reviewer_expense_mutation(self):
+        if (
+            not self.env.su
+            and self.env.user.has_group(
+                "rebuild_account_migration.group_rebuild_accountant_reviewer",
+            )
+        ):
+            raise AccessError(
+                _(
+                    "The USL Accountant Review role is read-only for native "
+                    "expenses.",
+                ),
+            )
+
+    @api.model
+    def get_view(self, view_id=None, view_type="form", **options):
+        result = super().get_view(view_id, view_type, **options)
+        if self.env.user.has_group(
+            "rebuild_account_migration.group_rebuild_accountant_reviewer",
+        ):
+            arch = etree.fromstring(result["arch"])
+            arch.set("create", "false")
+            arch.set("edit", "false")
+            arch.set("delete", "false")
+            if view_type == "form":
+                for control in arch.xpath("//header/button | //header/widget"):
+                    control.getparent().remove(control)
+            result["arch"] = etree.tostring(arch, encoding="unicode")
+        return result
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        self._check_rebuild_reviewer_expense_mutation()
+        return super().create(vals_list)
+
+    def write(self, vals):
+        self._check_rebuild_reviewer_expense_mutation()
+        return super().write(vals)
+
+    def unlink(self):
+        self._check_rebuild_reviewer_expense_mutation()
+        return super().unlink()
 
 
 class ProductProduct(models.Model):

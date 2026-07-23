@@ -373,7 +373,7 @@ Historical validation is exact: source and target both contain `2,046` moves, `4
 
 Current-period reconstruction remains native rather than exact-line replay. Relative to the source, it contains `199` fewer moves, `401` fewer lines and EUR `8,866.06` less gross debit/credit. Every difference is classified: Odoo's `EXCH` journal aggregates exchange effects differently; `CABA` uses native cash-basis timing and aggregation; and `SHINE`, `REVEU` and `REVUS` segment OCA bank allocations differently. The `12` differing account balances net to EUR `0.00`, with no unclassified journal or account difference. The remaining profit-and-loss balance difference is EUR `2.64`, attributable to native exchange timing.
 
-The validation status is deliberately `partial`, classified as `HYBRID_REPLACEMENT_TARGET_EXPLAINED_NATIVE_DIFFERENCES`. Professional acceptance of the EUR `2.64` difference, replacement report/role/browser journeys and an explicit promotion decision remain required. The disposable candidate does not replace `odoo_rebuild_accounting_test` or authorize production migration.
+The validation status is deliberately `partial`, classified as `HYBRID_REPLACEMENT_TARGET_EXPLAINED_NATIVE_DIFFERENCES`. Manager/reviewer report, bill and expense browser journeys now pass on the combined candidate. Professional acceptance of the EUR `2.64` difference and an explicit promotion decision remain required. The disposable candidate does not replace `odoo_rebuild_accounting_test` or authorize production migration.
 
 `make accounting-target-validate` also proves:
 
