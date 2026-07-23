@@ -170,7 +170,11 @@ class RebuildAccountImportRun(models.Model):
         )
 
     @staticmethod
-    def _native_bank_external_boundary_kind(edge, source_bank_ids):
+    def _native_bank_external_boundary_kind(
+        edge,
+        source_bank_ids,
+        mapped_endpoint_line_ids=None,
+    ):
         if (
             edge["endpoint_state"] == "draft"
             and edge["endpoint_move_type"] != "entry"
@@ -181,7 +185,12 @@ class RebuildAccountImportRun(models.Model):
         if edge["endpoint_state"] == "draft":
             return "draft_entry_boundary"
         endpoint_bank_id = edge["endpoint_bank_statement_line_id"]
-        if endpoint_bank_id and endpoint_bank_id not in source_bank_ids:
+        if (
+            endpoint_bank_id
+            and endpoint_bank_id not in source_bank_ids
+            and edge["endpoint_source_line_id"]
+            not in (mapped_endpoint_line_ids or set())
+        ):
             return "preexisting_bounded_bank_aggregate"
         return False
 
@@ -267,18 +276,6 @@ class RebuildAccountImportRun(models.Model):
     ):
         bank_line.reconcile_data_info = bank_line._default_reconcile_data()
         for source_line in source_lines:
-            suspense_rows = [
-                line
-                for line in bank_line.reconcile_data_info.get("data", [])
-                if line["kind"] == "suspense"
-            ]
-            if len(suspense_rows) != 1:
-                message = (
-                    "Expected one OCA suspense row while replaying external "
-                    f"bank line {source_line['source_bank_statement_line_id']}, "
-                    f"got {len(suspense_rows)}"
-                )
-                raise ValueError(message)
             account = accounts[source_line["account_id"]]
             partner = partners.get(source_line["partner_id"])
             currency = currencies[source_line["currency_id"]]
@@ -286,37 +283,13 @@ class RebuildAccountImportRun(models.Model):
                 source_line["analytic_distribution"],
                 analytic_accounts,
             )
-            bank_line.manual_reference = suspense_rows[0]["reference"]
-            bank_line._onchange_manual_reconcile_reference()
-            bank_line.manual_account_id = account
-            bank_line.manual_partner_id = partner
-            bank_line.manual_name = source_line["name"] or "/"
-            bank_line.manual_amount = self._amount(source_line["balance"])
-            bank_line.analytic_distribution = analytic_distribution
-            bank_line._onchange_manual_reconcile_vals()
-            data = bank_line.reconcile_data_info.get("data", [])
-            manual_rows = [
-                line
-                for line in data
-                if line["reference"] == bank_line.manual_reference
-            ]
-            if len(manual_rows) != 1:
-                message = (
-                    "Expected one OCA allocation row for source bank move line "
-                    f"{source_line['id']}, got {len(manual_rows)}"
-                )
-                raise ValueError(message)
-            manual_rows[0].update({
-                "kind": "other",
-                "line_currency_id": currency.id,
-                "currency_amount": self._amount(
-                    source_line["amount_currency"],
-                ),
-            })
-            bank_line.reconcile_data_info = bank_line._recompute_suspense_line(
-                data,
-                bank_line.reconcile_data_info["reconcile_auxiliary_id"],
-                bank_line.manual_reference,
+            self._native_bank_replay_add_manual_allocation(
+                bank_line,
+                source_line,
+                account,
+                partner,
+                currency,
+                analytic_distribution,
             )
         if not bank_line.reconcile_data_info.get("can_reconcile"):
             message = (
@@ -335,6 +308,12 @@ class RebuildAccountImportRun(models.Model):
         currencies,
         analytic_accounts,
         options,
+        trace_model="account.move.line.native_external_replay",
+        trace_note=(
+            "Track B external-endpoint bank allocation created through OCA "
+            "Bank Matching from source operator inputs."
+        ),
+        strict_line_count=True,
     ):
         target_lines = bank_line.line_ids.filtered(
             lambda line: line.account_id != bank_line.journal_id.default_account_id,
@@ -353,7 +332,7 @@ class RebuildAccountImportRun(models.Model):
             existing = target_lines.filtered(
                 lambda line: (
                     line.rebuild_source_model
-                    == "account.move.line.native_external_replay"
+                    == trace_model
                     and line.rebuild_source_id == source_line["id"]
                 ),
             )[:1]
@@ -381,12 +360,9 @@ class RebuildAccountImportRun(models.Model):
                 available_ids.discard(target_line.id)
                 if not existing:
                     target_line.write({
-                        "rebuild_import_note": (
-                            "Track B external-endpoint bank allocation created "
-                            "through OCA Bank Matching from source operator inputs."
-                        ),
+                        "rebuild_import_note": trace_note,
                         **self._trace_values(
-                            "account.move.line.native_external_replay",
+                            trace_model,
                             source_line["id"],
                             options,
                         ),
@@ -400,7 +376,7 @@ class RebuildAccountImportRun(models.Model):
                     "source_move_line_id": source_line["id"],
                     "classification": "missing_exact_external_bank_counterpart",
                 })
-        if len(target_lines) != len(source_lines):
+        if strict_line_count and len(target_lines) != len(source_lines):
             mismatches.append({
                 "source_bank_statement_line_id": bank_line.rebuild_source_id,
                 "classification": "external_bank_counterpart_line_count",
@@ -872,7 +848,30 @@ class RebuildAccountImportRun(models.Model):
                         "source_move_line_id": source_line["id"],
                         "classification": "manual_entry_analytic_distribution",
                     })
-            target_lines = {**replay["target_lines"], **manual_target_lines}
+            bounded_target_line_records = self.env["account.move.line"].sudo().search([
+                (
+                    "rebuild_source_model",
+                    "=",
+                    "account.move.line.native_bounded_bank_counterpart",
+                ),
+                ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
+                (
+                    "rebuild_source_id",
+                    "in",
+                    sorted({
+                        edge["endpoint_source_line_id"] for edge in edge_rows
+                    })
+                    or [0],
+                ),
+            ])
+            bounded_target_lines = {
+                line.rebuild_source_id: line for line in bounded_target_line_records
+            }
+            target_lines = {
+                **replay["target_lines"],
+                **manual_target_lines,
+                **bounded_target_lines,
+            }
             boundary_counts = defaultdict(int)
             boundary_edges = []
             input_edges = []
@@ -883,12 +882,14 @@ class RebuildAccountImportRun(models.Model):
                 if self._native_bank_external_boundary_kind(
                     edge,
                     source_bank_ids,
+                    set(target_lines),
                 )
             }
             for edge in edge_rows:
                 boundary_kind = self._native_bank_external_boundary_kind(
                     edge,
                     source_bank_ids,
+                    set(target_lines),
                 )
                 if (
                     not boundary_kind
@@ -976,6 +977,9 @@ class RebuildAccountImportRun(models.Model):
                 "created_manual_move_count": created_manual_count,
                 "reused_manual_move_count": reused_manual_count,
                 "native_input_partial_count": len(input_edges),
+                "mapped_bounded_bank_counterpart_count": len(
+                    bounded_target_lines,
+                ),
                 "created_input_partial_count": created_partial_count,
                 "reused_input_partial_count": reused_partial_count,
                 "native_rounding_difference_count": rounding_difference_count,
@@ -994,9 +998,9 @@ class RebuildAccountImportRun(models.Model):
                     "All remaining current-period bank transactions are created "
                     "through OCA with exact source counterpart lines. Posted "
                     "manual/payroll/clearing endpoints are reconstructed and "
-                    "reconciled natively; draft and post-cutoff documents remain "
-                    "open prepayments, and pre-existing bounded aggregates remain "
-                    "explicitly classified until their earlier replay is refined."
+                    "reconciled natively; exact counterparts preserved by earlier "
+                    "settlement stages are reused for cross-bank reconciliation. "
+                    "Only draft and post-cutoff documents remain open prepayments."
                 ),
             }
             self.write({

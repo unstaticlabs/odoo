@@ -476,6 +476,28 @@ class TestRebuildAccountMigration(TransactionCase):
             "future_document_prepayment",
         )
 
+    def test_native_external_bank_reuses_exact_bounded_counterpart(self):
+        import_run = self.env["rebuild.account.import.run"]
+        edge = {
+            "endpoint_state": "posted",
+            "endpoint_move_type": "entry",
+            "endpoint_date": fields.Date.to_date("2026-02-24"),
+            "endpoint_bank_statement_line_id": 990301,
+            "endpoint_source_line_id": 990302,
+        }
+
+        self.assertEqual(
+            import_run._native_bank_external_boundary_kind(edge, []),
+            "preexisting_bounded_bank_aggregate",
+        )
+        self.assertFalse(
+            import_run._native_bank_external_boundary_kind(
+                edge,
+                [],
+                {990302},
+            ),
+        )
+
     def test_reconcile_shortcut_uses_compatible_kanban_workbench(self):
         action = self.env.ref("rebuild_account_migration.action_rebuild_account_reconcile_bank_transactions")
         reconcile_view = self.env.ref("account_reconcile_oca.bank_statement_line_reconcile_view")

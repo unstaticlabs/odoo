@@ -241,6 +241,76 @@ class RebuildAccountImportRun(models.Model):
             options,
         )
 
+    def _native_expense_settlement_outside_line_rows(self, conn, options):
+        """Return exact bank counterparts wholly outside the expense perimeter."""
+        return self._fetchall(
+            conn,
+            """
+            WITH current_expense_moves AS (
+                SELECT DISTINCT expense.account_move_id AS move_id
+                FROM hr_expense expense
+                WHERE expense.company_id = ANY(%(source_company_ids)s)
+                  AND expense.state = 'paid'
+                  AND expense.date BETWEEN %(date_from)s AND %(date_to)s
+                  AND expense.account_move_id IS NOT NULL
+            ),
+            current_expense_lines AS (
+                SELECT line.id
+                FROM current_expense_moves expense_move
+                JOIN account_move_line line ON line.move_id = expense_move.move_id
+            ),
+            selected_statement_lines AS (
+                SELECT DISTINCT statement_line.id, statement_line.move_id,
+                       statement_line.journal_id
+                FROM current_expense_lines expense_line
+                JOIN account_partial_reconcile partial
+                  ON partial.debit_move_id = expense_line.id
+                  OR partial.credit_move_id = expense_line.id
+                JOIN account_move_line statement_move_line
+                  ON statement_move_line.id = CASE
+                       WHEN partial.debit_move_id = expense_line.id
+                       THEN partial.credit_move_id
+                       ELSE partial.debit_move_id
+                     END
+                JOIN account_bank_statement_line statement_line
+                  ON statement_line.move_id = statement_move_line.move_id
+            ),
+            scoped_lines AS (
+                SELECT selected.id AS source_bank_statement_line_id,
+                       line.id, line.sequence, line.account_id, line.partner_id,
+                       line.currency_id, line.name, line.balance,
+                       line.amount_currency, line.analytic_distribution,
+                       count(partial.id) FILTER (
+                           WHERE expense_line.id IS NOT NULL
+                       ) AS current_partial_count
+                FROM selected_statement_lines selected
+                JOIN account_journal journal ON journal.id = selected.journal_id
+                JOIN account_move_line line ON line.move_id = selected.move_id
+                LEFT JOIN account_partial_reconcile partial
+                  ON partial.debit_move_id = line.id
+                  OR partial.credit_move_id = line.id
+                LEFT JOIN current_expense_lines expense_line
+                  ON expense_line.id = CASE
+                       WHEN partial.debit_move_id = line.id
+                       THEN partial.credit_move_id
+                       ELSE partial.debit_move_id
+                     END
+                WHERE line.account_id IS DISTINCT FROM journal.default_account_id
+                GROUP BY selected.id, line.id, line.sequence, line.account_id,
+                         line.partner_id, line.currency_id, line.name,
+                         line.balance, line.amount_currency,
+                         line.analytic_distribution
+            )
+            SELECT source_bank_statement_line_id, id, sequence, account_id,
+                   partner_id, currency_id, name, balance, amount_currency,
+                   analytic_distribution
+            FROM scoped_lines
+            WHERE current_partial_count = 0
+            ORDER BY source_bank_statement_line_id, sequence, id
+            """,
+            options,
+        )
+
     @staticmethod
     def _native_expense_settlement_line_key(row):
         return (
@@ -396,15 +466,24 @@ class RebuildAccountImportRun(models.Model):
         return related[0]
 
     @staticmethod
-    def _native_expense_settlement_open_account_totals(bank_line):
+    def _native_expense_settlement_outside_account_totals(
+        bank_line,
+        current_partials,
+    ):
         liquidity_lines, suspense_lines, other_lines = bank_line._seek_for_lines()
-        open_lines = (suspense_lines | other_lines).filtered(
-            lambda line: not line.reconciled,
-        )
         totals = defaultdict(float)
-        for line in open_lines - liquidity_lines:
+        for line in (suspense_lines | other_lines) - liquidity_lines:
             source_account_id = line.account_id.rebuild_source_id
             totals[str(source_account_id or 0)] += line.balance
+        for partial in current_partials:
+            bank_move_line = (
+                partial.debit_move_id
+                if partial.debit_move_id.move_id == bank_line.move_id
+                else partial.credit_move_id
+            )
+            source_account_id = bank_move_line.account_id.rebuild_source_id
+            direction = 1.0 if bank_move_line.balance >= 0 else -1.0
+            totals[str(source_account_id or 0)] -= direction * partial.amount
         return {
             source_account_id: round(balance, 2)
             for source_account_id, balance in sorted(totals.items())
@@ -467,6 +546,56 @@ class RebuildAccountImportRun(models.Model):
             bank_line.manual_reference,
         )
 
+    def _native_bank_replay_add_manual_allocation(
+        self,
+        bank_line,
+        source_line,
+        account,
+        partner,
+        currency,
+        analytic_distribution,
+    ):
+        """Convert OCA's remaining suspense row into one exact source line."""
+        suspense_rows = [
+            line
+            for line in bank_line.reconcile_data_info.get("data", [])
+            if line["kind"] == "suspense"
+        ]
+        if len(suspense_rows) != 1:
+            message = (
+                "Expected one OCA suspense row while preserving bounded bank "
+                f"line {source_line['id']}, got {len(suspense_rows)}"
+            )
+            raise ValueError(message)
+        bank_line.manual_reference = suspense_rows[0]["reference"]
+        bank_line._onchange_manual_reconcile_reference()
+        bank_line.manual_account_id = account
+        bank_line.manual_partner_id = partner
+        bank_line.manual_name = source_line["name"] or "/"
+        bank_line.manual_amount = self._amount(source_line["balance"])
+        bank_line.analytic_distribution = analytic_distribution
+        bank_line._onchange_manual_reconcile_vals()
+        data = bank_line.reconcile_data_info.get("data", [])
+        manual_rows = [
+            line for line in data if line["reference"] == bank_line.manual_reference
+        ]
+        if len(manual_rows) != 1:
+            message = (
+                "Expected one OCA allocation row for bounded bank move line "
+                f"{source_line['id']}, got {len(manual_rows)}"
+            )
+            raise ValueError(message)
+        manual_rows[0].update({
+            "kind": "other",
+            "line_currency_id": currency.id,
+            "currency_amount": self._amount(source_line["amount_currency"]),
+        })
+        bank_line.reconcile_data_info = bank_line._recompute_suspense_line(
+            data,
+            bank_line.reconcile_data_info["reconcile_auxiliary_id"],
+            bank_line.manual_reference,
+        )
+
     @staticmethod
     def _native_expense_settlement_add_edge(bank_line, target_line, source_edge):
         """Add one candidate and retain the operator's exact partial amount."""
@@ -498,9 +627,9 @@ class RebuildAccountImportRun(models.Model):
         """Replay expense bank matching through native statement/OCA APIs.
 
         Only source reconciliation edges whose counterpart is a current-period
-        native expense move are replayed. Grouped employee transfers that also
-        settle older or non-expense shareholder items deliberately retain a
-        suspense residual until those other Track B documents exist.
+        native expense move are replayed here. Exact bank counterpart lines wholly
+        outside that perimeter are preserved for later settlement; only source
+        lines split between perimeters retain a bounded aggregate residual.
         """
         self.ensure_one()
         options = {
@@ -529,6 +658,9 @@ class RebuildAccountImportRun(models.Model):
             currencies = self._currency_map(conn)
             partners = self._partner_map(conn, options)
             bank_rows = self._native_expense_settlement_bank_rows(conn, options)
+            outside_line_rows = (
+                self._native_expense_settlement_outside_line_rows(conn, options)
+            )
             edge_rows = self._native_expense_settlement_edge_rows(conn, options)
             source_line_rows = self._native_expense_settlement_source_line_rows(
                 conn,
@@ -541,6 +673,26 @@ class RebuildAccountImportRun(models.Model):
                     options,
                 )
             )
+            outside_accounts = {
+                account.rebuild_source_id: account
+                for account in self.env["account.account"].sudo().search([
+                    ("rebuild_source_model", "=", "account.account"),
+                    ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
+                    (
+                        "rebuild_source_id",
+                        "in",
+                        sorted({row["account_id"] for row in outside_line_rows})
+                        or [0],
+                    ),
+                ])
+            }
+            analytic_accounts = {
+                account.rebuild_source_id: account
+                for account in self.env["account.analytic.account"].sudo().search([
+                    ("rebuild_source_model", "=", "account.analytic.account"),
+                    ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
+                ])
+            }
             journals = {
                 journal.rebuild_source_id: journal
                 for journal in self.env["account.journal"].sudo().search([
@@ -558,6 +710,11 @@ class RebuildAccountImportRun(models.Model):
             edges_by_bank = defaultdict(list)
             for row in edge_rows:
                 edges_by_bank[row["source_bank_statement_line_id"]].append(row)
+            outside_lines_by_bank = defaultdict(list)
+            for row in outside_line_rows:
+                outside_lines_by_bank[
+                    row["source_bank_statement_line_id"]
+                ].append(row)
 
             StatementLine = self.env["account.bank.statement.line"].sudo().with_context(
                 tracking_disable=True,
@@ -570,6 +727,7 @@ class RebuildAccountImportRun(models.Model):
             reused_reconciliation_count = 0
             passed_bank_lines = []
             mismatch_bank_lines = []
+            outside_line_mismatches = []
 
             for row in bank_rows:
                 source_bank_line_id = row["id"]
@@ -577,14 +735,43 @@ class RebuildAccountImportRun(models.Model):
                 partner = partners.get(row["partner_id"])
                 foreign_currency = currencies.get(row["foreign_currency_id"])
                 source_edges = edges_by_bank[source_bank_line_id]
-                if not journal or any(
-                    edge["source_line_id"] not in target_line_map
-                    for edge in source_edges
+                outside_lines = outside_lines_by_bank[source_bank_line_id]
+                missing_outside_accounts = sorted({
+                    line["account_id"]
+                    for line in outside_lines
+                    if line["account_id"] not in outside_accounts
+                })
+                missing_outside_currencies = sorted({
+                    line["currency_id"]
+                    for line in outside_lines
+                    if line["currency_id"] not in currencies
+                })
+                source_analytic_ids = set().union(*[
+                    self._native_bank_categorization_source_analytic_ids(
+                        line["analytic_distribution"],
+                    )
+                    for line in outside_lines
+                ]) if outside_lines else set()
+                missing_analytic_ids = sorted(
+                    source_analytic_ids - analytic_accounts.keys(),
+                )
+                if (
+                    not journal
+                    or missing_outside_accounts
+                    or missing_outside_currencies
+                    or missing_analytic_ids
+                    or any(
+                        edge["source_line_id"] not in target_line_map
+                        for edge in source_edges
+                    )
                 ):
                     blocked_cases.append({
                         "source_bank_statement_line_id": source_bank_line_id,
                         "classification": "missing_bank_or_expense_mapping",
                         "missing_journal": not bool(journal),
+                        "missing_outside_account_ids": missing_outside_accounts,
+                        "missing_outside_currency_ids": missing_outside_currencies,
+                        "missing_analytic_ids": missing_analytic_ids,
                         "missing_source_line_ids": [
                             edge["source_line_id"]
                             for edge in source_edges
@@ -668,7 +855,10 @@ class RebuildAccountImportRun(models.Model):
                             if self._native_expense_settlement_auto_matched(
                                 auto_partials,
                             ):
-                                pass
+                                if outside_lines:
+                                    bank_line.reconcile_data_info = (
+                                        bank_line._default_reconcile_data()
+                                    )
                             else:
                                 for edge in source_edges:
                                     self._native_expense_settlement_add_edge(
@@ -676,6 +866,19 @@ class RebuildAccountImportRun(models.Model):
                                         target_line_map[edge["source_line_id"]],
                                         edge,
                                     )
+                            for outside_line in outside_lines:
+                                self._native_bank_replay_add_manual_allocation(
+                                    bank_line,
+                                    outside_line,
+                                    outside_accounts[outside_line["account_id"]],
+                                    partners.get(outside_line["partner_id"]),
+                                    currencies[outside_line["currency_id"]],
+                                    self._native_replay_analytic_distribution(
+                                        outside_line["analytic_distribution"],
+                                        analytic_accounts,
+                                    ),
+                                )
+                            if not all(auto_partials) or outside_lines:
                                 reconcile_data_snapshot = bank_line.reconcile_data_info
                                 bank_line.reconcile_bank_line()
                             for edge in source_edges:
@@ -712,6 +915,28 @@ class RebuildAccountImportRun(models.Model):
                             "reconcile_data": reconcile_data_snapshot,
                         })
                         continue
+
+                if outside_lines:
+                    _outside_target_lines, line_mismatches = (
+                        self._native_bank_external_trace_lines(
+                            bank_line,
+                            outside_lines,
+                            outside_accounts,
+                            partners,
+                            currencies,
+                            analytic_accounts,
+                            options,
+                            trace_model=(
+                                "account.move.line.native_bounded_bank_counterpart"
+                            ),
+                            trace_note=(
+                                "Track B bounded bank counterpart preserved exactly "
+                                "through OCA Bank Matching for later native settlement."
+                            ),
+                            strict_line_count=False,
+                        )
+                    )
+                    outside_line_mismatches.extend(line_mismatches)
 
                 mapped_partials = Partial.search([
                     (
@@ -758,7 +983,10 @@ class RebuildAccountImportRun(models.Model):
                     ).items()
                 }
                 target_outside_totals = (
-                    self._native_expense_settlement_open_account_totals(bank_line)
+                    self._native_expense_settlement_outside_account_totals(
+                        bank_line,
+                        mapped_partials,
+                    )
                 )
                 expected_reconciled = bool(row["is_reconciled"])
                 checks = {
@@ -847,7 +1075,10 @@ class RebuildAccountImportRun(models.Model):
 
             status = (
                 "passed"
-                if not blocked_cases and not mismatch_bank_lines and not state_mismatches
+                if not blocked_cases
+                and not mismatch_bank_lines
+                and not outside_line_mismatches
+                and not state_mismatches
                 else "partial"
             )
             payment_mode_counts = defaultdict(int)
@@ -867,6 +1098,8 @@ class RebuildAccountImportRun(models.Model):
                 "passed_bank_statement_line_count": len(passed_bank_lines),
                 "mismatch_bank_statement_line_count": len(mismatch_bank_lines),
                 "source_reconciliation_edge_count": len(edge_rows),
+                "source_exact_outside_counterpart_count": len(outside_line_rows),
+                "outside_counterpart_mismatch_count": len(outside_line_mismatches),
                 "created_reconciliation_count": created_reconciliation_count,
                 "reused_reconciliation_count": reused_reconciliation_count,
                 "source_expense_settlement_line_count": len({
@@ -892,13 +1125,16 @@ class RebuildAccountImportRun(models.Model):
                     ),
                     "own_account": (
                         "Employee transfers are grouped. Current-period expense payable "
-                        "edges are replayed chronologically; transfers with additional "
-                        "older or non-expense allocations retain an open aggregate on the "
-                        "mapped shareholder account for General Reconciliation."
+                        "edges are replayed chronologically; exact outside-only source "
+                        "counterparts are preserved for later native reconciliation, and "
+                        "only source lines split across perimeters retain a bounded residual."
                     ),
                 },
                 "passed_bank_line_examples": passed_bank_lines[:20],
                 "mismatch_bank_line_examples": mismatch_bank_lines[:20],
+                "outside_counterpart_mismatch_examples": (
+                    outside_line_mismatches[:20]
+                ),
                 "blocked_examples": blocked_cases[:20],
                 "state_mismatch_examples": state_mismatches[:20],
             }
@@ -912,13 +1148,13 @@ class RebuildAccountImportRun(models.Model):
                 + reused_reconciliation_count,
                 "warning_count": len(blocked_cases)
                 + len(mismatch_bank_lines)
+                + len(outside_line_mismatches)
                 + len(state_mismatches),
                 "statistics_json": stats,
                 "notes": (
                     "Track B native expense settlement through account.bank.statement.line "
-                    "creation and OCA reconcile_bank_line(). Mixed employee reimbursement "
-                    "transfers intentionally preserve their non-expense residual as an open "
-                    "shareholder-account item."
+                    "creation and OCA reconcile_bank_line(). Outside-only source counterpart "
+                    "lines are preserved exactly for subsequent native settlement."
                 ),
             })
             return stats

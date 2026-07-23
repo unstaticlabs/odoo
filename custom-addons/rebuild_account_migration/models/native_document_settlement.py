@@ -49,7 +49,8 @@ class RebuildAccountImportRun(models.Model):
                   AND move.date BETWEEN %(date_from)s AND %(date_to)s
             ),
             document_lines AS (
-                SELECT line.id, line.move_id, line.balance, line.amount_currency
+                SELECT line.id, line.move_id, line.balance, line.amount_currency,
+                       line.amount_residual_currency
                 FROM current_documents document
                 JOIN account_move_line line ON line.move_id = document.id
                 JOIN account_account account ON account.id = line.account_id
@@ -61,6 +62,8 @@ class RebuildAccountImportRun(models.Model):
                    document_line.id AS source_line_id,
                    document_line.balance AS source_line_balance,
                    document_line.amount_currency AS source_line_amount_currency,
+                   document_line.amount_residual_currency
+                       AS source_line_amount_residual_currency,
                    partial.id AS source_partial_reconcile_id,
                    partial.full_reconcile_id AS source_full_reconcile_id,
                    partial.amount AS partial_amount,
@@ -70,6 +73,7 @@ class RebuildAccountImportRun(models.Model):
                        ELSE partial.credit_amount_currency
                    END AS partial_amount_currency,
                    statement_line.id AS source_bank_statement_line_id,
+                   statement_move_line.id AS source_bank_move_line_id,
                    statement_move.date AS statement_date
             FROM document_lines document_line
             JOIN account_partial_reconcile partial
@@ -207,6 +211,83 @@ class RebuildAccountImportRun(models.Model):
             options,
         )
 
+    def _native_document_settlement_outside_line_rows(self, conn, options):
+        """Return exact bank counterparts wholly outside the document perimeter."""
+        return self._fetchall(
+            conn,
+            """
+            WITH current_documents AS (
+                SELECT move.id
+                FROM account_move move
+                WHERE move.company_id = ANY(%(source_company_ids)s)
+                  AND move.state = 'posted'
+                  AND move.move_type IN (
+                      'out_invoice', 'out_refund', 'in_invoice',
+                      'in_refund', 'out_receipt', 'in_receipt'
+                  )
+                  AND move.date BETWEEN %(date_from)s AND %(date_to)s
+            ),
+            document_lines AS (
+                SELECT line.id
+                FROM current_documents document
+                JOIN account_move_line line ON line.move_id = document.id
+                JOIN account_account account ON account.id = line.account_id
+                WHERE account.account_type IN (
+                    'asset_receivable', 'liability_payable'
+                )
+            ),
+            selected_statement_lines AS (
+                SELECT DISTINCT statement_line.id, statement_line.move_id,
+                       statement_line.journal_id
+                FROM document_lines document_line
+                JOIN account_partial_reconcile partial
+                  ON partial.debit_move_id = document_line.id
+                  OR partial.credit_move_id = document_line.id
+                JOIN account_move_line statement_move_line
+                  ON statement_move_line.id = CASE
+                       WHEN partial.debit_move_id = document_line.id
+                       THEN partial.credit_move_id
+                       ELSE partial.debit_move_id
+                     END
+                JOIN account_bank_statement_line statement_line
+                  ON statement_line.move_id = statement_move_line.move_id
+            ),
+            scoped_lines AS (
+                SELECT selected.id AS source_bank_statement_line_id,
+                       line.id, line.sequence, line.account_id, line.partner_id,
+                       line.currency_id, line.name, line.balance,
+                       line.amount_currency, line.analytic_distribution,
+                       count(partial.id) FILTER (
+                           WHERE document_line.id IS NOT NULL
+                       ) AS current_partial_count
+                FROM selected_statement_lines selected
+                JOIN account_journal journal ON journal.id = selected.journal_id
+                JOIN account_move_line line ON line.move_id = selected.move_id
+                LEFT JOIN account_partial_reconcile partial
+                  ON partial.debit_move_id = line.id
+                  OR partial.credit_move_id = line.id
+                LEFT JOIN document_lines document_line
+                  ON document_line.id = CASE
+                       WHEN partial.debit_move_id = line.id
+                       THEN partial.credit_move_id
+                       ELSE partial.debit_move_id
+                     END
+                WHERE line.account_id IS DISTINCT FROM journal.default_account_id
+                GROUP BY selected.id, line.id, line.sequence, line.account_id,
+                         line.partner_id, line.currency_id, line.name,
+                         line.balance, line.amount_currency,
+                         line.analytic_distribution
+            )
+            SELECT source_bank_statement_line_id, id, sequence, account_id,
+                   partner_id, currency_id, name, balance, amount_currency,
+                   analytic_distribution
+            FROM scoped_lines
+            WHERE current_partial_count = 0
+            ORDER BY source_bank_statement_line_id, sequence, id
+            """,
+            options,
+        )
+
     @staticmethod
     def _native_document_settlement_open_bank_lines(bank_line, target_line):
         _liquidity_lines, suspense_lines, other_lines = bank_line._seek_for_lines()
@@ -232,10 +313,21 @@ class RebuildAccountImportRun(models.Model):
             lambda partial: not partial.rebuild_source_model,
         )
         if not related:
-            open_bank_lines = self._native_document_settlement_open_bank_lines(
-                bank_line,
-                target_line,
+            open_bank_lines = bank_line.line_ids.filtered(
+                lambda line: (
+                    not line.reconciled
+                    and line.account_id == target_line.account_id
+                    and line.rebuild_source_model
+                    == "account.move.line.native_bounded_bank_counterpart"
+                    and line.rebuild_source_id
+                    == source_edge["source_bank_move_line_id"]
+                ),
             )
+            if not open_bank_lines:
+                open_bank_lines = self._native_document_settlement_open_bank_lines(
+                    bank_line,
+                    target_line,
+                )
             if len(open_bank_lines) != 1:
                 message = (
                     "Expected one open bank allocation line for document source edge "
@@ -296,6 +388,9 @@ class RebuildAccountImportRun(models.Model):
             currencies = self._currency_map(conn)
             partners = self._partner_map(conn, options)
             bank_rows = self._native_document_settlement_bank_rows(conn, options)
+            outside_line_rows = (
+                self._native_document_settlement_outside_line_rows(conn, options)
+            )
             edge_rows = self._native_document_settlement_edge_rows(conn, options)
             source_line_rows = self._native_document_settlement_source_line_rows(
                 conn,
@@ -319,6 +414,26 @@ class RebuildAccountImportRun(models.Model):
                     ),
                 )
             )
+            outside_accounts = {
+                account.rebuild_source_id: account
+                for account in self.env["account.account"].sudo().search([
+                    ("rebuild_source_model", "=", "account.account"),
+                    ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
+                    (
+                        "rebuild_source_id",
+                        "in",
+                        sorted({row["account_id"] for row in outside_line_rows})
+                        or [0],
+                    ),
+                ])
+            }
+            analytic_accounts = {
+                account.rebuild_source_id: account
+                for account in self.env["account.analytic.account"].sudo().search([
+                    ("rebuild_source_model", "=", "account.analytic.account"),
+                    ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
+                ])
+            }
             journals = {
                 journal.rebuild_source_id: journal
                 for journal in self.env["account.journal"].sudo().search([
@@ -338,6 +453,11 @@ class RebuildAccountImportRun(models.Model):
             for row in edge_rows:
                 edges_by_bank[row["source_bank_statement_line_id"]].append(row)
                 edges_by_source_line[row["source_line_id"]].append(row)
+            outside_lines_by_bank = defaultdict(list)
+            for row in outside_line_rows:
+                outside_lines_by_bank[
+                    row["source_bank_statement_line_id"]
+                ].append(row)
 
             StatementLine = self.env["account.bank.statement.line"].sudo().with_context(
                 tracking_disable=True,
@@ -360,6 +480,7 @@ class RebuildAccountImportRun(models.Model):
             )
             passed_bank_lines = []
             mismatch_bank_lines = []
+            outside_line_mismatches = []
 
             for row in bank_rows:
                 source_bank_line_id = row["id"]
@@ -383,14 +504,43 @@ class RebuildAccountImportRun(models.Model):
                     else self._amount(row["amount_currency"])
                 )
                 source_edges = edges_by_bank[source_bank_line_id]
-                if not journal or any(
-                    edge["source_line_id"] not in target_line_map
-                    for edge in source_edges
+                outside_lines = outside_lines_by_bank[source_bank_line_id]
+                missing_outside_accounts = sorted({
+                    line["account_id"]
+                    for line in outside_lines
+                    if line["account_id"] not in outside_accounts
+                })
+                missing_outside_currencies = sorted({
+                    line["currency_id"]
+                    for line in outside_lines
+                    if line["currency_id"] not in currencies
+                })
+                source_analytic_ids = set().union(*[
+                    self._native_bank_categorization_source_analytic_ids(
+                        line["analytic_distribution"],
+                    )
+                    for line in outside_lines
+                ]) if outside_lines else set()
+                missing_analytic_ids = sorted(
+                    source_analytic_ids - analytic_accounts.keys(),
+                )
+                if (
+                    not journal
+                    or missing_outside_accounts
+                    or missing_outside_currencies
+                    or missing_analytic_ids
+                    or any(
+                        edge["source_line_id"] not in target_line_map
+                        for edge in source_edges
+                    )
                 ):
                     blocked_cases.append({
                         "source_bank_statement_line_id": source_bank_line_id,
                         "classification": "missing_document_bank_mapping",
                         "missing_journal": not bool(journal),
+                        "missing_outside_account_ids": missing_outside_accounts,
+                        "missing_outside_currency_ids": missing_outside_currencies,
+                        "missing_analytic_ids": missing_analytic_ids,
                         "missing_source_line_ids": [
                             edge["source_line_id"]
                             for edge in source_edges
@@ -496,6 +646,18 @@ class RebuildAccountImportRun(models.Model):
                                     target_line_map[edge["source_line_id"]],
                                     edge,
                                 )
+                            for outside_line in outside_lines:
+                                self._native_bank_replay_add_manual_allocation(
+                                    bank_line,
+                                    outside_line,
+                                    outside_accounts[outside_line["account_id"]],
+                                    partners.get(outside_line["partner_id"]),
+                                    currencies[outside_line["currency_id"]],
+                                    self._native_replay_analytic_distribution(
+                                        outside_line["analytic_distribution"],
+                                        analytic_accounts,
+                                    ),
+                                )
                             bank_line.reconcile_bank_line()
                             for edge in source_edges:
                                 target_line = target_line_map[edge["source_line_id"]]
@@ -530,6 +692,28 @@ class RebuildAccountImportRun(models.Model):
                             "exception_message": str(exc),
                         })
                         continue
+
+                if outside_lines:
+                    _outside_target_lines, line_mismatches = (
+                        self._native_bank_external_trace_lines(
+                            bank_line,
+                            outside_lines,
+                            outside_accounts,
+                            partners,
+                            currencies,
+                            analytic_accounts,
+                            options,
+                            trace_model=(
+                                "account.move.line.native_bounded_bank_counterpart"
+                            ),
+                            trace_note=(
+                                "Track B bounded bank counterpart preserved exactly "
+                                "through OCA Bank Matching for later native settlement."
+                            ),
+                            strict_line_count=False,
+                        )
+                    )
+                    outside_line_mismatches.extend(line_mismatches)
 
                 mapped_partials = Partial.search([
                     ("rebuild_source_id", "in", source_partial_ids),
@@ -646,6 +830,7 @@ class RebuildAccountImportRun(models.Model):
                     })
 
             line_residual_mismatches = []
+            downstream_settled_line_count = 0
             for source_line_id, source_edges in edges_by_source_line.items():
                 target_line = target_line_map.get(source_line_id)
                 if not target_line:
@@ -661,8 +846,15 @@ class RebuildAccountImportRun(models.Model):
                     max(source_amount_currency - source_bank_amount_currency, 0.0),
                     2,
                 )
+                source_final_residual = round(abs(self._amount(
+                    source_edges[0]["source_line_amount_residual_currency"],
+                )), 2)
                 target_residual = round(abs(target_line.amount_residual_currency), 2)
-                if target_residual != expected_residual:
+                downstream_settled_line_count += int(
+                    target_residual == source_final_residual
+                    and target_residual != expected_residual,
+                )
+                if target_residual not in {expected_residual, source_final_residual}:
                     line_residual_mismatches.append({
                         "source_line_id": source_line_id,
                         "target_line_id": target_line.id,
@@ -672,6 +864,7 @@ class RebuildAccountImportRun(models.Model):
                             2,
                         ),
                         "expected_bank_stage_currency_residual": expected_residual,
+                        "source_final_currency_residual": source_final_residual,
                         "target_currency_residual": target_residual,
                     })
 
@@ -679,6 +872,7 @@ class RebuildAccountImportRun(models.Model):
                 "passed"
                 if not blocked_cases
                 and not mismatch_bank_lines
+                and not outside_line_mismatches
                 and not line_residual_mismatches
                 else "partial"
             )
@@ -700,6 +894,8 @@ class RebuildAccountImportRun(models.Model):
                 "passed_bank_statement_line_count": len(passed_bank_lines),
                 "mismatch_bank_statement_line_count": len(mismatch_bank_lines),
                 "source_reconciliation_edge_count": len(edge_rows),
+                "source_exact_outside_counterpart_count": len(outside_line_rows),
+                "outside_counterpart_mismatch_count": len(outside_line_mismatches),
                 "created_reconciliation_count": created_reconciliation_count,
                 "reused_reconciliation_count": reused_reconciliation_count,
                 "existing_bank_general_reconcile_count": (
@@ -710,14 +906,18 @@ class RebuildAccountImportRun(models.Model):
                 ),
                 "source_document_settlement_line_count": len(edges_by_source_line),
                 "line_residual_mismatch_count": len(line_residual_mismatches),
+                "downstream_settled_line_count": downstream_settled_line_count,
                 "bounded_scope_classification": (
                     "All current-document bank edges are applied. Bank lines that also "
-                    "contain allocations outside the current native-document perimeter "
-                    "retain a native residual allocation; their non-bank counterpart "
-                    "reconciliations are handled by the next General Reconciliation stage."
+                    "contain outside-only allocations preserve their exact source account, "
+                    "partner, currency and amount detail for later native reconciliation; "
+                    "only source lines split across perimeters retain a bounded residual."
                 ),
                 "passed_bank_line_examples": passed_bank_lines[:20],
                 "mismatch_bank_line_examples": mismatch_bank_lines[:20],
+                "outside_counterpart_mismatch_examples": (
+                    outside_line_mismatches[:20]
+                ),
                 "line_residual_mismatch_examples": line_residual_mismatches[:20],
                 "blocked_examples": blocked_cases[:20],
             }
@@ -730,6 +930,7 @@ class RebuildAccountImportRun(models.Model):
                 + reused_reconciliation_count,
                 "warning_count": len(blocked_cases)
                 + len(mismatch_bank_lines)
+                + len(outside_line_mismatches)
                 + len(line_residual_mismatches),
                 "statistics_json": stats,
                 "notes": (
