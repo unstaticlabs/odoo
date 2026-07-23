@@ -191,6 +191,61 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(import_run._native_expense_company_value({1: 21.5}, 1), 21.5)
         self.assertIsNone(import_run._native_expense_company_value({"2": 24.0}, 1))
 
+    def test_native_expense_settlement_preserves_source_partial_amount(self):
+        import_run = self.env["rebuild.account.import.run"]
+
+        class TargetLine:
+            id = 42
+            balance = -100.0
+
+        class BankLine:
+            manual_in_currency = True
+            manual_reference = False
+            manual_amount = 0.0
+            manual_amount_in_currency = 0.0
+
+            def __init__(self):
+                self.calls = []
+
+            def _add_account_move_line(self, target_line):
+                self.calls.append(("add", target_line.id))
+
+            def _onchange_manual_reconcile_reference(self):
+                self.calls.append(("select", self.manual_reference))
+
+            def _onchange_manual_reconcile_vals(self):
+                self.calls.append(("amount", self.manual_amount))
+
+        bank_line = BankLine()
+        import_run._native_expense_settlement_add_edge(
+            bank_line,
+            TargetLine(),
+            {
+                "partial_amount": 70.0,
+                "partial_amount_currency": 84.0,
+            },
+        )
+
+        self.assertEqual(bank_line.manual_reference, "account.move.line;42")
+        self.assertEqual(bank_line.manual_amount, 70.0)
+        self.assertEqual(bank_line.manual_amount_in_currency, 84.0)
+        self.assertEqual(
+            bank_line.calls,
+            [
+                ("add", 42),
+                ("select", "account.move.line;42"),
+                ("amount", 70.0),
+            ],
+        )
+
+    def test_native_expense_settlement_accepts_only_complete_auto_match(self):
+        import_run = self.env["rebuild.account.import.run"]
+
+        self.assertTrue(import_run._native_expense_settlement_auto_matched([[1], [2]]))
+        self.assertFalse(import_run._native_expense_settlement_auto_matched([[], []]))
+        with self.assertRaisesRegex(ValueError, "only part"):
+            import_run._native_expense_settlement_auto_matched([[1], []])
+
     def test_reconcile_shortcut_uses_compatible_kanban_workbench(self):
         action = self.env.ref("rebuild_account_migration.action_rebuild_account_reconcile_bank_transactions")
         reconcile_view = self.env.ref("account_reconcile_oca.bank_statement_line_reconcile_view")

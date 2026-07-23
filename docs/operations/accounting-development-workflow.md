@@ -1,6 +1,6 @@
 # Accounting development workflow
 
-Last updated: 2026-07-22
+Last updated: 2026-07-23
 
 Audience: implementation agents and developers working on Milestone 13.
 
@@ -18,10 +18,11 @@ This workflow exists to keep accounting development fast, safe and reviewable. D
 
 ## Database roles during development
 
-Use three separate states:
+Use four separate states:
 
 - `odoo_online_source_saas_19_2`: restored source backup, read-only for extraction.
 - `odoo_rebuild_accounting_test`: disposable imported target used for Milestone 13 validation.
+- `odoo_rebuild_accounting_track_b`: disposable native-engine target for current-period document, expense and reconciliation proof.
 - `odoo19`: general development or synthetic database; do not use it as production-derived parity evidence unless explicitly rebuilt.
 
 ## Fast iteration matrix
@@ -34,6 +35,8 @@ Use three separate states:
 | Security/ACL changes | module update, role-specific access tests | source restore |
 | Importer mapping changes | `accounting-target-reset`, `accounting-target-import`, `accounting-target-validate` | source restore if snapshot unchanged |
 | Source extraction mapping changes | `accounting-extract`, target reset/import/validate | source restore if source DB still running and unchanged |
+| Track B expense/document mapping changes | `accounting-track-b-reset`, `accounting-track-b-expenses`, `accounting-track-b-documents` | source restore, exact-target reset/import |
+| Track B expense settlement changes | Track B reset, expenses, documents, `accounting-track-b-expense-settlement`; repeat settlement for idempotence | source restore, exact-target reset/import |
 | Source dump or restore script changes | full source restore and downstream stages | none |
 | Closing/report parity milestone proof | full `make accounting-compat` rehearsal | partial validation |
 

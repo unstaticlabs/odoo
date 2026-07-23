@@ -68,6 +68,7 @@ Observed current stage artifacts under `artifacts/accounting-compat/private/` sh
 - document-regeneration cases: `passed`
 - Track B native expenses: `passed`, classified as `TRACK_B_NATIVE_EXPENSE_REPLAY`
 - Track B native business documents: `passed`, classified as `TRACK_B_NATIVE_BUSINESS_DOCUMENT_REPLAY`
+- Track B native expense settlement: `passed`, classified as `TRACK_B_NATIVE_EXPENSE_SETTLEMENT`
 - FEC validation artifact: `passed`, classified as `OFFICIAL_DGFIP_SOURCE_VALIDATION_PASSED`
 - readiness: `blocked`, classified as `TECHNICAL_REHEARSAL_PASSED_PROFESSIONAL_ACCEPTANCE_PENDING`
 
@@ -246,7 +247,7 @@ Validated by artifacts or code inspection:
 - Posted imported moves balance in the validated ledger slice.
 - Source and target control comparisons pass for the validated posted ledger slice.
 - Source currency-rate reconstruction now passes exact broad-snapshot parity: all `1,877` native EUR, USD and GBP rates from `2024-01-01` through `2026-07-20` match by source ID, company, date, technical rate, ECB provider and retained source retrieval timestamp. The importer is idempotent and uses Odoo's native rate semantics rather than inventing or inverting rates. Browser smoke testing verified the USD rate history and visible `Source Provider = ecb` provenance in the native currency form, including the `2026-06-30` rate of `1.1394` USD per EUR.
-- Track B now has a separate disposable `odoo_rebuild_accounting_track_b` database and clean native expense and business-document replay for `2025-10-01` through `2026-06-30`. All `325` source expenses pass native submission, approval/refusal, receipt and company-payment workflows with `0` blocked/mismatched records; the replay creates `97` company payments and `79` grouped receipts for `95` employee-paid expenses, while preserving `125` approved, `3` draft and `5` refused records. All `284` source documents (`36` customer invoices, `161` vendor bills, `3` supplier refunds and `84` purchase receipts) are then created or reused from commercial fields and posted through normal Odoo APIs; `284/284` match source header amounts, due dates and per-account debit/credit/balance/amount-currency effects, with `0` blocked cases and `0` mismatches across `170` EUR and `114` USD documents. Two remaining legacy single-line documents use Odoo's supported manual-tax metadata and are explicitly classified. No finalized source journal line is passed into document or expense creation. A repeated expense run reuses all `325` expenses, `97` payments and `79` receipts without duplicates.
+- Track B now has a separate disposable `odoo_rebuild_accounting_track_b` database and clean native expense, business-document and expense-settlement replay for `2025-10-01` through `2026-06-30`. All `325` source expenses pass native submission, approval/refusal, receipt and company-payment workflows with `0` blocked/mismatched records; the replay creates `97` company payments and `79` grouped receipts for `95` employee-paid expenses, while preserving `125` approved, `3` draft and `5` refused records. All `284` source documents (`36` customer invoices, `161` vendor bills, `3` supplier refunds and `84` purchase receipts) are then created or reused from commercial fields and posted through normal Odoo APIs; `284/284` match source header amounts, due dates and per-account debit/credit/balance/amount-currency effects, with `0` blocked cases and `0` mismatches across `170` EUR and `114` USD documents. The settlement stage creates `106` native bank transactions and replays `181` source allocations through OCA against `176` expense settlement lines; all `97` company payments and `95` employee-paid expenses finish paid. Six mixed reimbursement transfers retain only their non-expense remainder as open aggregates on account `455100` for General Reconciliation; their target total `5,942.24` exactly matches the source residual outside current expense edges. Two remaining legacy single-line documents use Odoo's supported manual-tax metadata and are explicitly classified. No finalized source journal line is passed into document or expense creation, and reruns reuse all `106` bank lines and `181` partial reconciliations without duplicates.
 - Reconciliation records are imported and compared as data.
 - Attachment metadata and selected binaries are imported and checked.
 - The custom report export wizard can generate CSV, XLSX, PDF and FEC TXT payloads.
@@ -254,8 +255,8 @@ Validated by artifacts or code inspection:
 
 Not yet validated as finished product behavior:
 
-- end-to-end accounting effects for bank matching and general reconciliation, including write-offs, partial matches and undo
-- bank matching, employee reimbursement, remaining payment/reconciliation state and exchange-difference replay for the Track B period; native expense and invoice/bill/refund/receipt posting now pass
+- full-period bank/general-reconciliation coverage, including non-expense allocations, write-offs and undo; expense-related native full/partial matching now passes for `106` bank transactions
+- the remaining `1,735` current-period bank transactions and their payment/reconciliation/exchange-difference effects; expense-related settlement and final expense/payment states now pass
 - a maintained Odoo 19 automatic future-rate provider; the restored historical source rates retain their ECB provenance, but automatic refresh is not yet configured
 - dynamic Odoo Online-style accounting reports
 - readable templated PDF/XLSX reports

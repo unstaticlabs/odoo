@@ -2339,6 +2339,103 @@ def track_b_expenses(args: argparse.Namespace) -> dict[str, Any]:
     return status
 
 
+def track_b_expense_settlement(args: argparse.Namespace) -> dict[str, Any]:
+    """Replay expense-related bank matching through OCA reconciliation."""
+    ensure_dirs()
+    validation = validate_source(args)
+    dump_sha = validation["dump"]["sha256"] or "unknown"
+    snapshot_id = f"source-{dump_sha[:12]}"
+    if not table_exists(TRACK_B_DB, "rebuild_account_import_run"):
+        message = "Run make accounting-track-b-reset before Track B expense settlement."
+        raise HarnessError(message)
+
+    script_path = PRIVATE_ARTIFACTS / "track-b-native-expense-settlement.py"
+    script_path.write_text(
+        "\n".join([
+            "import json",
+            "run = env['rebuild.account.import.run'].create({",
+            "    'name': 'USL Track B native expense bank settlement',",
+            "    'mode': 'native_engine_replay',",
+            "    'source_database': 'odoo_online_source_saas_19_2',",
+            f"    'source_dump_sha256': {dump_sha!r},",
+            f"    'source_snapshot_id': {snapshot_id!r},",
+            "    'source_version': 'Odoo Online Enterprise saas~19.2',",
+            f"    'target_database': {TRACK_B_DB!r},",
+            "})",
+            "stats = run.run_native_expense_settlement_from_source({",
+            "    'source_database': 'odoo_online_source_saas_19_2',",
+            f"    'source_dump_sha256': {dump_sha!r},",
+            f"    'source_snapshot_id': {snapshot_id!r},",
+            "    'source_version': 'Odoo Online Enterprise saas~19.2',",
+            f"    'target_database': {TRACK_B_DB!r},",
+            f"    'date_from': {USL_CURRENT_START!r},",
+            "    'date_to': '2026-06-30',",
+            "    'source_company_ids': [1],",
+            "})",
+            "env.cr.commit()",
+            "print('REBUILD_TRACK_B_EXPENSE_SETTLEMENT_RESULT=' + json.dumps({",
+            "    'run_id': run.id,",
+            "    'status': run.status,",
+            "    'stats': stats,",
+            "}, sort_keys=True, default=str))",
+            "",
+        ]),
+        encoding="utf-8",
+    )
+    result = run(
+        compose_args(
+            "--profile",
+            "init",
+            "run",
+            "--rm",
+            "-e",
+            f"ODOO_ADDONS_PATH={TARGET_ODOO_ADDONS_PATH}",
+            "init-db",
+            "odoo",
+            "shell",
+            "--config=/etc/odoo/odoo.conf",
+            f"--database={TRACK_B_DB}",
+        ),
+        input_file=script_path,
+        check=False,
+    )
+    marker = None
+    for line in (result.stdout + result.stderr).splitlines():
+        if line.startswith("REBUILD_TRACK_B_EXPENSE_SETTLEMENT_RESULT="):
+            marker = line.removeprefix("REBUILD_TRACK_B_EXPENSE_SETTLEMENT_RESULT=")
+    if result.returncode or not marker:
+        status = {
+            "generated_at": utc_now(),
+            "tool_version": TOOL_VERSION,
+            "stage": "track-b-expense-settlement",
+            "status": "failed",
+            "classification": "TRACK_B_EXPENSE_SETTLEMENT_EXECUTION_DEFECT",
+            "database": TRACK_B_DB,
+            "exit_code": result.returncode,
+            "output_tail": (result.stdout + result.stderr)[-12000:],
+        }
+        write_json(PRIVATE_ARTIFACTS / "track-b-expense-settlement-status.json", status)
+        if not getattr(args, "allow_errors", False):
+            message = "Track B expense settlement failed. See the private status artifact."
+            raise HarnessError(message)
+        return status
+    payload = json.loads(marker)
+    status = {
+        "generated_at": utc_now(),
+        "tool_version": TOOL_VERSION,
+        "stage": "track-b-expense-settlement",
+        "database": TRACK_B_DB,
+        "run_id": payload["run_id"],
+        "status": payload["status"],
+        **payload["stats"],
+    }
+    write_json(PRIVATE_ARTIFACTS / "track-b-expense-settlement-status.json", status)
+    if status["status"] != "passed" and not getattr(args, "allow_errors", False):
+        message = "Track B expense settlement has blocked or mismatched cases."
+        raise HarnessError(message)
+    return status
+
+
 def target_import(args: argparse.Namespace) -> dict[str, Any]:
     ensure_dirs()
     validation = validate_source(args)
@@ -11044,6 +11141,12 @@ def readiness(args: argparse.Namespace) -> dict[str, Any]:
         "target_idempotence": PRIVATE_ARTIFACTS / "target-idempotence-status.json",
         "target_failure_tests": PRIVATE_ARTIFACTS / "target-failure-tests-status.json",
         "document_regeneration": PRIVATE_ARTIFACTS / "document-regeneration-status.json",
+        "track_b_reset": PRIVATE_ARTIFACTS / "track-b-reset-status.json",
+        "track_b_expenses": PRIVATE_ARTIFACTS / "track-b-expenses-status.json",
+        "track_b_documents": PRIVATE_ARTIFACTS / "track-b-documents-status.json",
+        "track_b_expense_settlement": (
+            PRIVATE_ARTIFACTS / "track-b-expense-settlement-status.json"
+        ),
         "target_reconciliation_probe": PRIVATE_ARTIFACTS / "target-reconciliation-probe-status.json",
         "reports": PRIVATE_ARTIFACTS / "reports-status.json",
         "fec": PRIVATE_ARTIFACTS / "fec-status.json",
@@ -11062,6 +11165,10 @@ def readiness(args: argparse.Namespace) -> dict[str, Any]:
         "target_idempotence": {"passed"},
         "target_failure_tests": {"passed"},
         "document_regeneration": {"passed"},
+        "track_b_reset": {"passed"},
+        "track_b_expenses": {"passed"},
+        "track_b_documents": {"passed"},
+        "track_b_expense_settlement": {"passed"},
         "target_reconciliation_probe": {"passed"},
         "reports": {"passed", "partial"},
         "fec": {"passed"},
@@ -11255,6 +11362,7 @@ def run_all(args: argparse.Namespace) -> dict[str, Any]:
         "track_b_reset": track_b_reset(args),
         "track_b_expenses": track_b_expenses(args),
         "track_b_documents": track_b_documents(args),
+        "track_b_expense_settlement": track_b_expense_settlement(args),
         "target_reconciliation_probe": target_reconciliation_probe(args),
         "reports": reports(args),
         "fec": fec(args),
@@ -11285,6 +11393,7 @@ def build_parser() -> argparse.ArgumentParser:
         "track-b-reset",
         "track-b-expenses",
         "track-b-documents",
+        "track-b-expense-settlement",
         "target-reconciliation-probe",
         "reports",
         "fec",
@@ -11332,6 +11441,8 @@ def main(argv: list[str] | None = None) -> int:
             print_summary(args.stage, track_b_expenses(args))
         elif args.stage == "track-b-documents":
             print_summary(args.stage, track_b_documents(args))
+        elif args.stage == "track-b-expense-settlement":
+            print_summary(args.stage, track_b_expense_settlement(args))
         elif args.stage == "target-reconciliation-probe":
             print_summary(args.stage, target_reconciliation_probe(args))
         elif args.stage == "reports":
