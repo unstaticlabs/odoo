@@ -2050,6 +2050,11 @@ def extract(args: argparse.Namespace) -> dict[str, Any]:
         "configuration/accounts.csv": "SELECT * FROM account_account ORDER BY id",
         "configuration/journals.csv": "SELECT * FROM account_journal ORDER BY id",
         "configuration/taxes.csv": "SELECT * FROM account_tax ORDER BY id",
+        "configuration/reconciliation_models.csv": "SELECT * FROM account_reconcile_model ORDER BY id",
+        "configuration/reconciliation_model_lines.csv": "SELECT * FROM account_reconcile_model_line ORDER BY id",
+        "configuration/reconciliation_model_journals.csv": "SELECT * FROM account_journal_account_reconcile_model_rel ORDER BY account_reconcile_model_id, account_journal_id",
+        "configuration/reconciliation_model_partners.csv": "SELECT * FROM account_reconcile_model_res_partner_rel ORDER BY account_reconcile_model_id, res_partner_id",
+        "configuration/reconciliation_model_line_taxes.csv": "SELECT * FROM account_reconcile_model_line_account_tax_rel ORDER BY account_reconcile_model_line_id, account_tax_id",
         "ledger/moves.csv": "SELECT * FROM account_move ORDER BY id",
         "ledger/move_lines.csv": "SELECT * FROM account_move_line ORDER BY id",
         "ledger/partial_reconciliations.csv": "SELECT * FROM account_partial_reconcile ORDER BY id",
@@ -2104,6 +2109,8 @@ def target_table_counts(db: str) -> list[dict[str, Any]]:
         "res_currency_rate",
         "account_account",
         "account_journal",
+        "account_reconcile_model",
+        "account_reconcile_model_line",
         "account_tax",
         "account_move",
         "account_move_line",
@@ -2144,6 +2151,8 @@ TARGET_IDEMPOTENCE_TABLES = [
     "res_currency_rate",
     "account_account",
     "account_journal",
+    "account_reconcile_model",
+    "account_reconcile_model_line",
     "account_tax_group",
     "account_tax",
     "account_tax_repartition_line",
@@ -7477,6 +7486,173 @@ def target_deferred_schedule_rows() -> list[dict[str, Any]]:
     )
 
 
+def source_reconciliation_model_rows() -> list[dict[str, Any]]:
+    return query_rows(
+        SOURCE_DB,
+        f"""
+        SELECT model.id::text AS source_reconciliation_model_id,
+               {source_name_expr('model')} AS name,
+               model.sequence::text AS sequence,
+               model.company_id::text AS source_company_id,
+               model.active::text AS active,
+               model.trigger::text AS trigger,
+               model.can_be_proposed::text AS can_be_proposed,
+               COALESCE(model.mapped_partner_id::text, '') AS source_mapped_partner_id,
+               COALESCE(model.match_amount::text, '') AS match_amount,
+               round(COALESCE(model.match_amount_min, 0)::numeric, 6)::text AS match_amount_min,
+               round(COALESCE(model.match_amount_max, 0)::numeric, 6)::text AS match_amount_max,
+               COALESCE(model.match_label::text, '') AS match_label,
+               COALESCE(model.match_label_param::text, '') AS match_label_param,
+               COALESCE((
+                   SELECT string_agg(
+                              relation.account_journal_id::text,
+                              ',' ORDER BY relation.account_journal_id
+                          )
+                   FROM account_journal_account_reconcile_model_rel relation
+                   WHERE relation.account_reconcile_model_id = model.id
+               ), '') AS source_journal_ids,
+               COALESCE((
+                   SELECT string_agg(
+                              relation.res_partner_id::text,
+                              ',' ORDER BY relation.res_partner_id
+                          )
+                   FROM account_reconcile_model_res_partner_rel relation
+                   WHERE relation.account_reconcile_model_id = model.id
+               ), '') AS source_match_partner_ids,
+               (
+                   SELECT count(*)::text
+                   FROM account_reconcile_model_line line
+                   WHERE line.model_id = model.id
+               ) AS line_count
+        FROM account_reconcile_model model
+        WHERE model.company_id IN (1, 8)
+        ORDER BY model.id
+        """,
+    )
+
+
+def target_reconciliation_model_rows() -> list[dict[str, Any]]:
+    return query_rows(
+        TARGET_DB,
+        """
+        SELECT model.rebuild_source_id::text AS source_reconciliation_model_id,
+               {name} AS name,
+               model.sequence::text AS sequence,
+               company.rebuild_source_id::text AS source_company_id,
+               model.active::text AS active,
+               model.trigger::text AS trigger,
+               model.can_be_proposed::text AS can_be_proposed,
+               COALESCE(mapped_partner.rebuild_source_id::text, '') AS source_mapped_partner_id,
+               COALESCE(model.match_amount::text, '') AS match_amount,
+               round(COALESCE(model.match_amount_min, 0)::numeric, 6)::text AS match_amount_min,
+               round(COALESCE(model.match_amount_max, 0)::numeric, 6)::text AS match_amount_max,
+               COALESCE(model.match_label::text, '') AS match_label,
+               COALESCE(model.match_label_param::text, '') AS match_label_param,
+               COALESCE((
+                   SELECT string_agg(
+                              journal.rebuild_source_id::text,
+                              ',' ORDER BY journal.rebuild_source_id
+                          )
+                   FROM account_journal_account_reconcile_model_rel relation
+                   JOIN account_journal journal
+                     ON journal.id = relation.account_journal_id
+                   WHERE relation.account_reconcile_model_id = model.id
+               ), '') AS source_journal_ids,
+               COALESCE((
+                   SELECT string_agg(
+                              partner.rebuild_source_id::text,
+                              ',' ORDER BY partner.rebuild_source_id
+                          )
+                   FROM account_reconcile_model_res_partner_rel relation
+                   JOIN res_partner partner
+                     ON partner.id = relation.res_partner_id
+                   WHERE relation.account_reconcile_model_id = model.id
+               ), '') AS source_match_partner_ids,
+               (
+                   SELECT count(*)::text
+                   FROM account_reconcile_model_line line
+                   WHERE line.model_id = model.id
+                     AND line.rebuild_source_model =
+                         'account.reconcile.model.line'
+               ) AS line_count
+        FROM account_reconcile_model model
+        JOIN res_company company ON company.id = model.company_id
+        LEFT JOIN res_partner mapped_partner
+          ON mapped_partner.id = model.mapped_partner_id
+        WHERE model.rebuild_source_model = 'account.reconcile.model'
+        ORDER BY model.rebuild_source_id
+        """.format(name=source_name_expr("model")),
+        set_readonly_role=False,
+    )
+
+
+def source_reconciliation_model_line_rows() -> list[dict[str, Any]]:
+    return query_rows(
+        SOURCE_DB,
+        f"""
+        SELECT line.id::text AS source_reconciliation_model_line_id,
+               line.model_id::text AS source_reconciliation_model_id,
+               line.sequence::text AS sequence,
+               COALESCE(line.account_id::text, '') AS source_account_id,
+               COALESCE(line.partner_id::text, '') AS source_partner_id,
+               {source_name_expr('line', 'label')} AS label,
+               line.amount_type::text AS amount_type,
+               line.amount_string::text AS amount_string,
+               round(line.amount::numeric, 6)::text AS amount,
+               COALESCE((
+                   SELECT string_agg(
+                              relation.account_tax_id::text,
+                              ',' ORDER BY relation.account_tax_id
+                          )
+                   FROM account_reconcile_model_line_account_tax_rel relation
+                   WHERE relation.account_reconcile_model_line_id = line.id
+               ), '') AS source_tax_ids
+        FROM account_reconcile_model_line line
+        JOIN account_reconcile_model model ON model.id = line.model_id
+        WHERE model.company_id IN (1, 8)
+        ORDER BY line.id
+        """,
+    )
+
+
+def target_reconciliation_model_line_rows() -> list[dict[str, Any]]:
+    return query_rows(
+        TARGET_DB,
+        """
+        SELECT line.rebuild_source_id::text
+                   AS source_reconciliation_model_line_id,
+               model.rebuild_source_id::text
+                   AS source_reconciliation_model_id,
+               line.sequence::text AS sequence,
+               COALESCE(account.rebuild_source_id::text, '')
+                   AS source_account_id,
+               COALESCE(partner.rebuild_source_id::text, '')
+                   AS source_partner_id,
+               {label} AS label,
+               line.amount_type::text AS amount_type,
+               line.amount_string::text AS amount_string,
+               round(line.amount::numeric, 6)::text AS amount,
+               COALESCE((
+                   SELECT string_agg(
+                              tax.rebuild_source_id::text,
+                              ',' ORDER BY tax.rebuild_source_id
+                          )
+                   FROM account_reconcile_model_line_account_tax_rel relation
+                   JOIN account_tax tax ON tax.id = relation.account_tax_id
+                   WHERE relation.account_reconcile_model_line_id = line.id
+               ), '') AS source_tax_ids
+        FROM account_reconcile_model_line line
+        JOIN account_reconcile_model model ON model.id = line.model_id
+        LEFT JOIN account_account account ON account.id = line.account_id
+        LEFT JOIN res_partner partner ON partner.id = line.partner_id
+        WHERE line.rebuild_source_model = 'account.reconcile.model.line'
+          AND model.rebuild_source_model = 'account.reconcile.model'
+        ORDER BY line.rebuild_source_id
+        """.format(label=source_name_expr("line", "label")),
+        set_readonly_role=False,
+    )
+
+
 def source_tax_group_rows() -> list[dict[str, Any]]:
     return query_rows(
         SOURCE_DB,
@@ -8066,6 +8242,14 @@ def target_validate(args: argparse.Namespace) -> dict[str, Any]:
     target_source_report_columns = target_source_report_column_rows()
     source_deferred_schedules = source_deferred_schedule_rows()
     target_deferred_schedules = target_deferred_schedule_rows()
+    source_reconciliation_models = source_reconciliation_model_rows()
+    target_reconciliation_models = target_reconciliation_model_rows()
+    source_reconciliation_model_lines = (
+        source_reconciliation_model_line_rows()
+    )
+    target_reconciliation_model_lines = (
+        target_reconciliation_model_line_rows()
+    )
     source_tax_groups = source_tax_group_rows()
     target_tax_groups = target_tax_group_rows()
     source_tax_tags = source_tax_tag_rows()
@@ -8593,6 +8777,44 @@ def target_validate(args: argparse.Namespace) -> dict[str, Any]:
                 "source_advance_tax_payment_account_id",
             ],
         ),
+        "reconciliation_models": compare_rows(
+            source_reconciliation_models,
+            target_reconciliation_models,
+            key="source_reconciliation_model_id",
+            fields=[
+                "name",
+                "sequence",
+                "source_company_id",
+                "active",
+                "trigger",
+                "can_be_proposed",
+                "source_mapped_partner_id",
+                "match_amount",
+                "match_amount_min",
+                "match_amount_max",
+                "match_label",
+                "match_label_param",
+                "source_journal_ids",
+                "source_match_partner_ids",
+                "line_count",
+            ],
+        ),
+        "reconciliation_model_lines": compare_rows(
+            source_reconciliation_model_lines,
+            target_reconciliation_model_lines,
+            key="source_reconciliation_model_line_id",
+            fields=[
+                "source_reconciliation_model_id",
+                "sequence",
+                "source_account_id",
+                "source_partner_id",
+                "label",
+                "amount_type",
+                "amount_string",
+                "amount",
+                "source_tax_ids",
+            ],
+        ),
         "tax_tags": compare_rows(
             source_tax_tags,
             target_tax_tags,
@@ -8712,6 +8934,12 @@ def target_validate(args: argparse.Namespace) -> dict[str, Any]:
         "duplicate_bank_statement_line_traces": duplicate_target_traces("account_bank_statement_line"),
         "duplicate_attachment_traces": duplicate_target_traces("ir_attachment"),
         "duplicate_tax_group_traces": duplicate_target_traces("account_tax_group"),
+        "duplicate_reconciliation_model_traces": duplicate_target_traces(
+            "account_reconcile_model",
+        ),
+        "duplicate_reconciliation_model_line_traces": duplicate_target_traces(
+            "account_reconcile_model_line",
+        ),
         "duplicate_tax_traces": duplicate_target_traces("account_tax"),
         "duplicate_tax_repartition_line_traces": duplicate_target_traces("account_tax_repartition_line"),
         "duplicate_tax_tag_traces": duplicate_target_traces("account_account_tag"),
@@ -8745,6 +8973,10 @@ def target_validate(args: argparse.Namespace) -> dict[str, Any]:
         and not invariant_failures["duplicate_bank_statement_line_traces"]
         and not invariant_failures["duplicate_attachment_traces"]
         and not invariant_failures["duplicate_tax_group_traces"]
+        and not invariant_failures["duplicate_reconciliation_model_traces"]
+        and not invariant_failures[
+            "duplicate_reconciliation_model_line_traces"
+        ]
         and not invariant_failures["duplicate_tax_traces"]
         and not invariant_failures["duplicate_tax_repartition_line_traces"]
         and not invariant_failures["duplicate_tax_tag_traces"]

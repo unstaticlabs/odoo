@@ -2,6 +2,7 @@ import base64
 import hashlib
 import json
 import tempfile
+from email.message import EmailMessage
 from pathlib import Path
 from unittest.mock import patch
 
@@ -54,6 +55,126 @@ class TestRebuildAccountMigration(TransactionCase):
         if account_type in {"asset_receivable", "liability_payable"}:
             vals["reconcile"] = True
         return self.env["account.account"].create(vals)
+
+    def _incoming_email(
+        self,
+        *,
+        email_from,
+        email_to,
+        subject,
+        message_id,
+        filename,
+    ):
+        message = EmailMessage()
+        message["From"] = email_from
+        message["To"] = email_to
+        message["Subject"] = subject
+        message["Message-ID"] = message_id
+        message.set_content("Milestone 13 native email-ingestion evidence.")
+        message.add_attachment(
+            base64.b64decode(
+                "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwC"
+                "AAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
+            ),
+            maintype="image",
+            subtype="png",
+            filename=filename,
+        )
+        return message.as_bytes()
+
+    def test_native_email_gateway_creates_draft_bill_with_source_evidence(self):
+        supplier = self.env["res.partner"].create({
+            "name": "Unit email supplier",
+            "email": "supplier.email.gateway@example.invalid",
+            "company_id": self.company.id,
+        })
+        purchase_journal = self._journal("purchase")
+        thread_id = self.env["mail.thread"].sudo().message_process(
+            "account.move",
+            self._incoming_email(
+                email_from=supplier.email,
+                email_to="purchases@example.invalid",
+                subject="Unit incoming supplier bill",
+                message_id="<unit-m13-supplier-bill@example.invalid>",
+                filename="unit-supplier-bill.png",
+            ),
+            custom_values={
+                "move_type": "in_invoice",
+                "journal_id": purchase_journal.id,
+                "company_id": self.company.id,
+            },
+        )
+
+        bill = self.env["account.move"].browse(thread_id)
+        self.assertTrue(bill.exists())
+        self.assertEqual(bill.move_type, "in_invoice")
+        self.assertEqual(bill.state, "draft")
+        self.assertEqual(bill.journal_id, purchase_journal)
+        self.assertEqual(bill.partner_id, supplier)
+        self.assertEqual(bill.invoice_source_email, supplier.email)
+        incoming_messages = bill.message_ids.filtered(
+            lambda message: message.message_type == "email",
+        )
+        self.assertEqual(len(incoming_messages), 1)
+        attachment = incoming_messages.attachment_ids.filtered(
+            lambda item: item.name == "unit-supplier-bill.png",
+        )
+        self.assertEqual(len(attachment), 1)
+        self.assertEqual(bill.message_main_attachment_id, attachment)
+
+    def test_native_email_gateway_creates_employee_expense_with_receipt(self):
+        employee_user = self.env["res.users"].with_context(
+            no_reset_password=True,
+        ).create({
+            "name": "Unit email expense employee",
+            "login": "unit.email.expense.employee@example.invalid",
+            "email": "unit.email.expense.employee@example.invalid",
+            "company_id": self.company.id,
+            "company_ids": [Command.set([self.company.id])],
+            "group_ids": [Command.set([self.env.ref("base.group_user").id])],
+        })
+        employee = self.env["hr.employee"].create({
+            "name": employee_user.name,
+            "user_id": employee_user.id,
+            "work_email": employee_user.email,
+            "company_id": self.company.id,
+        })
+        category = self.env["product.product"].create({
+            "name": "Unit email expense category",
+            "default_code": "UNITMAIL",
+            "can_be_expensed": True,
+        })
+        thread_id = self.env["mail.thread"].sudo().message_process(
+            "hr.expense",
+            self._incoming_email(
+                email_from=employee.work_email,
+                email_to="expenses@example.invalid",
+                subject=(
+                    f"{category.default_code} Team lunch "
+                    f"{self.company.currency_id.name} 42.50"
+                ),
+                message_id="<unit-m13-employee-expense@example.invalid>",
+                filename="unit-expense-receipt.png",
+            ),
+        )
+
+        expense = self.env["hr.expense"].browse(thread_id)
+        self.assertTrue(expense.exists())
+        self.assertEqual(expense.employee_id, employee)
+        self.assertEqual(expense.product_id, category)
+        self.assertEqual(expense.company_id, self.company)
+        self.assertEqual(expense.currency_id, self.company.currency_id)
+        self.assertAlmostEqual(expense.total_amount_currency, 42.50)
+        incoming_messages = expense.message_ids.filtered(
+            lambda message: message.message_type == "email",
+        )
+        self.assertEqual(len(incoming_messages), 1)
+        attachment = incoming_messages.attachment_ids.filtered(
+            lambda item: item.name == "unit-expense-receipt.png",
+        )
+        self.assertEqual(len(attachment), 1)
+        self.assertEqual(attachment.res_model, "hr.expense")
+        self.assertEqual(attachment.res_id, expense.id)
 
     def test_accounting_app_opens_operational_home_and_keeps_native_dashboard(self):
         menu = self.env.ref("account.menu_finance")
@@ -151,6 +272,82 @@ class TestRebuildAccountMigration(TransactionCase):
 
         self.assertIn(accounting_user_group, manager_group.implied_ids)
 
+    def test_matched_items_route_uses_native_unreconcile_accounting_effect(self):
+        clearing = self._account(
+            "T471992",
+            "Unit reconciliation clearing",
+            "asset_current",
+        )
+        clearing.reconcile = True
+        offset = self._account(
+            "T580992",
+            "Unit reconciliation offset",
+            "asset_current",
+        )
+        journal = self._journal()
+        moves = self.env["account.move"].create([
+            {
+                "move_type": "entry",
+                "date": fields.Date.today(),
+                "journal_id": journal.id,
+                "line_ids": [
+                    Command.create({
+                        "name": "Clearing debit",
+                        "account_id": clearing.id,
+                        "debit": 100.0,
+                    }),
+                    Command.create({
+                        "name": "Offset credit",
+                        "account_id": offset.id,
+                        "credit": 100.0,
+                    }),
+                ],
+            },
+            {
+                "move_type": "entry",
+                "date": fields.Date.today(),
+                "journal_id": journal.id,
+                "line_ids": [
+                    Command.create({
+                        "name": "Clearing credit",
+                        "account_id": clearing.id,
+                        "credit": 100.0,
+                    }),
+                    Command.create({
+                        "name": "Offset debit",
+                        "account_id": offset.id,
+                        "debit": 100.0,
+                    }),
+                ],
+            },
+        ])
+        moves.action_post()
+        clearing_lines = moves.line_ids.filtered(
+            lambda line: line.account_id == clearing,
+        )
+        clearing_lines.reconcile()
+        self.assertTrue(all(clearing_lines.mapped("reconciled")))
+        self.assertTrue(
+            clearing_lines.matched_debit_ids
+            | clearing_lines.matched_credit_ids,
+        )
+
+        self.env["account.move.line"].with_context(
+            active_ids=[clearing_lines[0].id],
+        ).action_unreconcile_match_entries()
+
+        self.assertFalse(any(clearing_lines.mapped("reconciled")))
+        self.assertFalse(
+            clearing_lines.matched_debit_ids
+            | clearing_lines.matched_credit_ids,
+        )
+        self.assertEqual(
+            sorted(round(value, 2) for value in clearing_lines.mapped(
+                "amount_residual",
+            )),
+            [-100.0, 100.0],
+        )
+
     def test_accounting_navigation_matches_the_operating_model(self):
         expected_top_level = {
             "account.menu_board_journal_1": ("Dashboard", 1),
@@ -189,6 +386,45 @@ class TestRebuildAccountMigration(TransactionCase):
             general_reconciliation_menu.parent_id,
             self.env.ref("account.account_closing_menu"),
         )
+        matched_items_menu = self.env.ref(
+            "rebuild_account_migration.menu_rebuild_account_matched_items",
+        )
+        matched_items_action = self.env.ref(
+            "rebuild_account_migration.action_rebuild_account_matched_items",
+        )
+        self.assertEqual(
+            matched_items_menu.parent_id,
+            self.env.ref("account.account_closing_menu"),
+        )
+        self.assertEqual(matched_items_menu.action, matched_items_action)
+        self.assertIn(
+            ("reconciled", "=", True),
+            safe_eval(matched_items_action.domain),
+        )
+        self.assertIn(
+            self.env.ref("account.group_account_user"),
+            self.env.ref("account.action_account_unreconcile").group_ids,
+        )
+
+        configuration_routes = {
+            "rebuild_account_migration.menu_rebuild_account_groups":
+                "account.group",
+            "rebuild_account_migration.menu_rebuild_tax_groups":
+                "account.tax.group",
+            "rebuild_account_migration.menu_rebuild_account_tags":
+                "account.account.tag",
+            "rebuild_account_migration.menu_rebuild_reconciliation_models":
+                "account.reconcile.model",
+            "rebuild_account_migration.menu_rebuild_incoterms":
+                "account.incoterms",
+        }
+        manager_group = self.env.ref("account.group_account_manager")
+        for xmlid, model_name in configuration_routes.items():
+            menu = self.env.ref(xmlid)
+            self.assertTrue(menu.active)
+            self.assertEqual(menu.action.res_model, model_name)
+            self.assertIn(manager_group, menu.group_ids)
+
         hygiene_menu = self.env.ref(
             "rebuild_account_migration.menu_rebuild_account_review_issues_priority",
         )
@@ -704,6 +940,184 @@ class TestRebuildAccountMigration(TransactionCase):
             method_line_ids,
         )
         self.assertEqual(self.env["account.payment.method.line"].browse(method_line_ids).journal_id, journal)
+
+    def test_reconciliation_model_replay_preserves_native_oca_rule_semantics(self):
+        snapshot = "unit-reconciliation-models"
+        import_run = self.env["rebuild.account.import.run"].create({
+            "name": "Reconciliation model replay",
+            "source_snapshot_id": snapshot,
+        })
+        account = self._account(
+            "T627891",
+            "Unit bank fees",
+            "expense",
+        )
+        journal = self._journal("bank")
+        partner = self.env["res.partner"].create({
+            "name": "Unit reconciliation partner",
+        })
+        tax = self.env["account.tax"].search([
+            ("company_id", "=", self.company.id),
+        ], limit=1)
+        self.assertTrue(tax)
+        model_rows = [{
+            "id": 990201,
+            "sequence": 15,
+            "company_id": 990001,
+            "trigger": "auto_reconcile",
+            "match_amount": "lower",
+            "match_amount_min": -5.0,
+            "match_amount_max": 0.0,
+            "match_label": "contains",
+            "match_label_param": "SERVICE FEE",
+            "name": "Unit service-fee rule",
+            "active": True,
+            "created_automatically": False,
+            "use_count": 7,
+            "is_asking_for_autopost": False,
+        }]
+        line_rows = [{
+            "id": 990202,
+            "model_id": 990201,
+            "sequence": 10,
+            "account_id": 990203,
+            "partner_id": 990204,
+            "amount_type": "percentage",
+            "amount_string": "100",
+            "analytic_distribution": None,
+            "label": "Bank service fee",
+        }]
+        relation_rows = (
+            [{"model_id": 990201, "journal_id": 990205}],
+            [{"model_id": 990201, "partner_id": 990204}],
+            [{"line_id": 990202, "tax_id": 990206}],
+        )
+        options = {
+            "source_database": "unit-source",
+            "source_company_ids": [990001],
+            "source_snapshot_id": snapshot,
+        }
+
+        with patch.object(
+            type(import_run),
+            "_fetchall",
+            side_effect=[
+                model_rows,
+                line_rows,
+                *relation_rows,
+            ],
+        ):
+            mapped, stats = import_run._reconciliation_model_map(
+                object(),
+                options,
+                {990001: self.company},
+                {990203: account},
+                {990205: journal},
+                {990204: partner},
+                {990206: tax},
+            )
+
+        model = mapped[990201]
+        self.assertEqual(model.trigger, "auto_reconcile")
+        self.assertEqual(model.match_amount, "lower")
+        self.assertEqual(model.match_label, "contains")
+        self.assertEqual(model.match_label_param, "SERVICE FEE")
+        self.assertEqual(model.match_journal_ids, journal)
+        self.assertEqual(model.match_partner_ids, partner)
+        self.assertEqual(model.rebuild_source_id, 990201)
+        self.assertIn("use_count=7", model.rebuild_import_note)
+        self.assertEqual(len(model.line_ids), 1)
+        self.assertEqual(model.line_ids.account_id, account)
+        self.assertEqual(model.line_ids.partner_id, partner)
+        self.assertEqual(model.line_ids.tax_ids, tax)
+        self.assertEqual(model.line_ids.amount_string, "100")
+        self.assertEqual(model.line_ids.rebuild_source_id, 990202)
+        self.assertEqual(stats["mapped_model_count"], 1)
+        self.assertEqual(stats["mapped_line_count"], 1)
+        self.assertEqual(stats["missing_reference_count"], 0)
+
+    def test_reconciliation_model_replay_keeps_duplicate_source_names_distinct(self):
+        snapshot = "unit-duplicate-reconciliation-model-names"
+        import_run = self.env["rebuild.account.import.run"].create({
+            "name": "Duplicate reconciliation model name replay",
+            "source_snapshot_id": snapshot,
+        })
+        account = self._account(
+            "T627892",
+            "Unit duplicate-name bank fees",
+            "expense",
+        )
+        model_rows = [
+            {
+                "id": source_id,
+                "sequence": sequence,
+                "company_id": 990001,
+                "trigger": "manual",
+                "match_amount": None,
+                "match_amount_min": 0.0,
+                "match_amount_max": 0.0,
+                "match_label": "contains",
+                "match_label_param": label,
+                "name": "Unit duplicate source rule",
+                "active": True,
+                "created_automatically": False,
+                "use_count": 0,
+                "is_asking_for_autopost": False,
+            }
+            for source_id, sequence, label in (
+                (990211, 10, "FEE A"),
+                (990212, 20, "FEE B"),
+            )
+        ]
+        line_rows = [
+            {
+                "id": source_id + 10,
+                "model_id": source_id,
+                "sequence": 10,
+                "account_id": 990203,
+                "partner_id": None,
+                "amount_type": "percentage",
+                "amount_string": "100",
+                "analytic_distribution": None,
+                "label": label,
+            }
+            for source_id, label in (
+                (990211, "First source rule"),
+                (990212, "Second source rule"),
+            )
+        ]
+        options = {
+            "source_database": "unit-source",
+            "source_company_ids": [990001],
+            "source_snapshot_id": snapshot,
+        }
+
+        with patch.object(
+            type(import_run),
+            "_fetchall",
+            side_effect=[model_rows, line_rows, [], [], []],
+        ):
+            mapped, stats = import_run._reconciliation_model_map(
+                object(),
+                options,
+                {990001: self.company},
+                {990203: account},
+                {},
+                {},
+                {},
+            )
+
+        self.assertEqual(len(mapped), 2)
+        self.assertNotEqual(mapped[990211], mapped[990212])
+        self.assertEqual(
+            sorted([
+                mapped[990211].rebuild_source_id,
+                mapped[990212].rebuild_source_id,
+            ]),
+            [990211, 990212],
+        )
+        self.assertEqual(stats["mapped_model_count"], 2)
+        self.assertEqual(stats["mapped_line_count"], 2)
 
     def test_exact_replay_reuses_only_validated_native_source_move_alias(self):
         snapshot = "unit-replacement-target-alias"

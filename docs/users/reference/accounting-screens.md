@@ -162,6 +162,61 @@ Use the three transaction/reconciliation paths for different purposes:
 - `Accounting > Transactions > Bank Matching` opens unreconciled bank statement lines across journals. A journal card's `Reconcile … Items` button opens the same workbench scoped to that journal.
 - `Accounting > Closing > General Reconciliation` handles receivable, payable, suspense, tax, shareholder, payroll and other clearing accounts by account and partner.
 
-Bank Matching shows the statement line, suspense entry, candidate journal items, manual operation, chatter and validation controls. General Reconciliation shows account/partner groups and their residual journal items. Full accounting-effect validation of matching, write-offs, partial reconciliation and undo remains in progress.
+Bank Matching shows the statement line, suspense entry, candidate journal items,
+manual operation, chatter and validation controls. General Reconciliation shows
+account/partner groups and their residual journal items. Executable tests cover
+native matching, write-off, partial-reconciliation and undo effects; the source
+boundary classifications still require professional acceptance.
 
 Technical source mappings, raw imported report rows and comparison evidence are intentionally grouped under `Review > Advanced Audit`.
+
+## Matched Items and Undo
+
+```text
+Accounting > Closing > Matched Items and Undo
+```
+
+This screen shows posted, reconciled journal items on reconcilable accounts.
+Finance operators can select a line and use `Action > Unreconcile` to invoke
+Odoo's native full/partial reconciliation removal. The accountant reviewer can
+inspect the same scoped list but cannot run the mutation.
+
+Native match, partial-match and undo accounting effects have executable tests.
+The professional decision for source cross-boundary matches and write-offs
+remains separate from this technical capability.
+
+## Email Ingestion
+
+Purchase journals expose their bill alias under the journal's advanced email
+settings. Expense ingestion is configured under
+`Settings > Expenses > Incoming Emails`.
+
+The native gateway creates a draft record, identifies a known supplier or
+employee where possible, and retains the incoming message and attachment.
+Self-hosted delivery is not active until an administrator configures a
+controlled alias domain, provider/DNS route and incoming mail server. See
+[Route Bills and Expenses by Email](../how-to/route-bills-and-expenses-by-email.md).
+
+## Accounting Configuration
+
+Accounting Managers have explicit routes for the retained configuration:
+
+| Configuration | Route or implementation |
+| --- | --- |
+| Chart of accounts | `Configuration > Accounting > Chart of Accounts` |
+| Account groups | `Configuration > Accounting > Account Groups` |
+| Taxes and tax groups | `Configuration > Accounting > Taxes` and `Tax Groups` |
+| Accounting/tax tags | `Configuration > Accounting > Accounting and Tax Tags` |
+| Journals | `Configuration > Accounting > Journals` |
+| Reconciliation rules | `Configuration > Accounting > Reconciliation Models` |
+| Currencies and rates | `Configuration > Currencies` and `Currency Rate Automation` |
+| Payment terms | `Configuration > Invoicing > Payment Terms` |
+| Incoterms | `Configuration > Invoicing > Incoterms` |
+| Asset profiles | `Configuration > Assets` |
+| Analytic plans/accounts | `Configuration > Analytic Accounting` |
+| Multi-ledger configuration | `Configuration > Multi-Ledgers` |
+
+The source contains no tax-unit rows and no installed budget application, so
+those are retained as explicit not-applicable capabilities rather than empty
+custom screens. French declarations use the dedicated declaration workspace
+and rule catalogue instead of an Enterprise tax-unit model.

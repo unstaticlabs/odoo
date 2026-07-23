@@ -6,6 +6,9 @@ Audience: Valentin, USL finance operators, the USL accountant, and the next impl
 
 This report describes the current implementation state. It is not a closure report. Deterministic reconstruction, the Community-compatible accounting report workbench and the main accounting review surfaces are technically implemented; professional report, tax, FEC and milestone acceptance is still pending.
 
+The configuration-specific source/target decisions are recorded in
+[Milestone 13 Accounting Configuration Capability Matrix](milestone-13-configuration-capability-matrix.md).
+
 Formal checkpoint:
 
 - [Milestone 13 checkpoint - 2026-07-23](milestone-13-checkpoint-2026-07-23.md)
@@ -167,8 +170,9 @@ The current import status reports these production-derived records represented i
 
 - 2 companies
 - 1,877 historical EUR, USD and GBP currency rates
-- 135 imported accounts
+- 140 imported accounts
 - 31 imported journals
+- 49 source-traced reconciliation models and 49 source-traced model lines
 - 4,843 imported posted moves
 - 11,392 imported posted move lines
 - 97 imported payments
@@ -197,7 +201,14 @@ A disposable hybrid candidate now integrates the Track B native records with
 the exact benchmark history. It remains separate from the exact target until
 its classified native differences and user journeys receive acceptance.
 
-The target validation artifact reports 29 comparison groups and no failed comparison group for the posted ledger slice. The currency-rate comparison is broad-snapshot rather than benchmark-only and passes with zero missing, extra or mismatched rows; the idempotence signature includes the full `res_currency_rate` table.
+The target validation artifact reports 31 comparison groups and no failed
+comparison group for the posted ledger slice. It now compares all 49 source
+reconciliation models and all 49 model lines with zero missing, extra or
+mismatched rows, while the target retains its two untraced native defaults.
+The currency-rate comparison is broad-snapshot rather than benchmark-only and
+passes with zero missing, extra or mismatched rows; the idempotence signature
+includes the full `res_currency_rate`, `account_reconcile_model` and
+`account_reconcile_model_line` populations.
 
 Historical-rate architecture deliberately separates reconstruction from future automation. Three credible options were considered: (1) replay exact source `res.currency.rate` rows and use manual future rates; (2) install a maintained Odoo/OCA automatic provider; or (3) add a focused ECB adapter over Odoo's native rate model. Exact replay remains selected for history because it preserves the conversions that drove posted source accounting. The checked Community/OCA 19 dependency set has no deployable automatic updater, so option 3 is selected for future reference rates. It writes only non-source-traced native rows, skips any source-traced same-date rate, records provider/retrieval metadata, and runs daily after the normal ECB publication window. ECB rates remain informational reference rates; transaction-specific bank or platform conversions remain authoritative where they define the accounting event.
 
@@ -243,6 +254,12 @@ The add-on currently provides:
 - a company-scoped Accounting Hygiene workbench backed by live native records,
   current closing controls, configurable unusual-balance detection and
   separated Valentin/Prosper decision queues
+- source-traced native reconciliation models, explicit Accounting Manager
+  configuration routes and a read-only matched-item inspection route backed by
+  Odoo's native `Unreconcile` action
+- native supplier-bill and employee-expense email ingestion tests plus a
+  deployment runbook that keeps inbound aliases inactive until a controlled
+  domain, mail route and real-delivery smoke test exist
 
 This add-on is evidence and reconstruction infrastructure. It is not yet a full replacement for the Enterprise `account_reports` interactive reporting product.
 

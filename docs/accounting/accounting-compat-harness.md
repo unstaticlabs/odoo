@@ -609,7 +609,7 @@ capability records its required private artifacts, and every one of the `38`
 source reports records its Level 4 technical-evidence state and remaining
 acceptance gate.
 
-The same export wizard now exposes a FEC export backed by Odoo `l10n_fr_account`. The current harness generates `983982950FEC20250930.txt` through the Odoo UI wizard model in FEC test mode, with `4,781` data rows, debit `1,064,045.02`, credit `1,064,045.02` and SHA-256 `38d99b33b0f2864637a0506f61a52d33e73cd58ecd3ca9cdf6a6f69b740c53b1`. The generated exports identify company, source company id, dates, posted/draft scope, selected filters, format and row count.
+The same export wizard now exposes a FEC export backed by Odoo `l10n_fr_account`. The current harness generates `983982950FEC20250930.txt` through the Odoo UI wizard model in FEC test mode, with `4,781` data rows, debit `1,064,045.02`, credit `1,064,045.02` and SHA-256 `95652b3f3a7c66e25a6f2aa0d56cf860777364606b5a9519090f2d48e5657efa`. The generated exports identify company, source company id, dates, posted/draft scope, selected filters, format and row count.
 
 The benchmark report bundle now includes historical bank reconciliation, currency, analytic and EC/OSS evidence:
 
@@ -755,7 +755,7 @@ The harness generates a benchmark FEC through Odoo `l10n_fr_account` in test mod
 - path: `artifacts/accounting-compat/private/fec-usl-2025-09-30.txt`;
 - data rows excluding header: `4,781`;
 - debit and credit totals: `1,064,045.02`;
-- current SHA-256: `38d99b33b0f2864637a0506f61a52d33e73cd58ecd3ca9cdf6a6f69b740c53b1`.
+- current SHA-256: `95652b3f3a7c66e25a6f2aa0d56cf860777364606b5a9519090f2d48e5657efa`.
 
 The FEC export reconciles to the imported target ledger. The Odoo-facing export wizard produces the same file hash for the benchmark period. It has passed the current DGFiP Test Compta Demat source validation route described below, but it has not been accepted by the accountant.
 
@@ -767,7 +767,7 @@ The FEC export reconciles to the imported target ledger. The Odoo-facing export 
 - invalid row/date/amount/account counts: `0`;
 - chronology decreases: `0`;
 - unbalanced entry groups: `0`;
-- rows with lettering: `2,239`;
+- rows with lettering: `2,240`;
 - rows with currency values: `4,781`.
 
 This is useful defect prevention evidence only. It is separate from the DGFiP source-validation result and does not replace accountant review.

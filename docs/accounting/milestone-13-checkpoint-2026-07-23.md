@@ -118,12 +118,24 @@ The latest clean target rehearsal passed:
 - full imported target: `4,843` source moves plus one source-traced correction;
 - target invariants: no unbalanced posted move and no source/target parity failure;
 - document regeneration: `189` candidates validated, `5` deliberately review-only;
+- reconciliation configuration: `49/49` source models and `49/49` source
+  model lines compare exactly, with `0` missing references or duplicate
+  source traces;
 - cross-boundary reconciliation evidence: `75/75` rows have generated draft endpoint coverage;
 - rollback-only native partial-reconciliation probe: passed.
 - reconciliation review browser: manager and scoped reviewer saw all `39`
   partial and `36` full policy rows, opened balanced imported/generated
   endpoint previews, and left `2,534` native partials plus `0` linked decisions
   unchanged.
+
+The operational configuration extension also exposes Account Groups, Tax
+Groups, Accounting and Tax Tags, Reconciliation Models and Incoterms through
+Accounting Manager routes. A native matched-item list supplies the standard
+`Unreconcile` workflow, and permanent tests prove the accounting effect of
+match/partial-match removal. Native supplier-bill and employee-expense email
+gateways are covered with raw RFC-message tests; production aliases remain
+deliberately unconfigured until Unstatic Labs controls the inbound domain,
+provider route and incoming mail server.
 
 Clean rehearsal A ran reset, import, validation and idempotence before the declaration/closing checkpoint. Clean rehearsal B reran reset, import and validation after those changes. Both reproduced the same Track A counts and totals. The latest target idempotence artifact remains passed.
 

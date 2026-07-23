@@ -35,7 +35,9 @@ The implemented user-facing accounting features are centered on reconstructed ac
 - open Review > Control > Accounting Hygiene to review daily queues, missing evidence, current controls and assigned decisions;
 - open Accounting > Transactions > Bank Matching to review imported bank statement lines in the bank workbench;
 - open Accounting > Closing > General Reconciliation to reconcile open accounting items independently of bank matching;
+- open Accounting > Closing > Matched Items and Undo to inspect reconciled journal items and invoke Odoo's native Unreconcile action;
 - open the native Expenses workspace from the supplier accounting area;
+- route supplier bills and employee receipts through native email aliases after the self-hosted inbound domain and mail server have been configured;
 - use one canonical Accounting Report Workbench for Trial Balance, General Ledger, partner, statement, tax, management, asset and analytic reports;
 - open a reconstruction summary for each imported company;
 - inspect imported posted journal items;
@@ -79,6 +81,7 @@ Use this if this is your first time opening the rebuilt accounting evidence in O
 - [Generate and Review the FEC](how-to/generate-and-review-fec.md)
 - [Review Fixed Assets, Depreciation and Deferred Schedules](how-to/review-assets-and-deferred.md)
 - [Review Reconciliation Boundary Cases](how-to/review-reconciliation-boundaries.md)
+- [Route Bills and Expenses by Email](how-to/route-bills-and-expenses-by-email.md)
 - [Manage Currency Rate Automation](how-to/manage-currency-rate-automation.md)
 - [Use Accountant Access Safely](how-to/use-accountant-access.md)
 
@@ -103,7 +106,8 @@ Use this if this is your first time opening the rebuilt accounting evidence in O
 - Do not record acceptance decisions unless you have reviewed the evidence and have the authority to approve.
 - Do not apply native cross-boundary reconciliations without an accepted review decision.
 - Do not replace an actual bank or platform conversion with an ECB reference rate when the actual conversion defines the transaction.
-- Do not treat access to the reconciliation workbench as proof that every reconciliation behavior is accepted. Matching, write-off, partial-reconciliation and historical-reconciliation behavior still require validation before Milestone 13 closure.
+- Do not treat access to the reconciliation workbench as professional acceptance of every source boundary. Native match, partial-match and undo effects are tested, while historical boundary decisions still require the named accountant.
+- Do not publish an email alias until the controlled inbound domain, provider routing and incoming server have passed a real delivery smoke test.
 - Do not use synthetic bootstrap data as production accounting evidence.
 
 ## Normal Starting Point in Odoo

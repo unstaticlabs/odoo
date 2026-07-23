@@ -191,6 +191,19 @@ class AccountJournal(models.Model):
     _inherit = ["account.journal", "rebuild.source.trace.mixin"]
 
 
+class AccountReconcileModel(models.Model):
+    _name = "account.reconcile.model"
+    _inherit = ["account.reconcile.model", "rebuild.source.trace.mixin"]
+
+
+class AccountReconcileModelLine(models.Model):
+    _name = "account.reconcile.model.line"
+    _inherit = [
+        "account.reconcile.model.line",
+        "rebuild.source.trace.mixin",
+    ]
+
+
 class AccountTaxGroup(models.Model):
     _name = "account.tax.group"
     _inherit = ["account.tax.group", "rebuild.source.trace.mixin"]

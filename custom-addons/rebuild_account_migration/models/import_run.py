@@ -1692,6 +1692,18 @@ class RebuildAccountImportRun(models.Model):
                 WHERE company_id = ANY(%(source_company_ids)s)
                   AND date BETWEEN %(date_from)s AND %(date_to)s
                   AND partner_id IS NOT NULL
+                UNION
+                SELECT line.partner_id
+                FROM account_reconcile_model_line line
+                JOIN account_reconcile_model model ON model.id = line.model_id
+                WHERE model.company_id = ANY(%(source_company_ids)s)
+                  AND line.partner_id IS NOT NULL
+                UNION
+                SELECT relation.res_partner_id
+                FROM account_reconcile_model_res_partner_rel relation
+                JOIN account_reconcile_model model
+                  ON model.id = relation.account_reconcile_model_id
+                WHERE model.company_id = ANY(%(source_company_ids)s)
             )
             ORDER BY rp.id
             """,
@@ -1813,6 +1825,12 @@ class RebuildAccountImportRun(models.Model):
                 SELECT DISTINCT account_depreciation_expense_id AS id
                 FROM account_asset
                 WHERE account_depreciation_expense_id IS NOT NULL
+                UNION
+                SELECT DISTINCT line.account_id AS id
+                FROM account_reconcile_model_line line
+                JOIN account_reconcile_model model ON model.id = line.model_id
+                WHERE model.company_id = ANY(%(source_company_ids)s)
+                  AND line.account_id IS NOT NULL
                 UNION
                 SELECT DISTINCT aa.id AS id
                 FROM account_account aa
@@ -2611,6 +2629,12 @@ class RebuildAccountImportRun(models.Model):
                 SELECT DISTINCT journal_id
                 FROM account_asset
                 WHERE journal_id IS NOT NULL
+                UNION
+                SELECT DISTINCT relation.account_journal_id
+                FROM account_journal_account_reconcile_model_rel relation
+                JOIN account_reconcile_model model
+                  ON model.id = relation.account_reconcile_model_id
+                WHERE model.company_id = ANY(%(source_company_ids)s)
             )
             ORDER BY aj.company_id, aj.id
             """,
@@ -2657,6 +2681,277 @@ class RebuildAccountImportRun(models.Model):
                 journal = Journal.create(vals)
             journals[row["id"]] = journal
         return journals
+
+    def _reconciliation_model_map(
+        self,
+        conn,
+        options,
+        companies,
+        accounts,
+        journals,
+        partners,
+        taxes,
+        analytic_accounts=None,
+    ):
+        model_rows = self._fetchall(
+            conn,
+            """
+            SELECT model.id, model.sequence, model.company_id, model.trigger,
+                   model.match_amount, model.match_amount_min,
+                   model.match_amount_max, model.match_label,
+                   model.match_label_param, model.name, model.active,
+                   model.created_automatically, model.use_count,
+                   model.is_asking_for_autopost
+            FROM account_reconcile_model model
+            WHERE model.company_id = ANY(%(source_company_ids)s)
+            ORDER BY model.company_id, model.sequence, model.id
+            """,
+            options,
+        )
+        line_rows = self._fetchall(
+            conn,
+            """
+            SELECT line.id, line.model_id, line.sequence, line.account_id,
+                   line.partner_id, line.amount_type, line.amount_string,
+                   line.analytic_distribution, line.label
+            FROM account_reconcile_model_line line
+            JOIN account_reconcile_model model ON model.id = line.model_id
+            WHERE model.company_id = ANY(%(source_company_ids)s)
+            ORDER BY line.model_id, line.sequence, line.id
+            """,
+            options,
+        )
+        journal_rows = self._fetchall(
+            conn,
+            """
+            SELECT relation.account_reconcile_model_id AS model_id,
+                   relation.account_journal_id AS journal_id
+            FROM account_journal_account_reconcile_model_rel relation
+            JOIN account_reconcile_model model
+              ON model.id = relation.account_reconcile_model_id
+            WHERE model.company_id = ANY(%(source_company_ids)s)
+            ORDER BY relation.account_reconcile_model_id,
+                     relation.account_journal_id
+            """,
+            options,
+        )
+        partner_rows = self._fetchall(
+            conn,
+            """
+            SELECT relation.account_reconcile_model_id AS model_id,
+                   relation.res_partner_id AS partner_id
+            FROM account_reconcile_model_res_partner_rel relation
+            JOIN account_reconcile_model model
+              ON model.id = relation.account_reconcile_model_id
+            WHERE model.company_id = ANY(%(source_company_ids)s)
+            ORDER BY relation.account_reconcile_model_id,
+                     relation.res_partner_id
+            """,
+            options,
+        )
+        tax_rows = self._fetchall(
+            conn,
+            """
+            SELECT relation.account_reconcile_model_line_id AS line_id,
+                   relation.account_tax_id AS tax_id
+            FROM account_reconcile_model_line_account_tax_rel relation
+            JOIN account_reconcile_model_line line
+              ON line.id = relation.account_reconcile_model_line_id
+            JOIN account_reconcile_model model ON model.id = line.model_id
+            WHERE model.company_id = ANY(%(source_company_ids)s)
+            ORDER BY relation.account_reconcile_model_line_id,
+                     relation.account_tax_id
+            """,
+            options,
+        )
+        lines_by_model = defaultdict(list)
+        for row in line_rows:
+            lines_by_model[row["model_id"]].append(row)
+        journals_by_model = defaultdict(list)
+        for row in journal_rows:
+            journals_by_model[row["model_id"]].append(row["journal_id"])
+        partners_by_model = defaultdict(list)
+        for row in partner_rows:
+            partners_by_model[row["model_id"]].append(row["partner_id"])
+        taxes_by_line = defaultdict(list)
+        for row in tax_rows:
+            taxes_by_line[row["line_id"]].append(row["tax_id"])
+
+        source_model_ids = {row["id"] for row in model_rows}
+        source_line_ids = {row["id"] for row in line_rows}
+        missing_references = []
+        for row in line_rows:
+            if row["account_id"] and row["account_id"] not in accounts:
+                missing_references.append(
+                    f"line {row['id']} account {row['account_id']}",
+                )
+            if row["partner_id"] and row["partner_id"] not in partners:
+                missing_references.append(
+                    f"line {row['id']} partner {row['partner_id']}",
+                )
+            for source_tax_id in taxes_by_line[row["id"]]:
+                if source_tax_id not in taxes:
+                    missing_references.append(
+                        f"line {row['id']} tax {source_tax_id}",
+                    )
+        for source_model_id, source_journal_ids in journals_by_model.items():
+            for source_journal_id in source_journal_ids:
+                if source_journal_id not in journals:
+                    missing_references.append(
+                        f"model {source_model_id} journal {source_journal_id}",
+                    )
+        for source_model_id, source_partner_ids in partners_by_model.items():
+            for source_partner_id in source_partner_ids:
+                if source_partner_id not in partners:
+                    missing_references.append(
+                        f"model {source_model_id} partner {source_partner_id}",
+                    )
+        if missing_references:
+            raise ValueError(
+                "Reconciliation-model references were not reconstructed: "
+                + "; ".join(missing_references),
+            )
+
+        mapped = {}
+        Model = self.env["account.reconcile.model"].with_context(
+            active_test=False,
+            tracking_disable=True,
+        )
+        for row in model_rows:
+            company = companies[row["company_id"]]
+            name = (
+                self._source_text(row["name"])
+                or f"Source reconciliation model {row['id']}"
+            )
+            model = Model.search([
+                ("rebuild_source_model", "=", "account.reconcile.model"),
+                ("rebuild_source_id", "=", row["id"]),
+                (
+                    "rebuild_source_snapshot",
+                    "=",
+                    options.get("source_snapshot_id"),
+                ),
+            ], limit=1)
+            if not model:
+                model = Model.search([
+                    ("name", "=", name),
+                    ("company_id", "=", company.id),
+                    ("rebuild_source_model", "=", False),
+                ], limit=1)
+            vals = {
+                "name": name,
+                "sequence": row["sequence"] or 10,
+                "company_id": company.id,
+                "active": bool(row["active"]),
+                "trigger": row["trigger"] or "manual",
+                "match_amount": row["match_amount"] or False,
+                "match_amount_min": self._amount(row["match_amount_min"]),
+                "match_amount_max": self._amount(row["match_amount_max"]),
+                "match_label": row["match_label"] or False,
+                "match_label_param": row["match_label_param"] or False,
+                "match_journal_ids": [
+                    Command.set([
+                        journals[source_id].id
+                        for source_id in journals_by_model[row["id"]]
+                    ]),
+                ],
+                "match_partner_ids": [
+                    Command.set([
+                        partners[source_id].id
+                        for source_id in partners_by_model[row["id"]]
+                    ]),
+                ],
+                **self._trace_values(
+                    "account.reconcile.model",
+                    row["id"],
+                    options,
+                ),
+                "rebuild_import_note": (
+                    "Native/OCA functional rule imported. Source-only "
+                    f"created_automatically={bool(row['created_automatically'])}, "
+                    f"use_count={row['use_count'] or 0}, "
+                    "is_asking_for_autopost="
+                    f"{bool(row['is_asking_for_autopost'])}; these UI/runtime "
+                    "counters are evidence, not executable configuration."
+                ),
+            }
+            if model:
+                model.write(vals)
+            else:
+                model = Model.create(vals)
+
+            line_commands = [Command.clear()]
+            for line in lines_by_model[row["id"]]:
+                analytic_distribution = (
+                    self._native_replay_analytic_distribution(
+                        line["analytic_distribution"],
+                        analytic_accounts or {},
+                    )
+                    if line["analytic_distribution"]
+                    else False
+                )
+                line_commands.append(Command.create({
+                    "sequence": line["sequence"] or 10,
+                    "account_id": (
+                        accounts[line["account_id"]].id
+                        if line["account_id"]
+                        else False
+                    ),
+                    "partner_id": (
+                        partners[line["partner_id"]].id
+                        if line["partner_id"]
+                        else False
+                    ),
+                    "label": self._source_text(line["label"]),
+                    "amount_type": line["amount_type"] or "percentage",
+                    "amount_string": line["amount_string"] or "100",
+                    "analytic_distribution": analytic_distribution,
+                    "tax_ids": [
+                        Command.set([
+                            taxes[source_id].id
+                            for source_id in taxes_by_line[line["id"]]
+                        ]),
+                    ],
+                    **self._trace_values(
+                        "account.reconcile.model.line",
+                        line["id"],
+                        options,
+                    ),
+                }))
+            model.write({"line_ids": line_commands})
+            mapped[row["id"]] = model
+
+        return mapped, {
+            "source_model_count": len(source_model_ids),
+            "source_line_count": len(source_line_ids),
+            "journal_relation_count": len(journal_rows),
+            "partner_relation_count": len(partner_rows),
+            "tax_relation_count": len(tax_rows),
+            "mapped_model_count": len(mapped),
+            "mapped_line_count": self.env[
+                "account.reconcile.model.line"
+            ].search_count([
+                (
+                    "rebuild_source_model",
+                    "=",
+                    "account.reconcile.model.line",
+                ),
+                (
+                    "rebuild_source_snapshot",
+                    "=",
+                    options.get("source_snapshot_id"),
+                ),
+                (
+                    "model_id",
+                    "in",
+                    [model.id for model in mapped.values()] or [0],
+                ),
+            ]),
+            "missing_reference_count": len(missing_references),
+            "source_runtime_metadata_classification": (
+                "NOT_MIGRATED_NON_EXECUTABLE_EVIDENCE"
+            ),
+        }
 
     def _analytic_plan_map(self, conn, options):
         rows = self._fetchall(
@@ -5981,6 +6276,18 @@ class RebuildAccountImportRun(models.Model):
                 partners,
                 analytic_plans,
             )
+            _reconciliation_models, reconciliation_model_stats = (
+                self._reconciliation_model_map(
+                    conn,
+                    options,
+                    companies,
+                    accounts,
+                    journals,
+                    partners,
+                    taxes,
+                    analytic_accounts,
+                )
+            )
             expense_rows = self._native_expense_rows(conn, options)
             move_rows = self._native_expense_move_rows(conn, options)
             source_totals_by_move = self._native_expense_source_account_totals(conn, options)
@@ -6569,6 +6876,7 @@ class RebuildAccountImportRun(models.Model):
                 "currency_rates": currency_rate_stats,
                 "tax_configuration": tax_stats,
                 "fiscal_positions": fiscal_position_stats,
+                "reconciliation_models": reconciliation_model_stats,
                 "partner_accounting_properties": partner_property_stats,
                 "expense_accounts": expense_account_stats,
                 "expense_configuration": expense_configuration_stats,
@@ -6699,6 +7007,18 @@ class RebuildAccountImportRun(models.Model):
                 companies,
                 partners,
                 analytic_plans,
+            )
+            _reconciliation_models, reconciliation_model_stats = (
+                self._reconciliation_model_map(
+                    conn,
+                    options,
+                    companies,
+                    accounts,
+                    journals,
+                    partners,
+                    taxes,
+                    analytic_accounts,
+                )
             )
             document_rows = self._native_replay_document_rows(conn, options)
             lines_by_move = self._native_replay_line_rows_by_move(conn, options)
@@ -6966,6 +7286,7 @@ class RebuildAccountImportRun(models.Model):
                 "tax_configuration": tax_stats,
                 "payment_terms": payment_term_stats,
                 "fiscal_positions": fiscal_position_stats,
+                "reconciliation_models": reconciliation_model_stats,
                 "partner_accounting_properties": partner_property_stats,
                 "attachments": document_attachment_stats,
             }
@@ -7061,6 +7382,18 @@ class RebuildAccountImportRun(models.Model):
             journals = self._journal_map(conn, options, companies, accounts, currencies)
             analytic_plans = self._analytic_plan_map(conn, options)
             analytic_accounts = self._analytic_account_map(conn, options, companies, partners, analytic_plans)
+            _reconciliation_models, reconciliation_model_stats = (
+                self._reconciliation_model_map(
+                    conn,
+                    options,
+                    companies,
+                    accounts,
+                    journals,
+                    partners,
+                    taxes,
+                    analytic_accounts,
+                )
+            )
             move_rows = self._move_rows(conn, options)
             line_rows_by_move = self._line_rows_by_move(conn, options)
             Move = self.env["account.move"].with_context(
@@ -7644,6 +7977,7 @@ class RebuildAccountImportRun(models.Model):
                 "tax_configuration": tax_stats,
                 "payment_terms": payment_term_stats,
                 "fiscal_positions": fiscal_position_stats,
+                "reconciliation_models": reconciliation_model_stats,
                 "partner_accounting_properties": partner_property_stats,
                 "reconciliations": reconciliation_stats,
                 "payments": payment_stats,
