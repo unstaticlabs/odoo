@@ -178,6 +178,16 @@ acceptance and an explicit promotion decision remain open. Replacement
 report/role/browser journeys now pass for both Accounting Manager and the
 single-company accountant reviewer.
 
+The focused replacement reset/import/validate sequence was run cleanly again
+after the FEC role and final UI refresh changes. Compared with the prior clean
+hybrid run, it reproduced the same `284` native documents, `325` expenses,
+`1,841` bank transactions, four reused native moves, exact historical
+`2,046`/`4,809` counts and `1,064,045.02` totals, combined
+`4,541`/`10,727` counts, zero unbalanced or duplicate representations, all
+12 classified account differences netting to zero and the same EUR `2.64`
+professional-acceptance item. Source restore, extraction and Track B replay
+were correctly not rerun because those inputs were unchanged.
+
 The first clean native rebuild after adding standalone operator entries failed
 the external-bank stage with `40` blocked cases and `46` mismatches. The
 standalone selector had claimed `12` payroll/tax moves that belong to the

@@ -305,7 +305,6 @@ Not yet professionally accepted as finished product behavior:
 - accountant acceptance of dynamic report formulas, French variants, drilldowns and export presentation
 - accountant validation of the source cash-basis VAT treatment
 - accountant review of FEC and statutory/tax outputs
-- complete second clean rehearsal evidence after the latest UX changes
 
 ## Community baseline versus USL custom work
 
@@ -516,7 +515,6 @@ Current outcome: the dynamic report screens, readable exports, declaration works
 - final CA12 and tax package review
 - accountant-reviewed FEC dossier
 - full accountant access testing
-- second clean reconstruction after the latest UI/docs state
 - final closure evidence package
 
 ## Checklist left to complete
@@ -556,7 +554,7 @@ Current outcome: the dynamic report screens, readable exports, declaration works
 - [ ] Validate sequence and chronology behavior.
 - [ ] Validate full and partial reconciliation behavior through a user-facing review path.
 - [ ] Complete the accountant-reviewed FEC dossier. Official DGFiP structural validation already passes.
-- [ ] Run a second clean reconstruction and compare deterministic outputs.
+- [x] Run a second clean reconstruction and compare deterministic outputs. The focused hybrid reset/import/validate sequence reproduced the prior clean candidate signature and every classified difference after the final FEC/UI changes.
 - [ ] Resolve or formally accept every P0/P1 discrepancy.
 
 ### Later roadmap

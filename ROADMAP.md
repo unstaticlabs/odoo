@@ -27,6 +27,7 @@ Overall status: **technical rehearsal passed; professional acceptance pending**.
 - [x] The `4,781`-row FEC reconciles and passes the DGFiP Test Compta Demat source validator with zero blocking logs.
 - [x] Browser walkthroughs pass for Accounting Manager and the scoped Prosper reviewer; reviewer writes are denied by ACLs and Bank Matching mutation controls are hidden.
 - [x] FEC generation and download pass in the replacement browser for Accounting Manager, scoped Prosper reviewer and finance operator. Reviewer/operator mode is locked to a complete posted test FEC; only the manager can use the official lock-date path.
+- [x] A second focused clean hybrid reset/import/validate run after the final FEC/UI changes reproduces the prior candidate signature and classified differences without rerunning unchanged source or Track B stages.
 
 ### Professional gates still open
 
