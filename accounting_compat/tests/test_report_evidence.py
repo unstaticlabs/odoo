@@ -6,6 +6,44 @@ from accounting_compat import cli
 
 
 class SourceReportParityEvidenceTest(unittest.TestCase):
+    def test_capability_matrix_applies_final_capability_and_report_controls(self):
+        matrix = cli.capability_matrix(
+            [
+                {
+                    "id": 7,
+                    "name": "Trial Balance",
+                    "decision": "MANDATORY_PARITY",
+                    "acceptance_evidence_required": "exports",
+                },
+            ],
+            {
+                "capabilities": {
+                    "Accounting > Closing > Reconcile": {
+                        "status": "PARTIAL",
+                        "technical_status": "passed",
+                    },
+                },
+                "reports": {
+                    "7": {
+                        "status": "PARTIAL",
+                        "technical_status": "passed",
+                        "parity_level": "level_4_evidence_partial",
+                    },
+                },
+            },
+        )
+
+        reconcile = next(
+            row
+            for row in matrix
+            if row["capability"] == "Accounting > Closing > Reconcile"
+        )
+        report = next(row for row in matrix if row.get("source_report_id") == 7)
+        self.assertEqual(reconcile["status"], "PARTIAL")
+        self.assertEqual(reconcile["technical_status"], "passed")
+        self.assertEqual(report["status"], "PARTIAL")
+        self.assertEqual(report["parity_level"], "level_4_evidence_partial")
+
     def test_sequence_chronology_summary_keeps_source_exceptions_visible(self):
         summary = cli.sequence_chronology_summary([
             {

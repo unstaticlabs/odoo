@@ -1286,6 +1286,9 @@ def report_evidence(decision: str) -> str:
 
 
 def capability_matrix(reports: list[dict[str, Any]], controls: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+    controls = controls or {}
+    capability_controls = controls.get("capabilities", {})
+    report_controls = controls.get("reports", {})
     base_capabilities = [
         ("Accounting > Closing > Reconcile", "MANDATORY_PARITY"),
         ("Accounting > Closing > Tax returns", "MANDATORY_PARITY"),
@@ -1306,47 +1309,307 @@ def capability_matrix(reports: list[dict[str, Any]], controls: dict[str, Any] | 
     ]
     matrix = []
     for capability, decision in base_capabilities:
-        matrix.append(
-            {
-                "capability": capability,
-                "decision": decision,
-                "source_behaviour": "source_inventory_required",
-                "target_community_baseline": "inspect_local_module_and_standard_odoo_behavior",
-                "candidate_alternatives": [
-                    "standard_odoo_community",
-                    "maintained_oca_module",
-                    "usl_original_reimplementation",
-                    "explicit_external_service_retention",
-                ],
-                "remaining_gap": "not_closed_in_v1",
-                "accounting_risk": "P0 if posted history, tax, lock, reconciliation, report, or FEC semantics differ",
-                "compliance_risk": "requires accountant/legal review where statutory or tax output is affected",
-                "evidence_required": "source_controls,target_controls,report_comparison,discrepancy_register",
-                "status": "DISCOVERY",
-            },
-        )
+        row = {
+            "capability": capability,
+            "decision": decision,
+            "source_behaviour": "source_inventory_required",
+            "target_community_baseline": "inspect_local_module_and_standard_odoo_behavior",
+            "candidate_alternatives": [
+                "standard_odoo_community",
+                "maintained_oca_module",
+                "usl_original_reimplementation",
+                "explicit_external_service_retention",
+            ],
+            "remaining_gap": "not_closed_in_v1",
+            "accounting_risk": "P0 if posted history, tax, lock, reconciliation, report, or FEC semantics differ",
+            "compliance_risk": "requires accountant/legal review where statutory or tax output is affected",
+            "evidence_required": "source_controls,target_controls,report_comparison,discrepancy_register",
+            "status": "DISCOVERY",
+        }
+        row.update(capability_controls.get(capability, {}))
+        matrix.append(row)
     for report in reports:
-        matrix.append(
-            {
-                "capability": f"Source report: {report.get('name')}",
-                "source_report_id": report.get("id"),
-                "decision": report.get("decision"),
-                "source_behaviour": "source_account_report_record",
-                "target_community_baseline": "pending_target_report_mapping",
-                "candidate_alternatives": [
-                    "standard_account_report",
-                    "l10n_fr_account_or_target_localization",
-                    "oca_reporting_module",
-                    "usl_original_report_expression",
-                ],
-                "remaining_gap": "target_semantics_not_yet_compared",
-                "accounting_risk": "line_mapping_or_formula_difference",
-                "compliance_risk": "statutory_or_tax_report_requires_accountant_review" if report.get("decision") == "MANDATORY_PARITY" else "usage_dependent",
-                "evidence_required": report.get("acceptance_evidence_required"),
-                "status": "DISCOVERY",
-            },
-        )
+        row = {
+            "capability": f"Source report: {report.get('name')}",
+            "source_report_id": report.get("id"),
+            "decision": report.get("decision"),
+            "source_behaviour": "source_account_report_record",
+            "target_community_baseline": "pending_target_report_mapping",
+            "candidate_alternatives": [
+                "standard_account_report",
+                "l10n_fr_account_or_target_localization",
+                "oca_reporting_module",
+                "usl_original_report_expression",
+            ],
+            "remaining_gap": "target_semantics_not_yet_compared",
+            "accounting_risk": "line_mapping_or_formula_difference",
+            "compliance_risk": "statutory_or_tax_report_requires_accountant_review" if report.get("decision") == "MANDATORY_PARITY" else "usage_dependent",
+            "evidence_required": report.get("acceptance_evidence_required"),
+            "status": "DISCOVERY",
+        }
+        row.update(report_controls.get(str(report.get("id")), {}))
+        matrix.append(row)
     return matrix
+
+
+def final_capability_matrix_controls(
+    source_report_parity: dict[str, Any],
+    *,
+    report_controls_passed: bool,
+) -> dict[str, Any]:
+    validated_at = utc_now()
+
+    def artifact_gate(
+        filename: str,
+        accepted_statuses: tuple[str, ...] = ("passed",),
+    ) -> dict[str, Any]:
+        path = PRIVATE_ARTIFACTS / filename
+        payload = read_json(path) if path.exists() else {}
+        status = payload.get("status", "missing")
+        return {
+            "path": str(path.relative_to(ROOT)),
+            "status": status,
+            "passed": status in accepted_statuses,
+        }
+
+    reports_gate = {
+        "path": "artifacts/accounting-compat/private/reports-status.json",
+        "status": "passed" if report_controls_passed else "partial",
+        "passed": report_controls_passed,
+    }
+
+    def capability_control(
+        *,
+        status: str,
+        source_behaviour: str,
+        target_community_baseline: str,
+        remaining_gap: str,
+        acceptance_status: str = "not_required",
+        artifact_filenames: tuple[str, ...] = (),
+        include_reports_gate: bool = False,
+    ) -> dict[str, Any]:
+        gates = [artifact_gate(filename) for filename in artifact_filenames]
+        if include_reports_gate:
+            gates.append(reports_gate)
+        technical_passed = all(gate["passed"] for gate in gates)
+        effective_status = status if technical_passed else "TECHNICAL_GAP"
+        return {
+            "source_behaviour": source_behaviour,
+            "target_community_baseline": target_community_baseline,
+            "remaining_gap": (
+                remaining_gap
+                if technical_passed
+                else "One or more required technical evidence artifacts are missing or not in the expected state."
+            ),
+            "technical_status": "passed" if technical_passed else "failed",
+            "acceptance_status": acceptance_status,
+            "evidence_artifacts": gates,
+            "validated_at": validated_at,
+            "status": effective_status,
+        }
+
+    capabilities = {
+        "Accounting > Closing > Reconcile": capability_control(
+            status="PARTIAL",
+            source_behaviour="Source contains native reconciliations plus 75 relationships crossing the posted replay boundary.",
+            target_community_baseline="OCA operational reconciliation plus a source-traced boundary review workflow.",
+            remaining_gap="Accountant/product policy decision: retain review-only treatment or authorize the separate controlled application workflow.",
+            acceptance_status="accountant_product_decision_pending",
+            artifact_filenames=(
+                "track-b-general-reconciliation-status.json",
+                "reconciliation-review-browser-status.json",
+            ),
+        ),
+        "Accounting > Closing > Tax returns": capability_control(
+            status="PARTIAL",
+            source_behaviour="Source report catalogue and declaration evidence include French VAT and fiscal report families.",
+            target_community_baseline="Versioned declaration schedule, field guidance and ledger-derived tax-package review workbench.",
+            remaining_gap="Final form semantics, external values and filing presentation require named accountant acceptance.",
+            acceptance_status="accountant_acceptance_pending",
+            include_reports_gate=True,
+        ),
+        "Accounting > Closing > Lock dates": capability_control(
+            status="IMPLEMENTED",
+            source_behaviour="Source company fiscal and tax lock dates are preserved.",
+            target_community_baseline="Native Odoo lock dates with manager-only closing controls.",
+            remaining_gap="Named-user closing walkthrough remains part of final acceptance.",
+            acceptance_status="named_user_acceptance_pending",
+            artifact_filenames=(
+                "accounting-home-browser-status.json",
+                "fec-role-browser-status.json",
+            ),
+        ),
+        "Accounting > Transactions > Journal entries": capability_control(
+            status="IMPLEMENTED",
+            source_behaviour="Posted source history is replayed exactly and current-period documents are proved through native workflows.",
+            target_community_baseline="Native account.move records with source traces and standard journal navigation.",
+            remaining_gap="No technical implementation gap; professional promotion of the hybrid candidate remains open.",
+            acceptance_status="candidate_promotion_pending",
+            artifact_filenames=(
+                "target-validate-status.json",
+                "track-b-documents-status.json",
+                "track-b-expenses-status.json",
+            ),
+        ),
+        "Accounting > Transactions > Analytic items": capability_control(
+            status="IMPLEMENTED",
+            source_behaviour="Source analytic plans, accounts, distributions, corrections and lines are preserved.",
+            target_community_baseline="Native multi-plan analytic records with list, pivot, chart, export and source-traced correction audit.",
+            remaining_gap="No technical implementation gap.",
+            artifact_filenames=(
+                "track-b-analytics-status.json",
+                "track-b-analytics-browser-status.json",
+            ),
+        ),
+        "Accounting > Assets": capability_control(
+            status="IMPLEMENTED",
+            source_behaviour="Source contains three assets and 91 source depreciation schedule rows.",
+            target_community_baseline="Native OCA asset workflow plus imported historical register and schedule evidence.",
+            remaining_gap="Statement and tax presentation remains part of the professional report review.",
+            acceptance_status="accountant_acceptance_pending",
+            artifact_filenames=(
+                "track-b-assets-status.json",
+                "track-b-assets-browser-status.json",
+            ),
+        ),
+        "Review > Control > Journal items": capability_control(
+            status="IMPLEMENTED",
+            source_behaviour="Source journal items, workflow-only lines and display lines are inventoried and traced.",
+            target_community_baseline="Native journal-item navigation plus read-only source review records.",
+            remaining_gap="No technical implementation gap.",
+            artifact_filenames=("target-validate-status.json",),
+            include_reports_gate=True,
+        ),
+        "Review > Control > Journal audit": capability_control(
+            status="IMPLEMENTED",
+            source_behaviour="Source identity, chronology, balances, references and attachment metadata are audit inputs.",
+            target_community_baseline="Idempotence, invariant-failure, sequence/chronology and evidence-integrity controls.",
+            remaining_gap="Preserved source sequence exceptions require accountant explanation or acceptance.",
+            acceptance_status="accountant_source_anomaly_review_pending",
+            artifact_filenames=(
+                "target-idempotence-status.json",
+                "target-failure-tests-status.json",
+                "target-validate-status.json",
+            ),
+        ),
+        "Review > Inventory > Depreciation schedule": capability_control(
+            status="IMPLEMENTED",
+            source_behaviour="Source asset-linked posted and forecast depreciation rows are preserved.",
+            target_community_baseline="Historical schedule report plus native current-period OCA depreciation board.",
+            remaining_gap="Final statement/tax mapping acceptance remains professional review.",
+            acceptance_status="accountant_acceptance_pending",
+            artifact_filenames=(
+                "target-validate-status.json",
+                "track-b-assets-status.json",
+            ),
+            include_reports_gate=True,
+        ),
+        "Review > Inventory > Loans analysis": capability_control(
+            status="NOT_APPLICABLE",
+            source_behaviour="The restored source contains zero account.loan and zero account.loan.line records.",
+            target_community_baseline="No USL loan workflow is exposed as an Accounting v1 requirement.",
+            remaining_gap="Reassess only if a future source or business event introduces loans.",
+        ),
+        "Review > Deferred expenses": capability_control(
+            status="IMPLEMENTED",
+            source_behaviour="Source deferred-expense relationships and forecast rows are preserved.",
+            target_community_baseline="Native OCA deferral schedules with opening-boundary handling and read-only reviewer access.",
+            remaining_gap="No technical implementation gap.",
+            artifact_filenames=(
+                "track-b-deferrals-status.json",
+                "track-b-deferrals-browser-status.json",
+            ),
+            include_reports_gate=True,
+        ),
+        "Review > Deferred revenue": capability_control(
+            status="NOT_APPLICABLE",
+            source_behaviour="No deferred-revenue schedule is present in the current USL source corpus.",
+            target_community_baseline="The shared native deferral model remains available if future source data requires it.",
+            remaining_gap="Reassess when a deferred-revenue case exists.",
+        ),
+        "Review > Unrealized currencies": capability_control(
+            status="IMPLEMENTED",
+            source_behaviour="Historical rates and foreign-currency ledger/residual evidence are preserved.",
+            target_community_baseline="Native Odoo currency engine plus realized/unrealized exposure report and future ECB reference rates.",
+            remaining_gap="No technical implementation gap.",
+            artifact_filenames=(
+                "currency-rate-provider-status.json",
+                "track-b-bank-external-status.json",
+            ),
+            include_reports_gate=True,
+        ),
+        "Reporting > FEC": capability_control(
+            status="PARTIAL",
+            source_behaviour="The benchmark ledger must produce a complete French BIC/IS FEC.",
+            target_community_baseline="Native l10n_fr_account FEC export with role gates, structural preflight and DGFiP source validation.",
+            remaining_gap="The technically validated FEC still requires named accountant review and recorded acceptance.",
+            acceptance_status="accountant_acceptance_pending",
+            artifact_filenames=(
+                "fec-validation-status.json",
+                "fec-role-browser-status.json",
+            ),
+        ),
+        "Reporting > EDI exports": capability_control(
+            status="DEFERRED",
+            source_behaviour="Electronic submission is not required by the Accounting v1 objective.",
+            target_community_baseline="Declaration preparation, portal guidance and filing-state tracking are retained without an electronic filing client.",
+            remaining_gap="Select and implement an approved external e-invoicing/EDI strategy in its later milestone.",
+        ),
+        "Permissions > Accountant review role": capability_control(
+            status="IMPLEMENTED",
+            source_behaviour="Prosper requires company-scoped accounting review and export without accounting mutation.",
+            target_community_baseline="USL accountant reviewer role over Odoo read-only accounting with explicit evidence and FEC access.",
+            remaining_gap="Prosper's named-user acceptance walkthrough remains open.",
+            acceptance_status="named_user_acceptance_pending",
+            artifact_filenames=(
+                "replacement-browser-status.json",
+                "fec-role-browser-status.json",
+            ),
+            include_reports_gate=True,
+        ),
+    }
+
+    report_controls = {}
+    for report in source_report_parity.get("reports", []):
+        source_report_id = report.get("source_report_id")
+        if source_report_id is None:
+            continue
+        decision = report.get("decision")
+        technical_passed = report.get("latest_evidence_status") == (
+            "technical_evidence_package_generated_accountant_acceptance_pending"
+        )
+        deliberately_excluded = decision == "REMOVED_AS_UNUSED"
+        report_controls[str(source_report_id)] = {
+            "target_community_baseline": report.get("target_evidence_key") or "explicit_scope_decision",
+            "remaining_gap": (
+                "Named accountant/stakeholder acceptance of the technical evidence package is pending."
+                if technical_passed
+                else report.get("latest_evidence_status", "technical_report_evidence_incomplete")
+            ),
+            "technical_status": "passed" if technical_passed else "failed",
+            "acceptance_status": "stakeholder_acceptance_pending",
+            "evidence_artifacts": [
+                {
+                    "path": "artifacts/accounting-compat/private/source-report-parity-status.json",
+                    "status": report.get("latest_evidence_status"),
+                    "passed": technical_passed,
+                },
+                reports_gate,
+            ],
+            "parity_level": report.get("parity_level"),
+            "validated_at": validated_at,
+            "status": (
+                "NOT_APPLICABLE"
+                if deliberately_excluded and technical_passed
+                else "PARTIAL"
+                if technical_passed
+                else "TECHNICAL_GAP"
+            ),
+        }
+    return {
+        "capabilities": capabilities,
+        "reports": report_controls,
+    }
 
 
 def inspect_source(args: argparse.Namespace) -> dict[str, Any]:
@@ -11334,7 +11597,7 @@ def reports(args: argparse.Namespace) -> dict[str, Any]:
             "allocated_balance",
         ],
     )
-    technical_status = all(
+    report_controls_passed = all(
         payload.get("status") == "passed"
         for payload in (
             odoo_views,
@@ -11345,6 +11608,44 @@ def reports(args: argparse.Namespace) -> dict[str, Any]:
             accountant_access,
         )
     )
+    report_catalogue_path = PRIVATE_ARTIFACTS / "report-catalogue-v1.json"
+    final_matrix = capability_matrix(
+        read_json(report_catalogue_path) if report_catalogue_path.exists() else [],
+        final_capability_matrix_controls(
+            source_report_parity,
+            report_controls_passed=report_controls_passed,
+        ),
+    )
+    capability_status_counts: dict[str, int] = {}
+    for row in final_matrix:
+        row_status = row.get("status", "UNKNOWN")
+        capability_status_counts[row_status] = (
+            capability_status_counts.get(row_status, 0) + 1
+        )
+    capability_matrix_technical_complete = not any(
+        row.get("status") in {"DISCOVERY", "TECHNICAL_GAP"}
+        for row in final_matrix
+    )
+    capability_matrix_summary = {
+        "status": (
+            "passed"
+            if capability_matrix_technical_complete
+            else "failed"
+        ),
+        "classification": (
+            "TECHNICAL_CAPABILITY_MATRIX_COMPLETE_PROFESSIONAL_ACCEPTANCE_PENDING"
+            if capability_matrix_technical_complete
+            else "TECHNICAL_CAPABILITY_MATRIX_INCOMPLETE"
+        ),
+        "path": "artifacts/accounting-compat/private/parity-matrix-v1.json",
+        "row_count": len(final_matrix),
+        "by_status": capability_status_counts,
+    }
+    technical_status = (
+        report_controls_passed
+        and capability_matrix_technical_complete
+    )
+    write_json(PRIVATE_ARTIFACTS / "parity-matrix-v1.json", final_matrix)
     status = {
         "generated_at": utc_now(),
         "tool_version": TOOL_VERSION,
@@ -11436,6 +11737,7 @@ def reports(args: argparse.Namespace) -> dict[str, Any]:
         "odoo_report_drilldowns": odoo_drilldowns,
         "odoo_report_export_wizard": odoo_exports,
         "source_report_parity": source_report_parity,
+        "capability_matrix": capability_matrix_summary,
         "review_decision_seed": review_decision_seed,
         "odoo_accountant_access": accountant_access,
         "limitations": tb_payload["limitations"],

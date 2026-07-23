@@ -599,6 +599,16 @@ The discrepancy importer is idempotent for recurring end-of-run blockers. Re-run
 
 `make accounting-readiness` now writes a durable Milestone 13 readiness assessment after comparison and before the evidence index. The JSON and Markdown artifacts summarize technical gate status, source and target identities, open discrepancies, review-decision queues, source-report parity evidence and the closure recommendation. The encoded final gates now include the hybrid reset/import/validation/browser chain, FEC manager/reviewer/operator browser proof and the reconciliation manager/reviewer browser proof; `make accounting-evidence` indexes the same artifacts. Omitting the hybrid candidate would let readiness ignore the selected integration architecture, while requiring its validation to say `passed` would erase the deliberately classified native differences. The selected contract therefore requires `partial` only for `replacement_validate`, requires the other final artifacts to pass, and still leaves candidate promotion to the named professionals. The current readiness assessment has `0` technical failures and remains `blocked` with `1` P0, `1` P1, `1` P2 and `45` draft decisions; it is a closure-control artifact, not a way to mark professional acceptance.
 
+`parity-matrix-v1.json` now has an explicit two-stage lifecycle. Source
+inspection writes the discovery baseline, and the reports stage must replace
+it with final evidence-backed classifications or fail its own technical gate.
+The current matrix contains all `54` rows: `10` implemented, `39` technically
+complete but professionally partial, `4` not applicable and `1` explicitly
+deferred. It contains `0` discovery rows and `0` technical gaps. Each base
+capability records its required private artifacts, and every one of the `38`
+source reports records its Level 4 technical-evidence state and remaining
+acceptance gate.
+
 The same export wizard now exposes a FEC export backed by Odoo `l10n_fr_account`. The current harness generates `983982950FEC20250930.txt` through the Odoo UI wizard model in FEC test mode, with `4,781` data rows, debit `1,064,045.02`, credit `1,064,045.02` and SHA-256 `38d99b33b0f2864637a0506f61a52d33e73cd58ecd3ca9cdf6a6f69b740c53b1`. The generated exports identify company, source company id, dates, posted/draft scope, selected filters, format and row count.
 
 The benchmark report bundle now includes historical bank reconciliation, currency, analytic and EC/OSS evidence:

@@ -83,6 +83,7 @@ Observed current stage artifacts under `artifacts/accounting-compat/private/` sh
 - reconciliation review browser: `passed`, classified as `RECONCILIATION_BOUNDARY_MANAGER_REVIEWER_BROWSER_GOLDEN_JOURNEY`
 - FEC role browser: `passed`, classified as `FEC_MANAGER_REVIEWER_OPERATOR_BROWSER_GOLDEN_JOURNEY`
 - FEC validation artifact: `passed`, classified as `OFFICIAL_DGFIP_SOURCE_VALIDATION_PASSED`
+- capability/report parity matrix: `passed`, classified as `TECHNICAL_CAPABILITY_MATRIX_COMPLETE_PROFESSIONAL_ACCEPTANCE_PENDING` (`54` rows, `0` discovery or technical-gap rows)
 - readiness: `blocked`, classified as `TECHNICAL_REHEARSAL_PASSED_PROFESSIONAL_ACCEPTANCE_PENDING`
 
 The readiness artifact now gates on the hybrid reset/import/validation/browser chain, FEC role browser and reconciliation review browser as well as the core replay/report controls. It reports `0` technical failures, `1` open P0, `1` open P1, `1` accountant-owned P2 and `45` draft review decisions. The hybrid validation's classified `partial` status is expected technical evidence for its fully explained native differences; it is not professional acceptance or candidate promotion. Readiness remains blocked until the named reviewer decisions are recorded.

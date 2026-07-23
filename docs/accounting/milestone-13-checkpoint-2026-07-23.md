@@ -37,6 +37,12 @@ validation's expected `partial` classification records fully explained native
 differences; it does not convert candidate promotion or any remaining
 professional decision into a technical acceptance.
 
+The final report run also replaces the source-inspection discovery matrix with
+an evidence-backed `54`-row capability/report matrix: `10` implemented, `39`
+technically complete but professionally partial, `4` not applicable and `1`
+deferred. No row remains in discovery and no technical gap is present; the
+reports stage now fails if either state remains.
+
 ## Architecture decision
 
 The selected design is a thin USL workflow layer on standard Odoo lock dates and maintained OCA reporting/reconciliation modules. It preserves standard accounting records and exposes structured declaration/closing state without creating a second ledger.
