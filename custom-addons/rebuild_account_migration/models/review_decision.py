@@ -150,6 +150,34 @@ class RebuildAccountReviewDecision(models.Model):
             ):
                 message = "Record the evidence supporting this declaration or closing acceptance decision."
                 raise UserError(message)
+            if (
+                decision.gate == "closing_review"
+                and decision.conclusion in {
+                    "accepted",
+                    "accepted_with_difference",
+                }
+                and (
+                    not decision.closing_period_id
+                    or not decision.closing_period_id.package_attachment_ids
+                )
+            ):
+                message = (
+                    "Attach at least one generated closing package before "
+                    "recording an accepted closing decision."
+                )
+                raise UserError(message)
+            if decision.gate == "closing_review" and decision.closing_period_id:
+                previous = self.search([
+                    ("id", "!=", decision.id),
+                    (
+                        "closing_period_id",
+                        "=",
+                        decision.closing_period_id.id,
+                    ),
+                    ("gate", "=", "closing_review"),
+                    ("state", "=", "recorded"),
+                ])
+                previous.write({"state": "superseded"})
             decision.write({
                 "state": "recorded",
                 "reviewed_at": fields.Datetime.now(),
@@ -160,7 +188,27 @@ class RebuildAccountReviewDecision(models.Model):
         return True
 
     def action_supersede(self):
+        closings = self.filtered(
+            lambda decision: (
+                decision.state == "recorded"
+                and decision.gate == "closing_review"
+                and decision.closing_period_id
+            ),
+        ).mapped("closing_period_id")
         self.write({"state": "superseded"})
+        for closing in closings:
+            current = self.search([
+                ("closing_period_id", "=", closing.id),
+                ("gate", "=", "closing_review"),
+                ("state", "=", "recorded"),
+            ], order="reviewed_at desc, id desc", limit=1)
+            if current:
+                current._apply_closing_decision()
+            else:
+                closing.sudo().write({
+                    "review_status": "accountant_requested",
+                    "state": "blocked",
+                })
         return True
 
     def _apply_recorded_decision(self):
@@ -257,7 +305,7 @@ class RebuildAccountReviewDecision(models.Model):
             "accepted_with_difference": "accepted_with_difference",
             "requires_change": "rejected",
             "rejected": "rejected",
-            "not_applicable": "accepted_with_difference",
+            "not_applicable": "rejected",
         }.get(self.conclusion)
         if not review_status:
             return
@@ -266,6 +314,8 @@ class RebuildAccountReviewDecision(models.Model):
             "review_status": review_status,
             "state": "ready" if accepted and not self.closing_period_id.blocking_count else "blocked",
         })
+        if accepted:
+            self.closing_period_id.sudo()._capture_accepted_snapshots(self)
 
     def action_open_source_report(self):
         self.ensure_one()

@@ -3409,6 +3409,81 @@
         <field name="context">{'search_default_usl_benchmark': 1}</field>
     </record>
 
+    <record id="view_rebuild_account_revenue_spending_month_list" model="ir.ui.view">
+        <field name="name">rebuild.account.revenue.spending.month.list</field>
+        <field name="model">rebuild.account.revenue.spending.month</field>
+        <field name="arch" type="xml">
+            <list string="Monthly Revenue versus Spending" create="0" edit="0" delete="0">
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="month"/>
+                <field name="metric"/>
+                <field name="line_count" sum="Journal Items"/>
+                <field name="amount" sum="Amount"/>
+                <button name="action_open_journal_items" type="object" string="Journal Items" icon="fa-list"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_rebuild_account_revenue_spending_month_graph" model="ir.ui.view">
+        <field name="name">rebuild.account.revenue.spending.month.graph</field>
+        <field name="model">rebuild.account.revenue.spending.month</field>
+        <field name="arch" type="xml">
+            <graph string="Monthly Revenue versus Spending" type="line">
+                <field name="month" interval="month"/>
+                <field name="metric" type="col"/>
+                <field name="amount" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_rebuild_account_revenue_spending_month_pivot" model="ir.ui.view">
+        <field name="name">rebuild.account.revenue.spending.month.pivot</field>
+        <field name="model">rebuild.account.revenue.spending.month</field>
+        <field name="arch" type="xml">
+            <pivot string="Monthly Revenue versus Spending">
+                <field name="metric" type="row"/>
+                <field name="month" interval="month" type="col"/>
+                <field name="amount" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_rebuild_account_revenue_spending_month_search" model="ir.ui.view">
+        <field name="name">rebuild.account.revenue.spending.month.search</field>
+        <field name="model">rebuild.account.revenue.spending.month</field>
+        <field name="arch" type="xml">
+            <search string="Monthly Revenue versus Spending">
+                <field name="company_id"/>
+                <field name="month"/>
+                <field name="metric"/>
+                <filter
+                    name="replacement_period"
+                    string="Oct 2025 - Jun 2026"
+                    domain="[('month','&gt;=','2025-10-01'),('month','&lt;=','2026-06-01')]"/>
+                <filter name="revenue" string="Revenue" domain="[('metric','=','revenue')]"/>
+                <filter name="spending" string="Spending" domain="[('metric','=','spending')]"/>
+                <filter name="net_contribution" string="Net Contribution" domain="[('metric','=','net_contribution')]"/>
+                <filter name="group_metric" string="Metric" context="{'group_by': 'metric'}"/>
+                <filter name="group_month" string="Month" context="{'group_by': 'month:month'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_rebuild_account_revenue_spending_month" model="ir.actions.act_window">
+        <field name="name">Revenue versus Spending Trend</field>
+        <field name="res_model">rebuild.account.revenue.spending.month</field>
+        <field name="view_mode">graph,pivot,list</field>
+        <field name="context">{'search_default_replacement_period': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No posted revenue or spending exists in this period.
+            </p>
+            <p>
+                The trend is calculated dynamically from posted native journal items.
+            </p>
+        </field>
+    </record>
+
     <record id="view_rebuild_account_analytic_distribution_line_list" model="ir.ui.view">
         <field name="name">rebuild.account.analytic.distribution.line.list</field>
         <field name="model">rebuild.account.analytic.distribution.line</field>
@@ -3635,6 +3710,7 @@
                     <group>
                         <group string="Scope">
                             <field name="company_id"/>
+                            <field name="closing_period_id" invisible="report_type != 'closing_package'"/>
                             <field name="company_ids" widget="many2many_tags"/>
                             <field name="data_scope"/>
                             <field name="target_move"/>
@@ -4945,11 +5021,18 @@
         sequence="90"
         groups="account.group_account_readonly"/>
     <menuitem
+        id="menu_rebuild_account_revenue_spending_reporting"
+        name="Revenue versus Spending Trend"
+        parent="account.account_reports_legal_statements_menu"
+        action="action_rebuild_account_revenue_spending_month"
+        sequence="91"
+        groups="account.group_account_readonly"/>
+    <menuitem
         id="menu_rebuild_account_analytic_reporting"
         name="Imported Analytic Distribution"
         parent="account.account_reports_legal_statements_menu"
         action="action_rebuild_account_analytic_distribution_line"
-        sequence="91"
+        sequence="92"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_export_wizard_reporting"

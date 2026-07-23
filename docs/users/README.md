@@ -39,6 +39,7 @@ The implemented user-facing accounting features are centered on reconstructed ac
 - open the native Expenses workspace from the supplier accounting area;
 - route supplier bills and employee receipts through native email aliases after the self-hosted inbound domain and mail server have been configured;
 - use one canonical Accounting Report Workbench for Trial Balance, General Ledger, partner, statement, tax, management, asset and analytic reports;
+- compare posted monthly revenue, spending and net contribution in the native graph, pivot and exportable list;
 - open a reconstruction summary for each imported company;
 - inspect imported posted journal items;
 - inspect source-traced accounting reports and report evidence;
@@ -51,6 +52,7 @@ The implemented user-facing accounting features are centered on reconstructed ac
 - inspect source report lines and expressions used as parity evidence;
 - inspect non-posted source workflow records and document-regeneration cases;
 - inspect cross-boundary reconciliation reviews before any native reconciliation decision is applied.
+- retain accepted closing XLSX/PDF packages as immutable, checksum-backed snapshots before lock dates advance;
 - let Accounting Managers retrieve daily ECB reference rates without changing source-traced historical rates.
 
 The system deliberately distinguishes technical evidence from professional acceptance. A report can have technical evidence and still require accountant approval before Milestone 13 can close.

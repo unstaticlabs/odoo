@@ -144,6 +144,31 @@ Purpose: preview and export supported reports.
 
 Normal report launchers under `Accounting > Reporting` open this full-page workbench. It defaults to all native accounting and supports period presets, comparisons, journal/account/partner/analytic filters, grouping, search, expand/collapse, draft warnings, source drilldown and CSV/XLSX/PDF export. Imported-only scope is an advanced reconstruction-audit option.
 
+## Revenue versus Spending Trend
+
+```text
+Accounting > Reporting > Revenue versus Spending Trend
+```
+
+Purpose: compare posted monthly revenue, spending and net contribution in a
+graph, pivot or exportable list. The figures come from native posted journal
+items for the active company. Open a row to inspect the journal items behind
+that month and metric. The preset October 2025–June 2026 filter matches the
+replacement benchmark period and can be removed for other periods.
+
+## Accepted Closing Snapshots
+
+```text
+Accounting > Closing > Accepted Closing Snapshots
+```
+
+An Accounting Manager generates the closing XLSX/PDF package from the closing
+workspace before the reviewer records acceptance. Recording an accepted
+closing decision freezes the package bytes, checksum, decision, evidence,
+reviewer and review time as immutable snapshots. Reviewers can read and
+download them; nobody can edit or delete them through Odoo. A close cannot
+advance lock dates until an accepted snapshot exists.
+
 ## Priority Workflows
 
 The Accounting app exposes the standard seven-area navigation:

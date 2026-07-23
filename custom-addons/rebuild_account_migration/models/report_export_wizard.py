@@ -80,6 +80,11 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         default="trial_balance",
     )
     company_id = fields.Many2one("res.company", required=True, default=lambda self: self.env.company)
+    closing_period_id = fields.Many2one(
+        "rebuild.account.closing.period",
+        string="Closing Workspace",
+        readonly=True,
+    )
     company_ids = fields.Many2many(
         "res.company",
         string="Companies",
@@ -323,6 +328,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "export_filename": filename,
             "export_metadata": json.dumps(metadata, indent=2, sort_keys=True),
         })
+        self._attach_generated_closing_package(payload, filename)
         return {
             "type": "ir.actions.act_window",
             "name": f"{self._report_type_label()} Export",
@@ -331,6 +337,55 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "view_mode": "form",
             "target": "current",
         }
+
+    def _attach_generated_closing_package(self, payload, filename):
+        self.ensure_one()
+        closing = self.closing_period_id
+        if (
+            self.report_type != "closing_package"
+            or not closing
+            or not self.env.user.has_group("account.group_account_manager")
+        ):
+            return self.env["ir.attachment"]
+        if (
+            closing.company_id != self.company_id
+            or closing.date_from != self.date_from
+            or closing.date_to != self.date_to
+        ):
+            raise UserError(
+                "The closing package company and dates must match the "
+                "linked closing workspace."
+            )
+        checksum = hashlib.sha1(payload).hexdigest()
+        attachment = closing.package_attachment_ids.filtered(
+            lambda item: (
+                item.checksum == checksum
+                and item.name == filename
+            ),
+        )[:1]
+        if attachment:
+            return attachment
+        mimetype = {
+            "csv": "text/csv",
+            "xlsx": (
+                "application/vnd.openxmlformats-officedocument."
+                "spreadsheetml.sheet"
+            ),
+            "pdf": "application/pdf",
+            "txt": "text/plain",
+        }.get(self.export_format, "application/octet-stream")
+        attachment = self.env["ir.attachment"].create({
+            "name": filename,
+            "type": "binary",
+            "datas": base64.b64encode(payload),
+            "mimetype": mimetype,
+            "res_model": closing._name,
+            "res_id": closing.id,
+        })
+        closing.write({
+            "package_attachment_ids": [Command.link(attachment.id)],
+        })
+        return attachment
 
     def _prepare_dynamic_filters(self):
         self.ensure_one()
@@ -2490,6 +2545,28 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "next_action": closing.actions_awaiting_valentin or "",
             "evidence": closing.package_reference or "",
         }]
+        rows.extend({
+            "section": "Accepted closing snapshots",
+            "line_code": f"SNAPSHOT_{snapshot.id}",
+            "label": snapshot.name,
+            "status": snapshot.decision_conclusion,
+            "validation": "immutable_sha256",
+            "record_count": "1",
+            "amount": "0.00",
+            "details": (
+                f"{snapshot.file_size} byte(s); "
+                f"captured={fields.Datetime.to_string(snapshot.captured_at)}"
+            ),
+            "next_action": (
+                "Retain this immutable payload and recorded decision with "
+                "the closing archive."
+            ),
+            "evidence": (
+                f"sha256={snapshot.sha256}; "
+                f"decision={snapshot.review_decision_id.display_name}; "
+                f"reviewer={snapshot.reviewer_name}"
+            ),
+        } for snapshot in closing.snapshot_ids)
         rows.extend({
             "section": f"Closing control - {control.category}",
             "line_code": control.code,

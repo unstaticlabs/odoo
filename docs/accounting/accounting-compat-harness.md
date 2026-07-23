@@ -602,12 +602,26 @@ The discrepancy importer is idempotent for recurring end-of-run blockers. Re-run
 `parity-matrix-v1.json` now has an explicit two-stage lifecycle. Source
 inspection writes the discovery baseline, and the reports stage must replace
 it with final evidence-backed classifications or fail its own technical gate.
-The current matrix contains all `54` rows: `10` implemented, `39` technically
+The current matrix contains all `56` rows: `12` implemented, `39` technically
 complete but professionally partial, `4` not applicable and `1` explicitly
 deferred. It contains `0` discovery rows and `0` technical gaps. Each base
 capability records its required private artifacts, and every one of the `38`
 source reports records its Level 4 technical-evidence state and remaining
 acceptance gate.
+
+The report stage also validates the native monthly
+`Revenue versus Spending Trend`. The SQL view normalizes revenue, spending and
+net contribution into graph/pivot/list rows and retains journal-item
+drill-down. For October 2025–June 2026 the exact target must return `27` rows
+with EUR `176,928.45` revenue, EUR `101,215.69` spending and EUR `75,712.76`
+net contribution.
+
+Closing-package acceptance has a separate persistence contract. Manager
+generation attaches the XLSX/PDF to the selected closing. Recording an accepted
+decision copies its bytes and SHA-256 plus the decision/reviewer context into
+immutable snapshot rows; tests deny write/unlink and require a snapshot before
+standard locks can advance. This proves the accepted artifact without relying
+on a mutable attachment reference.
 
 The same export wizard now exposes a FEC export backed by Odoo `l10n_fr_account`. The current harness generates `983982950FEC20250930.txt` through the Odoo UI wizard model in FEC test mode, with `4,781` data rows, debit `1,064,045.02`, credit `1,064,045.02` and SHA-256 `95652b3f3a7c66e25a6f2aa0d56cf860777364606b5a9519090f2d48e5657efa`. The generated exports identify company, source company id, dates, posted/draft scope, selected filters, format and row count.
 

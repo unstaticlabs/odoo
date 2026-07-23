@@ -348,6 +348,105 @@ class TestRebuildAccountMigration(TransactionCase):
             [-100.0, 100.0],
         )
 
+    def test_monthly_revenue_spending_trend_uses_posted_native_ledger(self):
+        revenue_account = self._account(
+            "T707991",
+            "Unit monthly revenue",
+            "income",
+        )
+        spending_account = self._account(
+            "T627991",
+            "Unit monthly spending",
+            "expense",
+        )
+        cash_account = self._account(
+            "T512991",
+            "Unit monthly cash",
+            "asset_cash",
+        )
+        journal = self._journal()
+
+        for date, revenue, spending in (
+            ("2026-01-15", 1000.0, 400.0),
+            ("2026-02-15", 500.0, 700.0),
+        ):
+            move = self.env["account.move"].create({
+                "move_type": "entry",
+                "date": date,
+                "journal_id": journal.id,
+                "line_ids": [
+                    Command.create({
+                        "name": "Monthly revenue cash",
+                        "account_id": cash_account.id,
+                        "debit": revenue,
+                    }),
+                    Command.create({
+                        "name": "Monthly revenue",
+                        "account_id": revenue_account.id,
+                        "credit": revenue,
+                    }),
+                    Command.create({
+                        "name": "Monthly spending",
+                        "account_id": spending_account.id,
+                        "debit": spending,
+                    }),
+                    Command.create({
+                        "name": "Monthly spending cash",
+                        "account_id": cash_account.id,
+                        "credit": spending,
+                    }),
+                ],
+            })
+            move.action_post()
+
+        rows = self.env["rebuild.account.revenue.spending.month"].search([
+            ("company_id", "=", self.company.id),
+            ("month", "in", ["2026-01-01", "2026-02-01"]),
+        ])
+        amounts = {
+            (fields.Date.to_string(row.month), row.metric): (
+                round(row.amount, 2),
+                row.line_count,
+            )
+            for row in rows
+        }
+        self.assertEqual(
+            amounts,
+            {
+                ("2026-01-01", "revenue"): (1000.0, 1),
+                ("2026-01-01", "spending"): (400.0, 1),
+                ("2026-01-01", "net_contribution"): (600.0, 2),
+                ("2026-02-01", "revenue"): (500.0, 1),
+                ("2026-02-01", "spending"): (700.0, 1),
+                ("2026-02-01", "net_contribution"): (-200.0, 2),
+            },
+        )
+
+        february_net = rows.filtered(
+            lambda row: (
+                fields.Date.to_string(row.month) == "2026-02-01"
+                and row.metric == "net_contribution"
+            ),
+        )
+        drilldown = february_net.action_open_journal_items()
+        self.assertEqual(drilldown["res_model"], "account.move.line")
+        self.assertEqual(
+            self.env["account.move.line"].search_count(drilldown["domain"]),
+            2,
+        )
+        action = self.env.ref(
+            "rebuild_account_migration."
+            "action_rebuild_account_revenue_spending_month",
+        )
+        self.assertEqual(action.view_mode, "graph,pivot,list")
+        self.assertEqual(
+            self.env.ref(
+                "rebuild_account_migration."
+                "menu_rebuild_account_revenue_spending_reporting",
+            ).action,
+            action,
+        )
+
     def test_accounting_navigation_matches_the_operating_model(self):
         expected_top_level = {
             "account.menu_board_journal_1": ("Dashboard", 1),

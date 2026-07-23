@@ -94,7 +94,7 @@ Private evidence:
 - `dynamic-report-browser-status.json`;
 - `replacement-browser-status.json`;
 - `fec-role-browser-status.json`;
-- `parity-matrix-v1.json` (`54` final evidence-backed rows, with no discovery
+- `parity-matrix-v1.json` (`56` final evidence-backed rows, with no discovery
   or technical-gap state);
 - Track B asset, deferral and analytic browser artifacts.
 

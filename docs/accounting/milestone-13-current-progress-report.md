@@ -86,7 +86,7 @@ Observed current stage artifacts under `artifacts/accounting-compat/private/` sh
 - reconciliation review browser: `passed`, classified as `RECONCILIATION_BOUNDARY_MANAGER_REVIEWER_BROWSER_GOLDEN_JOURNEY`
 - FEC role browser: `passed`, classified as `FEC_MANAGER_REVIEWER_OPERATOR_BROWSER_GOLDEN_JOURNEY`
 - FEC validation artifact: `passed`, classified as `OFFICIAL_DGFIP_SOURCE_VALIDATION_PASSED`
-- capability/report parity matrix: `passed`, classified as `TECHNICAL_CAPABILITY_MATRIX_COMPLETE_PROFESSIONAL_ACCEPTANCE_PENDING` (`54` rows, `0` discovery or technical-gap rows)
+- capability/report parity matrix: `passed`, classified as `TECHNICAL_CAPABILITY_MATRIX_COMPLETE_PROFESSIONAL_ACCEPTANCE_PENDING` (`56` rows, `0` discovery or technical-gap rows)
 - readiness: `blocked`, classified as `TECHNICAL_REHEARSAL_PASSED_PROFESSIONAL_ACCEPTANCE_PENDING`
 
 The readiness artifact now gates on the hybrid reset/import/validation/browser chain, FEC role browser and reconciliation review browser as well as the core replay/report controls. It reports `0` technical failures, `1` open P0, `1` open P1, `1` accountant-owned P2 and `45` draft review decisions. The hybrid validation's classified `partial` status is expected technical evidence for its fully explained native differences; it is not professional acceptance or candidate promotion. Readiness remains blocked until the named reviewer decisions are recorded.
@@ -317,6 +317,8 @@ Validated by artifacts or code inspection:
 - Reconciliation records are imported and compared as data.
 - Attachment metadata and selected binaries are imported and checked.
 - The custom report export wizard can generate CSV, XLSX, PDF and FEC TXT payloads.
+- The native Revenue versus Spending Trend exposes graph, pivot, list/export and journal-item drill-down from all posted native journal items. The exact October 2025–June 2026 target has `27` normalized rows and totals EUR `176,928.45` revenue, EUR `101,215.69` spending and EUR `75,712.76` net contribution.
+- Accepted closing decisions now require a generated closing package and freeze its bytes, SHA-256, package identity, decision evidence and reviewer context into immutable company-scoped snapshots. Snapshot mutation/deletion and accepted-package mutation are denied; standard lock advancement also requires a snapshot. The exact target correctly has `0` snapshots because no professional closing acceptance has been recorded.
 - The FEC validation artifact exists and reports a successful DGFiP source-validation run.
 
 Not yet professionally accepted as finished product behavior:

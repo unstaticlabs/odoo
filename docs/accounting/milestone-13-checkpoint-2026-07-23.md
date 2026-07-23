@@ -38,10 +38,20 @@ differences; it does not convert candidate promotion or any remaining
 professional decision into a technical acceptance.
 
 The final report run also replaces the source-inspection discovery matrix with
-an evidence-backed `54`-row capability/report matrix: `10` implemented, `39`
+an evidence-backed `56`-row capability/report matrix: `12` implemented, `39`
 technically complete but professionally partial, `4` not applicable and `1`
 deferred. No row remains in discovery and no technical gap is present; the
 reports stage now fails if either state remains.
+
+The two additional implemented capabilities close the last identified
+technical product gaps. `Reporting > Revenue versus Spending Trend` derives
+`27` monthly metric rows from posted native journal items for October
+2025–June 2026, totalling EUR `176,928.45` revenue, EUR `101,215.69` spending
+and EUR `75,712.76` net contribution. Accepted closing decisions now require a
+generated XLSX/PDF package and freeze the accepted bytes, checksum, decision
+evidence and reviewer metadata into immutable snapshots before lock dates can
+advance. The exact target retains `0` accepted snapshots until a named
+professional records the first real acceptance.
 
 Fixed-asset statement/tax evidence also reconciles technically: register,
 annual-statement and 2033-A/2033-C amounts are EUR `10,430.49` gross, EUR

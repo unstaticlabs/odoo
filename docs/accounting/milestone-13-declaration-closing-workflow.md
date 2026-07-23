@@ -116,11 +116,28 @@ An Accounting Manager may close only after all blockers clear and an evidence-ba
 
 The Closing Review Package is available in XLSX and PDF. It contains the overview, every control, declaration schedule, declaration fields and lock evidence. The PDF uses a restrained A4 accounting-package layout derived from the supplied USL plaquette and liasse: repeated legal identity and period headers, compact shaded tables, French status labels and page numbering. The XLSX contains separate `Metadata`, readable `Report` and raw `Audit Data` sheets, with typed amounts, filters, frozen headers and print settings. Company legal address, registry and VAT identity come from the source-traced company partner; identifiers stay text-formatted. Professional acceptance is never inferred from technical checks.
 
+When an Accounting Manager generates a package from a closing workspace, the
+file is attached to that workspace. Recording an accepted or
+accepted-with-difference closing decision requires at least one such package
+and immediately copies every accepted package into an immutable snapshot. Each
+snapshot freezes the file bytes, SHA-256, size, package reference, conclusion,
+summary, evidence, reviewer and review timestamp. Neither managers nor
+reviewers can edit or delete it. The package reference and accepted attachments
+also remain locked while that recorded decision is current; a superseding
+decision starts a new review cycle. Standard lock dates cannot advance without
+the accepted snapshot.
+
+Two alternatives were considered. Keeping only the original attachment link
+was rejected because the linked file could later change. Freezing the entire
+closing workspace was rejected because normal follow-up cycles must remain
+possible. The selected snapshot freezes exactly the accepted evidence and
+decision while leaving a controlled superseding-review path.
+
 ## Roles and review gates
 
 - Valentin / Accounting Manager can refresh, prepare, post the confirmed VAT correction, record external filing/payment state and apply standard locks.
 - Prosper / USL Accountant Review inherits Odoo accounting read-only access. The role can inspect source entries, reports, declarations, closings and packages and can create immutable review decisions. It cannot edit posted accounting, declaration preparation records, closing controls or lock dates.
-- Review decisions update declaration/closing state through the controlled decision application only. Accepted declaration and closing decisions require an evidence summary.
+- Review decisions update declaration/closing state through the controlled decision application only. Accepted declaration decisions require an evidence summary; accepted closing decisions also require a generated package and create immutable snapshots.
 - A closing acceptance does not override automated blockers. A close with blockers remains blocked.
 - Future finance agents should receive company-scoped read access or purpose-specific manager authority; they must not receive unrestricted cross-company accounting access.
 

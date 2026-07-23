@@ -1,4 +1,6 @@
+import base64
 import calendar
+import hashlib
 import json
 
 from dateutil.relativedelta import relativedelta
@@ -15,6 +17,59 @@ PROFIT_AND_LOSS_ACCOUNT_TYPES = (
     "expense_depreciation",
     "expense_direct_cost",
 )
+
+
+class IrAttachment(models.Model):
+    _inherit = "ir.attachment"
+
+    def _has_current_accepted_closing_snapshot(self):
+        if not self:
+            return False
+        return bool(
+            self.env["rebuild.account.closing.snapshot"].sudo().search_count([
+                ("source_attachment_id", "in", self.ids),
+                ("review_decision_id.state", "=", "recorded"),
+                (
+                    "review_decision_id.conclusion",
+                    "in",
+                    ["accepted", "accepted_with_difference"],
+                ),
+            ]),
+        )
+
+    def write(self, vals):
+        protected_fields = {
+            "name",
+            "datas",
+            "raw",
+            "db_datas",
+            "store_fname",
+            "checksum",
+            "file_size",
+            "mimetype",
+            "type",
+            "url",
+            "res_model",
+            "res_id",
+        }
+        if (
+            protected_fields & set(vals)
+            and self._has_current_accepted_closing_snapshot()
+        ):
+            raise UserError(
+                "An attachment captured by the current accepted closing "
+                "decision is locked. Supersede that decision before changing "
+                "the package file."
+            )
+        return super().write(vals)
+
+    def unlink(self):
+        if self._has_current_accepted_closing_snapshot():
+            raise UserError(
+                "An attachment captured by the current accepted closing "
+                "decision cannot be deleted."
+            )
+        return super().unlink()
 
 
 class AccountAccount(models.Model):
@@ -130,6 +185,13 @@ class RebuildAccountClosingPeriod(models.Model):
         "attachment_id",
         string="Closing Package Evidence",
     )
+    snapshot_ids = fields.One2many(
+        "rebuild.account.closing.snapshot",
+        "closing_period_id",
+        string="Accepted Closing Snapshots",
+        readonly=True,
+    )
+    snapshot_count = fields.Integer(compute="_compute_snapshot_count")
     previous_lock_dates = fields.Text(readonly=True)
     final_lock_dates = fields.Text(readonly=True)
     last_refreshed_at = fields.Datetime(readonly=True)
@@ -142,6 +204,27 @@ class RebuildAccountClosingPeriod(models.Model):
             closing.blocking_count = len(closing.control_line_ids.filtered(lambda line: line.status == "block"))
             closing.warning_count = len(closing.control_line_ids.filtered(lambda line: line.status == "warning"))
             closing.passed_count = len(closing.control_line_ids.filtered(lambda line: line.status == "pass"))
+
+    @api.depends("snapshot_ids")
+    def _compute_snapshot_count(self):
+        for closing in self:
+            closing.snapshot_count = len(closing.snapshot_ids)
+
+    def write(self, vals):
+        if {"package_attachment_ids", "package_reference"} & set(vals):
+            locked = self.filtered(
+                lambda closing: any(
+                    snapshot.review_decision_id.state == "recorded"
+                    for snapshot in closing.snapshot_ids
+                ),
+            )
+            if locked:
+                raise UserError(
+                    "Accepted closing-package evidence is locked. Supersede "
+                    "the recorded closing decision before changing the "
+                    "package reference or attachments."
+                )
+        return super().write(vals)
 
     @api.model
     def sync_for_company(self, company):
@@ -600,6 +683,22 @@ class RebuildAccountClosingPeriod(models.Model):
             if closing.review_status not in {"accepted", "accepted_with_difference"}:
                 message = "A recorded closing review decision is required before lock dates can be applied."
                 raise UserError(message)
+            accepted_snapshots = closing.snapshot_ids.filtered(
+                lambda snapshot: (
+                    snapshot.review_decision_id.state == "recorded"
+                    and snapshot.review_decision_id.conclusion in {
+                        "accepted",
+                        "accepted_with_difference",
+                    }
+                ),
+            )
+            if not accepted_snapshots:
+                message = (
+                    "Capture at least one immutable closing-package snapshot "
+                    "for the current recorded acceptance before applying lock "
+                    "dates."
+                )
+                raise UserError(message)
             previous = {
                 key: fields.Date.to_string(closing.company_id[key]) if closing.company_id[key] else None
                 for key in ["fiscalyear_lock_date", "tax_lock_date", "sale_lock_date", "purchase_lock_date", "hard_lock_date"]
@@ -638,7 +737,89 @@ class RebuildAccountClosingPeriod(models.Model):
                 "default_date_from": fields.Date.to_string(self.date_from),
                 "default_date_to": fields.Date.to_string(self.date_to),
                 "default_export_format": "xlsx",
+                "default_closing_period_id": self.id,
             },
+        }
+
+    def _capture_accepted_snapshots(self, decision):
+        self.ensure_one()
+        decision.ensure_one()
+        if (
+            decision.closing_period_id != self
+            or decision.state != "recorded"
+            or decision.conclusion not in {
+                "accepted",
+                "accepted_with_difference",
+            }
+        ):
+            raise UserError(
+                "Accepted snapshots require a recorded closing decision "
+                "linked to this workspace."
+            )
+        if not self.package_attachment_ids:
+            raise UserError(
+                "Attach at least one generated closing package before "
+                "recording an accepted closing decision."
+            )
+        Snapshot = self.env["rebuild.account.closing.snapshot"].sudo()
+        snapshots = Snapshot.browse()
+        for attachment in self.package_attachment_ids.sorted("id"):
+            raw = attachment.raw
+            if not raw:
+                raise UserError(
+                    f"Closing package attachment {attachment.name} has no "
+                    "binary content and cannot be accepted as a snapshot."
+                )
+            sha256 = hashlib.sha256(raw).hexdigest()
+            snapshot = Snapshot.search([
+                ("closing_period_id", "=", self.id),
+                ("review_decision_id", "=", decision.id),
+                ("source_attachment_id", "=", attachment.id),
+                ("sha256", "=", sha256),
+            ], limit=1)
+            if not snapshot:
+                snapshot = Snapshot.create({
+                    "closing_period_id": self.id,
+                    "review_decision_id": decision.id,
+                    "source_attachment_id": attachment.id,
+                })
+            snapshots |= snapshot
+        return snapshots
+
+    def action_capture_accepted_snapshots(self):
+        self.ensure_one()
+        if not self.env.user.has_group("account.group_account_manager"):
+            raise AccessError(
+                "Only an Accounting Manager can capture accepted closing "
+                "snapshots."
+            )
+        decision = self.env["rebuild.account.review.decision"].search([
+            ("closing_period_id", "=", self.id),
+            ("gate", "=", "closing_review"),
+            ("state", "=", "recorded"),
+            (
+                "conclusion",
+                "in",
+                ["accepted", "accepted_with_difference"],
+            ),
+        ], order="reviewed_at desc, id desc", limit=1)
+        if not decision:
+            raise UserError(
+                "Record an accepted closing review decision before "
+                "capturing snapshots."
+            )
+        self._capture_accepted_snapshots(decision)
+        return self.action_open_snapshots()
+
+    def action_open_snapshots(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Accepted Closing Snapshots",
+            "res_model": "rebuild.account.closing.snapshot",
+            "view_mode": "list,form",
+            "domain": [("closing_period_id", "=", self.id)],
+            "context": {"create": False, "delete": False},
         }
 
     def action_open_declarations(self):
@@ -655,6 +836,145 @@ class RebuildAccountClosingPeriod(models.Model):
             ],
             "context": {"create": False, "delete": False},
         }
+
+
+class RebuildAccountClosingSnapshot(models.Model):
+    _name = "rebuild.account.closing.snapshot"
+    _description = "Immutable Accepted Closing Snapshot"
+    _order = "captured_at desc, id desc"
+
+    _unique_snapshot = models.Constraint(
+        "UNIQUE (closing_period_id, review_decision_id, "
+        "source_attachment_id, sha256)",
+        "This accepted closing snapshot already exists.",
+    )
+
+    closing_period_id = fields.Many2one(
+        "rebuild.account.closing.period",
+        required=True,
+        index=True,
+        ondelete="restrict",
+    )
+    company_id = fields.Many2one(
+        related="closing_period_id.company_id",
+        store=True,
+        readonly=True,
+        index=True,
+    )
+    review_decision_id = fields.Many2one(
+        "rebuild.account.review.decision",
+        required=True,
+        index=True,
+        ondelete="restrict",
+    )
+    source_attachment_id = fields.Many2one(
+        "ir.attachment",
+        required=True,
+        index=True,
+        ondelete="restrict",
+    )
+    name = fields.Char(required=True, readonly=True)
+    mimetype = fields.Char(readonly=True)
+    payload = fields.Binary(
+        string="Accepted File",
+        attachment=False,
+        required=True,
+        readonly=True,
+    )
+    sha256 = fields.Char(required=True, readonly=True, index=True)
+    file_size = fields.Integer(required=True, readonly=True)
+    package_reference = fields.Char(readonly=True)
+    decision_conclusion = fields.Selection(
+        [
+            ("accepted", "Accepted"),
+            ("accepted_with_difference", "Accepted with Difference"),
+        ],
+        required=True,
+        readonly=True,
+    )
+    decision_summary = fields.Text(required=True, readonly=True)
+    evidence_summary = fields.Text(readonly=True)
+    reviewer_name = fields.Char(required=True, readonly=True)
+    reviewed_at = fields.Datetime(required=True, readonly=True)
+    captured_at = fields.Datetime(required=True, readonly=True)
+    captured_by_id = fields.Many2one(
+        "res.users",
+        required=True,
+        readonly=True,
+    )
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        prepared = []
+        for vals in vals_list:
+            closing = self.env["rebuild.account.closing.period"].browse(
+                vals.get("closing_period_id"),
+            ).exists()
+            decision = self.env["rebuild.account.review.decision"].browse(
+                vals.get("review_decision_id"),
+            ).exists()
+            attachment = self.env["ir.attachment"].browse(
+                vals.get("source_attachment_id"),
+            ).exists()
+            if not closing or not decision or not attachment:
+                raise UserError(
+                    "A closing workspace, recorded decision and package "
+                    "attachment are required."
+                )
+            if (
+                decision.closing_period_id != closing
+                or decision.state != "recorded"
+                or decision.conclusion not in {
+                    "accepted",
+                    "accepted_with_difference",
+                }
+            ):
+                raise UserError(
+                    "The snapshot decision must be a recorded acceptance "
+                    "linked to the same closing workspace."
+                )
+            if attachment not in closing.package_attachment_ids:
+                raise UserError(
+                    "Only an attachment in the closing package can be "
+                    "captured as accepted evidence."
+                )
+            raw = attachment.raw
+            if not raw:
+                raise UserError(
+                    "The accepted closing attachment must contain binary data."
+                )
+            prepared.append({
+                **vals,
+                "name": attachment.name,
+                "mimetype": attachment.mimetype,
+                "payload": base64.b64encode(raw),
+                "sha256": hashlib.sha256(raw).hexdigest(),
+                "file_size": len(raw),
+                "package_reference": closing.package_reference,
+                "decision_conclusion": decision.conclusion,
+                "decision_summary": decision.decision_summary,
+                "evidence_summary": decision.evidence_summary,
+                "reviewer_name": (
+                    decision.reviewer_name
+                    or decision.reviewer_user_id.name
+                    or self.env.user.name
+                ),
+                "reviewed_at": decision.reviewed_at or fields.Datetime.now(),
+                "captured_at": fields.Datetime.now(),
+                "captured_by_id": (
+                    decision.reviewer_user_id.id or self.env.user.id
+                ),
+            })
+        return super().create(prepared)
+
+    def write(self, _vals):
+        raise UserError(
+            "Accepted closing snapshots are immutable. Create a new review "
+            "decision and snapshot instead."
+        )
+
+    def unlink(self):
+        raise UserError("Accepted closing snapshots cannot be deleted.")
 
 
 class RebuildAccountClosingControl(models.Model):

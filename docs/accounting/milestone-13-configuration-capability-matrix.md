@@ -31,8 +31,10 @@ separate from technical availability.
 | Currencies and Rates | All source currencies and 1,877 historical rates are preserved natively; future reference rates use the ECB provider workspace. | Implemented | Exact broad-snapshot rate comparison, idempotence and provider/browser evidence. |
 | Fiscal Years | Company-configured fiscal-year end and first fiscal-year boundary drive report, declaration and closing periods. | Implemented | Closing/declaration tests use Odoo fiscal-year computation rather than calendar assumptions. |
 | Lock Dates | Native fiscal, tax, sales, purchase and hard-lock fields, with manager-only closing application. | Implemented | Closing controls, lock transition tests and scoped reviewer denial. |
+| Accepted closing packages | Accepted XLSX/PDF closing packages are copied into immutable, company-scoped snapshots before standard lock dates can be advanced. | Implemented | Snapshot payload, SHA-256, decision context and reviewer metadata are frozen; write/unlink is denied and acceptance tests cover the gate. |
 | Analytic Plans and Accounts | Source plans, accounts, distributions, lines and audited corrections use native analytic models. | Implemented | Exact/Track B analytic comparison and native list/pivot/graph routes. |
 | Accounting Reports | One original Community-compatible workbench plus maintained OCA comparison surfaces covers the retained source report families. | Replaced | Generated 38-report technical evidence matrix; professional formula/presentation acceptance is pending. |
+| Revenue versus spending trend | A native SQL-backed graph, pivot and exportable list derive monthly revenue, spending and net contribution from posted journal items. | Implemented | The exact target validates 27 rows for October 2025–June 2026 and totals of EUR 176,928.45 revenue, EUR 101,215.69 spending and EUR 75,712.76 net contribution. |
 | Report Groups or Variants | Report families and source variants are catalogued; PCG 2024 statement variants have explicit target actions and metadata. | Replaced | Association variants are explicit USL-scope exclusions pending stakeholder/accountant acceptance. |
 | Depreciation Models | Maintained OCA asset profiles replace the Enterprise depreciation-model surface for native current workflows. | Replaced | Source assets/schedules remain historical evidence; Track B profile, posting and idempotence tests pass. |
 | Tax Return Types | Versioned declaration rules, applicability profiles and filing-state records replace the Enterprise tax-return-type UI. | Replaced | Rules cover the applicable/conditional French forms and retain official version/source metadata. |
@@ -62,3 +64,10 @@ For Enterprise configuration surfaces generally, a direct proprietary module
 dependency was rejected because the Community deployment does not contain those
 modules. The chosen order is native Community, maintained OCA, and then a small
 original USL workflow only for a demonstrated gap.
+
+For the management trend, a live view over posted native journal items was
+selected over a copied monthly summary or another reporting engine. It stays
+current, respects company scope and retains native journal-item drill-down.
+For closing evidence, copying the accepted package bytes and decision context
+into an immutable snapshot was selected over retaining only a mutable
+attachment reference; the latter could not prove what the reviewer accepted.

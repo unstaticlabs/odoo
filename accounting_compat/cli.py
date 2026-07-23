@@ -1293,6 +1293,7 @@ def capability_matrix(reports: list[dict[str, Any]], controls: dict[str, Any] | 
         ("Accounting > Closing > Reconcile", "MANDATORY_PARITY"),
         ("Accounting > Closing > Tax returns", "MANDATORY_PARITY"),
         ("Accounting > Closing > Lock dates", "MANDATORY_PARITY"),
+        ("Accounting > Closing > Accepted snapshots", "MANDATORY_PARITY"),
         ("Accounting > Transactions > Journal entries", "MANDATORY_PARITY"),
         ("Accounting > Transactions > Analytic items", "MANDATORY_PARITY"),
         ("Accounting > Assets", "OPERATIONAL_PARITY"),
@@ -1304,6 +1305,7 @@ def capability_matrix(reports: list[dict[str, Any]], controls: dict[str, Any] | 
         ("Review > Deferred revenue", "OPERATIONAL_PARITY"),
         ("Review > Unrealized currencies", "MANDATORY_PARITY"),
         ("Reporting > FEC", "MANDATORY_PARITY"),
+        ("Reporting > Revenue versus spending trend", "OPERATIONAL_PARITY"),
         ("Reporting > EDI exports", "OPERATIONAL_PARITY"),
         ("Permissions > Accountant review role", "MANDATORY_PARITY"),
     ]
@@ -1439,6 +1441,24 @@ def final_capability_matrix_controls(
                 "fec-role-browser-status.json",
             ),
         ),
+        "Accounting > Closing > Accepted snapshots": capability_control(
+            status="IMPLEMENTED",
+            source_behaviour=(
+                "Accepted closing packages must remain retrievable with the "
+                "review decision and content identity that authorized them."
+            ),
+            target_community_baseline=(
+                "Manager-generated closing packages attach to the workspace; "
+                "recorded acceptance captures immutable payloads, SHA-256, "
+                "reviewer and decision evidence."
+            ),
+            remaining_gap=(
+                "No technical implementation gap; real accepted snapshots "
+                "depend on the named closing reviewer recording acceptance."
+            ),
+            acceptance_status="named_accountant_acceptance_pending",
+            include_reports_gate=True,
+        ),
         "Accounting > Transactions > Journal entries": capability_control(
             status="IMPLEMENTED",
             source_behaviour="Posted source history is replayed exactly and current-period documents are proved through native workflows.",
@@ -1548,6 +1568,19 @@ def final_capability_matrix_controls(
                 "fec-validation-status.json",
                 "fec-role-browser-status.json",
             ),
+        ),
+        "Reporting > Revenue versus spending trend": capability_control(
+            status="IMPLEMENTED",
+            source_behaviour=(
+                "The replacement objective requires monthly revenue, "
+                "spending and net-contribution evolution."
+            ),
+            target_community_baseline=(
+                "Company-scoped native SQL view with graph, pivot monthly "
+                "columns, list export and journal-item drilldown."
+            ),
+            remaining_gap="No technical implementation gap.",
+            include_reports_gate=True,
         ),
         "Reporting > EDI exports": capability_control(
             status="DEFERRED",
@@ -9550,7 +9583,9 @@ def odoo_report_view_controls() -> dict[str, Any]:
         "rebuild_account_bank_reconciliation_line",
         "rebuild_account_currency_report_line",
         "rebuild_account_management_summary_line",
+        "rebuild_account_revenue_spending_month",
         "rebuild_account_analytic_distribution_line",
+        "rebuild_account_closing_snapshot",
         "rebuild_account_asset",
         "rebuild_account_asset_depreciation_schedule_line",
         "rebuild_account_deferred_schedule_line",
@@ -9825,6 +9860,28 @@ def odoo_report_view_controls() -> dict[str, Any]:
          WHERE period_key = 'USL benchmark 2024-01-10 to 2025-09-30'
            AND report_key = 'executive_summary'
         UNION ALL
+        SELECT 'revenue_spending_trend',
+               count(*)::text,
+               round(sum(amount) FILTER (
+                   WHERE metric = 'revenue'
+               )::numeric, 2)::text,
+               round(sum(amount) FILTER (
+                   WHERE metric = 'spending'
+               )::numeric, 2)::text,
+               round(sum(amount) FILTER (
+                   WHERE metric = 'net_contribution'
+               )::numeric, 2)::text,
+               NULL::text,
+               NULL::text
+          FROM rebuild_account_revenue_spending_month
+         WHERE company_id = (
+                   SELECT id
+                     FROM res_company
+                    WHERE rebuild_source_id = 1
+                    LIMIT 1
+               )
+           AND month BETWEEN DATE '2025-10-01' AND DATE '2026-06-01'
+        UNION ALL
         SELECT 'analytic_report',
                count(*)::text,
                round(COALESCE(sum(allocated_debit), 0)::numeric, 2)::text,
@@ -9973,6 +10030,12 @@ def odoo_report_view_controls() -> dict[str, Any]:
         "currency_report_present": int(by_key["currency_report"]["row_count"]) > 0,
         "cash_flow_present": by_key["cash_flow"]["row_count"] == "4",
         "executive_summary_present": by_key["executive_summary"]["row_count"] == "15",
+        "revenue_spending_trend_present": (
+            by_key["revenue_spending_trend"]["row_count"] == "27"
+            and by_key["revenue_spending_trend"]["debit"] == "176928.45"
+            and by_key["revenue_spending_trend"]["credit"] == "101215.69"
+            and by_key["revenue_spending_trend"]["balance"] == "75712.76"
+        ),
         "analytic_report_available": by_key["analytic_report"]["row_count"] == "0",
         "analytic_current_report_present": (
             by_key["analytic_report_current"]["row_count"] == "53"
@@ -10055,6 +10118,7 @@ def odoo_report_drilldown_controls() -> dict[str, Any]:
                 "    ('currency_report', 'rebuild.account.currency.report.line', [('period_key', '=', 'USL benchmark 2024-01-10 to 2025-09-30'), ('report_section', '=', 'Realized exchange gains and losses')]),",
                 "    ('cash_flow', 'rebuild.account.management.summary.line', [('period_key', '=', 'USL benchmark 2024-01-10 to 2025-09-30'), ('line_code', '=', 'CLOSING_CASH')]),",
                 "    ('executive_summary', 'rebuild.account.management.summary.line', [('period_key', '=', 'USL benchmark 2024-01-10 to 2025-09-30'), ('line_code', '=', 'NET_PROFIT')]),",
+                "    ('revenue_spending_trend', 'rebuild.account.revenue.spending.month', [('month', '>=', '2025-10-01'), ('month', '<=', '2026-06-01'), ('metric', '=', 'net_contribution')]),",
                 "    ('analytic_report', 'rebuild.account.analytic.distribution.line', [('period_key', '=', 'USL current from 2025-10-01')]),",
                 "    ('french_balance_sheet', 'rebuild.account.french.statement.line', [('period_key', '=', 'USL benchmark 2024-01-10 to 2025-09-30'), ('line_code', '=', 'ACTIF_TOTAL')]),",
                 "    ('french_profit_and_loss', 'rebuild.account.french.statement.line', [('period_key', '=', 'USL benchmark 2024-01-10 to 2025-09-30'), ('line_code', '=', 'CR_RESULTAT_NET')]),",

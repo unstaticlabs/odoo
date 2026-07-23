@@ -1,4 +1,5 @@
 import base64
+import hashlib
 import io
 import json
 import zipfile
@@ -207,6 +208,32 @@ class TestDeclarationAndClosing(TransactionCase):
         self.assertEqual(declaration.review_status, "accepted_with_difference")
         self.assertEqual(declaration.status, "ready_to_file")
 
+        not_applicable_closing = self.env[
+            "rebuild.account.review.decision"
+        ].with_user(reviewer).create({
+            "gate": "closing_review",
+            "conclusion": "not_applicable",
+            "required_authority": "accountant",
+            "company_id": company.id,
+            "closing_period_id": closing.id,
+            "decision_summary": "This conclusion does not accept a closing package.",
+            "evidence_summary": "No package acceptance was granted.",
+        })
+        not_applicable_closing.with_user(reviewer).action_record()
+        self.assertEqual(closing.review_status, "rejected")
+        self.assertEqual(closing.state, "blocked")
+        self.assertFalse(closing.snapshot_ids)
+
+        package_payload = b"reviewer closing package"
+        package_attachment = self.env["ir.attachment"].create({
+            "name": "reviewer-closing-package.pdf",
+            "type": "binary",
+            "datas": base64.b64encode(package_payload),
+            "mimetype": "application/pdf",
+            "res_model": closing._name,
+            "res_id": closing.id,
+        })
+        closing.package_attachment_ids = [Command.link(package_attachment.id)]
         closing_decision = self.env["rebuild.account.review.decision"].with_user(reviewer).create({
             "gate": "closing_review",
             "conclusion": "accepted",
@@ -219,6 +246,35 @@ class TestDeclarationAndClosing(TransactionCase):
         closing_decision.with_user(reviewer).action_record()
         self.assertEqual(closing.review_status, "accepted")
         self.assertEqual(closing.state, "blocked")
+        self.assertEqual(closing.snapshot_count, 1)
+        snapshot = closing.snapshot_ids
+        self.assertEqual(
+            snapshot.sha256,
+            hashlib.sha256(package_payload).hexdigest(),
+        )
+        self.assertEqual(base64.b64decode(snapshot.payload), package_payload)
+        self.assertEqual(
+            snapshot.with_user(reviewer).read(["sha256"])[0]["sha256"],
+            snapshot.sha256,
+        )
+        self.assertFalse(snapshot.with_user(reviewer).has_access("write"))
+        with self.assertRaisesRegex(UserError, "immutable"):
+            snapshot.with_user(reviewer).write({"name": "Changed"})
+        with self.assertRaisesRegex(UserError, "immutable"):
+            snapshot.write({"name": "Changed"})
+        with self.assertRaisesRegex(UserError, "locked"):
+            closing.write({"package_reference": "Changed after acceptance"})
+        with self.assertRaisesRegex(UserError, "locked"):
+            package_attachment.write({
+                "datas": base64.b64encode(b"changed package"),
+            })
+        closing_decision.with_user(reviewer).action_supersede()
+        self.assertEqual(closing.review_status, "accountant_requested")
+        self.assertEqual(closing.state, "blocked")
+        closing.write({"package_reference": "New review cycle"})
+        package_attachment.write({"name": "new-review-cycle.pdf"})
+        self.assertEqual(closing.package_reference, "New review cycle")
+        self.assertEqual(package_attachment.name, "new-review-cycle.pdf")
 
     def test_close_applies_soft_locks_and_exports_review_package(self):
         company = self._company("Closing Package Company", profile=False)
@@ -230,39 +286,37 @@ class TestDeclarationAndClosing(TransactionCase):
             "date_to": "2026-01-31",
             "fiscalyear_start": "2025-10-01",
             "fiscalyear_end": "2026-09-30",
-            "review_status": "accepted",
             "package_reference": "REF-CLOSE-2026-01",
         })
 
-        closing.action_close_and_apply_lock_dates()
-
-        self.assertEqual(closing.state, "closed")
-        self.assertEqual(closing.readiness_status, "ready")
-        for field_name in (
-            "fiscalyear_lock_date",
-            "tax_lock_date",
-            "sale_lock_date",
-            "purchase_lock_date",
-        ):
-            self.assertEqual(company[field_name], date(2026, 1, 31))
-        self.assertFalse(company.hard_lock_date)
-        self.assertEqual(json.loads(closing.final_lock_dates)["fiscalyear_lock_date"], "2026-01-31")
-
         wizard = self.env["rebuild.account.report.export.wizard"].with_company(company).create({
             "company_id": company.id,
+            "closing_period_id": closing.id,
             "report_type": "closing_package",
             "date_from": closing.date_from,
             "date_to": closing.date_to,
             "target_move": "posted",
             "export_format": "xlsx",
         })
+        closing_decision = self.env["rebuild.account.review.decision"].create({
+            "gate": "closing_review",
+            "conclusion": "accepted",
+            "required_authority": "accountant",
+            "company_id": company.id,
+            "closing_period_id": closing.id,
+            "decision_summary": "The generated closing package is accepted.",
+            "evidence_summary": "XLSX and PDF packages reviewed in this test.",
+        })
+        with self.assertRaisesRegex(UserError, "Attach at least one"):
+            closing_decision.action_record()
+
         rows = wizard._closing_package_rows()
         self.assertIn("Closing overview", {row["section"] for row in rows})
         self.assertIn("Lock dates", {row["section"] for row in rows})
         wizard.action_generate_export()
         xlsx_payload = base64.b64decode(wizard.export_file)
         self.assertTrue(xlsx_payload.startswith(b"PK"))
-        self.assertGreater(len(xlsx_payload), 10_000)
+        self.assertGreater(len(xlsx_payload), 8_000)
         with zipfile.ZipFile(io.BytesIO(xlsx_payload)) as workbook_archive:
             workbook_xml = workbook_archive.read("xl/workbook.xml")
             shared_strings = workbook_archive.read("xl/sharedStrings.xml")
@@ -278,6 +332,45 @@ class TestDeclarationAndClosing(TransactionCase):
         self.assertTrue(pdf_payload.startswith(b"%PDF"))
         self.assertGreater(len(pdf_payload), 10_000)
         self.assertIn(b"ReportLab PDF Library", pdf_payload)
+        self.assertEqual(len(closing.package_attachment_ids), 2)
+
+        closing_decision.action_record()
+        self.assertEqual(closing.review_status, "accepted")
+        self.assertEqual(closing.state, "ready")
+        self.assertEqual(closing.snapshot_count, 2)
+        self.assertEqual(
+            set(closing.snapshot_ids.mapped("sha256")),
+            {
+                hashlib.sha256(
+                    attachment.raw,
+                ).hexdigest()
+                for attachment in closing.package_attachment_ids
+            },
+        )
+        self.assertEqual(
+            {row["section"] for row in wizard._closing_package_rows()},
+            {
+                *{row["section"] for row in rows},
+                "Accepted closing snapshots",
+            },
+        )
+
+        closing.action_close_and_apply_lock_dates()
+
+        self.assertEqual(closing.state, "closed")
+        self.assertEqual(closing.readiness_status, "ready")
+        for field_name in (
+            "fiscalyear_lock_date",
+            "tax_lock_date",
+            "sale_lock_date",
+            "purchase_lock_date",
+        ):
+            self.assertEqual(company[field_name], date(2026, 1, 31))
+        self.assertFalse(company.hard_lock_date)
+        self.assertEqual(
+            json.loads(closing.final_lock_dates)["fiscalyear_lock_date"],
+            "2026-01-31",
+        )
 
     def test_unusual_balance_control_uses_natural_sides_and_account_policy(self):
         company = self._company("Unusual Balance Company", profile=False)

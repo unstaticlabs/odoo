@@ -1854,6 +1854,175 @@ class RebuildAccountManagementSummaryLine(models.Model):
         )
 
 
+class RebuildAccountRevenueSpendingMonth(models.Model):
+    _name = "rebuild.account.revenue.spending.month"
+    _description = "Monthly Revenue, Spending and Net Contribution"
+    _auto = False
+    _order = "company_id, month, metric_sequence"
+
+    company_id = fields.Many2one("res.company", readonly=True)
+    company_currency_id = fields.Many2one("res.currency", readonly=True)
+    month = fields.Date(readonly=True)
+    metric_sequence = fields.Integer(readonly=True)
+    metric = fields.Selection(
+        selection=[
+            ("revenue", "Revenue"),
+            ("spending", "Spending"),
+            ("net_contribution", "Net Contribution"),
+        ],
+        readonly=True,
+    )
+    line_count = fields.Integer(readonly=True)
+    amount = fields.Monetary(
+        currency_field="company_currency_id",
+        readonly=True,
+    )
+
+    def action_open_journal_items(self):
+        self.ensure_one()
+        domain = [
+            ("company_id", "=", self.company_id.id),
+            ("move_id.state", "=", "posted"),
+            (
+                "move_id.date",
+                ">=",
+                fields.Date.to_string(self.month),
+            ),
+            (
+                "move_id.date",
+                "<=",
+                fields.Date.to_string(
+                    fields.Date.end_of(self.month, "month"),
+                ),
+            ),
+        ]
+        if self.metric == "revenue":
+            domain.append((
+                "account_id.account_type",
+                "in",
+                ["income", "income_other"],
+            ))
+        elif self.metric == "spending":
+            domain.append((
+                "account_id.account_type",
+                "in",
+                [
+                    "expense",
+                    "expense_other",
+                    "expense_direct_cost",
+                    "expense_depreciation",
+                ],
+            ))
+        else:
+            domain.append((
+                "account_id.account_type",
+                "in",
+                [
+                    "income",
+                    "income_other",
+                    "expense",
+                    "expense_other",
+                    "expense_direct_cost",
+                    "expense_depreciation",
+                ],
+            ))
+        return _journal_items_action(
+            self,
+            domain,
+            name=(
+                f"{dict(self._fields['metric'].selection)[self.metric]} "
+                f"Journal Items - {fields.Date.to_string(self.month)}"
+            ),
+        )
+
+    def init(self):
+        tools.drop_view_if_exists(self.env.cr, self._table)
+        self.env.cr.execute(
+            f"""
+            CREATE OR REPLACE VIEW {self._table} AS (
+                WITH monthly AS (
+                    SELECT line.company_id,
+                           company.currency_id AS company_currency_id,
+                           date_trunc('month', move.date)::date AS month,
+                           count(line.id) FILTER (
+                               WHERE account.account_type IN ('income', 'income_other')
+                           )::integer AS revenue_line_count,
+                           count(line.id) FILTER (
+                               WHERE account.account_type IN (
+                                   'expense',
+                                   'expense_other',
+                                   'expense_direct_cost',
+                                   'expense_depreciation'
+                               )
+                           )::integer AS spending_line_count,
+                           count(line.id) FILTER (
+                               WHERE account.account_type IN (
+                                   'income',
+                                   'income_other',
+                                   'expense',
+                                   'expense_other',
+                                   'expense_direct_cost',
+                                   'expense_depreciation'
+                               )
+                           )::integer AS net_line_count,
+                           round(-COALESCE(sum(line.balance) FILTER (
+                               WHERE account.account_type IN ('income', 'income_other')
+                           ), 0)::numeric, 2) AS revenue,
+                           round(COALESCE(sum(line.balance) FILTER (
+                               WHERE account.account_type IN (
+                                   'expense',
+                                   'expense_other',
+                                   'expense_direct_cost',
+                                   'expense_depreciation'
+                               )
+                           ), 0)::numeric, 2) AS spending
+                      FROM account_move_line line
+                      JOIN account_move move ON move.id = line.move_id
+                      JOIN account_account account ON account.id = line.account_id
+                      JOIN res_company company ON company.id = line.company_id
+                     WHERE move.state = 'posted'
+                     GROUP BY line.company_id,
+                              company.currency_id,
+                              date_trunc('month', move.date)::date
+                ),
+                metrics AS (
+                    SELECT company_id,
+                           company_currency_id,
+                           month,
+                           10 AS metric_sequence,
+                           'revenue'::varchar AS metric,
+                           revenue_line_count AS line_count,
+                           revenue AS amount
+                      FROM monthly
+                    UNION ALL
+                    SELECT company_id,
+                           company_currency_id,
+                           month,
+                           20 AS metric_sequence,
+                           'spending'::varchar AS metric,
+                           spending_line_count AS line_count,
+                           spending AS amount
+                      FROM monthly
+                    UNION ALL
+                    SELECT company_id,
+                           company_currency_id,
+                           month,
+                           30 AS metric_sequence,
+                           'net_contribution'::varchar AS metric,
+                           net_line_count AS line_count,
+                           revenue - spending AS amount
+                      FROM monthly
+                )
+                SELECT row_number() OVER (
+                           ORDER BY company_id, month, metric_sequence
+                       )::integer AS id,
+                       metrics.*
+                  FROM metrics
+            )
+            """,
+        )
+
+
 class RebuildAccountAnalyticDistributionLine(models.Model):
     _name = "rebuild.account.analytic.distribution.line"
     _description = "USL Imported Analytic Distribution Line"
