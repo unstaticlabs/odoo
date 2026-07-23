@@ -21,8 +21,10 @@
     "data": [
         "security/rebuild_account_security.xml",
         "security/ir.model.access.csv",
+        "data/french_declaration_rules.xml",
         "data/usl_mis_reports.xml",
         "views/rebuild_account_migration_views.xml",
+        "views/account_closing_declaration_views.xml",
     ],
     "application": False,
     "installable": True,

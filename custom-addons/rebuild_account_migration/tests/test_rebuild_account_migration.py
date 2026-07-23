@@ -130,6 +130,52 @@ class TestRebuildAccountMigration(TransactionCase):
         for model_name in ("hr.employee", "hr.expense", "product.product"):
             self.assertTrue(trace_fields.issubset(self.env[model_name]._fields))
 
+    def test_company_import_preserves_source_legal_address(self):
+        import_run = self.env["rebuild.account.import.run"].create({
+            "name": "Company address replay",
+            "source_snapshot_id": "unit-company-address",
+        })
+        france = self.env.ref("base.fr")
+        source_row = {
+            "id": 990001,
+            "name": "Address Replay Company",
+            "fiscalyear_last_day": 30,
+            "fiscalyear_last_month": "9",
+            "fiscalyear_lock_date": None,
+            "tax_lock_date": None,
+            "sale_lock_date": None,
+            "purchase_lock_date": None,
+            "hard_lock_date": None,
+            "account_fiscal_country_id": 75,
+            "tax_calculation_rounding_method": "round_per_line",
+            "partner_country_id": 75,
+            "vat": "FR48983982950",
+            "company_registry": "99000100000001",
+            "street": "60 RUE FRANCOIS PREMIER",
+            "street2": "CHEZ LEGALPLACE",
+            "zip": "75008",
+            "city": "PARIS",
+            "currency_name": self.company.currency_id.name,
+        }
+        options = {
+            "source_database": "unit_source",
+            "source_snapshot_id": "unit-company-address",
+        }
+
+        with patch.object(type(import_run), "_fetchall", return_value=[source_row]):
+            companies, _rows = import_run._company_map(
+                object(),
+                options,
+                {75: france},
+            )
+
+        company = companies[990001]
+        self.assertEqual(company.street, source_row["street"])
+        self.assertEqual(company.street2, source_row["street2"])
+        self.assertEqual(company.zip, source_row["zip"])
+        self.assertEqual(company.city, source_row["city"])
+        self.assertEqual(company.country_id, france)
+
     def test_journal_replay_preserves_payment_method_lines_when_currency_is_unchanged(self):
         usd = self.env.ref("base.USD")
         journal = self.env["account.journal"].create({

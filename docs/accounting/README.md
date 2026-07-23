@@ -9,3 +9,4 @@ These documents define the accounting truths that implementations and migrations
 - [Milestone 13 checkpoint - 2026-07-22](milestone-13-checkpoint-2026-07-22.md)
 - [Milestone 13 current progress report](milestone-13-current-progress-report.md)
 - [Milestone 13 reporting and closing UX target](milestone-13-reporting-and-closing-ux-target.md)
+- [Milestone 13 declaration and closing workflow](milestone-13-declaration-closing-workflow.md)

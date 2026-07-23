@@ -512,6 +512,8 @@
                 <field name="discrepancy_id"/>
                 <field name="external_value_id"/>
                 <field name="reconciliation_review_id"/>
+                <field name="declaration_id"/>
+                <field name="closing_period_id"/>
                 <field name="reviewer_name"/>
                 <field name="reviewed_at"/>
             </list>
@@ -547,6 +549,8 @@
                             <field name="discrepancy_id"/>
                             <field name="external_value_id"/>
                             <field name="reconciliation_review_id"/>
+                            <field name="declaration_id"/>
+                            <field name="closing_period_id"/>
                             <field name="import_run_id"/>
                             <field name="evidence_key"/>
                             <field name="reviewer_name"/>
@@ -587,6 +591,8 @@
                 <field name="source_report_id"/>
                 <field name="discrepancy_id"/>
                 <field name="external_value_id"/>
+                <field name="declaration_id"/>
+                <field name="closing_period_id"/>
                 <field name="evidence_key"/>
                 <filter name="draft" string="Draft" domain="[('state','=','draft')]"/>
                 <filter name="recorded" string="Recorded" domain="[('state','=','recorded')]"/>

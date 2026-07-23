@@ -25,6 +25,8 @@ class RebuildAccountReviewDecision(models.Model):
             ("tax_external_value", "Tax External Value"),
             ("discrepancy_acceptance", "Discrepancy Acceptance"),
             ("scope_exclusion", "Scope Exclusion"),
+            ("declaration_review", "Declaration Review"),
+            ("closing_review", "Closing Review"),
             ("milestone_closure", "Milestone Closure"),
             ("other", "Other"),
         ],
@@ -64,6 +66,16 @@ class RebuildAccountReviewDecision(models.Model):
     external_value_id = fields.Many2one("rebuild.account.external.report.value", index=True, ondelete="set null")
     reconciliation_review_id = fields.Many2one(
         "rebuild.account.reconciliation.review",
+        index=True,
+        ondelete="set null",
+    )
+    declaration_id = fields.Many2one(
+        "rebuild.account.declaration",
+        index=True,
+        ondelete="set null",
+    )
+    closing_period_id = fields.Many2one(
+        "rebuild.account.closing.period",
         index=True,
         ondelete="set null",
     )
@@ -116,6 +128,12 @@ class RebuildAccountReviewDecision(models.Model):
                 vals["reconciliation_review_id"]
             )
             return f"Reconciliation review - {reconciliation_review.display_name}"
+        if vals.get("declaration_id"):
+            declaration = self.env["rebuild.account.declaration"].browse(vals["declaration_id"])
+            return f"Declaration review - {declaration.display_name}"
+        if vals.get("closing_period_id"):
+            closing = self.env["rebuild.account.closing.period"].browse(vals["closing_period_id"])
+            return f"Closing review - {closing.display_name}"
         gate_label = dict(self._fields["gate"].selection).get(vals.get("gate"), "Accounting")
         return f"{gate_label} review"
 
@@ -125,6 +143,13 @@ class RebuildAccountReviewDecision(models.Model):
                 raise UserError("Record a factual decision summary before marking this review decision as recorded.")
             if decision.conclusion == "pending":
                 raise UserError("Choose a non-pending conclusion before marking this review decision as recorded.")
+            if (
+                decision.gate in {"declaration_review", "closing_review"}
+                and decision.conclusion in {"accepted", "accepted_with_difference", "not_applicable"}
+                and not decision.evidence_summary
+            ):
+                message = "Record the evidence supporting this declaration or closing acceptance decision."
+                raise UserError(message)
             decision.write({
                 "state": "recorded",
                 "reviewed_at": fields.Datetime.now(),
@@ -148,6 +173,10 @@ class RebuildAccountReviewDecision(models.Model):
                 decision._apply_external_value_decision(reviewer_name, reviewed_at)
             if decision.discrepancy_id:
                 decision._apply_discrepancy_decision(reviewer_name)
+            if decision.declaration_id:
+                decision._apply_declaration_decision()
+            if decision.closing_period_id:
+                decision._apply_closing_decision()
 
     def _apply_source_report_decision(self, reviewer_name, reviewed_at):
         accepted_conclusions = {"accepted", "accepted_with_difference", "not_applicable"}
@@ -203,6 +232,39 @@ class RebuildAccountReviewDecision(models.Model):
             "status": status,
             "decision": self.decision_summary,
             "approver": reviewer_name,
+        })
+
+    def _apply_declaration_decision(self):
+        review_status = {
+            "accepted": "accepted",
+            "accepted_with_difference": "accepted_with_difference",
+            "requires_change": "rejected",
+            "rejected": "rejected",
+            "not_applicable": "accepted_with_difference",
+        }.get(self.conclusion)
+        if not review_status:
+            return
+        vals = {"review_status": review_status}
+        if self.conclusion in {"accepted", "accepted_with_difference", "not_applicable"}:
+            vals["status"] = "ready_to_file"
+        else:
+            vals["status"] = "data_missing"
+        self.declaration_id.sudo().write(vals)
+
+    def _apply_closing_decision(self):
+        review_status = {
+            "accepted": "accepted",
+            "accepted_with_difference": "accepted_with_difference",
+            "requires_change": "rejected",
+            "rejected": "rejected",
+            "not_applicable": "accepted_with_difference",
+        }.get(self.conclusion)
+        if not review_status:
+            return
+        accepted = review_status in {"accepted", "accepted_with_difference"}
+        self.closing_period_id.sudo().write({
+            "review_status": review_status,
+            "state": "ready" if accepted and not self.closing_period_id.blocking_count else "blocked",
         })
 
     def action_open_source_report(self):

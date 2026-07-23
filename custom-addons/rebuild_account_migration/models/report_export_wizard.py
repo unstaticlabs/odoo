@@ -8,7 +8,6 @@ from decimal import Decimal
 from odoo import Command, api, fields, models
 from odoo.exceptions import AccessError, UserError
 
-
 ACCOUNT_CODE_SQL = "COALESCE(account.code_store->>company.rebuild_source_id::text, account.code_store->>'1', account.code_store::text)"
 ACCOUNT_NAME_SQL = "COALESCE(account.name->>'fr_FR', account.name->>'en_US', account.name::text)"
 
@@ -65,6 +64,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             ("french_profit_loss_2024", "French Profit and Loss (2024 PCG)"),
             ("sig_caf_2024", "SIG and CAF (2024 PCG)"),
             ("french_tax_package", "French Tax Package Mapping"),
+            ("closing_package", "Closing Review Package"),
             ("fec", "FEC"),
         ],
         required=True,
@@ -224,7 +224,9 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             label = "No rows for the selected report filters"
         else:
             label = (
-                row.get("line_name")
+                row.get("label")
+                or row.get("details")
+                or row.get("line_name")
                 or row.get("field_label")
                 or row.get("asset_name")
                 or row.get("account_name")
@@ -237,7 +239,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         return {
             "sequence": sequence,
             "date": row.get("date") or row.get("due_date") or row.get("deferred_date"),
-            "section": row.get("statement_name") or row.get("report_section") or row.get("form_code") or row.get("journal_code"),
+            "section": row.get("section") or row.get("statement_name") or row.get("report_section") or row.get("form_code") or row.get("journal_code"),
             "line_code": row.get("line_code") or row.get("field_code") or row.get("account_code") or row.get("journal_code"),
             "label": label,
             "account_code": row.get("account_code"),
@@ -512,13 +514,25 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         return values
 
     def _export_metadata(self, row_count=None):
+        partner = self.company_id.partner_id
         return {
             "report_type": self.report_type,
             "report_name": self._report_type_label(),
             "company": self.company_id.display_name,
+            "legal_name": self.company_id.name,
+            "company_registry": self.company_id.company_registry or "",
+            "vat_number": self.company_id.vat or "",
+            "address": ", ".join(filter(None, [
+                partner.street,
+                partner.street2,
+                " ".join(filter(None, [partner.zip, partner.city])),
+                partner.country_id.name,
+            ])),
             "source_company_id": self.company_id.rebuild_source_id,
             "date_from": fields.Date.to_string(self.date_from),
             "date_to": fields.Date.to_string(self.date_to),
+            "currency": self.company_id.currency_id.name,
+            "generated_at": fields.Datetime.to_string(fields.Datetime.now()),
             "target_move": self.target_move,
             "row_count": row_count,
             "format": self.export_format,
@@ -584,117 +598,624 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             writer.writerow({"metadata": metadata_text, "empty_report": "true"})
         return output.getvalue().encode("utf-8")
 
+    def _report_export_columns(self, rows):
+        available = {key for row in rows for key in row}
+        labels = {
+            "section": "Section",
+            "statement_name": "Statement",
+            "report_section": "Section",
+            "form_code": "Form",
+            "line_code": "Code",
+            "field_code": "Field",
+            "date": "Date",
+            "due_date": "Due date",
+            "journal_code": "Journal",
+            "journal_name": "Journal name",
+            "move_name": "Entry",
+            "piece_reference": "Document reference",
+            "account_code": "Account",
+            "account_name": "Account name",
+            "partner_name": "Partner",
+            "label": "Description",
+            "line_name": "Description",
+            "field_label": "Field description",
+            "asset_name": "Asset",
+            "opening_balance": "Opening",
+            "debit": "Debit",
+            "credit": "Credit",
+            "balance": "Balance",
+            "closing_balance": "Closing",
+            "amount": "Amount",
+            "gross_amount": "Gross",
+            "depreciation_amount": "Depreciation",
+            "net_amount": "Net",
+            "residual": "Residual",
+            "presented_residual": "Residual",
+            "amount_residual": "Residual",
+            "imported_period_net_value": "Net book value",
+            "currency": "Currency",
+            "status": "Status",
+            "validation": "Validation",
+            "review_status": "Review status",
+            "record_count": "Count",
+            "details": "Details",
+            "next_action": "Next action",
+            "evidence": "Evidence",
+            "source_reference": "Source reference",
+        }
+        preferred = {
+            "trial_balance": ["account_code", "account_name", "opening_balance", "debit", "credit", "closing_balance"],
+            "general_ledger": ["date", "journal_code", "move_name", "account_code", "account_name", "partner_name", "debit", "credit", "balance"],
+            "journal_report": ["journal_code", "journal_name", "debit", "credit", "balance"],
+            "partner_ledger": ["partner_name", "account_code", "debit", "credit", "balance"],
+            "customer_statement": ["date", "due_date", "move_name", "partner_name", "debit", "credit", "residual"],
+            "open_items": ["date", "due_date", "move_name", "account_code", "partner_name", "balance", "residual"],
+            "aged_receivable": ["partner_name", "not_due", "bucket_1", "bucket_2", "bucket_3", "bucket_4", "bucket_5", "residual"],
+            "aged_payable": ["partner_name", "not_due", "bucket_1", "bucket_2", "bucket_3", "bucket_4", "bucket_5", "residual"],
+            "balance_sheet": ["section", "line_code", "label", "opening_balance", "movement", "closing_balance"],
+            "profit_loss": ["section", "line_code", "label", "amount"],
+            "cash_flow": ["section", "line_code", "label", "amount", "statement_balance"],
+            "executive_summary": ["section", "line_code", "label", "amount", "details"],
+            "tax_report": ["account_code", "account_name", "tax_name", "debit", "credit", "balance"],
+            "tax_report_group_account_tax": ["account_code", "account_name", "tax_name", "debit", "credit", "balance"],
+            "tax_report_group_tax_account": ["tax_name", "account_code", "account_name", "debit", "credit", "balance"],
+            "bank_reconciliation": ["date", "journal_code", "payment_ref", "partner_name", "amount", "residual", "status"],
+            "currency_report": ["currency", "account_code", "partner_name", "amount_currency", "balance", "residual"],
+            "analytic_report": ["date", "analytic_plan_name", "analytic_account_name", "account_code", "partner_name", "debit", "credit", "balance"],
+            "fixed_assets": ["asset_name", "account_code", "acquisition_date", "original_value", "depreciation_amount", "imported_period_net_value", "state"],
+            "fixed_asset_group_account": ["account_code", "account_name", "original_value", "depreciation_amount", "imported_period_net_value"],
+            "depreciation_schedule": ["asset_name", "depreciation_date", "depreciation_amount", "accumulated_depreciation", "imported_period_net_value", "status"],
+            "deferred_schedule": ["deferred_date", "deferred_account_code", "partner_name", "amount", "residual", "review_status"],
+            "french_annual": ["statement_name", "line_code", "label", "gross_amount", "depreciation_amount", "net_amount", "amount"],
+            "french_balance_sheet_2024": ["statement_name", "line_code", "label", "gross_amount", "depreciation_amount", "net_amount"],
+            "french_profit_loss_2024": ["statement_name", "line_code", "label", "amount"],
+            "sig_caf_2024": ["statement_name", "line_code", "label", "amount"],
+            "french_tax_package": ["form_code", "field_code", "field_label", "amount", "rounded_amount", "review_status", "source_reference"],
+            "closing_package": ["section", "line_code", "label", "status", "validation", "record_count", "amount", "details", "next_action", "evidence"],
+        }.get(self.report_type, [])
+        chosen = [key for key in preferred if key in available]
+        if not chosen:
+            excluded = {
+                key for key in available
+                if key.endswith("_id") or key.startswith("source_") or key in {"row_json"}
+            }
+            chosen = sorted(available - excluded)[:9]
+        if not chosen:
+            chosen = ["label"]
+        return [(key, labels.get(key, key.replace("_", " ").title())) for key in chosen]
+
+    @staticmethod
+    def _xlsx_write_value(worksheet, row, column, value, formats, fieldname):
+        numeric_fields = {
+            "opening_balance", "debit", "credit", "balance", "closing_balance", "movement",
+            "amount", "gross_amount", "depreciation_amount", "net_amount", "residual",
+            "presented_residual", "amount_residual", "imported_period_net_value", "original_value",
+            "amount_currency", "rounded_amount", "statement_balance", "record_count",
+        }
+        if value in (None, "", False):
+            worksheet.write_blank(row, column, None, formats["body"])
+            return
+        if fieldname in numeric_fields:
+            try:
+                worksheet.write_number(row, column, float(value), formats["number"])
+                return
+            except (TypeError, ValueError):
+                pass
+        worksheet.write(row, column, str(value), formats["body"])
+
     def _xlsx_payload(self, rows):
         try:
-            import xlsxwriter
+            import xlsxwriter  # noqa: PLC0415
         except ImportError as exc:
-            raise UserError("XLSX export requires the xlsxwriter Python package in the Odoo runtime.") from exc
+            message = "XLSX export requires the xlsxwriter Python package in the Odoo runtime."
+            raise UserError(message) from exc
 
         output = io.BytesIO()
-        workbook = xlsxwriter.Workbook(output, {"in_memory": True})
-        header_format = workbook.add_format({"bold": True, "bg_color": "#D9EAF7", "border": 1})
-        metadata_format = workbook.add_format({"bold": True, "bg_color": "#F2F2F2"})
-        text_format = workbook.add_format({"num_format": "@"})
+        workbook = xlsxwriter.Workbook(output, {
+            "in_memory": True,
+            "strings_to_formulas": False,
+            "strings_to_urls": False,
+        })
+        workbook.set_properties({
+            "title": self._report_type_label(),
+            "subject": f"{self.company_id.display_name} - {self.date_from} to {self.date_to}",
+            "company": self.company_id.display_name,
+            "comments": "Generated from Odoo Community by the USL accounting report exporter.",
+        })
+        formats = {
+            "title": workbook.add_format({"bold": True, "font_size": 18, "font_color": "#17324D"}),
+            "subtitle": workbook.add_format({"font_size": 10, "font_color": "#52606D"}),
+            "header": workbook.add_format({
+                "bold": True, "font_color": "#FFFFFF", "bg_color": "#17324D",
+                "border": 1, "border_color": "#17324D", "text_wrap": True,
+                "valign": "vcenter",
+            }),
+            "metadata_key": workbook.add_format({"bold": True, "bg_color": "#E8EDF2", "border": 1}),
+            "metadata_value": workbook.add_format({
+                "border": 1,
+                "text_wrap": True,
+                "valign": "top",
+                "align": "left",
+                "num_format": "@",
+            }),
+            "body": workbook.add_format({"border": 1, "border_color": "#D5DBE1", "valign": "top", "text_wrap": True}),
+            "number": workbook.add_format({
+                "border": 1, "border_color": "#D5DBE1", "num_format": "#,##0.00;[Red]-#,##0.00;-",
+                "align": "right", "valign": "top",
+            }),
+        }
+        metadata = self._export_metadata(len(rows))
 
         metadata_sheet = workbook.add_worksheet("Metadata")
-        for row_idx, (key, value) in enumerate(self._export_metadata(len(rows)).items()):
-            metadata_sheet.write(row_idx, 0, key, metadata_format)
-            metadata_sheet.write(row_idx, 1, "" if value is None else str(value), text_format)
-        metadata_sheet.set_column(0, 0, 24)
-        metadata_sheet.set_column(1, 1, 48)
+        metadata_sheet.hide_gridlines(2)
+        metadata_sheet.write(0, 0, self._report_type_label(), formats["title"])
+        metadata_sheet.merge_range(0, 0, 0, 1, self._report_type_label(), formats["title"])
+        for row_idx, (key, value) in enumerate(metadata.items(), start=2):
+            metadata_sheet.write(row_idx, 0, key.replace("_", " ").title(), formats["metadata_key"])
+            display_value = json.dumps(value, ensure_ascii=False, sort_keys=True) if isinstance(value, (list, dict)) else value
+            metadata_sheet.write(row_idx, 1, "" if display_value is None else str(display_value), formats["metadata_value"])
+        metadata_sheet.set_column(0, 0, 28)
+        metadata_sheet.set_column(1, 1, 88)
+        metadata_sheet.set_landscape()
+        metadata_sheet.fit_to_pages(1, 0)
 
-        data_sheet = workbook.add_worksheet("Data")
+        report_sheet = workbook.add_worksheet("Report")
+        report_sheet.hide_gridlines(2)
+        columns = self._report_export_columns(rows)
+        last_column = max(0, len(columns) - 1)
+        subtitle = f"{metadata['company']} | {metadata['date_from']} to {metadata['date_to']} | {metadata['currency']} | {metadata['target_move']}"
+        if last_column:
+            report_sheet.merge_range(0, 0, 0, last_column, self._report_type_label(), formats["title"])
+            report_sheet.merge_range(1, 0, 1, last_column, subtitle, formats["subtitle"])
+        else:
+            report_sheet.write(0, 0, self._report_type_label(), formats["title"])
+            report_sheet.write(1, 0, subtitle, formats["subtitle"])
+        header_row = 3
+        for column_idx, (fieldname, label) in enumerate(columns):
+            report_sheet.write(header_row, column_idx, label, formats["header"])
+            width = 15
+            if fieldname in {
+                "label", "line_name", "field_label", "account_name", "partner_name",
+                "details", "evidence", "next_action", "source_reference",
+            }:
+                width = 30
+            report_sheet.set_column(column_idx, column_idx, width)
+        data_rows = rows or [{"label": "No rows for the selected filters"}]
+        for row_idx, row in enumerate(data_rows, start=header_row + 1):
+            for column_idx, (fieldname, _label) in enumerate(columns):
+                self._xlsx_write_value(report_sheet, row_idx, column_idx, row.get(fieldname), formats, fieldname)
+        report_sheet.freeze_panes(header_row + 1, 0)
+        report_sheet.autofilter(header_row, 0, header_row + len(data_rows), last_column)
+        report_sheet.set_landscape()
+        report_sheet.fit_to_pages(1, 0)
+        report_sheet.repeat_rows(header_row, header_row)
+        report_sheet.set_header(f"&L{self.company_id.display_name}&C{self._report_type_label()}&R{self.date_to}")
+        report_sheet.set_footer("&LOdoo Community accounting export&CPage &P of &N&RGenerated &D &T")
+
+        raw_sheet = workbook.add_worksheet("Audit Data")
+        raw_sheet.hide_gridlines(2)
         fieldnames = sorted({key for row in rows for key in row}) or ["empty_report"]
         for column_idx, fieldname in enumerate(fieldnames):
-            data_sheet.write(0, column_idx, fieldname, header_format)
-            data_sheet.set_column(column_idx, column_idx, max(14, min(48, len(fieldname) + 4)))
-        if rows:
-            for row_idx, row in enumerate(rows, start=1):
-                for column_idx, fieldname in enumerate(fieldnames):
-                    value = row.get(fieldname, "")
-                    data_sheet.write(row_idx, column_idx, "" if value is None else str(value), text_format)
-        else:
-            data_sheet.write(1, 0, "true", text_format)
-        data_sheet.freeze_panes(1, 0)
-        data_sheet.autofilter(0, 0, max(1, len(rows)), max(0, len(fieldnames) - 1))
+            raw_sheet.write(0, column_idx, fieldname, formats["header"])
+            width = max(12, min(42, len(fieldname) + 3))
+            if fieldname in {"details", "evidence", "label", "next_action", "source_reference"}:
+                width = 38
+            raw_sheet.set_column(column_idx, column_idx, width)
+        for row_idx, row in enumerate(rows or [{"empty_report": "true"}], start=1):
+            for column_idx, fieldname in enumerate(fieldnames):
+                self._xlsx_write_value(raw_sheet, row_idx, column_idx, row.get(fieldname), formats, fieldname)
+        raw_sheet.freeze_panes(1, 0)
+        raw_sheet.autofilter(0, 0, max(1, len(rows)), max(0, len(fieldnames) - 1))
 
         workbook.close()
         return output.getvalue()
 
     def _pdf_payload(self, rows):
         try:
-            from reportlab.lib.pagesizes import A4
-            from reportlab.lib.units import mm
-            from reportlab.lib.utils import simpleSplit
-            from reportlab.pdfbase import pdfmetrics
-            from reportlab.pdfbase.ttfonts import TTFont
-            from reportlab.pdfgen import canvas
+            from reportlab.lib import colors  # noqa: PLC0415
+            from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT  # noqa: PLC0415
+            from reportlab.lib.pagesizes import A4, landscape  # noqa: PLC0415
+            from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet  # noqa: PLC0415
+            from reportlab.lib.units import mm  # noqa: PLC0415
+            from reportlab.pdfbase import pdfmetrics  # noqa: PLC0415
+            from reportlab.pdfbase.ttfonts import TTFError, TTFont  # noqa: PLC0415
+            from reportlab.platypus import (  # noqa: I001, PLC0415
+                BaseDocTemplate,
+                Frame,
+                PageBreak,
+                PageTemplate,
+                Paragraph,
+                Spacer,
+                Table,
+                TableStyle,
+            )
         except ImportError as exc:
-            raise UserError("PDF export requires the reportlab Python package in the Odoo runtime.") from exc
+            message = "PDF export requires the reportlab Python package in the Odoo runtime."
+            raise UserError(message) from exc
 
         font_name = "Helvetica"
+        bold_font_name = "Helvetica-Bold"
         try:
             pdfmetrics.registerFont(TTFont("DejaVuSans", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"))
+            pdfmetrics.registerFont(TTFont("DejaVuSans-Bold", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"))
             font_name = "DejaVuSans"
-        except Exception:
+            bold_font_name = "DejaVuSans-Bold"
+        except (OSError, TTFError):
             font_name = "Helvetica"
+            bold_font_name = "Helvetica-Bold"
 
         output = io.BytesIO()
-        document = canvas.Canvas(output, pagesize=A4)
-        width, height = A4
-        margin = 14 * mm
-        line_height = 4.2 * mm
-        max_text_width = width - (2 * margin)
-        page_number = 1
         metadata = self._export_metadata(len(rows))
-        fieldnames = sorted({key for row in rows for key in row}) or ["empty_report"]
-        data_rows = rows or [{"empty_report": "true"}]
+        date_from_display = fields.Date.to_date(metadata["date_from"]).strftime("%d/%m/%Y")
+        date_to_display = fields.Date.to_date(metadata["date_to"]).strftime("%d/%m/%Y")
+        columns = self._report_export_columns(rows)
+        wide_report = self.report_type in {
+            "general_ledger", "closing_package", "french_tax_package", "depreciation_schedule",
+        } or len(columns) > 7
+        page_size = landscape(A4) if wide_report else A4
+        document = BaseDocTemplate(
+            output,
+            pagesize=page_size,
+            leftMargin=13 * mm,
+            rightMargin=13 * mm,
+            topMargin=23 * mm,
+            bottomMargin=17 * mm,
+            title=self._report_type_label(),
+            author=self.company_id.display_name,
+            subject=f"Accounting report for {self.date_from} to {self.date_to}",
+        )
+        styles = getSampleStyleSheet()
+        styles.add(ParagraphStyle(
+            name="USLTitle",
+            parent=styles["Title"],
+            fontName=bold_font_name,
+            fontSize=20,
+            leading=24,
+            textColor=colors.HexColor("#17324D"),
+            alignment=TA_LEFT,
+            spaceAfter=3 * mm,
+        ))
+        styles.add(ParagraphStyle(
+            name="USLSubtitle",
+            parent=styles["Normal"],
+            fontName=font_name,
+            fontSize=9,
+            leading=12,
+            textColor=colors.HexColor("#52606D"),
+            spaceAfter=5 * mm,
+        ))
+        styles.add(ParagraphStyle(
+            name="USLSection",
+            parent=styles["Heading2"],
+            fontName=bold_font_name,
+            fontSize=12,
+            leading=15,
+            textColor=colors.HexColor("#17324D"),
+            spaceBefore=4 * mm,
+            spaceAfter=2 * mm,
+        ))
+        styles.add(ParagraphStyle(
+            name="USLBody",
+            parent=styles["Normal"],
+            fontName=font_name,
+            fontSize=7.2,
+            leading=9,
+            alignment=TA_LEFT,
+        ))
+        styles.add(ParagraphStyle(
+            name="USLBodyRight",
+            parent=styles["USLBody"],
+            alignment=TA_RIGHT,
+        ))
+        styles.add(ParagraphStyle(
+            name="USLHeaderCell",
+            parent=styles["USLBody"],
+            fontName=bold_font_name,
+            textColor=colors.white,
+            alignment=TA_CENTER,
+        ))
+        styles.add(ParagraphStyle(
+            name="USLNote",
+            parent=styles["Normal"],
+            fontName=font_name,
+            fontSize=8,
+            leading=11,
+            textColor=colors.HexColor("#374151"),
+            backColor=colors.HexColor("#F3F5F7"),
+            borderColor=colors.HexColor("#C9D2DB"),
+            borderWidth=0.5,
+            borderPadding=7,
+            spaceAfter=4 * mm,
+        ))
 
-        def pdf_text(value):
+        def clean_text(value):
             text = "" if value is None else str(value)
             if font_name == "Helvetica":
                 return text.encode("latin-1", "replace").decode("latin-1")
             return text
 
-        def draw_header():
-            document.setFont(font_name, 12)
-            document.drawString(margin, height - margin, pdf_text(self.report_type.replace("_", " ").title()))
-            document.setFont(font_name, 8)
-            y = height - margin - line_height
-            for key in ["company", "source_company_id", "date_from", "date_to", "target_move", "row_count", "format"]:
-                document.drawString(margin, y, pdf_text(f"{key}: {metadata.get(key, '')}"))
-                y -= line_height
-            return y - line_height
+        def amount_text(value):
+            if value in (None, "", False):
+                return ""
+            try:
+                return f"{Decimal(str(value)):,.2f}".replace(",", " ").replace(".", ",")
+            except (ArithmeticError, TypeError, ValueError):
+                return clean_text(value)
 
-        def draw_footer():
-            document.setFont(font_name, 8)
-            document.drawRightString(width - margin, margin / 2, pdf_text(f"Page {page_number}"))
+        numeric_fields = {
+            "opening_balance", "debit", "credit", "balance", "closing_balance", "movement",
+            "amount", "gross_amount", "depreciation_amount", "net_amount", "residual",
+            "presented_residual", "amount_residual", "imported_period_net_value", "original_value",
+            "amount_currency", "rounded_amount", "statement_balance",
+        }
+        status_labels = {
+            "pass": "Conforme",
+            "warning": "Alerte",
+            "block": "Bloquant",
+            "not_applicable": "Sans objet",
+            "blocked": "Bloqué",
+            "ready": "Prêt",
+            "open": "Ouvert",
+            "internal_review": "Revue interne",
+            "accountant_review": "Revue comptable",
+            "data_missing": "Données manquantes",
+            "matched": "Concordant",
+            "mismatch": "Ecart",
+            "review": "A revoir",
+            "prefilled": "Prérempli",
+            "unresolved": "Non résolu",
+            "posted": "Ecritures comptabilisées",
+        }
 
-        def next_page():
-            nonlocal page_number
-            draw_footer()
-            document.showPage()
-            page_number += 1
-            return draw_header()
+        def cell(value, fieldname=""):
+            if fieldname in {"status", "validation", "review_status"}:
+                display = status_labels.get(str(value or ""), clean_text(value))
+            else:
+                display = amount_text(value) if fieldname in numeric_fields else clean_text(value)
+            style = styles["USLBodyRight"] if fieldname in numeric_fields else styles["USLBody"]
+            return Paragraph(display.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"), style)
 
-        y = draw_header()
-        document.setFont(font_name, 8)
-        for row_index, row in enumerate(data_rows, start=1):
-            row_text = " | ".join(
-                f"{fieldname}={row.get(fieldname, '')}"
-                for fieldname in fieldnames
+        def table_style(extra=None):
+            commands = [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#17324D")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("FONTNAME", (0, 0), (-1, 0), bold_font_name),
+                ("GRID", (0, 0), (-1, -1), 0.35, colors.HexColor("#B8C2CC")),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 4),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+                ("TOPPADDING", (0, 0), (-1, -1), 3),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#F7F8FA")]),
+            ]
+            return TableStyle([*commands, *(extra or [])])
+
+        def append_chunked_table(
+            section_title,
+            header_labels,
+            body_rows,
+            column_widths,
+            *,
+            chunk_size,
+            status_values=None,
+            emphasis_values=None,
+        ):
+            chunks = [body_rows[index:index + chunk_size] for index in range(0, len(body_rows), chunk_size)] or [[]]
+            for chunk_index, chunk in enumerate(chunks):
+                story.append(PageBreak())
+                continuation = " (suite)" if chunk_index else ""
+                story.append(Paragraph(clean_text(section_title + continuation), styles["USLSection"]))
+                header = [Paragraph(clean_text(label), styles["USLHeaderCell"]) for label in header_labels]
+                extra_style = []
+                if status_values:
+                    status_colors = {
+                        "pass": "#E7F4EC",
+                        "warning": "#FFF4D6",
+                        "block": "#FDE8E8",
+                        "not_applicable": "#EEF1F4",
+                    }
+                    chunk_statuses = status_values[
+                        chunk_index * chunk_size:(chunk_index * chunk_size) + len(chunk)
+                    ]
+                    for row_index, status in enumerate(chunk_statuses, start=1):
+                        if status in status_colors:
+                            extra_style.append((
+                                "BACKGROUND", (0, row_index), (0, row_index),
+                                colors.HexColor(status_colors[status]),
+                            ))
+                if emphasis_values:
+                    chunk_emphasis = emphasis_values[
+                        chunk_index * chunk_size:(chunk_index * chunk_size) + len(chunk)
+                    ]
+                    for row_index, emphasized in enumerate(chunk_emphasis, start=1):
+                        if emphasized:
+                            extra_style.extend([
+                                ("BACKGROUND", (0, row_index), (-1, row_index), colors.HexColor("#E8EDF2")),
+                                ("FONTNAME", (0, row_index), (-1, row_index), bold_font_name),
+                            ])
+                chunk_table = Table([header, *chunk], colWidths=column_widths, repeatRows=1)
+                chunk_table.setStyle(table_style(extra_style))
+                story.append(chunk_table)
+
+        def draw_page(canvas, doc):
+            width, height = page_size
+            canvas.saveState()
+            canvas.setStrokeColor(colors.HexColor("#17324D"))
+            canvas.setLineWidth(1.2)
+            canvas.line(doc.leftMargin, height - 13 * mm, width - doc.rightMargin, height - 13 * mm)
+            canvas.setFont(bold_font_name, 8.5)
+            canvas.setFillColor(colors.HexColor("#17324D"))
+            canvas.drawString(doc.leftMargin, height - 10.5 * mm, clean_text(self.company_id.display_name.upper()))
+            canvas.setFont(font_name, 8)
+            canvas.setFillColor(colors.HexColor("#52606D"))
+            canvas.drawRightString(width - doc.rightMargin, height - 10.5 * mm, clean_text(f"Arrêté au {date_to_display}"))
+            canvas.setStrokeColor(colors.HexColor("#AAB4BE"))
+            canvas.setLineWidth(0.5)
+            canvas.line(doc.leftMargin, 11 * mm, width - doc.rightMargin, 11 * mm)
+            canvas.setFont(font_name, 7.5)
+            canvas.drawString(doc.leftMargin, 7.5 * mm, clean_text("Odoo Community - Dossier comptable reproductible"))
+            canvas.drawCentredString(width / 2, 7.5 * mm, clean_text(f"Généré le {metadata['generated_at']}"))
+            canvas.drawRightString(width - doc.rightMargin, 7.5 * mm, clean_text(f"Page {doc.page}"))
+            canvas.restoreState()
+
+        title = "Dossier de clôture" if self.report_type == "closing_package" else self._report_type_label()
+        story = [
+            Paragraph(clean_text(title), styles["USLTitle"]),
+            Paragraph(
+                clean_text(
+                    f"{metadata['company']} - Exercice du {date_from_display} au {date_to_display} - "
+                    f"Monnaie {metadata['currency']} - {metadata['target_move']}",
+                ),
+                styles["USLSubtitle"],
+            ),
+        ]
+        identity_data = [
+            [Paragraph("Société", styles["USLHeaderCell"]), cell(metadata["legal_name"]),
+             Paragraph("Identifiant", styles["USLHeaderCell"]), cell(metadata["company_registry"] or metadata["vat_number"] or "Non renseigné")],
+            [Paragraph("Adresse", styles["USLHeaderCell"]), cell(metadata["address"] or "Non renseignée"),
+             Paragraph("Périmètre", styles["USLHeaderCell"]), cell(f"{len(rows)} ligne(s), {metadata['target_move']}")],
+        ]
+        identity_value_width = (document.width - (49 * mm)) / 2
+        identity_table = Table(identity_data, colWidths=[24 * mm, identity_value_width, 25 * mm, identity_value_width])
+        identity_table.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (0, -1), colors.HexColor("#17324D")),
+            ("BACKGROUND", (2, 0), (2, -1), colors.HexColor("#17324D")),
+            ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#B8C2CC")),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("LEFTPADDING", (0, 0), (-1, -1), 5),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 5),
+            ("TOPPADDING", (0, 0), (-1, -1), 5),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+        ]))
+        story.extend([identity_table, Spacer(1, 4 * mm)])
+        if metadata.get("report_variant_basis"):
+            story.append(Paragraph(clean_text(metadata["report_variant_basis"]), styles["USLNote"]))
+
+        if self.report_type == "closing_package":
+            story.append(Paragraph(
+                "Ce dossier prépare la revue de clôture et centralise les contrôles, obligations, sources et actions. "
+                "Il ne constitue ni une attestation professionnelle ni une déclaration déposée. Les décisions d'acceptation "
+                "restent enregistrées séparément par l'autorité habilitée.",
+                styles["USLNote"],
+            ))
+            overview = next((row for row in rows if row.get("line_code") == "CLOSE_STATUS"), {})
+            story.append(Paragraph("Synthèse de préparation", styles["USLSection"]))
+            overview_data = [
+                [Paragraph("Etat", styles["USLHeaderCell"]), Paragraph("Validation", styles["USLHeaderCell"]),
+                 Paragraph("Contrôles", styles["USLHeaderCell"]), Paragraph("Synthèse", styles["USLHeaderCell"])],
+                [cell(overview.get("status"), "status"), cell(overview.get("validation"), "validation"),
+                 cell(overview.get("record_count")), cell(overview.get("details"))],
+            ]
+            overview_table = Table(overview_data, colWidths=[28 * mm, 28 * mm, 22 * mm, document.width - 78 * mm])
+            overview_table.setStyle(table_style())
+            story.extend([overview_table, Spacer(1, 3 * mm)])
+
+            control_rows = [row for row in rows if str(row.get("section") or "").startswith("Closing control")]
+            control_data = []
+            for row in control_rows:
+                control_data.append([
+                    cell(row.get("status"), "status"), cell(row.get("label")), cell(row.get("record_count")),
+                    cell(row.get("amount"), "amount"), cell(row.get("details")), cell(row.get("next_action")),
+                ])
+            control_widths = [22 * mm, 38 * mm, 12 * mm, 22 * mm, (document.width - 94 * mm) * 0.45, (document.width - 94 * mm) * 0.55]
+            append_chunked_table(
+                "Contrôles de clôture",
+                ["Statut", "Contrôle", "Nb", "Montant", "Constat", "Action suivante"],
+                control_data,
+                control_widths,
+                chunk_size=8,
+                status_values=[row.get("status") for row in control_rows],
             )
-            lines = simpleSplit(pdf_text(f"{row_index}. {row_text}"), font_name, 8, max_text_width)
-            if y - (len(lines) * line_height) < margin:
-                y = next_page()
-                document.setFont(font_name, 8)
-            for line in lines:
-                document.drawString(margin, y, line)
-                y -= line_height
-            y -= line_height / 2
 
-        draw_footer()
-        document.save()
+            declaration_rows = [row for row in rows if row.get("section") == "Declaration schedule"]
+            declaration_data = [[
+                cell(row.get("line_code")), cell(row.get("label")), cell(row.get("status"), "status"),
+                cell(row.get("validation"), "validation"), cell(row.get("amount"), "amount"), cell(row.get("evidence")),
+            ] for row in declaration_rows]
+            append_chunked_table(
+                "Calendrier déclaratif",
+                ["Formulaire", "Obligation", "Statut", "Contrôle", "Montant", "Echéance et source"],
+                declaration_data,
+                [24 * mm, 48 * mm, 25 * mm, 27 * mm, 25 * mm, document.width - 149 * mm],
+                chunk_size=7,
+            )
+
+            field_rows = [row for row in rows if str(row.get("section") or "").startswith("Declaration fields")]
+            field_data = []
+            for row in field_rows:
+                form_code = str(row.get("section") or "").replace("Declaration fields - ", "")
+                source_action = " - ".join(filter(None, [str(row.get("evidence") or ""), str(row.get("next_action") or "")]))
+                field_data.append([
+                    cell(form_code), cell(f"{row.get('line_code', '')} - {row.get('label', '')}"),
+                    cell(row.get("validation"), "validation"), cell(row.get("amount"), "amount"),
+                    cell(row.get("details")), cell(source_action),
+                ])
+            append_chunked_table(
+                "Traçabilité des champs déclaratifs",
+                ["Formulaire", "Champ", "Statut", "Montant", "Valeur ou formule", "Source / action"],
+                field_data,
+                [22 * mm, 47 * mm, 25 * mm, 23 * mm, (document.width - 117 * mm) * 0.45, (document.width - 117 * mm) * 0.55],
+                chunk_size=8,
+            )
+
+            lock_row = next((row for row in rows if row.get("line_code") == "LOCK_EVIDENCE"), {})
+            lock_details = lock_row.get("details") or ""
+            if lock_details.strip() == "previous=; final=":
+                lock_details = "Aucune preuve de verrouillage final n'est encore enregistrée."
+            story.extend([
+                PageBreak(),
+                Paragraph("Dates de verrouillage et responsabilité", styles["USLSection"]),
+                Paragraph(clean_text(lock_details or "Aucune preuve de verrouillage enregistrée."), styles["USLNote"]),
+                Paragraph(clean_text(lock_row.get("next_action") or ""), styles["USLNote"]),
+            ])
+        else:
+            long_fields = {"label", "line_name", "field_label", "account_name", "partner_name", "details", "source_reference"}
+            fixed_widths = []
+            for fieldname, _label in columns:
+                if fieldname in numeric_fields or fieldname in {
+                    "date", "due_date", "depreciation_date", "acquisition_date",
+                    "account_code", "journal_code", "line_code", "field_code", "form_code",
+                    "currency", "status", "review_status",
+                }:
+                    fixed_widths.append(23 * mm)
+                elif fieldname in long_fields:
+                    fixed_widths.append(0)
+                else:
+                    fixed_widths.append(27 * mm)
+            remaining = max(25 * mm, document.width - sum(fixed_widths))
+            flexible_count = max(1, fixed_widths.count(0))
+            column_widths = [width or (remaining / flexible_count) for width in fixed_widths]
+            data_rows = rows or [{"label": "Aucune ligne pour les filtres sélectionnés"}]
+            table_rows = [
+                [cell(row.get(fieldname), fieldname) for fieldname, _label in columns]
+                for row in data_rows
+            ]
+            emphasis_values = []
+            for row in data_rows:
+                label = " ".join(str(row.get(key) or "") for key in ("line_code", "label", "line_name", "field_label"))
+                emphasis_values.append("TOTAL" in label.upper() or "RESULT" in label.upper())
+            append_chunked_table(
+                "Détail du rapport",
+                [label for _field, label in columns],
+                table_rows,
+                column_widths,
+                chunk_size=20,
+                emphasis_values=emphasis_values,
+            )
+
+        document.addPageTemplates([PageTemplate(
+            id="USLAccountingReport",
+            pagesize=page_size,
+            frames=[Frame(
+                document.leftMargin,
+                document.bottomMargin,
+                document.width,
+                document.height,
+                id="USLAccountingReportFrame",
+            )],
+            onPage=draw_page,
+        )])
+        document.build(story)
         return output.getvalue()
 
     def _report_rows(self):
@@ -761,6 +1282,8 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             )
         if self.report_type == "french_tax_package":
             return self._french_tax_package_rows()
+        if self.report_type == "closing_package":
+            return self._closing_package_rows()
         raise UserError("Unsupported report type.")
 
     def _state_sql(self):
@@ -783,8 +1306,8 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             return
         if self.export_format == "txt":
             raise UserError("The FEC TXT format is only available for FEC exports.")
-        if self.report_type == "french_tax_package" and (self.journal_ids or self.account_ids or self.partner_ids):
-            raise UserError("French tax-package mapping is a statutory benchmark mapping. Use company and period filters only.")
+        if self.report_type in {"french_tax_package", "closing_package"} and (self.journal_ids or self.account_ids or self.partner_ids):
+            raise UserError("French statutory benchmark mapping and closing packages use company and period filters only.")
         if self.report_type in ("fixed_assets", "fixed_asset_group_account", "depreciation_schedule") and (self.journal_ids or self.partner_ids):
             raise UserError("Journal and partner filters are not applicable to fixed-asset and depreciation-schedule exports.")
         if self.report_type == "bank_reconciliation" and self.account_ids:
@@ -914,6 +1437,89 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             if code_clauses:
                 clauses.append("AND (" + " OR ".join(code_clauses) + ")")
         return "\n               ".join(clauses), params
+
+    def _closing_package_rows(self):
+        closing = self.env["rebuild.account.closing.period"].search([
+            ("company_id", "=", self.company_id.id),
+            ("date_from", "=", self.date_from),
+            ("date_to", "=", self.date_to),
+        ], order="period_type desc, id desc", limit=1)
+        if not closing:
+            raise UserError(
+                "No closing workspace matches the selected company and exact dates. "
+                "Open Closing Workspaces, synchronize the company profile and use Generate Package from that period."
+            )
+        rows = [{
+            "section": "Closing overview",
+            "line_code": "CLOSE_STATUS",
+            "label": closing.name,
+            "status": closing.state,
+            "validation": closing.readiness_status,
+            "record_count": str(len(closing.control_line_ids)),
+            "amount": "0.00",
+            "details": closing.readiness_summary or "",
+            "next_action": closing.actions_awaiting_valentin or "",
+            "evidence": closing.package_reference or "",
+        }]
+        rows.extend({
+            "section": f"Closing control - {control.category}",
+            "line_code": control.code,
+            "label": control.name,
+            "status": control.status,
+            "validation": control.status,
+            "record_count": str(control.record_count),
+            "amount": _amount_text(control.amount),
+            "details": control.summary or "",
+            "next_action": control.next_action or "",
+            "evidence": f"owner={control.owner}; accountant_visible={control.accountant_visible}",
+        } for control in closing.control_line_ids.sorted(lambda line: (line.category, line.code)))
+        declarations = self.env["rebuild.account.declaration"].search([
+            ("company_id", "=", self.company_id.id),
+            ("fiscalyear_start", "=", closing.fiscalyear_start),
+            ("fiscalyear_end", "=", closing.fiscalyear_end),
+        ])
+        for declaration in declarations:
+            rows.append({
+                "section": "Declaration schedule",
+                "line_code": declaration.form_code,
+                "label": declaration.name,
+                "status": declaration.status,
+                "validation": declaration.validation_status,
+                "record_count": str(declaration.prefilled_line_count),
+                "amount": _amount_text(declaration.amount_due),
+                "details": declaration.validation_summary or "",
+                "next_action": declaration.unresolved_information or "",
+                "evidence": (
+                    f"rule={declaration.rule_id.code}/{declaration.rule_version}; "
+                    f"deadline={fields.Date.to_string(declaration.deadline_date)}; "
+                    f"official_source={declaration.official_url}; filing_reference={declaration.external_filing_reference or ''}"
+                ),
+            })
+            rows.extend({
+                "section": f"Declaration fields - {declaration.form_code}",
+                "line_code": field.field_code,
+                "label": field.field_label,
+                "status": "unresolved" if field.is_unresolved else "prefilled",
+                "validation": field.validation_status,
+                "record_count": "1",
+                "amount": _amount_text(field.amount),
+                "details": field.value_text or field.source_formula or "",
+                "next_action": field.unresolved_reason or "",
+                "evidence": f"{field.source_kind}: {field.source_reference or ''}",
+            } for field in declaration.field_line_ids)
+        rows.append({
+            "section": "Lock dates",
+            "line_code": "LOCK_EVIDENCE",
+            "label": "Standard Odoo lock-date evidence",
+            "status": closing.state,
+            "validation": "recorded" if closing.final_lock_dates else "pending",
+            "record_count": "0",
+            "amount": "0.00",
+            "details": f"previous={closing.previous_lock_dates or ''}; final={closing.final_lock_dates or ''}",
+            "next_action": "Final lock dates are applied only by an Accounting Manager after closing controls and reviewer approval.",
+            "evidence": f"closed_by={closing.closed_by_id.name or ''}; closed_at={closing.closed_at or ''}",
+        })
+        return rows
 
     def _trial_balance_rows(self):
         filter_sql, filter_params = self._line_filter_sql()

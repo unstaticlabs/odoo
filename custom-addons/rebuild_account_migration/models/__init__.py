@@ -9,6 +9,8 @@ from . import source_report
 from . import source_report_structure
 from . import deferred_schedule
 from . import external_report_value
+from . import declaration
+from . import closing
 from . import import_run
 from . import native_expense_settlement
 from . import native_document_settlement

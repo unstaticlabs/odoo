@@ -463,7 +463,7 @@ Required work: implement human-readable dynamic report screens and exports, then
 - [ ] Integrate the proven Track B customer invoices, vendor bills, supplier refunds and source-derived expenses into the user-facing replacement target; the source period contains no customer credit-note case.
 - [ ] Diagnose and fix the FEC permission path for accountant and finance operator roles.
 - [x] Diagnose and fix the Settings cash-basis tax error without changing tax meaning.
-- [ ] Complete menu organization around CEO/accountant workflows. The seven-area navigation and reconciliation routes are complete; closing/declaration destinations remain.
+- [x] Complete menu organization around CEO/accountant workflows. The seven-area navigation now includes top-level Closing and Declarations destinations plus the standard closing and tax/fiscal submenus.
 
 ### Short term
 
@@ -471,8 +471,8 @@ Required work: implement human-readable dynamic report screens and exports, then
 - [x] Make OCA dynamic interactive report screens the primary path for the general reports OCA already covers.
 - [ ] Replace or augment the remaining technical wizard flows with dynamic interactive report screens where the current OCA/MIS foundation does not cover the mandatory user need.
 - [ ] Preserve the current CSV/XLSX evidence exports as audit artifacts, but distinguish them from user-facing reports.
-- [ ] Add CFS Pro and Portailpro declaration guidance views with field, value, source, calculation, warning and reviewer state.
-- [ ] Add declaration schedule reminders for the French SASU closing workflow.
+- [x] Add CFS Pro declaration guidance views with field, value, source, calculation, warning and reviewer state. The workflow links to the current official source and professional filing portal; no electronic filing is claimed.
+- [x] Add a versioned declaration schedule and calendar for the confirmed French SASU profile, including conditional form suppression.
 - [ ] Add drill-down from report lines to journal items and evidence in the normal UI.
 - [ ] Update user docs after the menu and reporting UX are redesigned.
 - [ ] Add realistic user-role tests for Valentin, accountant, finance operator and read-only reviewer.
@@ -483,7 +483,7 @@ Required work: implement human-readable dynamic report screens and exports, then
 - [ ] Complete French statutory report semantics.
 - [ ] Complete VAT, CA12 and tax-package mapping review.
 - [ ] Complete fixed-asset and depreciation reconciliation to statements and tax mappings.
-- [ ] Validate lock-date behavior in UI and programmatic actions.
+- [x] Validate programmatic lock-date behavior, reviewer gating and before/after evidence for the new closing workspace. Final named-user browser validation remains part of the acceptance walkthrough.
 - [ ] Validate sequence and chronology behavior.
 - [ ] Validate full and partial reconciliation behavior through a user-facing review path.
 - [ ] Complete official FEC validation and accountant review dossier.

@@ -2,6 +2,7 @@ import hashlib
 import json
 import os
 from collections import defaultdict
+from datetime import date
 
 import psycopg2
 import psycopg2.extras
@@ -1001,6 +1002,7 @@ class RebuildAccountImportRun(models.Model):
                    c.purchase_lock_date, c.hard_lock_date, c.account_fiscal_country_id,
                    c.tax_calculation_rounding_method,
                    rp.country_id AS partner_country_id, rp.vat, rp.company_registry,
+                   rp.street, rp.street2, rp.zip, rp.city,
                    rc.name AS currency_name
             FROM res_company c
             LEFT JOIN res_partner rp ON rp.id = c.partner_id
@@ -1035,6 +1037,20 @@ class RebuildAccountImportRun(models.Model):
                 ),
                 **self._trace_values("res.company", row["id"], options),
             }
+            if row["id"] == 1:
+                vals.update({
+                    "rebuild_declaration_profile_active": True,
+                    "rebuild_legal_form": "sasu",
+                    "rebuild_corporate_tax_regime": "is",
+                    "rebuild_profit_tax_regime": "bic_simplified",
+                    "rebuild_vat_regime": "simplified",
+                    "rebuild_first_fiscalyear_start": "2024-01-10",
+                    "rebuild_declaration_profile_evidence": (
+                        "Confirmed Milestone 13 facts and the supplied 2025 BIC/RS/IS tax package: "
+                        "Unstatic Labs is a French SASU subject to IS, using the simplified BIC/IS "
+                        "package and CA12/CA12-E VAT workflow. Fiscal year ends 30 September."
+                    ),
+                })
             if row["account_fiscal_country_id"] in countries:
                 vals["account_fiscal_country_id"] = countries[row["account_fiscal_country_id"]].id
             if row["partner_country_id"] in countries:
@@ -1043,6 +1059,8 @@ class RebuildAccountImportRun(models.Model):
                 vals["vat"] = row["vat"]
             if row["company_registry"]:
                 vals["company_registry"] = row["company_registry"]
+            for address_field in ("street", "street2", "zip", "city"):
+                vals[address_field] = row[address_field] or False
             if "iap_enrich_auto_done" in Company._fields:
                 vals["iap_enrich_auto_done"] = True
             vals.update(self._company_report_layout_defaults(company))
@@ -6478,6 +6496,18 @@ class RebuildAccountImportRun(models.Model):
                         lock_vals[field_name] = row[field_name]
                 if lock_vals:
                     company.write(lock_vals)
+
+            for company in companies.values():
+                if company.rebuild_declaration_profile_active:
+                    declarations = self.env["rebuild.account.declaration"].sync_for_company(company)
+                    if company.rebuild_source_id == 1:
+                        current_ca12 = declarations.filtered(
+                            lambda declaration: declaration.rule_id.code == "FR_3517_S"
+                            and declaration.fiscalyear_start >= date(2025, 10, 1),
+                        ).sorted("fiscalyear_end", reverse=True)[:1]
+                        current_ca12.action_classify_confirmed_vat_refund()
+                        declarations.action_refresh_preparation()
+                    self.env["rebuild.account.closing.period"].sync_for_company(company)
 
             missing_domains = [
                 ("User-facing report suite awaits final report-variant and accountant acceptance", "P0"),
