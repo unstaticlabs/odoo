@@ -738,7 +738,11 @@ class TestRebuildAccountMigration(TransactionCase):
         source_move = {
             "id": 990100,
             "company_id": 990001,
+            "journal_id": 990003,
             "date": fields.Date.from_string("2025-09-30"),
+            "name": "OD000000003",
+            "sequence_prefix": "OD",
+            "sequence_number": 3,
         }
         source_lines = [
             {
@@ -772,6 +776,7 @@ class TestRebuildAccountMigration(TransactionCase):
             source_move,
             source_lines,
             {990001: self.company},
+            {990003: move.journal_id},
             {},
             {
                 990201: debit_account,
@@ -784,6 +789,16 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(result["source_line_count"], 2)
         self.assertEqual(result["debit"], 10.0)
         self.assertEqual(result["credit"], 10.0)
+        identity = (
+            import_run._normalize_exact_replay_move_alias_identity(
+                move,
+                source_move,
+            )
+        )
+        self.assertTrue(identity["identity_normalized"])
+        self.assertEqual(move.name, "OD000000003")
+        self.assertEqual(move.sequence_prefix, "OD")
+        self.assertEqual(move.sequence_number, 3)
 
         invalid_lines = [dict(line) for line in source_lines]
         invalid_lines[1]["credit"] = 9.0
@@ -796,6 +811,7 @@ class TestRebuildAccountMigration(TransactionCase):
                 source_move,
                 invalid_lines,
                 {990001: self.company},
+                {990003: move.journal_id},
                 {},
                 {
                     990201: debit_account,
@@ -804,6 +820,46 @@ class TestRebuildAccountMigration(TransactionCase):
                 {990004: self.company.currency_id},
                 options,
             )
+
+    def test_sequence_chronology_profile_keeps_source_exceptions_visible(self):
+        profile = self.env[
+            "rebuild.account.import.run"
+        ]._sequence_chronology_profile([
+            {
+                "source_move_id": 1,
+                "source_journal_id": 10,
+                "move_name": "BNK/0001",
+                "date": "2025-01-31",
+                "sequence_prefix": "BNK/",
+                "sequence_number": 1,
+            },
+            {
+                "source_move_id": 2,
+                "source_journal_id": 10,
+                "move_name": "BNK/0003",
+                "date": "2025-01-15",
+                "sequence_prefix": "BNK/",
+                "sequence_number": 3,
+            },
+            {
+                "source_move_id": 3,
+                "source_journal_id": 10,
+                "move_name": "BNK/0003",
+                "date": "2025-02-01",
+                "sequence_prefix": "BNK/",
+                "sequence_number": 3,
+            },
+        ])
+
+        self.assertEqual(profile["move_count"], 3)
+        self.assertEqual(profile["missing_name_count"], 0)
+        self.assertEqual(profile["duplicate_name_group_count"], 1)
+        self.assertEqual(
+            profile["duplicate_sequence_number_group_count"],
+            1,
+        )
+        self.assertEqual(profile["sequence_gap_count"], 1)
+        self.assertEqual(profile["sequence_date_decrease_count"], 1)
 
     def test_native_expense_company_dependent_values_accept_source_key_shapes(self):
         import_run = self.env["rebuild.account.import.run"]

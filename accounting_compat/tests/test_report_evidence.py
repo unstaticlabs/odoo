@@ -6,6 +6,43 @@ from accounting_compat import cli
 
 
 class SourceReportParityEvidenceTest(unittest.TestCase):
+    def test_sequence_chronology_summary_keeps_source_exceptions_visible(self):
+        summary = cli.sequence_chronology_summary([
+            {
+                "source_move_id": "1",
+                "source_journal_id": "10",
+                "move_name": "BNK/0001",
+                "date": "2025-01-31",
+                "sequence_prefix": "BNK/",
+                "sequence_number": "1",
+            },
+            {
+                "source_move_id": "2",
+                "source_journal_id": "10",
+                "move_name": "BNK/0003",
+                "date": "2025-01-15",
+                "sequence_prefix": "BNK/",
+                "sequence_number": "3",
+            },
+            {
+                "source_move_id": "3",
+                "source_journal_id": "10",
+                "move_name": "BNK/0003",
+                "date": "2025-02-01",
+                "sequence_prefix": "BNK/",
+                "sequence_number": "3",
+            },
+        ])
+
+        self.assertEqual(summary["move_count"], 3)
+        self.assertEqual(summary["duplicate_name_group_count"], 1)
+        self.assertEqual(
+            summary["duplicate_sequence_number_group_count"],
+            1,
+        )
+        self.assertEqual(summary["sequence_gap_count"], 1)
+        self.assertEqual(summary["sequence_date_decrease_count"], 1)
+
     def test_keeps_passed_family_evidence_when_aggregate_probe_is_partial(self):
         evidence = cli.source_report_parity_evidence_from_controls(
             {

@@ -371,6 +371,26 @@ Option 3 is selected. `make accounting-replacement-reset` creates `odoo_rebuild_
 
 Historical validation is exact: source and target both contain `2,046` moves, `4,809` lines and debit/credit of `1,064,045.02`. The combined candidate contains `4,541` posted moves and `10,727` posted lines, with zero unbalanced moves and zero duplicate source identities.
 
+Historical move identity is now blocking evidence, not only a count and amount
+comparison. Three treatments were considered for the four reused native move
+aliases: retain their newly generated native names, duplicate the source moves,
+or keep the validated native accounting representation and restore its source
+entry reference through Odoo's ORM. Retaining the generated names would
+silently renumber history, while duplication would repeat accounting effects;
+direct SQL mutation was also rejected because it bypasses Odoo's sequence and
+lock machinery. The selected ORM path uses Odoo's scoped lock-check bypass for
+this migration-only normalization and verifies the exact source name, date,
+journal, sequence prefix and sequence number afterwards. The four aliases now
+retain `OD000000003`, `OD000000004`, `OD000000006` and `OD000000011`.
+
+Source and target sequence/chronology profiles now match exactly across all
+`2,046` benchmark moves: no blank entry references, no duplicate names, no
+duplicate sequence numbers, `2` source sequence gaps and `3` source
+date-order decreases. The gaps and decreases already exist in the locked source
+ledger; they are preserved rather than repaired and are exposed as a P2
+accountant-owned source-anomaly discrepancy. Technical parity is complete, but
+the accountant still needs to explain or accept those five source exceptions.
+
 Current-period reconstruction remains native rather than exact-line replay. Relative to the source, it contains `199` fewer moves, `401` fewer lines and EUR `8,866.06` less gross debit/credit. Every difference is classified: Odoo's `EXCH` journal aggregates exchange effects differently; `CABA` uses native cash-basis timing and aggregation; and `SHINE`, `REVEU` and `REVUS` segment OCA bank allocations differently. The `12` differing account balances net to EUR `0.00`, with no unclassified journal or account difference. The remaining profit-and-loss balance difference is EUR `2.64`, attributable to native exchange timing.
 
 The focused clean replacement sequence was repeated after the final FEC role

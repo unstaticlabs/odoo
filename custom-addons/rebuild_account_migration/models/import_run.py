@@ -9,6 +9,8 @@ import psycopg2.extras
 
 from odoo import Command, fields, models
 
+from odoo.addons.account.models.account_move import BYPASS_LOCK_CHECK
+
 
 class RebuildAccountImportRun(models.Model):
     _name = "rebuild.account.import.run"
@@ -207,6 +209,7 @@ class RebuildAccountImportRun(models.Model):
         source_move,
         source_lines,
         companies,
+        journals,
         partners,
         accounts,
         currencies,
@@ -224,6 +227,7 @@ class RebuildAccountImportRun(models.Model):
         )
         issues = []
         expected_company = companies.get(source_move["company_id"])
+        expected_journal = journals.get(source_move["journal_id"])
         if move.state != "posted":
             issues.append(f"state {move.state!r} is not posted")
         if move.date != source_move["date"]:
@@ -233,6 +237,11 @@ class RebuildAccountImportRun(models.Model):
         if expected_company and move.company_id != expected_company:
             issues.append(
                 f"company {move.company_id.id} differs from {expected_company.id}",
+            )
+        if expected_journal and move.journal_id != expected_journal:
+            issues.append(
+                f"journal {move.journal_id.id} differs from "
+                f"{expected_journal.id}",
             )
         if set(target_lines) != set(source_accounting_lines):
             issues.append(
@@ -300,6 +309,269 @@ class RebuildAccountImportRun(models.Model):
             "source_line_count": len(source_accounting_lines),
             "debit": round(sum(self._amount(line["debit"]) for line in source_accounting_lines.values()), 2),
             "credit": round(sum(self._amount(line["credit"]) for line in source_accounting_lines.values()), 2),
+        }
+
+    def _normalize_exact_replay_move_alias_identity(self, move, source_move):
+        expected_name = source_move["name"] or "/"
+        if expected_name == "/":
+            raise ValueError(
+                "Posted source move %s has no historical entry reference."
+                % source_move["id"],
+            )
+        collision = self.env["account.move"].search([
+            ("journal_id", "=", move.journal_id.id),
+            ("name", "=", expected_name),
+            ("state", "=", "posted"),
+            ("id", "!=", move.id),
+        ], limit=1)
+        if collision:
+            raise ValueError(
+                "Historical entry reference %s already belongs to target "
+                "move %s in journal %s."
+                % (
+                    expected_name,
+                    collision.id,
+                    move.journal_id.display_name,
+                ),
+            )
+        normalized = move.name != expected_name
+        if normalized:
+            move.with_context(
+                bypass_lock_check=BYPASS_LOCK_CHECK,
+                skip_readonly_check=True,
+                tracking_disable=True,
+            ).write({"name": expected_name})
+        move.invalidate_recordset([
+            "name",
+            "sequence_prefix",
+            "sequence_number",
+        ])
+        expected_prefix = source_move["sequence_prefix"] or ""
+        expected_number = source_move["sequence_number"] or 0
+        identity_differences = {
+            field_name: {
+                "source": expected,
+                "target": actual,
+            }
+            for field_name, expected, actual in (
+                ("name", expected_name, move.name or "/"),
+                (
+                    "sequence_prefix",
+                    expected_prefix,
+                    move.sequence_prefix or "",
+                ),
+                (
+                    "sequence_number",
+                    expected_number,
+                    move.sequence_number or 0,
+                ),
+            )
+            if expected != actual
+        }
+        if identity_differences:
+            raise ValueError(
+                "Native target move %s cannot preserve exact source move %s "
+                "identity: %s"
+                % (
+                    move.display_name,
+                    source_move["id"],
+                    json.dumps(
+                        identity_differences,
+                        ensure_ascii=False,
+                        sort_keys=True,
+                    ),
+                ),
+            )
+        return {
+            "source_move_name": expected_name,
+            "target_move_name": move.name,
+            "source_sequence_prefix": expected_prefix,
+            "target_sequence_prefix": move.sequence_prefix or "",
+            "source_sequence_number": expected_number,
+            "target_sequence_number": move.sequence_number or 0,
+            "identity_normalized": normalized,
+        }
+
+    @staticmethod
+    def _sequence_chronology_profile(rows):
+        missing_names = []
+        names = defaultdict(list)
+        sequence_numbers = defaultdict(list)
+        sequence_groups = defaultdict(list)
+        for row in rows:
+            move_name = row.get("move_name") or "/"
+            source_move_id = row.get("source_move_id")
+            journal_id = row.get("source_journal_id")
+            prefix = row.get("sequence_prefix") or ""
+            number = row.get("sequence_number") or 0
+            move_date = fields.Date.to_date(row.get("date"))
+            if move_name == "/":
+                missing_names.append(source_move_id)
+            names[journal_id, move_name].append(source_move_id)
+            if number:
+                sequence_numbers[journal_id, prefix, number].append(
+                    source_move_id,
+                )
+                sequence_groups[journal_id, prefix].append({
+                    "source_move_id": source_move_id,
+                    "move_name": move_name,
+                    "date": move_date,
+                    "sequence_number": number,
+                })
+
+        duplicate_names = [
+            {
+                "source_journal_id": journal_id,
+                "move_name": move_name,
+                "source_move_ids": source_move_ids,
+            }
+            for (journal_id, move_name), source_move_ids in names.items()
+            if move_name != "/" and len(source_move_ids) > 1
+        ]
+        duplicate_numbers = [
+            {
+                "source_journal_id": journal_id,
+                "sequence_prefix": prefix,
+                "sequence_number": number,
+                "source_move_ids": source_move_ids,
+            }
+            for (
+                journal_id,
+                prefix,
+                number,
+            ), source_move_ids in sequence_numbers.items()
+            if len(source_move_ids) > 1
+        ]
+        gaps = []
+        date_decreases = []
+        for (journal_id, prefix), group_rows in sequence_groups.items():
+            previous = None
+            for row in sorted(
+                group_rows,
+                key=lambda item: (
+                    item["sequence_number"],
+                    item["source_move_id"],
+                ),
+            ):
+                if previous:
+                    if (
+                        row["sequence_number"]
+                        > previous["sequence_number"] + 1
+                    ):
+                        gaps.append({
+                            "source_journal_id": journal_id,
+                            "sequence_prefix": prefix,
+                            "previous_source_move_id": (
+                                previous["source_move_id"]
+                            ),
+                            "previous_move_name": previous["move_name"],
+                            "previous_sequence_number": (
+                                previous["sequence_number"]
+                            ),
+                            "source_move_id": row["source_move_id"],
+                            "move_name": row["move_name"],
+                            "sequence_number": row["sequence_number"],
+                        })
+                    if row["date"] < previous["date"]:
+                        date_decreases.append({
+                            "source_journal_id": journal_id,
+                            "sequence_prefix": prefix,
+                            "previous_source_move_id": (
+                                previous["source_move_id"]
+                            ),
+                            "previous_move_name": previous["move_name"],
+                            "previous_date": str(previous["date"]),
+                            "source_move_id": row["source_move_id"],
+                            "move_name": row["move_name"],
+                            "date": str(row["date"]),
+                        })
+                previous = row
+        return {
+            "move_count": len(rows),
+            "missing_name_count": len(missing_names),
+            "missing_name_examples": missing_names[:10],
+            "duplicate_name_group_count": len(duplicate_names),
+            "duplicate_name_examples": duplicate_names[:10],
+            "duplicate_sequence_number_group_count": len(duplicate_numbers),
+            "duplicate_sequence_number_examples": duplicate_numbers[:10],
+            "sequence_gap_count": len(gaps),
+            "sequence_gap_examples": gaps[:10],
+            "sequence_date_decrease_count": len(date_decreases),
+            "sequence_date_decrease_examples": date_decreases[:10],
+        }
+
+    def _sequence_chronology_stats(self, source_rows, target_moves):
+        source_profile_rows = []
+        target_profile_rows = []
+        identity_mismatches = []
+        sequence_date_mismatch_count = 0
+        for source_row in source_rows:
+            source_move_id = source_row["id"]
+            target_move = target_moves.get(source_move_id)
+            source_profile = {
+                "source_move_id": source_move_id,
+                "source_journal_id": source_row["journal_id"],
+                "move_name": source_row["name"] or "/",
+                "date": source_row["date"],
+                "sequence_prefix": source_row["sequence_prefix"] or "",
+                "sequence_number": source_row["sequence_number"] or 0,
+            }
+            source_profile_rows.append(source_profile)
+            if not target_move:
+                identity_mismatches.append({
+                    "source_move_id": source_move_id,
+                    "differences": {"target_move": "missing"},
+                })
+                continue
+            target_profile = {
+                "source_move_id": source_move_id,
+                "source_journal_id": source_row["journal_id"],
+                "move_name": target_move.name or "/",
+                "date": target_move.date,
+                "sequence_prefix": target_move.sequence_prefix or "",
+                "sequence_number": target_move.sequence_number or 0,
+            }
+            target_profile_rows.append(target_profile)
+            differences = {
+                field_name: {
+                    "source": source_profile[field_name],
+                    "target": target_profile[field_name],
+                }
+                for field_name in (
+                    "move_name",
+                    "date",
+                    "sequence_prefix",
+                    "sequence_number",
+                )
+                if source_profile[field_name] != target_profile[field_name]
+            }
+            if differences:
+                identity_mismatches.append({
+                    "source_move_id": source_move_id,
+                    "differences": differences,
+                })
+            if not target_move._sequence_matches_date():
+                sequence_date_mismatch_count += 1
+
+        source_profile = self._sequence_chronology_profile(
+            source_profile_rows,
+        )
+        target_profile = self._sequence_chronology_profile(
+            target_profile_rows,
+        )
+        target_matches_source = (
+            not identity_mismatches
+            and source_profile == target_profile
+        )
+        return {
+            "target_matches_source": target_matches_source,
+            "identity_mismatch_count": len(identity_mismatches),
+            "identity_mismatch_examples": identity_mismatches[:10],
+            "target_sequence_date_format_mismatch_count": (
+                sequence_date_mismatch_count
+            ),
+            "source": source_profile,
+            "target": target_profile,
         }
 
     def _upsert_discrepancy(self, vals):
@@ -6826,17 +7098,27 @@ class RebuildAccountImportRun(models.Model):
                 existing = existing_move_map.get(move_row["id"])
                 if existing:
                     if existing.rebuild_source_model != "account.move":
-                        reused_native_move_representations.append(
+                        alias_evidence = (
                             self._validate_exact_replay_move_alias(
                                 existing,
                                 move_row,
                                 line_rows_by_move[move_row["id"]],
                                 companies,
+                                journals,
                                 partners,
                                 accounts,
                                 currencies,
                                 options,
+                            )
+                        )
+                        alias_evidence.update(
+                            self._normalize_exact_replay_move_alias_identity(
+                                existing,
+                                move_row,
                             ),
+                        )
+                        reused_native_move_representations.append(
+                            alias_evidence,
                         )
                     imported_moves |= existing
                     imported_line_count += len(existing.line_ids)
@@ -6901,6 +7183,109 @@ class RebuildAccountImportRun(models.Model):
                     warnings.append(f"Move {move_row['id']} imported with name {move.name} instead of {move_row['name']}.")
                 imported_moves |= move
                 imported_line_count += len(line_commands)
+
+            imported_move_map = self._source_trace_record_map(
+                "account.move",
+                [move_row["id"] for move_row in move_rows],
+                options,
+            )
+            sequence_chronology_stats = self._sequence_chronology_stats(
+                move_rows,
+                imported_move_map,
+            )
+            if not sequence_chronology_stats["target_matches_source"]:
+                raise ValueError(
+                    "Imported move sequence and chronology identity differs "
+                    "from the source: %s"
+                    % json.dumps(
+                        sequence_chronology_stats[
+                            "identity_mismatch_examples"
+                        ],
+                        ensure_ascii=False,
+                        sort_keys=True,
+                        default=str,
+                    ),
+                )
+            sequence_discrepancy_name = (
+                "Historical journal sequence and chronology exceptions "
+                "require review"
+            )
+            source_sequence_profile = sequence_chronology_stats["source"]
+            source_sequence_exception_count = (
+                source_sequence_profile["missing_name_count"]
+                + source_sequence_profile["duplicate_name_group_count"]
+                + source_sequence_profile[
+                    "duplicate_sequence_number_group_count"
+                ]
+                + source_sequence_profile["sequence_gap_count"]
+                + source_sequence_profile[
+                    "sequence_date_decrease_count"
+                ]
+            )
+            if source_sequence_exception_count:
+                self._upsert_discrepancy({
+                    "name": sequence_discrepancy_name,
+                    "severity": "P2",
+                    "classification": "source_anomaly",
+                    "status": "investigating",
+                    "period_key": (
+                        f"{options['date_from']}:{options['date_to']}"
+                    ),
+                    "source_model": "account.move",
+                    "target_model": "account.move",
+                    "source_value": (
+                        f"{source_sequence_profile['sequence_gap_count']} "
+                        "sequence gaps; "
+                        f"{source_sequence_profile['sequence_date_decrease_count']} "
+                        "date-order decreases"
+                    ),
+                    "target_value": (
+                        "Historical names, dates, sequence prefixes and "
+                        "numbers preserved exactly"
+                    ),
+                    "difference": (
+                        "No target-only sequence or chronology exception"
+                    ),
+                    "accounting_impact": (
+                        "The source contains visible historical numbering "
+                        "exceptions. The target preserves them exactly and "
+                        "does not silently resequence posted history."
+                    ),
+                    "legal_or_tax_impact": (
+                        "An accountant should review the source gaps and "
+                        "date-order exceptions before accepting the audit "
+                        "trail; technical parity does not explain their "
+                        "business cause."
+                    ),
+                    "evidence": json.dumps(
+                        sequence_chronology_stats,
+                        ensure_ascii=False,
+                        sort_keys=True,
+                        default=str,
+                    ),
+                    "likely_cause": (
+                        "The exceptions already exist in the restored source "
+                        "ledger and may reflect deleted drafts, import order "
+                        "or bank-entry sequencing."
+                    ),
+                    "recommendation": (
+                        "Review the listed source entries and document the "
+                        "cause. Do not use Odoo resequencing on imported "
+                        "posted history without accountant approval."
+                    ),
+                    "owner": "accountant",
+                })
+            else:
+                self.env["rebuild.account.discrepancy"].search([
+                    ("name", "=", sequence_discrepancy_name),
+                    ("status", "in", ["open", "investigating"]),
+                ]).write({
+                    "status": "resolved",
+                    "decision": (
+                        "No source or target sequence/chronology exception "
+                        "exists in the imported period."
+                    ),
+                })
 
             for source_account_id in account_ids_to_archive_after_post:
                 accounts[source_account_id].active = False
@@ -7248,6 +7633,7 @@ class RebuildAccountImportRun(models.Model):
                 "reused_native_move_representations": (
                     reused_native_move_representations
                 ),
+                "sequence_chronology": sequence_chronology_stats,
                 "skipped_non_account_line_count": skipped_non_account_line_count,
                 "skipped_non_account_line_examples": skipped_non_account_line_examples,
                 "account_count": len(accounts),

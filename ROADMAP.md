@@ -28,6 +28,7 @@ Overall status: **technical rehearsal passed; professional acceptance pending**.
 - [x] Browser walkthroughs pass for Accounting Manager and the scoped Prosper reviewer; reviewer writes are denied by ACLs and Bank Matching mutation controls are hidden.
 - [x] FEC generation and download pass in the replacement browser for Accounting Manager, scoped Prosper reviewer and finance operator. Reviewer/operator mode is locked to a complete posted test FEC; only the manager can use the official lock-date path.
 - [x] A second focused clean hybrid reset/import/validate run after the final FEC/UI changes reproduces the prior candidate signature and classified differences without rerunning unchanged source or Track B stages.
+- [x] Historical move identity and sequence/chronology parity are blocking across all `2,046` benchmark moves. The replacement preserves the source's `2` sequence gaps and `3` date-order decreases rather than silently resequencing locked history.
 
 ### Professional gates still open
 
@@ -35,6 +36,7 @@ Overall status: **technical rehearsal passed; professional acceptance pending**.
 - [ ] Valentin acceptance of the two SASU report scope exclusions and final product presentation.
 - [ ] Accountant/product decision for the 75 draft/future cross-boundary reconciliation relationships: retain review-only treatment or authorize a separate application workflow.
 - [ ] Accountant acceptance or objection for the hybrid candidate's EUR `2.64` current-period exchange profit-and-loss difference, followed by an explicit promotion decision.
+- [ ] Accountant explanation or acceptance of the `2` historical source sequence gaps and `3` sequence-ordered date decreases.
 - [ ] Recorded FEC, declaration and final milestone acceptance by their named authorities.
 
 ### Non-blocking polish

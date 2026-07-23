@@ -168,6 +168,18 @@ Historical parity is exact at `2,046` moves, `4,809` lines and debit/credit
 `1,064,045.02`. The combined candidate has `4,541` posted moves and `10,727`
 posted lines, with no unbalanced posted move or duplicate source identity.
 
+The historical identity gate now also compares every entry reference, date,
+journal, sequence prefix and sequence number. The four reused native aliases
+are normalized through Odoo's ORM to their exact source references
+`OD000000003`, `OD000000004`, `OD000000006` and `OD000000011`; retaining their
+new native names would silently renumber history, while duplicating them would
+repeat accounting effects. Source and replacement profiles match across all
+`2,046` moves with no blank or duplicate references and no duplicate sequence
+numbers. Both contain the same `2` sequence gaps and `3` date-order decreases.
+Those five exceptions are source anomalies, not target drift: they remain
+unchanged and are visible as an investigating P2 discrepancy owned by the
+accountant. Their business explanation and acceptance remain open.
+
 Every current-period journal and account-balance difference is classified as
 native cash-basis timing/aggregation, native exchange timing/aggregation or OCA
 bank-allocation segmentation. The `12` account differences net to EUR `0.00`;
@@ -496,6 +508,7 @@ make accounting-evidence
 make accounting-addon-tests ACCOUNTING_TEST_DB=odoo_m13_unusual_balance_unit_20260723_2
 make accounting-addon-tests ACCOUNTING_TEST_DB=odoo_m13_replacement_unit_20260723_7
 make accounting-addon-tests ACCOUNTING_TEST_DB=odoo_m13_fec_roles_unit_20260723_11
+make accounting-addon-tests ACCOUNTING_TEST_DB=odoo_m13_sequence_unit_20260723_2
 jq empty artifacts/accounting-compat/private/accounting-hygiene-browser-status.json artifacts/accounting-compat/private/replacement-browser-status.json artifacts/accounting-compat/private/fec-role-browser-status.json artifacts/accounting-compat/private/readiness-assessment.json artifacts/accounting-compat/private/evidence-index.json
 ```
 
@@ -513,6 +526,7 @@ write/unlink denial and backend asset registration. The suite also includes
 manager/reviewer/operator FEC normalization, official-mode gates, complete
 journal scope, visible download topology, manager lock-date behavior and the
 native/custom generation routes, plus the three ECB provider/idempotence/access
+tests and the historical sequence/chronology profile and alias-normalization
 tests. Module initialization emitted the existing docutils indentation
 warnings but no test failure or error. The disposable unit databases were
 dropped after validation.

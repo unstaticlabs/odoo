@@ -9,11 +9,12 @@ import json
 import os
 import platform
 import re
-import shutil
 import shlex
+import shutil
 import subprocess
 import sys
 import time
+from collections import defaultdict
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
 from decimal import Decimal
@@ -2500,6 +2501,12 @@ def replacement_import(args: argparse.Namespace) -> dict[str, Any]:
         key: stats.get(key) == expected_value
         for key, expected_value in expected.items()
     }
+    checks["sequence_chronology_matches"] = (
+        stats.get("sequence_chronology", {}).get(
+            "target_matches_source",
+        )
+        is True
+    )
     status = {
         "generated_at": utc_now(),
         "tool_version": TOOL_VERSION,
@@ -2566,6 +2573,35 @@ def replacement_validate(args: argparse.Namespace) -> dict[str, Any]:
         ORDER BY company.rebuild_source_id
         """,
         set_readonly_role=False,
+    )
+    source_historical_moves = source_move_comparison_rows()
+    target_historical_moves = target_move_comparison_rows(
+        REPLACEMENT_DB,
+    )
+    historical_move_identity = compare_rows(
+        source_historical_moves,
+        target_historical_moves,
+        key="source_move_id",
+        fields=[
+            "move_name",
+            "date",
+            "sequence_prefix",
+            "sequence_number",
+            "source_journal_id",
+            "source_company_id",
+            "source_partner_id",
+            "state",
+        ],
+    )
+    source_sequence_chronology = sequence_chronology_summary(
+        source_historical_moves,
+    )
+    target_sequence_chronology = sequence_chronology_summary(
+        target_historical_moves,
+    )
+    sequence_chronology_matches = (
+        historical_move_identity["passed"]
+        and source_sequence_chronology == target_sequence_chronology
     )
     source_current = query_json(
         SOURCE_DB,
@@ -2982,6 +3018,10 @@ def replacement_validate(args: argparse.Namespace) -> dict[str, Any]:
     }
     critical_checks = {
         "historical_ledger_matches": historical_matches,
+        "historical_move_identity_matches": (
+            historical_move_identity["passed"]
+        ),
+        "sequence_chronology_matches": sequence_chronology_matches,
         "native_product_counts_match": all(product_counts_match.values()),
         "posted_moves_balance": (
             runtime_signature.get("unbalanced_posted_move_count") == "0"
@@ -3071,6 +3111,17 @@ def replacement_validate(args: argparse.Namespace) -> dict[str, Any]:
             "source": source_historical,
             "target": target_historical,
             "matches": historical_matches,
+            "move_identity": historical_move_identity,
+            "sequence_chronology": {
+                "source": source_sequence_chronology,
+                "target": target_sequence_chronology,
+                "matches": sequence_chronology_matches,
+                "interpretation": (
+                    "Source exceptions are preserved for review; the "
+                    "replacement import does not silently resequence posted "
+                    "history."
+                ),
+            },
         },
         "current_period": {
             "date_from": USL_CURRENT_START,
@@ -5634,6 +5685,114 @@ def compare_rows(
     }
 
 
+def sequence_chronology_summary(
+    rows: list[dict[str, Any]],
+) -> dict[str, Any]:
+    names: dict[tuple[str, str], list[str]] = defaultdict(list)
+    numbers: dict[tuple[str, str, int], list[str]] = defaultdict(list)
+    groups: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
+    missing_names = []
+    for row in rows:
+        source_move_id = str(row["source_move_id"])
+        journal_id = str(row["source_journal_id"])
+        move_name = str(row.get("move_name") or "/")
+        prefix = str(row.get("sequence_prefix") or "")
+        number = int(row.get("sequence_number") or 0)
+        move_date = str(row.get("date") or "")
+        if move_name == "/":
+            missing_names.append(source_move_id)
+        names[journal_id, move_name].append(source_move_id)
+        if number:
+            numbers[journal_id, prefix, number].append(source_move_id)
+            groups[journal_id, prefix].append({
+                "source_move_id": source_move_id,
+                "move_name": move_name,
+                "date": move_date,
+                "sequence_number": number,
+            })
+
+    duplicate_names = [
+        {
+            "source_journal_id": journal_id,
+            "move_name": move_name,
+            "source_move_ids": source_move_ids,
+        }
+        for (journal_id, move_name), source_move_ids in names.items()
+        if move_name != "/" and len(source_move_ids) > 1
+    ]
+    duplicate_numbers = [
+        {
+            "source_journal_id": journal_id,
+            "sequence_prefix": prefix,
+            "sequence_number": number,
+            "source_move_ids": source_move_ids,
+        }
+        for (
+            journal_id,
+            prefix,
+            number,
+        ), source_move_ids in numbers.items()
+        if len(source_move_ids) > 1
+    ]
+    gaps = []
+    date_decreases = []
+    for (journal_id, prefix), group_rows in groups.items():
+        previous = None
+        for row in sorted(
+            group_rows,
+            key=lambda item: (
+                item["sequence_number"],
+                int(item["source_move_id"]),
+            ),
+        ):
+            if previous:
+                if (
+                    row["sequence_number"]
+                    > previous["sequence_number"] + 1
+                ):
+                    gaps.append({
+                        "source_journal_id": journal_id,
+                        "sequence_prefix": prefix,
+                        "previous_source_move_id": (
+                            previous["source_move_id"]
+                        ),
+                        "previous_move_name": previous["move_name"],
+                        "previous_sequence_number": (
+                            previous["sequence_number"]
+                        ),
+                        "source_move_id": row["source_move_id"],
+                        "move_name": row["move_name"],
+                        "sequence_number": row["sequence_number"],
+                    })
+                if row["date"] < previous["date"]:
+                    date_decreases.append({
+                        "source_journal_id": journal_id,
+                        "sequence_prefix": prefix,
+                        "previous_source_move_id": (
+                            previous["source_move_id"]
+                        ),
+                        "previous_move_name": previous["move_name"],
+                        "previous_date": previous["date"],
+                        "source_move_id": row["source_move_id"],
+                        "move_name": row["move_name"],
+                        "date": row["date"],
+                    })
+            previous = row
+    return {
+        "move_count": len(rows),
+        "missing_name_count": len(missing_names),
+        "missing_name_examples": missing_names[:10],
+        "duplicate_name_group_count": len(duplicate_names),
+        "duplicate_name_examples": duplicate_names[:10],
+        "duplicate_sequence_number_group_count": len(duplicate_numbers),
+        "duplicate_sequence_number_examples": duplicate_numbers[:10],
+        "sequence_gap_count": len(gaps),
+        "sequence_gap_examples": gaps[:10],
+        "sequence_date_decrease_count": len(date_decreases),
+        "sequence_date_decrease_examples": date_decreases[:10],
+    }
+
+
 def source_move_comparison_rows() -> list[dict[str, Any]]:
     return query_rows(
         SOURCE_DB,
@@ -5641,6 +5800,8 @@ def source_move_comparison_rows() -> list[dict[str, Any]]:
         SELECT am.id::text AS source_move_id,
                am.name::text AS move_name,
                am.date::text AS date,
+               COALESCE(am.sequence_prefix::text, '') AS sequence_prefix,
+               am.sequence_number::text AS sequence_number,
                am.journal_id::text AS source_journal_id,
                am.company_id::text AS source_company_id,
                COALESCE(am.partner_id::text, '') AS source_partner_id,
@@ -5654,13 +5815,25 @@ def source_move_comparison_rows() -> list[dict[str, Any]]:
     )
 
 
-def target_move_comparison_rows() -> list[dict[str, Any]]:
+def target_move_comparison_rows(
+    database: str = TARGET_DB,
+) -> list[dict[str, Any]]:
+    trace_models = [
+        "account.move",
+        *REPLACEMENT_SOURCE_TRACE_ALIASES["account.move"],
+    ]
+    trace_model_sql = ", ".join(
+        f"'{model_name}'"
+        for model_name in trace_models
+    )
     return query_rows(
-        TARGET_DB,
-        """
+        database,
+        f"""
         SELECT am.rebuild_source_id::text AS source_move_id,
                am.name::text AS move_name,
                am.date::text AS date,
+               COALESCE(am.sequence_prefix::text, '') AS sequence_prefix,
+               am.sequence_number::text AS sequence_number,
                aj.rebuild_source_id::text AS source_journal_id,
                rc.rebuild_source_id::text AS source_company_id,
                COALESCE(rp.rebuild_source_id::text, '') AS source_partner_id,
@@ -5669,10 +5842,10 @@ def target_move_comparison_rows() -> list[dict[str, Any]]:
         JOIN account_journal aj ON aj.id = am.journal_id
         JOIN res_company rc ON rc.id = am.company_id
         LEFT JOIN res_partner rp ON rp.id = am.partner_id
-        WHERE am.rebuild_source_model = 'account.move'
-          AND {benchmark_where}
+        WHERE am.rebuild_source_model IN ({trace_model_sql})
+          AND {target_benchmark_move_where(company_alias="rc")}
         ORDER BY am.rebuild_source_id
-        """.format(benchmark_where=target_benchmark_move_where(company_alias="rc")),
+        """,
         set_readonly_role=False,
     )
 
@@ -7692,6 +7865,11 @@ def target_validate(args: argparse.Namespace) -> dict[str, Any]:
     target_analytic_lines = target_analytic_line_rows()
     source_accounting_attachments = source_accounting_attachment_rows()
     target_accounting_attachments = target_accounting_attachment_rows()
+    source_sequence_chronology = sequence_chronology_summary(source_moves)
+    target_sequence_chronology = sequence_chronology_summary(target_moves)
+    sequence_chronology_matches = (
+        source_sequence_chronology == target_sequence_chronology
+    )
 
     comparisons = {
         "full_replay_company_controls": compare_rows(
@@ -7725,7 +7903,16 @@ def target_validate(args: argparse.Namespace) -> dict[str, Any]:
             source_moves,
             target_moves,
             key="source_move_id",
-            fields=["move_name", "date", "source_journal_id", "source_company_id", "source_partner_id", "state"],
+            fields=[
+                "move_name",
+                "date",
+                "sequence_prefix",
+                "sequence_number",
+                "source_journal_id",
+                "source_company_id",
+                "source_partner_id",
+                "state",
+            ],
         ),
         "move_reviews": compare_rows(
             source_move_reviews,
@@ -8275,6 +8462,7 @@ def target_validate(args: argparse.Namespace) -> dict[str, Any]:
     lock_enforcement = target_lock_enforcement_check()
     passed = (
         all(item["passed"] for item in comparisons.values())
+        and sequence_chronology_matches
         and not invariant_failures["target_unbalanced_posted_moves"]
         and not invariant_failures["duplicate_move_traces"]
         and not invariant_failures["duplicate_move_review_traces"]
@@ -8334,6 +8522,16 @@ def target_validate(args: argparse.Namespace) -> dict[str, Any]:
             "note": "Native Odoo technical rates, source provider metadata and source retrieval timestamps are compared across the complete restored snapshot, including the Track B replay period.",
         },
         "comparisons": comparisons,
+        "sequence_chronology": {
+            "source": source_sequence_chronology,
+            "target": target_sequence_chronology,
+            "matches": sequence_chronology_matches,
+            "interpretation": (
+                "Source gaps and date-order exceptions remain visible and "
+                "must match the target exactly; validation does not "
+                "resequence posted history."
+            ),
+        },
         "confirmed_transformations": {
             "usl_vat_refund_942": confirmed_vat_refund,
         },
