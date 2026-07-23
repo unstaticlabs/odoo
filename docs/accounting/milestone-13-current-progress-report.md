@@ -557,6 +557,7 @@ Current outcome: the dynamic report screens, readable exports, declaration works
 - [x] Add row-level drill-down from report lines to native journal items or analytic lines in the normal UI.
 - [x] Update user docs for the canonical report workbench, native/imported scope, comparisons, grouping, drilldown and export.
 - [ ] Complete the named-user acceptance matrix for Valentin, accountant and finance operator. Automated ACL tests and live Accounting Manager/read-only reviewer report journeys pass.
+- [x] Publish a single end-to-end Prosper acceptance/onboarding walkthrough that connects access preflight, reports, reconciliation, statutory evidence, closing, FEC and durable decisions. Execution by Prosper remains part of the unchecked named-user acceptance item above.
 
 ### Milestone 13 core
 

@@ -17,6 +17,7 @@ nav:
   - Home: README.md
   - Tutorial:
       - First Accounting Review: tutorials/first-accounting-review.md
+      - Prosper Acceptance Walkthrough: tutorials/prosper-accounting-acceptance.md
   - How-To Guides:
       - Check Reconstruction Status: how-to/check-reconstruction-status.md
       - Review Accounting Hygiene: how-to/review-accounting-hygiene.md
