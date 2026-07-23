@@ -3400,6 +3400,33 @@ class TestRebuildAccountMigration(TransactionCase):
         with self.assertRaisesRegex(UserError, "Use Generate Export"):
             fec_wizard.action_preview_report()
 
+    def test_french_tax_package_export_preserves_quantity_semantics(self):
+        wizard = self.env["rebuild.account.report.export.wizard"].create({
+            "company_id": self.company.id,
+            "report_type": "french_tax_package",
+            "date_from": "2024-01-10",
+            "date_to": "2025-09-30",
+            "target_move": "posted",
+            "export_format": "xlsx",
+            "group_by": "none",
+        })
+        columns = dict(wizard._report_export_columns([
+            {
+                "form_code": "2033-C-SD",
+                "field_code": "2033_C_NOMBRE_IMMOBILISATIONS_SOURCE",
+                "field_label": "Nombre d’immobilisations source représentées",
+                "quantity": "3",
+                "amount": "0.00",
+                "rounded_amount": "0.00",
+                "value_text": "3",
+                "review_status": "ledger_derived",
+                "source_reference": "Registre des immobilisations importé",
+            },
+        ]))
+
+        self.assertEqual(columns["quantity"], "Quantity")
+        self.assertEqual(columns["value_text"], "Value / note")
+
     def test_accountant_reviewer_can_prepare_test_fec_through_standard_and_custom_paths(self):
         reviewer = self.env["res.users"].with_context(no_reset_password=True).create({
             "name": "FEC Reviewer",

@@ -3070,8 +3070,8 @@ class RebuildAccountFrenchTaxPackageLine(models.Model):
                            NULL::text,
                            0,
                            schedule_line_count,
-                           depreciation_schedule_total,
-                           round(depreciation_schedule_total, 0),
+                           0::numeric,
+                           0::numeric,
                            schedule_line_count::text,
                            'ledger_derived'
                       FROM schedule

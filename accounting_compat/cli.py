@@ -9678,6 +9678,7 @@ def odoo_report_view_controls() -> dict[str, Any]:
               '2033_C_IMMOBILISATIONS_CORP_BRUT',
               '2033_C_AMORTISSEMENTS_TOTAL',
               '2033_C_DOTATIONS_EXERCICE',
+              '2033_C_LIGNES_PLAN_AMORTISSEMENT_SOURCE',
               '3517S_TVA_COLLECTEE_445700',
               '3517S_TVA_DEDUCTIBLE_BIENS_SERVICES_445660',
               '3517S_CREDIT_TVA_A_REPORTER_445670'
@@ -9772,6 +9773,8 @@ def odoo_report_view_controls() -> dict[str, Any]:
         "tax_package_fixed_asset_gross": tax_package_by_code.get("2033_C_IMMOBILISATIONS_CORP_BRUT", {}).get("amount") == "10430.49",
         "tax_package_accumulated_depreciation": tax_package_by_code.get("2033_C_AMORTISSEMENTS_TOTAL", {}).get("amount") == "1676.05",
         "tax_package_period_depreciation": tax_package_by_code.get("2033_C_DOTATIONS_EXERCICE", {}).get("amount") == "1676.05",
+        "tax_package_depreciation_schedule_count": tax_package_by_code.get("2033_C_LIGNES_PLAN_AMORTISSEMENT_SOURCE", {}).get("quantity") == "91",
+        "tax_package_depreciation_schedule_count_has_no_monetary_amount": tax_package_by_code.get("2033_C_LIGNES_PLAN_AMORTISSEMENT_SOURCE", {}).get("amount") == "0.00",
         "tax_package_vat_collected": tax_package_by_code.get("3517S_TVA_COLLECTEE_445700", {}).get("amount") == "459.00",
         "tax_package_vat_deductible_ca12_clearing": tax_package_by_code.get("3517S_TVA_DEDUCTIBLE_BIENS_SERVICES_445660", {}).get("amount") == "1960.00",
         "tax_package_vat_credit_carryover": tax_package_by_code.get("3517S_CREDIT_TVA_A_REPORTER_445670", {}).get("amount") == "3442.00",

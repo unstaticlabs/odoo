@@ -43,6 +43,12 @@ technically complete but professionally partial, `4` not applicable and `1`
 deferred. No row remains in discovery and no technical gap is present; the
 reports stage now fails if either state remains.
 
+Fixed-asset statement/tax evidence also reconciles technically: register,
+annual-statement and 2033-A/2033-C amounts are EUR `10,430.49` gross, EUR
+`1,676.05` depreciation and EUR `8,754.44` net. The tax-package export exposes
+`3` assets and `91` depreciation-schedule rows as quantities instead of
+mislabelled monetary values. Accountant acceptance remains open.
+
 ## Architecture decision
 
 The selected design is a thin USL workflow layer on standard Odoo lock dates and maintained OCA reporting/reconciliation modules. It preserves standard accounting records and exposes structured declaration/closing state without creating a second ledger.

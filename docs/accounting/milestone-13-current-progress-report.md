@@ -563,7 +563,7 @@ Current outcome: the dynamic report screens, readable exports, declaration works
 - [ ] Prove all mandatory reports at Level 4 parity.
 - [ ] Complete French statutory report semantics.
 - [ ] Complete VAT, CA12 and tax-package mapping review.
-- [ ] Complete fixed-asset and depreciation reconciliation to statements and tax mappings.
+- [x] Complete the technical fixed-asset/depreciation reconciliation to statements and tax mappings. The register, annual statements and 2033-A/2033-C rows agree at EUR `10,430.49` gross, EUR `1,676.05` accumulated depreciation and EUR `8,754.44` net; typed evidence records expose `3` assets and `91` schedule lines. Final accountant acceptance remains part of the report/statutory gate.
 - [x] Validate programmatic lock-date behavior, reviewer gating and before/after evidence for the new closing workspace. Final named-user browser validation remains part of the acceptance walkthrough.
 - [x] Validate sequence and chronology behavior. Exact name/date/prefix/number parity is blocking; the locked `2,046`-move benchmark preserves the source's `2` gaps and `3` date-order decreases, while the full `4,843`-move replay preserves `16` gaps and `104` decreases. Both match source exactly and expose the anomalies for accountant review rather than resequencing locked history.
 - [x] Validate full and partial reconciliation behavior through a user-facing review path. Track B proves native accounting effects; the exact-target manager/reviewer journey shows all `39` partial and `36` full boundary rows, balanced endpoint previews and decision controls without mutating the replay baseline.

@@ -1152,6 +1152,8 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "validation": "Validation",
             "review_status": "Review status",
             "record_count": "Count",
+            "quantity": "Quantity",
+            "value_text": "Value / note",
             "period_value": "Selected Period",
             "comparison_value": "Comparison Period",
             "difference": "Difference",
@@ -1187,7 +1189,17 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "french_balance_sheet_2024": ["statement_name", "line_code", "label", "gross_amount", "depreciation_amount", "net_amount"],
             "french_profit_loss_2024": ["statement_name", "line_code", "label", "amount"],
             "sig_caf_2024": ["statement_name", "line_code", "label", "amount"],
-            "french_tax_package": ["form_code", "field_code", "field_label", "amount", "rounded_amount", "review_status", "source_reference"],
+            "french_tax_package": [
+                "form_code",
+                "field_code",
+                "field_label",
+                "quantity",
+                "amount",
+                "rounded_amount",
+                "value_text",
+                "review_status",
+                "source_reference",
+            ],
             "closing_package": ["section", "line_code", "label", "status", "validation", "record_count", "amount", "details", "next_action", "evidence"],
         }.get(self.report_type, [])
         if self.group_by != "none":
@@ -1234,7 +1246,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "amount", "gross_amount", "depreciation_amount", "net_amount", "residual",
             "presented_residual", "amount_residual", "imported_period_net_value", "original_value",
             "amount_currency", "rounded_amount", "statement_balance", "record_count",
-            "period_value", "comparison_value", "difference",
+            "quantity", "period_value", "comparison_value", "difference",
         }
         if value in (None, "", False):
             worksheet.write_blank(row, column, None, formats["body"])
