@@ -329,9 +329,16 @@ The USL workbench now reproduces the required normal-user behavior for filters, 
 
 Status: implemented and browser-smoke-tested on `odoo_rebuild_accounting_test`.
 
-Evidence: the upstream Community menu root is named `Invoicing` in `addons/account/views/account_menuitem.xml`, while the dashboard action exists as the child menu `menu_board_journal_1`. The custom add-on now updates `account.menu_finance` to display `Accounting` and to target `account.open_account_journal_dashboard_kanban`, whose action path is `accounting`.
+Evidence: the upstream Community menu root is named `Invoicing` in
+`addons/account/views/account_menuitem.xml`, while the journal dashboard action
+exists as the child menu `menu_board_journal_1`. The custom add-on now updates
+`account.menu_finance` to display `Accounting` and routes it to a
+company-scoped operational Accounting Home. The native journal dashboard
+remains available through the `Dashboard` child menu and Home header.
 
-Impact: users should no longer need to manually discover `/odoo/accounting` to reach the accounting dashboard.
+Impact: users no longer need to discover `/odoo/accounting`. Opening the app
+shows bank/cash state, daily document queues, open balances, closing,
+declarations and prepared actions before users choose a workflow.
 
 The add-on now activates Odoo's documented full-accounting group hierarchy for Accounting Managers. Without that extension, Community grants a manager configuration and invoicing access but hides the full Accounting, Review and reconciliation surfaces. With it, the browser shows the required first-level areas: `Dashboard`, `Customers`, `Vendors`, `Accounting`, `Review`, `Reporting`, and `Configuration`.
 
@@ -345,7 +352,9 @@ Frequent reconciliation paths are deliberately distinct:
 
 Native Odoo `Employee Expenses` remains available in the Vendors area.
 
-Remaining work: add the final closing and declaration screens to this hierarchy and validate the navigation under Valentin's and Prosper's final named user accounts.
+Browser validation passed for an Accounting Manager and a disposable scoped
+read-only reviewer. Final named-user acceptance by Valentin and Prosper remains
+a professional/product gate, not a missing route.
 
 ### Missing/equivalent reconciliation view
 
@@ -455,7 +464,7 @@ Current outcome: the dynamic report screens, readable exports, declaration works
 
 ### Immediate
 
-- [x] Add a clear Accounting app/menu entry that opens the accounting dashboard directly.
+- [x] Add a clear Accounting app/menu entry that opens the operational Accounting Home directly while retaining the native journal Dashboard.
 - [ ] Make module refresh/upgrade instructions and UI refresh behavior visible in the dev guide.
 - [x] Diagnose the bank journal transaction view and reconcile it with imported `account.bank.statement.line` records.
 - [x] Adopt the OCA workbench for operational bank/general reconciliation while retaining custom read-only historical evidence views under Advanced Audit.
@@ -505,6 +514,13 @@ Current outcome: the dynamic report screens, readable exports, declaration works
 
 ## Bottom line
 
-Current implementation progress is mainly the reconstruction pipeline, source-traced imported accounting data, validation artifacts, and evidence-oriented Odoo views.
+Current implementation includes the reconstruction pipeline, source-traced
+accounting data, an operational Accounting Home, native workflow workbenches,
+one canonical dynamic report product, declaration/closing workspaces and
+technical evidence.
 
-It is not yet an Enterprise-comparable accounting reporting, audit and review product. The largest remaining product gap is dynamic reporting and accountant-ready presentation: interactive on-screen reports, readable templated exports, statutory semantics and recorded professional acceptance.
+It is not yet professionally accepted as an Enterprise replacement. The
+remaining gates are accountant/product acceptance of report formulas,
+statutory semantics, presentation, FEC/declarations and the documented
+cross-boundary reconciliation policy—not an absent dynamic report or landing
+screen.

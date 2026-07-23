@@ -12268,7 +12268,30 @@ def target_review_summary_rows() -> list[dict[str, Any]]:
                summary.document_regeneration_case_count::text AS document_regeneration_case_count,
                summary.document_regeneration_candidate_count::text AS document_regeneration_candidate_count,
                summary.document_regeneration_review_only_count::text AS document_regeneration_review_only_count,
-               summary.document_regeneration_blocked_count::text AS document_regeneration_blocked_count
+               summary.document_regeneration_blocked_count::text AS document_regeneration_blocked_count,
+               summary.journal_count::text AS journal_count,
+               summary.cash_journal_count::text AS cash_journal_count,
+               round(summary.bank_balance::numeric, 2)::text AS bank_balance,
+               summary.bank_transaction_count::text AS bank_transaction_count,
+               summary.unmatched_bank_transaction_count::text AS unmatched_bank_transaction_count,
+               summary.draft_customer_document_count::text AS draft_customer_document_count,
+               summary.draft_vendor_document_count::text AS draft_vendor_document_count,
+               summary.draft_expense_count::text AS draft_expense_count,
+               summary.incomplete_document_count::text AS incomplete_document_count,
+               summary.open_receivable_count::text AS open_receivable_count,
+               round(summary.open_receivable_amount::numeric, 2)::text AS open_receivable_amount,
+               summary.open_payable_count::text AS open_payable_count,
+               round(summary.open_payable_amount::numeric, 2)::text AS open_payable_amount,
+               summary.latest_closing_date_to::text AS latest_closing_date_to,
+               summary.latest_closing_state::text AS latest_closing_state,
+               summary.latest_closing_readiness::text AS latest_closing_readiness,
+               summary.latest_closing_blocking_count::text AS latest_closing_blocking_count,
+               summary.next_declaration_deadline::text AS next_declaration_deadline,
+               summary.next_declaration_status::text AS next_declaration_status,
+               summary.overdue_declaration_count::text AS overdue_declaration_count,
+               summary.upcoming_declaration_count::text AS upcoming_declaration_count,
+               summary.valentin_action_count::text AS valentin_action_count,
+               summary.accountant_action_count::text AS accountant_action_count
         FROM rebuild_account_review_summary summary
         JOIN res_company company ON company.id = summary.company_id
         ORDER BY company.name
@@ -12355,6 +12378,10 @@ def readiness(args: argparse.Namespace) -> dict[str, Any]:
             PRIVATE_ARTIFACTS
             / "dynamic-report-browser-status.json"
         ),
+        "accounting_home_browser": (
+            PRIVATE_ARTIFACTS
+            / "accounting-home-browser-status.json"
+        ),
         "fec": PRIVATE_ARTIFACTS / "fec-status.json",
         "fec_validation": PRIVATE_ARTIFACTS / "fec-validation-status.json",
         "compare": PRIVATE_ARTIFACTS / "compare-status.json",
@@ -12390,6 +12417,7 @@ def readiness(args: argparse.Namespace) -> dict[str, Any]:
         "currency_rate_provider_browser": {"passed"},
         "reports": {"passed", "partial"},
         "dynamic_report_browser": {"passed"},
+        "accounting_home_browser": {"passed"},
         "fec": {"passed"},
         "fec_validation": {"passed"},
         "compare": {"passed"},
@@ -12572,6 +12600,10 @@ def evidence(args: argparse.Namespace) -> dict[str, Any]:
         "dynamic_report_browser": (
             PRIVATE_ARTIFACTS
             / "dynamic-report-browser-status.json"
+        ),
+        "accounting_home_browser": (
+            PRIVATE_ARTIFACTS
+            / "accounting-home-browser-status.json"
         ),
         "vat_benchmark_investigation": PRIVATE_ARTIFACTS / "vat-benchmark-investigation-2025-09-30.json",
         "source_report_parity": PRIVATE_ARTIFACTS / "source-report-parity-status.json",

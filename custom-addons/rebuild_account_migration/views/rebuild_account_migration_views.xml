@@ -89,9 +89,14 @@
         sequence="7"
         groups="account.group_account_manager"/>
 
+    <record id="action_rebuild_accounting_home" model="ir.actions.client">
+        <field name="name">Accounting Home</field>
+        <field name="tag">rebuild_accounting_home</field>
+    </record>
+
     <record id="account.menu_finance" model="ir.ui.menu">
         <field name="name">Accounting</field>
-        <field name="action" eval="'ir.actions.act_window,%d' % ref('account.open_account_journal_dashboard_kanban')"/>
+        <field name="action" eval="'ir.actions.client,%d' % ref('action_rebuild_accounting_home')"/>
     </record>
     <record id="account.menu_finance_receivables" model="ir.ui.menu">
         <field name="sequence">2</field>
@@ -297,6 +302,146 @@
         </field>
     </record>
 
+    <record id="view_rebuild_accounting_home_form" model="ir.ui.view">
+        <field name="name">rebuild.account.review.summary.form.accounting.home</field>
+        <field name="model">rebuild.account.review.summary</field>
+        <field name="priority">1</field>
+        <field name="arch" type="xml">
+            <form string="Accounting Home" create="0" edit="0" delete="0">
+                <header>
+                    <button name="action_open_journal_dashboard" type="object" string="Journal Dashboard"/>
+                    <button name="action_open_bank_matching" type="object" string="Bank Matching"/>
+                    <button name="action_open_report_export_wizard" type="object" string="Reports" class="btn-primary"/>
+                    <button name="action_open_user_guide" type="object" string="User Guide"/>
+                    <button
+                        name="action_open_accounting_settings"
+                        type="object"
+                        string="Accounting Settings"
+                        groups="account.group_account_manager"/>
+                </header>
+                <sheet>
+                    <field name="currency_id" invisible="1"/>
+                    <field name="latest_closing_period_id" invisible="1"/>
+                    <field name="next_declaration_id" invisible="1"/>
+                    <div class="oe_title">
+                        <h1>Accounting Home</h1>
+                        <h2>
+                            <field name="company_id" class="oe_inline"/>
+                        </h2>
+                    </div>
+                    <div
+                        class="alert alert-danger"
+                        role="alert"
+                        invisible="not open_p0_count and readiness_status != 'blocked'">
+                        A blocking accounting issue requires review before the evidence can be accepted.
+                    </div>
+                    <div
+                        class="alert alert-warning"
+                        role="alert"
+                        invisible="not overdue_declaration_count and latest_closing_readiness != 'blocked'">
+                        A closing control or declaration deadline needs attention.
+                    </div>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_bank_transactions" type="object" class="oe_stat_button" icon="fa-bank">
+                            <field name="bank_transaction_count" widget="statinfo" string="Bank Transactions"/>
+                        </button>
+                        <button name="action_open_bank_matching" type="object" class="oe_stat_button" icon="fa-random">
+                            <field name="unmatched_bank_transaction_count" widget="statinfo" string="To Match"/>
+                        </button>
+                        <button name="action_open_customer_documents" type="object" class="oe_stat_button" icon="fa-file-text-o">
+                            <field name="draft_customer_document_count" widget="statinfo" string="Draft Customer Docs"/>
+                        </button>
+                        <button name="action_open_vendor_documents" type="object" class="oe_stat_button" icon="fa-file-text">
+                            <field name="draft_vendor_document_count" widget="statinfo" string="Draft Vendor Docs"/>
+                        </button>
+                        <button name="action_open_expenses" type="object" class="oe_stat_button" icon="fa-credit-card">
+                            <field name="draft_expense_count" widget="statinfo" string="Expenses to Process"/>
+                        </button>
+                        <button name="action_open_open_discrepancies" type="object" class="oe_stat_button" icon="fa-exclamation-triangle">
+                            <field name="open_discrepancy_count" widget="statinfo" string="Open Issues"/>
+                        </button>
+                    </div>
+                    <group string="Cash and Bank">
+                        <group>
+                            <field name="journal_count"/>
+                            <field name="cash_journal_count"/>
+                        </group>
+                        <group>
+                            <field name="bank_balance" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            <field name="unmatched_bank_transaction_count"/>
+                        </group>
+                    </group>
+                    <group string="Daily Accounting Work">
+                        <group>
+                            <field name="draft_customer_document_count"/>
+                            <field name="draft_vendor_document_count"/>
+                        </group>
+                        <group>
+                            <field name="draft_expense_count"/>
+                            <field name="incomplete_document_count"/>
+                        </group>
+                    </group>
+                    <group string="Open Balances">
+                        <group>
+                            <field name="open_receivable_count"/>
+                            <field name="open_receivable_amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            <button name="action_open_open_receivables" type="object" string="Review Open Receivables" class="btn-link"/>
+                        </group>
+                        <group>
+                            <field name="open_payable_count"/>
+                            <field name="open_payable_amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            <button name="action_open_open_payables" type="object" string="Review Open Payables" class="btn-link"/>
+                        </group>
+                    </group>
+                    <group string="Closing and Declarations">
+                        <group string="Current Closing">
+                            <field name="latest_closing_date_to"/>
+                            <field name="latest_closing_state" widget="badge"/>
+                            <field name="latest_closing_readiness" widget="badge"/>
+                            <field name="latest_closing_blocking_count"/>
+                            <button
+                                name="action_open_latest_closing"
+                                type="object"
+                                string="Open Current Closing"
+                                class="btn-link"
+                                invisible="not latest_closing_period_id"/>
+                            <button name="action_open_closing_workspaces" type="object" string="All Closing Workspaces" class="btn-link"/>
+                        </group>
+                        <group string="Next Declaration">
+                            <field name="next_declaration_deadline"/>
+                            <field name="next_declaration_status" widget="badge"/>
+                            <field name="overdue_declaration_count"/>
+                            <field name="upcoming_declaration_count"/>
+                            <button
+                                name="action_open_next_declaration"
+                                type="object"
+                                string="Open Next Declaration"
+                                class="btn-link"
+                                invisible="not next_declaration_id"/>
+                            <button name="action_open_declarations" type="object" string="All Declarations" class="btn-link"/>
+                        </group>
+                    </group>
+                    <group string="Prepared Actions and Evidence">
+                        <group string="Awaiting a Decision">
+                            <field name="valentin_action_count"/>
+                            <button name="action_open_valentin_actions" type="object" string="Prepared for Valentin" class="btn-link"/>
+                            <field name="accountant_action_count"/>
+                            <button name="action_open_accountant_actions" type="object" string="Prepared for Prosper" class="btn-link"/>
+                        </group>
+                        <group string="Reconstruction Trust">
+                            <field name="readiness_status" widget="badge"/>
+                            <field name="open_p0_count"/>
+                            <field name="open_p1_count"/>
+                            <field name="latest_import_status"/>
+                            <button name="action_open_review_decisions" type="object" string="Review Decisions" class="btn-link"/>
+                            <button name="action_open_imported_journal_items" type="object" string="Imported Journal Items" class="btn-link"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
     <record id="view_rebuild_account_review_summary_form" model="ir.ui.view">
         <field name="name">rebuild.account.review.summary.form</field>
         <field name="model">rebuild.account.review.summary</field>
@@ -382,6 +527,7 @@
         <field name="name">Accounting Reconstruction Review</field>
         <field name="res_model">rebuild.account.review.summary</field>
         <field name="view_mode">list,form</field>
+        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'list', 'view_id': ref('view_rebuild_account_review_summary_list')}), (0, 0, {'view_mode': 'form', 'view_id': ref('view_rebuild_account_review_summary_form')})]"/>
         <field name="context">{'search_default_group_status': 1}</field>
     </record>
 

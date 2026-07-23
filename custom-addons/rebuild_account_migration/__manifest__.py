@@ -28,6 +28,11 @@
         "views/rebuild_account_migration_views.xml",
         "views/account_closing_declaration_views.xml",
     ],
+    "assets": {
+        "web.assets_backend": [
+            "rebuild_account_migration/static/src/js/accounting_home_action.js",
+        ],
+    },
     "application": False,
     "installable": True,
 }

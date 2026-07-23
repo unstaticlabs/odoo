@@ -11,8 +11,9 @@ The disposable `odoo_rebuild_accounting_test` target provides the broad Mileston
 - source-traced historical reconstruction and benchmark parity;
 - automatic future ECB reference rates kept separate from historical replay;
 - isolated Track B native document, expense, payment, bank, reconciliation, asset, deferral and multi-plan analytic replay;
+- a company-scoped operational Accounting Home for cash/bank, daily queues, open balances, closing, declarations and prepared actions, with the native journal dashboard retained;
 - distinct Bank Matching and General Reconciliation workbenches;
-- canonical report navigation, interactive OCA reports, drill-down and PDF/XLSX exports;
+- canonical Community-compatible dynamic report navigation, drill-down and PDF/XLSX exports;
 - versioned French declaration preparation with traceable fields and filing/payment state;
 - monthly, quarterly and annual closing workspaces with reviewer and lock-date gates;
 - source-traced correction and reconciliation of the EUR 942 DGFiP refund;
@@ -44,6 +45,19 @@ Alternatives rejected for this milestone:
 2. A custom tax engine or electronic filing client: duplicates official compliance logic and creates unnecessary legal, maintenance and migration risk.
 
 Electronic submission is therefore explicitly outside this implementation; accurate preparation and external filing tracking remain in scope.
+
+For the Accounting landing page, three alternatives were compared:
+
+1. keep only the standard journal-card dashboard, which does not expose closing,
+   declaration or prepared-decision state;
+2. build a parallel OWL dashboard and model, which would duplicate a structured
+   domain and make agent/API access dependent on UI logic;
+3. extend the existing company-scoped SQL review summary as an operational Home
+   and retain the standard journal dashboard as a direct child route.
+
+The third option is implemented. A minimal client action routes the Accounting
+launcher to the active company's queryable Home; it does not implement a second
+ledger or a parallel accounting engine.
 
 For future exchange rates, the absent Enterprise live-currency module and the
 lack of a deployable updater in the checked OCA 19 dependency set were compared
@@ -135,6 +149,11 @@ The empty benchmark Open Items and Aged Receivable reports are not treated as fa
 
 No report is professionally accepted yet. Level 4 technical evidence is not accountant acceptance.
 
+The normal reporting menus use one native-ledger-first Community-compatible
+workbench. OCA remains a maintained foundation where appropriate, but the
+dynamic report product does not depend on an absent proprietary report module
+and does not expose competing report implementations in normal navigation.
+
 ## VAT and declarations
 
 The 2025 and 2026 rule sets cover the applicable or conditional 2571, 2572, 2065/2065-bis, 2033 A-G, 2069-RCI, 2777, 3517/CA12-E and 3514 workflows.
@@ -182,7 +201,20 @@ The in-app browser was used against the clean target after restarting the HTTP s
 
 Valentin/Accounting Manager journey:
 
-- Accounting dashboard and journal cards opened;
+- Accounting opened on `Unstatic Labs — Accounting Home`;
+- the Home showed `3,037` bank transactions, `207` unmatched, `31` journals,
+  `12` cash journals and a bank/cash balance of EUR `91,477.07`;
+- daily/open-balance state showed `37` draft vendor documents and `74` open
+  payables totalling EUR `31,749.82`;
+- the current 30 June 2026 close was blocked by `2` controls, the next visible
+  declaration deadline was 24 July 2024, `15` obligations were overdue and `1`
+  was within 45 days;
+- prepared-action counts were `2` for Valentin and `44` for Prosper;
+- the report route opened Trial Balance with native scope and fiscal
+  year-to-date defaults;
+- refresh, browser back and a direct Home route preserved the correct title and
+  form;
+- the retained native journal Dashboard opened with `28` visible cards;
 - Bank Matching opened the imported transaction history;
 - General Reconciliation opened account-grouped residual items;
 - the declaration schedule and CA12-E source fields opened;
@@ -193,7 +225,11 @@ Valentin/Accounting Manager journey:
 
 Prosper/read-only journey used a disposable browser user assigned only to Unstatic Labs:
 
-- Accounting dashboard opened without create controls;
+- Accounting opened on the same Home without create or configuration controls;
+- the database contained two companies while the reviewer Home pager remained
+  `1/1` for Unstatic Labs;
+- the Configuration menu and Accounting Settings button were hidden;
+- the native-scope report workbench opened without an access error;
 - Trial Balance filters and interactive report opened;
 - Declarations and Closing opened;
 - the historical close was visible without a create button;
@@ -201,6 +237,9 @@ Prosper/read-only journey used a disposable browser user assigned only to Unstat
 - write access to `account.bank.statement.line` and `account.move.line` raised `AccessError`;
 - Bank Matching retained the read-only `View move` route while hiding validate, reset and check-state mutation controls;
 - the disposable user was deleted after the walkthrough.
+
+Private Accounting Home proof:
+`artifacts/accounting-compat/private/accounting-home-browser-status.json`.
 
 The Bank Matching control restriction is enforced both by server ACLs and by the combined Odoo form architecture. The corresponding regression test verifies every OCA mutation button, including both reconcile variants.
 
@@ -254,7 +293,14 @@ make accounting-readiness
 make accounting-evidence
 ```
 
-The scoped declaration/closing Odoo tests and the broader `TestRebuildAccountMigration` suite also pass. The fresh isolated run included the three ECB provider/idempotence/access tests and completed with exit code `0`; targeted Ruff also passed. Module initialization emitted the existing docutils indentation warnings but no test failure or error.
+The scoped declaration/closing Odoo tests and the broader
+`TestRebuildAccountMigration` suite also pass. The latest fresh isolated run
+completed `69` post-tests across `73` test methods with `0` failures and `0`
+errors, including Accounting Home routing, operational aggregation and
+reviewer company isolation. The suite also includes the three ECB
+provider/idempotence/access tests. Targeted Ruff passed; module initialization
+emitted the existing docutils indentation warnings but no test failure or
+error.
 
 `ruff` is not installed on the host or long-running Odoo container, so the repository's devcontainer was used. The changed tests pass targeted Ruff validation; a whole-file check of the historical `accounting_compat/cli.py` still reports its pre-existing baseline warnings.
 

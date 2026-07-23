@@ -12,17 +12,41 @@ Prerequisites:
 - You have at least Accounting read-only access.
 - The accounting reconstruction has already been run by the technical process.
 
-## 1. Open the Reconstruction Summary
+## 1. Start on Accounting Home
 
 1. Sign in to Odoo.
 2. Open the Accounting app.
-3. Go to:
+
+Accounting opens the active company's Home. Review these sections before
+drilling into records:
+
+- Cash and Bank
+- Daily Accounting Work
+- Open Balances
+- Closing and Declarations
+- Prepared Actions and Evidence
+
+What to notice:
+
+- bank and cash balances and unmatched bank transactions;
+- draft or incomplete invoices, bills and expenses;
+- open receivables and payables;
+- the latest closing-readiness state and blocking controls;
+- the next declaration deadline and overdue work;
+- decisions prepared for Valentin or the accountant.
+
+The `Dashboard` button opens the standard journal-card dashboard. Accounting
+Home complements that native screen; it does not replace journal access.
+
+## 2. Open the Reconstruction Summary
+
+1. From Accounting Home, go to:
 
 ```text
 Accounting > Review > Control > Issues
 ```
 
-You should see one row per imported company. For Unstatic Labs, check these columns:
+2. You should see one row per imported company. For Unstatic Labs, check these columns:
 
 - Company
 - Source Snapshot
@@ -44,7 +68,7 @@ What to notice:
 - Readiness may still be `Blocked` if accountant decisions are pending.
 - Open P0 and P1 counts show issues that must be reviewed before closure.
 
-## 2. Open the Latest Import Run
+## 3. Open the Latest Import Run
 
 1. Open the Unstatic Labs reconstruction summary row.
 2. Click `Latest Import Run`.
@@ -58,7 +82,7 @@ What to notice:
 
 You are not expected to edit this screen. It is an audit record.
 
-## 3. Open the Imported Journal Items
+## 4. Open the Imported Journal Items
 
 1. Return to the reconstruction summary.
 2. Click `Imported Journal Items`.
@@ -71,7 +95,7 @@ You are not expected to edit this screen. It is an audit record.
 
 Open one journal item. Notice the source-trace fields where available. These fields connect the target Odoo record back to the Odoo Online source record.
 
-## 4. Preview the Trial Balance
+## 5. Preview the Trial Balance
 
 1. Go back to the reconstruction summary.
 2. Click `Report Export`.
@@ -94,7 +118,7 @@ What to notice:
 - Trial Balance lines include account code, account name, opening, debit, credit, movement and closing.
 - The draft warning explains whether draft entries are excluded or included.
 
-## 5. Drill Down from the Preview
+## 6. Drill Down from the Preview
 
 1. In the report preview table, choose a row with a non-zero amount.
 2. Click the external-link icon in the row.
@@ -107,7 +131,7 @@ What to notice:
 - Drill-down is how you verify composition, not just totals.
 - A correct total is not enough; the contributing entries must also make sense.
 
-## 6. Generate an Export
+## 7. Generate an Export
 
 1. Return to the report wizard.
 2. Click `Generate Export`.
@@ -116,7 +140,7 @@ What to notice:
 
 The metadata tells an accountant what company, dates, report type, target move state and filters were used.
 
-## 7. Review Open Discrepancies
+## 8. Review Open Discrepancies
 
 1. Go to:
 
@@ -133,7 +157,7 @@ Typical current P0:
 
 This is not a ledger mismatch. It means technical evidence exists, but a human with the right authority still needs to accept or reject it.
 
-## 8. Review Pending Decisions
+## 9. Review Pending Decisions
 
 1. Go to:
 
@@ -146,7 +170,7 @@ Accounting > Review > Advanced Audit > Review Decisions
 
 Do not record a decision yet unless you have reviewed the evidence and have authority to approve. The purpose of this tutorial is to understand the workflow.
 
-## 9. Open the Source Report Catalogue
+## 10. Open the Source Report Catalogue
 
 1. Go to:
 
@@ -166,10 +190,11 @@ Accounting > Review > Advanced Audit > Source Report Catalogue
 
 This is how Odoo shows the source report structure used for parity review.
 
-## 10. Finish the First Review
+## 11. Finish the First Review
 
 At the end of this tutorial you have:
 
+- reviewed the operational Accounting Home;
 - checked that the imported ledger balances;
 - opened the import run;
 - previewed and exported a report;

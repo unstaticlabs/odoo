@@ -50,13 +50,95 @@ class TestRebuildAccountMigration(TransactionCase):
             vals["reconcile"] = True
         return self.env["account.account"].create(vals)
 
-    def test_accounting_app_opens_dashboard(self):
+    def test_accounting_app_opens_operational_home_and_keeps_native_dashboard(self):
         menu = self.env.ref("account.menu_finance")
+        home_client_action = self.env.ref(
+            "rebuild_account_migration.action_rebuild_accounting_home",
+        )
+        dashboard_menu = self.env.ref("account.menu_board_journal_1")
         dashboard_action = self.env.ref("account.open_account_journal_dashboard_kanban")
 
         self.assertEqual(menu.name, "Accounting")
-        self.assertEqual(menu.action, dashboard_action)
+        self.assertEqual(menu.action, home_client_action)
+        self.assertEqual(home_client_action.tag, "rebuild_accounting_home")
+        self.assertEqual(dashboard_menu.action, dashboard_action)
         self.assertEqual(dashboard_action.path, "accounting")
+
+        home_action = self.env[
+            "rebuild.account.review.summary"
+        ].action_open_accounting_home()
+        home = self.env["rebuild.account.review.summary"].search([
+            ("company_id", "=", self.company.id),
+        ])
+        self.assertTrue(home)
+        self.assertEqual(home.name, f"{self.company.name} — Accounting Home")
+        self.assertEqual(home_action["res_model"], "rebuild.account.review.summary")
+        self.assertEqual(home_action["res_id"], home.id)
+        self.assertEqual(
+            home_action["view_id"],
+            self.env.ref(
+                "rebuild_account_migration.view_rebuild_accounting_home_form",
+            ).id,
+        )
+        self.assertEqual(
+            home_action["views"],
+            [
+                (
+                    self.env.ref(
+                        "rebuild_account_migration.view_rebuild_accounting_home_form",
+                    ).id,
+                    "form",
+                ),
+            ],
+        )
+        review_action = self.env.ref(
+            "rebuild_account_migration.action_rebuild_account_review_summary",
+        )
+        self.assertEqual(
+            review_action.views,
+            [
+                (
+                    self.env.ref(
+                        "rebuild_account_migration.view_rebuild_account_review_summary_list",
+                    ).id,
+                    "list",
+                ),
+                (
+                    self.env.ref(
+                        "rebuild_account_migration.view_rebuild_account_review_summary_form",
+                    ).id,
+                    "form",
+                ),
+            ],
+        )
+
+    def test_accounting_home_summary_is_scoped_to_reviewer_companies(self):
+        other_company = self.env["res.company"].create({
+            "name": "Accounting Home Hidden Company",
+            "currency_id": self.company.currency_id.id,
+        })
+        reviewer = self.env["res.users"].with_context(
+            no_reset_password=True,
+        ).create({
+            "name": "Accounting Home Reviewer",
+            "login": "accounting.home.reviewer@example.invalid",
+            "email": "accounting.home.reviewer@example.invalid",
+            "company_id": self.company.id,
+            "company_ids": [Command.set([self.company.id])],
+            "group_ids": [Command.set([self.reviewer_group.id])],
+        })
+        self.env.flush_all()
+
+        visible = self.env[
+            "rebuild.account.review.summary"
+        ].with_user(reviewer).search([])
+        self.assertEqual(visible.mapped("company_id"), self.company)
+
+        hidden = self.env["rebuild.account.review.summary"].browse(
+            other_company.id,
+        )
+        with self.assertRaises(AccessError):
+            hidden.with_user(reviewer).read(["company_id"])
 
     def test_accounting_manager_gets_the_full_accounting_application(self):
         manager_group = self.env.ref("account.group_account_manager")
@@ -2387,6 +2469,10 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertGreaterEqual(summary.mandatory_report_count, 1)
         self.assertGreaterEqual(summary.level_3_report_count, 1)
         self.assertGreaterEqual(summary.level_4_report_count, 0)
+        self.assertGreaterEqual(summary.journal_count, 0)
+        self.assertEqual(summary.bank_transaction_count, 0)
+        self.assertEqual(summary.open_receivable_count, 0)
+        self.assertEqual(summary.open_payable_count, 0)
 
         discrepancy_action = summary.action_open_open_discrepancies()
         self.assertEqual(discrepancy_action["res_model"], "rebuild.account.discrepancy")
@@ -2412,11 +2498,67 @@ class TestRebuildAccountMigration(TransactionCase):
         report_action = summary.action_open_report_export_wizard()
         self.assertEqual(report_action["res_model"], "rebuild.account.report.export.wizard")
         self.assertEqual(report_action["context"]["default_company_id"], summary_company.id)
+        self.assertEqual(report_action["context"]["default_company_ids"], [summary_company.id])
         self.assertEqual(report_action["context"]["default_report_type"], "trial_balance")
+        self.assertEqual(report_action["context"]["default_data_scope"], "native")
+        self.assertEqual(report_action["context"]["default_period_preset"], "year_to_date")
+        self.assertEqual(report_action["context"]["default_target_move"], "posted")
+        self.assertEqual(report_action["views"], [(False, "form")])
 
         guide_action = summary.action_open_user_guide()
         self.assertEqual(guide_action["type"], "ir.actions.act_url")
         self.assertEqual(guide_action["url"], "/usl/user-docs")
+
+    def test_accounting_home_surfaces_daily_work_and_company_actions(self):
+        home_company = self.env["res.company"].create({
+            "name": "Operational Accounting Home Company",
+            "currency_id": self.company.currency_id.id,
+        })
+        sales_journal = self.env["account.journal"].create({
+            "name": "Home Customer Documents",
+            "code": "HCU",
+            "type": "sale",
+            "company_id": home_company.id,
+        })
+        purchase_journal = self.env["account.journal"].create({
+            "name": "Home Vendor Documents",
+            "code": "HVE",
+            "type": "purchase",
+            "company_id": home_company.id,
+        })
+        self.env["account.move"].create({
+            "move_type": "out_invoice",
+            "journal_id": sales_journal.id,
+            "company_id": home_company.id,
+        })
+        self.env["account.move"].create({
+            "move_type": "in_invoice",
+            "journal_id": purchase_journal.id,
+            "company_id": home_company.id,
+        })
+        self.env.flush_all()
+
+        home = self.env["rebuild.account.review.summary"].search([
+            ("company_id", "=", home_company.id),
+        ])
+        self.assertTrue(home)
+        self.assertGreaterEqual(home.journal_count, 2)
+        self.assertEqual(home.draft_customer_document_count, 1)
+        self.assertEqual(home.draft_vendor_document_count, 1)
+        self.assertEqual(home.incomplete_document_count, 2)
+
+        customer_action = home.action_open_customer_documents()
+        self.assertIn(("company_id", "=", home_company.id), customer_action["domain"])
+        self.assertIn(
+            ("move_type", "in", ["out_invoice", "out_refund", "out_receipt"]),
+            customer_action["domain"],
+        )
+        bank_action = home.action_open_bank_transactions()
+        self.assertIn(("company_id", "=", home_company.id), bank_action["domain"])
+        closing_action = home.action_open_closing_workspaces()
+        self.assertIn(("company_id", "=", home_company.id), closing_action["domain"])
+        declaration_action = home.action_open_declarations()
+        self.assertIn(("company_id", "=", home_company.id), declaration_action["domain"])
 
     def test_import_run_discrepancy_upsert_resolves_duplicates(self):
         import_run = self.env["rebuild.account.import.run"].create({

@@ -25,6 +25,13 @@
         <field name="groups" eval="[(4, ref('account.group_account_readonly'))]"/>
     </record>
 
+    <record id="rule_rebuild_account_review_summary_company" model="ir.rule">
+        <field name="name">Accounting home summaries: allowed companies only</field>
+        <field name="model_id" ref="model_rebuild_account_review_summary"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('account.group_account_readonly'))]"/>
+    </record>
+
     <record id="rule_rebuild_account_document_regeneration_case_company" model="ir.rule">
         <field name="name">Document regeneration cases: allowed companies only</field>
         <field name="model_id" ref="model_rebuild_account_document_regeneration_case"/>

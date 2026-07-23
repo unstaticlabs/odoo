@@ -4,15 +4,34 @@ Audience: all accounting users.
 
 This reference lists the main user-facing screens added for accounting reconstruction and review.
 
+## Accounting Home
+
+```text
+Accounting
+```
+
+Purpose: company-scoped operational overview for bank and cash balances,
+unmatched transactions, draft or incomplete daily work, open receivables and
+payables, closing readiness, declaration deadlines, and actions prepared for
+Valentin or the accountant.
+
+Use the header and statistic buttons to open the native journal dashboard,
+transactions, Bank Matching, documents, expenses, balances, reports, closing,
+declarations and prepared decision queues. The standard Odoo `Dashboard` remains
+available as a child menu for journal cards and direct journal access.
+
 ## Main Review Entry
 
 ```text
 Accounting > Review > Control > Issues
 ```
 
-Purpose: company-level dashboard for import status, ledger totals, discrepancies, review decisions, external values and report evidence.
+Purpose: company-level reconstruction and audit control for import status,
+ledger totals, discrepancies, review decisions, external values and report
+evidence.
 
-Use it first when reviewing a reconstructed database.
+Use it when validating reconstruction evidence, rather than as the daily
+Accounting landing page.
 
 ## Evidence and Control Screens
 

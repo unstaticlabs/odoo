@@ -19,6 +19,7 @@ Accounting > Review > Advanced Audit > User Guide
 ```
 
 You can also open the guide from the `User Guide` button on the Accounting Reconstruction Review screen.
+The same button is available in the header of Accounting Home.
 
 The Odoo guide opens in the browser with a navigation sidebar and search field. It uses the same Markdown source files as this `docs/users` directory.
 
@@ -28,7 +29,8 @@ When a dedicated documentation site is running, the same guide can also be viewe
 
 The implemented user-facing accounting features are centered on reconstructed accounting evidence imported from the Odoo Online backup. In Odoo, authorized users can currently:
 
-- open Accounting directly from the application menu;
+- open Accounting directly from the application menu onto a company-scoped Accounting Home;
+- review bank and cash balances, unmatched transactions, daily document queues, open receivables and payables, closing readiness, declaration deadlines, and prepared actions from that Home;
 - use the seven accounting areas: Dashboard, Customers, Vendors, Accounting, Review, Reporting and Configuration;
 - open Review > Control > Issues to review reconstruction controls and unresolved discrepancies;
 - open Accounting > Transactions > Bank Matching to review imported bank statement lines in the bank workbench;
@@ -105,10 +107,16 @@ Use this if this is your first time opening the rebuilt accounting evidence in O
 
 ## Normal Starting Point in Odoo
 
-Open:
+Open the Accounting app. It lands on Accounting Home for the active company and
+shows the operational state before you choose a workflow.
+
+For reconstruction controls and technical evidence, open:
 
 ```text
 Accounting > Review > Control > Issues
 ```
 
-This summary is the safest first screen. It tells you which source backup was imported, which company you are reviewing, how many records were reconstructed, which discrepancies remain open, and which review decisions are still pending.
+The Issues screen tells you which source backup was imported, how many records
+were reconstructed, which discrepancies remain open, and which review decisions
+are still pending. It is an audit control, not the normal Accounting landing
+page.

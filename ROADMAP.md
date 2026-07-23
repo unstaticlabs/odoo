@@ -17,6 +17,7 @@ Overall status: **technical rehearsal passed; professional acceptance pending**.
 - [x] Track B native documents, expenses, payments, bank categorization, external bank replay and General Reconciliation pass.
 - [x] The EUR 942 DGFiP refund is source-traced, reclassified and reconciled without retaining a duplicate VAT credit.
 - [x] Bank Matching and General Reconciliation are distinct user journeys.
+- [x] Accounting opens on a company-scoped operational Home for cash/bank, daily queues, open balances, closing, declarations and prepared actions while retaining the native journal Dashboard.
 - [x] All `38` source reports have a mapped target treatment and Level 4 technical evidence; no target equivalent is missing.
 - [x] Empty Open Items/Aged Receivable scopes are explicitly classified and do not erase unrelated report evidence.
 - [x] French declaration rules, traceable fields, lifecycle states and official-source guidance are implemented for 2025/2026.
@@ -1050,13 +1051,13 @@ Overall status: **technical rehearsal passed; professional acceptance pending**.
 - [x] Capture the annual accounts, SIG and tax-report reference document families.
 - [x] Define the target daily workbench: reconcile, review, journal entries, invoices, bills, refunds, expenses and tax readiness.
 - [x] Define the target closing package: ledger controls, reports, declaration mappings, FEC, evidence and review state.
-- [x] Add a clear Accounting app entry that opens the accounting dashboard.
-- [ ] Complete the menu redesign around frequent CEO/accountant workflows. The seven-area top-level navigation and distinct Bank Matching/General Reconciliation routes are implemented; closing and declaration destinations still need their final screens.
-- [ ] Implement dynamic report screens before export.
+- [x] Add a clear Accounting app entry that opens the operational Accounting Home while retaining the native journal Dashboard.
+- [x] Complete the menu redesign around frequent CEO/accountant workflows. The seven-area top-level navigation, operational Home and distinct Bank Matching, General Reconciliation, Closing and Declarations destinations are implemented.
+- [x] Implement dynamic report screens before export.
 - [ ] Implement readable accountant-ready PDF templates.
 - [ ] Implement readable templated XLSX exports.
-- [ ] Implement declaration guidance views for CFS Pro and Portailpro manual filing.
-- [ ] Implement declaration deadline/reminder workbench.
+- [x] Implement declaration guidance views for CFS Pro and Portailpro manual filing.
+- [x] Implement declaration deadline/reminder workbench and expose its status on Accounting Home.
 - [ ] Reconstruct customer invoices as usable business documents where source data permits.
 - [ ] Reconstruct customer credit notes as usable business documents where source data permits.
 - [ ] Reconstruct vendor bills as usable business documents where source data permits.
