@@ -139,8 +139,9 @@ The standard Community vendor-bill form exposes the original PDF through its
 attachment workbench, rendered thumbnail and PDF viewer rather than copying the
 Enterprise split-pane layout. The standard expense form exposes the source
 receipt filename, count and thumbnail. This is an equivalent native evidence
-path, not a pixel-parity claim. Integration of the Track B native records into
-the clean replacement target remains a deliberate open boundary.
+path, not a pixel-parity claim. The records are now integrated with exact
+benchmark history in a disposable hybrid candidate; professional acceptance,
+replacement browser journeys and promotion remain deliberate open boundaries.
 
 The native deferral replay represents all `5` source originals as operational
 schedules with `82` lines: `34` posted current-period entries and `48` future
@@ -153,6 +154,42 @@ source and target actual analytic-line totals also match, all `324` directly
 traced analytic lines match, and no line is unmapped. Odoo's per-line rounding
 creates only a theoretical `+0.01/-0.01` pair, within company-currency
 precision; actual analytic-line totals reconcile exactly to source.
+
+## Hybrid replacement candidate
+
+`odoo_rebuild_accounting_replacement` is a third disposable database, separate
+from both the exact-replay baseline and Track B. It clones only a completed
+Track B state and then exact-imports the `2024-01-10` through `2025-09-30`
+benchmark. Four native moves pass source-identity and accounting-shape alias
+validation and are reused instead of duplicated.
+
+Historical parity is exact at `2,046` moves, `4,809` lines and debit/credit
+`1,064,045.02`. The combined candidate has `4,541` posted moves and `10,727`
+posted lines, with no unbalanced posted move or duplicate source identity.
+
+Every current-period journal and account-balance difference is classified as
+native cash-basis timing/aggregation, native exchange timing/aggregation or OCA
+bank-allocation segmentation. The `12` account differences net to EUR `0.00`;
+the remaining profit-and-loss difference is EUR `2.64` and is attributable to
+native exchange timing. Validation therefore remains `partial`, classified as
+`HYBRID_REPLACEMENT_TARGET_EXPLAINED_NATIVE_DIFFERENCES`. Professional
+acceptance, replacement report/role/browser journeys and an explicit promotion
+decision remain open.
+
+The first clean native rebuild after adding standalone operator entries failed
+the external-bank stage with `40` blocked cases and `46` mismatches. The
+standalone selector had claimed `12` payroll/tax moves that belong to the
+downstream bank stage, and OCA could not categorize a source allocation to the
+same `471000` account currently configured as suspense. Ownership is now
+derived from the external-bank edge graph, and the bank stage uses and restores
+an empty `TBSUSP` staging suspense with zero ending lines and balance. The clean
+rebuild and required idempotence reruns then passed.
+
+Earlier replacement-harness attempts also exposed and corrected a statement
+date query against a nonexistent column, stale cloned module schema, a July
+refund action outside the native replay period, invalid latent discrepancy
+classifications and a legacy-account-code `GROUP BY` typo in the validator.
+These were harness defects, not accepted accounting differences.
 
 ## Future reference rates
 
@@ -373,6 +410,9 @@ odoo --config=/etc/odoo/odoo.conf --addons-path=/workspace/odoo/addons,/workspac
 /tmp/odoo-m13-docs-venv/bin/python -m mkdocs build --config-file mkdocs.yml
 git diff --check
 make accounting-target-reset
+make accounting-replacement-reset
+make accounting-replacement-import
+make accounting-replacement-validate
 make accounting-target-import
 make accounting-target-validate
 make accounting-document-regeneration

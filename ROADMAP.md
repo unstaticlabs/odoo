@@ -15,6 +15,7 @@ Overall status: **technical rehearsal passed; professional acceptance pending**.
 - [x] Two clean reconstruction rehearsals reproduce Track A: `2,046` moves, `4,809` lines and debit/credit of `1,064,045.02`.
 - [x] Source traceability, target validation, failure guardrails and idempotence pass.
 - [x] Track B native documents, expenses, payments, bank categorization, external bank replay and General Reconciliation pass.
+- [x] A disposable hybrid replacement candidate combines the exact benchmark history with the completed native current-period Track B state; historical parity is exact and every current-period difference is classified.
 - [x] The EUR 942 DGFiP refund is source-traced, reclassified and reconciled without retaining a duplicate VAT credit.
 - [x] Bank Matching and General Reconciliation are distinct user journeys.
 - [x] Accounting opens on a company-scoped operational Home for cash/bank, daily queues, open balances, closing, declarations and prepared actions while retaining the native journal Dashboard.
@@ -31,6 +32,7 @@ Overall status: **technical rehearsal passed; professional acceptance pending**.
 - [ ] Prosper/accountant acceptance or objections for the 38 report evidence packages.
 - [ ] Valentin acceptance of the two SASU report scope exclusions and final product presentation.
 - [ ] Accountant/product decision for the 75 draft/future cross-boundary reconciliation relationships: retain review-only treatment or authorize a separate application workflow.
+- [ ] Accountant acceptance or objection for the hybrid candidate's EUR `2.64` current-period exchange profit-and-loss difference, followed by an explicit promotion decision.
 - [ ] Recorded FEC, declaration and final milestone acceptance by their named authorities.
 
 ### Non-blocking polish
@@ -1058,11 +1060,12 @@ Overall status: **technical rehearsal passed; professional acceptance pending**.
 - [ ] Implement readable templated XLSX exports.
 - [x] Implement declaration guidance views for CFS Pro and Portailpro manual filing.
 - [x] Implement declaration deadline/reminder workbench and expose its status on Accounting Home.
-- [ ] Integrate customer invoices as usable business documents into the clean replacement target. Isolated Track B already proves native creation/posting and checksum-verified source attachments.
-- [ ] Reconstruct customer credit notes as usable business documents where source data permits.
-- [ ] Integrate vendor bills as usable business documents into the clean replacement target. Isolated Track B already proves native creation/posting, original PDF evidence and source-designated main attachments.
-- [ ] Integrate supplier refunds as usable business documents into the clean replacement target. Isolated Track B already proves the native replay.
-- [x] Reconstruct and classify current-period source expenses through native Odoo in isolated Track B, including checksum-verified receipts and source-designated main attachments; clean-target integration remains open.
+- [x] Integrate customer invoices as usable native business documents into the disposable hybrid replacement candidate, retaining checksum-verified source attachments.
+- [ ] Establish customer credit-note replacement behavior when source data permits; the confirmed source period contains no customer credit-note case.
+- [x] Integrate vendor bills as usable native business documents into the disposable hybrid replacement candidate, retaining original PDF evidence and source-designated main attachments.
+- [x] Integrate supplier refunds as usable native business documents into the disposable hybrid replacement candidate.
+- [x] Integrate current-period source expenses into the disposable hybrid replacement candidate through native Odoo, including checksum-verified receipts and source-designated main attachments.
+- [ ] Obtain professional acceptance of the classified native current-period differences and explicitly promote the disposable hybrid candidate as the replacement target.
 - [ ] Implement accountant-readable closing archive package.
 - [ ] Keep machine/detail exports available as advanced audit evidence.
 

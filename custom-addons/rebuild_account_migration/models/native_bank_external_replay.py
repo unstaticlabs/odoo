@@ -1,10 +1,61 @@
 from collections import defaultdict
 
-from odoo import fields, models
+from odoo import Command, fields, models
 
 
 class RebuildAccountImportRun(models.Model):
     _inherit = "rebuild.account.import.run"
+
+    def _native_bank_external_stage_journal_suspense(
+        self,
+        journals,
+        bank_rows,
+    ):
+        source_journal_ids = {row["journal_id"] for row in bank_rows}
+        Account = self.env["account.account"].sudo().with_context(
+            active_test=False,
+            tracking_disable=True,
+            mail_create_nolog=True,
+        )
+        staged = {}
+        for source_journal_id in source_journal_ids:
+            journal = journals.get(source_journal_id)
+            if not journal or journal.type not in ("bank", "cash", "credit"):
+                continue
+            company = journal.company_id
+            source_suspense = journal.suspense_account_id
+            staging = Account.with_company(company).search([
+                ("code", "=", "TBSUSP"),
+                ("company_ids", "in", company.id),
+                ("rebuild_source_model", "=", False),
+            ], limit=1)
+            if not staging:
+                staging = Account.with_company(company).create({
+                    "name": "Track B Bank Matching staging suspense",
+                    "code": "TBSUSP",
+                    "account_type": "asset_current",
+                    "reconcile": True,
+                    "company_ids": [Command.set([company.id])],
+                    "rebuild_import_note": (
+                        "Temporary clean-target suspense used only while OCA "
+                        "Bank Matching converts source suspense allocations into "
+                        "native categorized lines."
+                    ),
+                })
+            elif not staging.active:
+                staging.active = True
+            journal.suspense_account_id = staging
+            staged[journal.id] = {
+                "journal": journal,
+                "source_suspense": source_suspense,
+                "staging": staging,
+            }
+        return staged
+
+    @staticmethod
+    def _native_bank_external_restore_journal_suspense(staged):
+        for values in staged.values():
+            values["journal"].suspense_account_id = values["source_suspense"]
 
     def _native_bank_external_source_ids(self, conn, options):
         rows = self._fetchall(
@@ -170,6 +221,19 @@ class RebuildAccountImportRun(models.Model):
         )
 
     @staticmethod
+    def _native_bank_external_manual_move_ids(edge_rows):
+        return sorted({
+            edge["endpoint_source_move_id"]
+            for edge in edge_rows
+            if (
+                edge["endpoint_state"] == "posted"
+                and edge["endpoint_move_type"] == "entry"
+                and edge["endpoint_journal_code"] != "EXCH"
+                and not edge["endpoint_bank_statement_line_id"]
+            )
+        })
+
+    @staticmethod
     def _native_bank_external_boundary_kind(
         edge,
         source_bank_ids,
@@ -224,6 +288,10 @@ class RebuildAccountImportRun(models.Model):
             accounts,
             currencies,
         )
+        staged_suspense = self._native_bank_external_stage_journal_suspense(
+            journals,
+            bank_rows,
+        )
         partners = self._partner_map(conn, configuration_options)
         analytic_accounts = {
             account.rebuild_source_id: account
@@ -243,6 +311,7 @@ class RebuildAccountImportRun(models.Model):
             currencies,
             analytic_accounts,
             archive_account_ids,
+            staged_suspense,
             {
                 row["id"]
                 for row in self._fetchall(
@@ -747,6 +816,7 @@ class RebuildAccountImportRun(models.Model):
             "target_database": options["target_database"],
         })
         conn = self._source_connection(options)
+        staged_suspense = {}
         try:
             source_bank_ids = self._native_bank_external_source_ids(conn, options)
             bank_rows = self._native_bank_external_bank_rows(
@@ -764,16 +834,9 @@ class RebuildAccountImportRun(models.Model):
                 options,
                 source_bank_ids,
             )
-            manual_move_ids = sorted({
-                edge["endpoint_source_move_id"]
-                for edge in edge_rows
-                if (
-                    edge["endpoint_state"] == "posted"
-                    and edge["endpoint_move_type"] == "entry"
-                    and edge["endpoint_journal_code"] != "EXCH"
-                    and not edge["endpoint_bank_statement_line_id"]
-                )
-            })
+            manual_move_ids = self._native_bank_external_manual_move_ids(
+                edge_rows,
+            )
             manual_move_rows = self._native_general_reconciliation_move_rows(
                 conn,
                 options,
@@ -791,6 +854,7 @@ class RebuildAccountImportRun(models.Model):
                 currencies,
                 analytic_accounts,
                 archive_account_ids,
+                staged_suspense,
                 archive_journal_ids,
             ) = self._native_bank_external_maps(
                 conn,
@@ -948,6 +1012,19 @@ class RebuildAccountImportRun(models.Model):
                 + partial_mismatches
                 + exchange["mismatches"]
             )
+            staging_accounts = self.env["account.account"]
+            for values in staged_suspense.values():
+                staging_accounts |= values["staging"]
+            staging_lines = self.env["account.move.line"].sudo().search([
+                ("account_id", "in", staging_accounts.ids or [0]),
+            ])
+            if staging_lines:
+                mismatches.append({
+                    "classification": "staging_suspense_not_cleared",
+                    "account_ids": staging_accounts.ids,
+                    "line_count": len(staging_lines),
+                    "balance": round(sum(staging_lines.mapped("balance")), 2),
+                })
             status = "passed" if not blocked and not mismatches else "partial"
             stats = {
                 "classification": "TRACK_B_NATIVE_EXTERNAL_BANK_REPLAY",
@@ -974,6 +1051,12 @@ class RebuildAccountImportRun(models.Model):
                 ),
                 "archived_boundary_account_count": len(archive_account_ids),
                 "archived_boundary_journal_count": len(archive_journal_ids),
+                "staged_suspense_journal_count": len(staged_suspense),
+                "staging_suspense_line_count": len(staging_lines),
+                "staging_suspense_balance": round(
+                    sum(staging_lines.mapped("balance")),
+                    2,
+                ),
                 "created_manual_move_count": created_manual_count,
                 "reused_manual_move_count": reused_manual_count,
                 "native_input_partial_count": len(input_edges),
@@ -1026,4 +1109,7 @@ class RebuildAccountImportRun(models.Model):
             })
             raise
         finally:
+            self._native_bank_external_restore_journal_suspense(
+                staged_suspense,
+            )
             conn.close()

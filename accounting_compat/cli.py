@@ -28,6 +28,7 @@ TOOL_VERSION = "0.1.0"
 SOURCE_DB = "odoo_online_source_saas_19_2"
 TARGET_DB = "odoo_rebuild_accounting_test"
 TRACK_B_DB = "odoo_rebuild_accounting_track_b"
+REPLACEMENT_DB = "odoo_rebuild_accounting_replacement"
 READONLY_ROLE = "accounting_source_ro"
 DEFAULT_SOURCE_DIR = "usl-online-dump"
 DEFAULT_POSTGRES_IMAGE = "pgvector/pgvector:pg16-bookworm"
@@ -69,6 +70,29 @@ USL_BENCHMARK_END = "2025-09-30"
 USL_CURRENT_START = "2025-10-01"
 USL_BENCHMARK_PERIOD_KEY = "USL_BENCHMARK_2024_01_10_TO_2025_09_30"
 USL_CURRENT_PERIOD_KEY = "CURRENT_FROM_2025_10_01"
+REPLACEMENT_SOURCE_TRACE_ALIASES = {
+    "account.move": [
+        "account.move.asset_native_replay",
+        "account.move.native_engine_replay",
+        "account.move.native_expense_replay",
+        "account.move.native_external_exchange",
+        "account.move.native_general_exchange",
+        "account.move.native_general_replay",
+    ],
+    "account.move.line": [
+        "account.move.line.asset_native_replay",
+        "account.move.line.native_analytic_override",
+        "account.move.line.native_bank_categorization",
+        "account.move.line.native_bounded_bank_counterpart",
+        "account.move.line.native_document_settlement_input",
+        "account.move.line.native_engine_input",
+        "account.move.line.native_expense_settlement_input",
+        "account.move.line.native_external_exchange",
+        "account.move.line.native_external_replay",
+        "account.move.line.native_general_exchange",
+        "account.move.line.native_general_replay",
+    ],
+}
 
 ROOT = Path(__file__).resolve().parents[1]
 ARTIFACTS = ROOT / "artifacts" / "accounting-compat"
@@ -2143,6 +2167,979 @@ def track_b_reset(args: argparse.Namespace) -> dict[str, Any]:
         "record_counts": target_table_counts(TRACK_B_DB),
     }
     write_json(PRIVATE_ARTIFACTS / "track-b-reset-status.json", status)
+    return status
+
+
+def replacement_runtime_signature(db: str) -> dict[str, Any]:
+    required_tables = {
+        "account_move",
+        "account_move_line",
+        "account_bank_statement_line",
+        "hr_expense",
+        "rebuild_account_import_run",
+    }
+    missing_tables = sorted(
+        table
+        for table in required_tables
+        if not table_exists(db, table)
+    )
+    if missing_tables:
+        return {
+            "database": db,
+            "missing_tables": missing_tables,
+            "native_business_document_count": "0",
+            "native_expense_count": "0",
+            "native_bank_transaction_count": "0",
+            "unbalanced_posted_move_count": "0",
+        }
+    return query_json(
+        db,
+        """
+        SELECT jsonb_build_object(
+            'database', current_database(),
+            'missing_tables', '[]'::jsonb,
+            'native_business_document_count', (
+                SELECT count(*)::text
+                FROM account_move move
+                JOIN res_company company ON company.id = move.company_id
+                WHERE company.rebuild_source_id = 1
+                  AND move.state = 'posted'
+                  AND move.move_type IN (
+                      'out_invoice', 'out_refund', 'in_invoice',
+                      'in_refund', 'out_receipt', 'in_receipt'
+                  )
+                  AND move.date BETWEEN DATE '2025-10-01' AND DATE '2026-06-30'
+                  AND move.rebuild_source_model IN (
+                      'account.move.native_engine_replay',
+                      'account.move.native_expense_replay'
+                  )
+            ),
+            'native_expense_count', (
+                SELECT count(*)::text
+                FROM hr_expense expense
+                JOIN res_company company ON company.id = expense.company_id
+                WHERE company.rebuild_source_id = 1
+                  AND expense.rebuild_source_model = 'hr.expense'
+                  AND expense.date BETWEEN DATE '2025-10-01' AND DATE '2026-06-30'
+            ),
+            'native_bank_transaction_count', (
+                SELECT count(*)::text
+                FROM account_bank_statement_line statement_line
+                JOIN res_company company ON company.id = statement_line.company_id
+                JOIN account_move move ON move.id = statement_line.move_id
+                WHERE company.rebuild_source_id = 1
+                  AND move.date
+                      BETWEEN DATE '2025-10-01' AND DATE '2026-06-30'
+                  AND statement_line.rebuild_source_model LIKE
+                      'account.bank.statement.line.native_%'
+            ),
+            'unbalanced_posted_move_count', (
+                SELECT count(*)::text
+                FROM (
+                    SELECT move.id
+                    FROM account_move move
+                    JOIN account_move_line line ON line.move_id = move.id
+                    WHERE move.state = 'posted'
+                    GROUP BY move.id
+                    HAVING abs(sum(line.balance)) > 0.005
+                ) unbalanced
+            ),
+            'duplicate_source_move_representation_count', (
+                SELECT count(*)::text
+                FROM (
+                    SELECT rebuild_source_id
+                    FROM account_move
+                    WHERE rebuild_source_id IS NOT NULL
+                      AND rebuild_source_model IS NOT NULL
+                    GROUP BY rebuild_source_id
+                    HAVING count(*) > 1
+                ) duplicate
+            ),
+            'posted_move_count', (
+                SELECT count(*)::text
+                FROM account_move
+                WHERE state = 'posted'
+            ),
+            'posted_move_line_count', (
+                SELECT count(*)::text
+                FROM account_move_line
+                WHERE parent_state = 'posted'
+            )
+        )
+        """,
+        set_readonly_role=False,
+    )
+
+
+def replacement_reset(args: argparse.Namespace) -> dict[str, Any]:
+    """Clone the completed Track B engine proof into a replacement candidate."""
+    ensure_dirs()
+    wait_for_postgres_service(TARGET_DB_SERVICE)
+    required_artifacts = {
+        "track_b_expenses": PRIVATE_ARTIFACTS / "track-b-expenses-status.json",
+        "track_b_documents": PRIVATE_ARTIFACTS / "track-b-documents-status.json",
+        "track_b_assets": PRIVATE_ARTIFACTS / "track-b-assets-status.json",
+        "track_b_deferrals": PRIVATE_ARTIFACTS / "track-b-deferrals-status.json",
+        "track_b_expense_settlement": (
+            PRIVATE_ARTIFACTS / "track-b-expense-settlement-status.json"
+        ),
+        "track_b_document_settlement": (
+            PRIVATE_ARTIFACTS / "track-b-document-settlement-status.json"
+        ),
+        "track_b_general_reconciliation": (
+            PRIVATE_ARTIFACTS / "track-b-general-reconciliation-status.json"
+        ),
+        "track_b_bank_categorization": (
+            PRIVATE_ARTIFACTS / "track-b-bank-categorization-status.json"
+        ),
+        "track_b_bank_external": (
+            PRIVATE_ARTIFACTS / "track-b-bank-external-status.json"
+        ),
+        "track_b_analytics": PRIVATE_ARTIFACTS / "track-b-analytics-status.json",
+    }
+    artifact_checks = {}
+    for name, path in required_artifacts.items():
+        payload = read_json(path) if path.exists() else {}
+        artifact_checks[name] = {
+            "path": str(path.relative_to(ROOT)),
+            "status": payload.get("status", "missing"),
+            "database": payload.get("database"),
+            "passed": (
+                payload.get("status") == "passed"
+                and payload.get("database") == TRACK_B_DB
+            ),
+        }
+    source_signature = replacement_runtime_signature(TRACK_B_DB)
+    expected_signature = {
+        "native_business_document_count": "284",
+        "native_expense_count": "325",
+        "native_bank_transaction_count": "1841",
+        "unbalanced_posted_move_count": "0",
+        "duplicate_source_move_representation_count": "0",
+    }
+    signature_matches = all(
+        source_signature.get(key) == value
+        for key, value in expected_signature.items()
+    )
+    failed_artifacts = sorted(
+        name
+        for name, check in artifact_checks.items()
+        if not check["passed"]
+    )
+    if failed_artifacts or not signature_matches:
+        status = {
+            "generated_at": utc_now(),
+            "tool_version": TOOL_VERSION,
+            "stage": "replacement-reset",
+            "status": "failed",
+            "classification": "INCOMPLETE_TRACK_B_CLONE_SOURCE",
+            "source_database": TRACK_B_DB,
+            "target_database": REPLACEMENT_DB,
+            "artifact_checks": artifact_checks,
+            "failed_artifacts": failed_artifacts,
+            "expected_signature": expected_signature,
+            "source_signature": source_signature,
+        }
+        write_json(PRIVATE_ARTIFACTS / "replacement-reset-status.json", status)
+        message = "Replacement reset requires the complete, current Track B proof."
+        raise HarnessError(message)
+
+    db_user = database_user(TARGET_DB_SERVICE)
+    run(compose_args(
+        "exec", "-T", TARGET_DB_SERVICE,
+        "dropdb", "-U", db_user, "--if-exists", "--force", REPLACEMENT_DB,
+    ))
+    run(compose_args(
+        "exec", "-T", TARGET_DB_SERVICE,
+        "createdb", "-U", db_user, "-E", "UTF8",
+        "-T", TRACK_B_DB, REPLACEMENT_DB,
+    ))
+    run(
+        compose_args(
+            "--profile",
+            "init",
+            "run",
+            "--rm",
+            "-e",
+            f"ODOO_ADDONS_PATH={TARGET_ODOO_ADDONS_PATH}",
+            "init-db",
+            "odoo",
+            "--config=/etc/odoo/odoo.conf",
+            f"--database={REPLACEMENT_DB}",
+            "--update=rebuild_account_migration",
+            "--stop-after-init",
+        ),
+    )
+    target_signature = replacement_runtime_signature(REPLACEMENT_DB)
+    comparable_signature_keys = (
+        set(source_signature)
+        | set(target_signature)
+    ) - {"database"}
+    clone_matches = all(
+        source_signature.get(key) == target_signature.get(key)
+        for key in comparable_signature_keys
+    )
+    status = {
+        "generated_at": utc_now(),
+        "tool_version": TOOL_VERSION,
+        "stage": "replacement-reset",
+        "status": "passed" if clone_matches else "failed",
+        "classification": "TRACK_B_NATIVE_STATE_CLONED_FOR_REPLACEMENT",
+        "source_database": TRACK_B_DB,
+        "target_database": REPLACEMENT_DB,
+        "artifact_checks": artifact_checks,
+        "expected_signature": expected_signature,
+        "source_signature": source_signature,
+        "target_signature": target_signature,
+    }
+    write_json(PRIVATE_ARTIFACTS / "replacement-reset-status.json", status)
+    if status["status"] != "passed":
+        message = (
+            "Replacement database clone does not match the Track B source signature."
+        )
+        raise HarnessError(message)
+    return status
+
+
+def replacement_import(args: argparse.Namespace) -> dict[str, Any]:
+    """Add the exact pre-cutoff ledger to the native replacement candidate."""
+    ensure_dirs()
+    validation = validate_source(args)
+    dump_sha = validation["dump"]["sha256"] or "unknown"
+    snapshot_id = f"source-{dump_sha[:12]}"
+    if not table_exists(REPLACEMENT_DB, "rebuild_account_import_run"):
+        message = (
+            "Run make accounting-replacement-reset before replacement import."
+        )
+        raise HarnessError(message)
+    import_script = PRIVATE_ARTIFACTS / "replacement-import-historical.py"
+    import_script.write_text(
+        "\n".join([
+            "import json",
+            "run = env['rebuild.account.import.run'].create({",
+            "    'name': 'USL replacement historical exact ledger',",
+            "    'mode': 'exact_ledger_replay',",
+            "    'source_database': 'odoo_online_source_saas_19_2',",
+            f"    'source_dump_sha256': {dump_sha!r},",
+            f"    'source_snapshot_id': {snapshot_id!r},",
+            "    'source_version': 'Odoo Online Enterprise saas~19.2',",
+            f"    'target_database': {REPLACEMENT_DB!r},",
+            "})",
+            "stats = run.run_exact_ledger_replay_from_source({",
+            "    'source_database': 'odoo_online_source_saas_19_2',",
+            f"    'source_dump_sha256': {dump_sha!r},",
+            f"    'source_snapshot_id': {snapshot_id!r},",
+            "    'source_version': 'Odoo Online Enterprise saas~19.2',",
+            f"    'target_database': {REPLACEMENT_DB!r},",
+            f"    'date_from': {USL_BENCHMARK_START!r},",
+            f"    'date_to': {USL_BENCHMARK_END!r},",
+            "    'source_company_ids': [1, 8],",
+            f"    'source_trace_aliases': {REPLACEMENT_SOURCE_TRACE_ALIASES!r},",
+            "    'classify_confirmed_vat_refund': False,",
+            "})",
+            "env.cr.commit()",
+            "print('REBUILD_REPLACEMENT_IMPORT_RESULT=' + json.dumps({",
+            "    'run_id': run.id,",
+            "    'run_status': run.status,",
+            "    'stats': stats,",
+            "}, sort_keys=True, default=str))",
+            "",
+        ]),
+        encoding="utf-8",
+    )
+    result = run(
+        compose_args(
+            "--profile",
+            "init",
+            "run",
+            "--rm",
+            "-e",
+            f"ODOO_ADDONS_PATH={TARGET_ODOO_ADDONS_PATH}",
+            "init-db",
+            "odoo",
+            "shell",
+            "--config=/etc/odoo/odoo.conf",
+            f"--database={REPLACEMENT_DB}",
+        ),
+        input_file=import_script,
+        check=False,
+    )
+    marker = None
+    for line in (result.stdout + result.stderr).splitlines():
+        if line.startswith("REBUILD_REPLACEMENT_IMPORT_RESULT="):
+            marker = line.removeprefix(
+                "REBUILD_REPLACEMENT_IMPORT_RESULT=",
+            )
+    if result.returncode or not marker:
+        status = {
+            "generated_at": utc_now(),
+            "tool_version": TOOL_VERSION,
+            "stage": "replacement-import",
+            "status": "failed",
+            "classification": "REPLACEMENT_HISTORICAL_IMPORT_DEFECT",
+            "database": REPLACEMENT_DB,
+            "exit_code": result.returncode,
+            "output_tail": (result.stdout + result.stderr)[-12000:],
+        }
+        write_json(
+            PRIVATE_ARTIFACTS / "replacement-import-status.json",
+            status,
+        )
+        message = (
+            "Replacement historical import failed. See the private artifact."
+        )
+        raise HarnessError(message)
+    payload = json.loads(marker)
+    stats = payload["stats"]
+    expected = {
+        "source_move_count": 2046,
+        "source_move_line_count": 4809,
+        "reused_native_move_representation_count": 4,
+    }
+    checks = {
+        key: stats.get(key) == expected_value
+        for key, expected_value in expected.items()
+    }
+    status = {
+        "generated_at": utc_now(),
+        "tool_version": TOOL_VERSION,
+        "stage": "replacement-import",
+        "status": "passed" if all(checks.values()) else "failed",
+        "classification": "HYBRID_HISTORICAL_EXACT_NATIVE_CURRENT_IMPORT",
+        "database": REPLACEMENT_DB,
+        "run_id": payload["run_id"],
+        "run_status": payload["run_status"],
+        "expected": expected,
+        "checks": checks,
+        "statistics": stats,
+    }
+    write_json(PRIVATE_ARTIFACTS / "replacement-import-status.json", status)
+    if status["status"] != "passed":
+        message = (
+            "Replacement historical import counts or native alias reuse differ."
+        )
+        raise HarnessError(message)
+    return status
+
+
+def replacement_validate(args: argparse.Namespace) -> dict[str, Any]:
+    """Validate the combined historical/native replacement candidate."""
+    ensure_dirs()
+    if not table_exists(REPLACEMENT_DB, "rebuild_account_import_run"):
+        message = (
+            "Run replacement reset and import before replacement validation."
+        )
+        raise HarnessError(message)
+    source_historical = query_rows(
+        SOURCE_DB,
+        """
+        SELECT move.company_id::text AS source_company_id,
+               count(DISTINCT move.id)::text AS posted_move_count,
+               count(line.id)::text AS posted_move_line_count,
+               round(sum(line.debit)::numeric, 2)::text AS debit,
+               round(sum(line.credit)::numeric, 2)::text AS credit
+        FROM account_move move
+        JOIN account_move_line line ON line.move_id = move.id
+        WHERE move.company_id IN (1, 8)
+          AND move.state = 'posted'
+          AND move.date BETWEEN DATE '2024-01-10' AND DATE '2025-09-30'
+          AND line.account_id IS NOT NULL
+        GROUP BY move.company_id
+        ORDER BY move.company_id
+        """,
+    )
+    target_historical = query_rows(
+        REPLACEMENT_DB,
+        """
+        SELECT company.rebuild_source_id::text AS source_company_id,
+               count(DISTINCT move.id)::text AS posted_move_count,
+               count(line.id)::text AS posted_move_line_count,
+               round(sum(line.debit)::numeric, 2)::text AS debit,
+               round(sum(line.credit)::numeric, 2)::text AS credit
+        FROM account_move move
+        JOIN account_move_line line ON line.move_id = move.id
+        JOIN res_company company ON company.id = move.company_id
+        WHERE company.rebuild_source_id IN (1, 8)
+          AND move.state = 'posted'
+          AND move.date BETWEEN DATE '2024-01-10' AND DATE '2025-09-30'
+        GROUP BY company.rebuild_source_id
+        ORDER BY company.rebuild_source_id
+        """,
+        set_readonly_role=False,
+    )
+    source_current = query_json(
+        SOURCE_DB,
+        """
+        SELECT jsonb_build_object(
+            'posted_move_count', count(DISTINCT move.id)::text,
+            'posted_move_line_count', count(line.id)::text,
+            'debit', round(sum(line.debit)::numeric, 2)::text,
+            'credit', round(sum(line.credit)::numeric, 2)::text
+        )
+        FROM account_move move
+        JOIN account_move_line line ON line.move_id = move.id
+        WHERE move.company_id = 1
+          AND move.state = 'posted'
+          AND move.date BETWEEN DATE '2025-10-01' AND DATE '2026-06-30'
+          AND line.account_id IS NOT NULL
+        """,
+    )
+    target_current = query_json(
+        REPLACEMENT_DB,
+        """
+        SELECT jsonb_build_object(
+            'posted_move_count', count(DISTINCT move.id)::text,
+            'posted_move_line_count', count(line.id)::text,
+            'debit', round(sum(line.debit)::numeric, 2)::text,
+            'credit', round(sum(line.credit)::numeric, 2)::text
+        )
+        FROM account_move move
+        JOIN account_move_line line ON line.move_id = move.id
+        JOIN res_company company ON company.id = move.company_id
+        WHERE company.rebuild_source_id = 1
+          AND move.state = 'posted'
+          AND move.date BETWEEN DATE '2025-10-01' AND DATE '2026-06-30'
+        """,
+        set_readonly_role=False,
+    )
+    source_journal_rows = query_rows(
+        SOURCE_DB,
+        """
+        SELECT journal.id::text AS source_journal_id,
+               journal.code,
+               journal.type AS journal_type,
+               count(DISTINCT move.id)::text AS posted_move_count,
+               count(line.id)::text AS posted_move_line_count,
+               round(sum(line.debit)::numeric, 2)::text AS debit,
+               round(sum(line.credit)::numeric, 2)::text AS credit
+        FROM account_move move
+        JOIN account_move_line line ON line.move_id = move.id
+        JOIN account_journal journal ON journal.id = move.journal_id
+        WHERE move.company_id = 1
+          AND move.state = 'posted'
+          AND move.date BETWEEN DATE '2025-10-01' AND DATE '2026-06-30'
+          AND line.account_id IS NOT NULL
+        GROUP BY journal.id, journal.code, journal.type
+        ORDER BY journal.id
+        """,
+    )
+    target_journal_rows = query_rows(
+        REPLACEMENT_DB,
+        """
+        SELECT journal.id::text AS target_journal_id,
+               journal.rebuild_source_id::text AS source_journal_id,
+               journal.code,
+               journal.type AS journal_type,
+               count(DISTINCT move.id)::text AS posted_move_count,
+               count(line.id)::text AS posted_move_line_count,
+               round(sum(line.debit)::numeric, 2)::text AS debit,
+               round(sum(line.credit)::numeric, 2)::text AS credit
+        FROM account_move move
+        JOIN account_move_line line ON line.move_id = move.id
+        JOIN account_journal journal ON journal.id = move.journal_id
+        JOIN res_company company ON company.id = move.company_id
+        WHERE company.rebuild_source_id = 1
+          AND move.state = 'posted'
+          AND move.date BETWEEN DATE '2025-10-01' AND DATE '2026-06-30'
+          AND line.account_id IS NOT NULL
+        GROUP BY journal.id, journal.rebuild_source_id,
+                 journal.code, journal.type
+        ORDER BY journal.rebuild_source_id NULLS FIRST, journal.id
+        """,
+        set_readonly_role=False,
+    )
+    source_balance_rows = query_rows(
+        SOURCE_DB,
+        """
+        SELECT account.id::text AS source_account_id,
+               COALESCE(
+                   account.code_store->>move.company_id::text,
+                   account.code_store->>'1',
+                   account.code_store::text
+               ) AS account_code,
+               account.account_type,
+               round(sum(line.balance)::numeric, 2)::text AS balance
+        FROM account_move move
+        JOIN account_move_line line ON line.move_id = move.id
+        JOIN account_account account ON account.id = line.account_id
+        WHERE move.company_id = 1
+          AND move.state = 'posted'
+          AND move.date BETWEEN DATE '2025-10-01' AND DATE '2026-06-30'
+        GROUP BY account.id, move.company_id, account.account_type
+        ORDER BY account.id
+        """,
+    )
+    target_balance_rows = query_rows(
+        REPLACEMENT_DB,
+        """
+        SELECT account.id::text AS target_account_id,
+               account.rebuild_source_id::text AS source_account_id,
+               COALESCE(
+                   account.code_store->>company.id::text,
+                   account.code_store->>'1',
+                   account.code_store::text
+               ) AS account_code,
+               account.account_type,
+               round(sum(line.balance)::numeric, 2)::text AS balance
+        FROM account_move move
+        JOIN account_move_line line ON line.move_id = move.id
+        JOIN account_account account ON account.id = line.account_id
+        JOIN res_company company ON company.id = move.company_id
+        WHERE company.rebuild_source_id = 1
+          AND move.state = 'posted'
+          AND move.date BETWEEN DATE '2025-10-01' AND DATE '2026-06-30'
+        GROUP BY account.id, account.rebuild_source_id,
+                 account.code_store, account.account_type, company.id
+        ORDER BY account.rebuild_source_id NULLS FIRST, account.id
+        """,
+        set_readonly_role=False,
+    )
+    source_account_journal_rows = query_rows(
+        SOURCE_DB,
+        """
+        SELECT account.id::text AS source_account_id,
+               journal.id::text AS source_journal_id,
+               journal.code,
+               journal.type AS journal_type,
+               round(sum(line.balance)::numeric, 2)::text AS balance
+        FROM account_move move
+        JOIN account_move_line line ON line.move_id = move.id
+        JOIN account_account account ON account.id = line.account_id
+        JOIN account_journal journal ON journal.id = move.journal_id
+        WHERE move.company_id = 1
+          AND move.state = 'posted'
+          AND move.date BETWEEN DATE '2025-10-01' AND DATE '2026-06-30'
+        GROUP BY account.id, journal.id, journal.code, journal.type
+        ORDER BY account.id, journal.id
+        """,
+    )
+    target_account_journal_rows = query_rows(
+        REPLACEMENT_DB,
+        """
+        SELECT account.id::text AS target_account_id,
+               account.rebuild_source_id::text AS source_account_id,
+               journal.id::text AS target_journal_id,
+               journal.rebuild_source_id::text AS source_journal_id,
+               journal.code,
+               journal.type AS journal_type,
+               round(sum(line.balance)::numeric, 2)::text AS balance
+        FROM account_move move
+        JOIN account_move_line line ON line.move_id = move.id
+        JOIN account_account account ON account.id = line.account_id
+        JOIN account_journal journal ON journal.id = move.journal_id
+        JOIN res_company company ON company.id = move.company_id
+        WHERE company.rebuild_source_id = 1
+          AND move.state = 'posted'
+          AND move.date BETWEEN DATE '2025-10-01' AND DATE '2026-06-30'
+        GROUP BY account.id, account.rebuild_source_id,
+                 journal.id, journal.rebuild_source_id,
+                 journal.code, journal.type
+        ORDER BY account.rebuild_source_id NULLS FIRST,
+                 account.id, journal.rebuild_source_id NULLS FIRST, journal.id
+        """,
+        set_readonly_role=False,
+    )
+    source_journals = {
+        row["source_journal_id"]: row
+        for row in source_journal_rows
+    }
+    target_journals = {}
+    for row in target_journal_rows:
+        key = row["source_journal_id"] or f"target:{row['target_journal_id']}"
+        target_journals[key] = row
+
+    journal_differences = []
+    for key in sorted(
+        set(source_journals) | set(target_journals),
+        key=lambda value: (
+            value.startswith("target:"),
+            int(value.split(":", 1)[-1]),
+        ),
+    ):
+        source_row = source_journals.get(key, {})
+        target_row = target_journals.get(key, {})
+        source_move_count = int(source_row.get("posted_move_count") or 0)
+        target_move_count = int(target_row.get("posted_move_count") or 0)
+        source_line_count = int(
+            source_row.get("posted_move_line_count") or 0,
+        )
+        target_line_count = int(
+            target_row.get("posted_move_line_count") or 0,
+        )
+        source_debit = Decimal(source_row.get("debit") or "0")
+        target_debit = Decimal(target_row.get("debit") or "0")
+        source_credit = Decimal(source_row.get("credit") or "0")
+        target_credit = Decimal(target_row.get("credit") or "0")
+        differences = {
+            "posted_move_count": target_move_count - source_move_count,
+            "posted_move_line_count": (
+                target_line_count - source_line_count
+            ),
+            "debit": target_debit - source_debit,
+            "credit": target_credit - source_credit,
+        }
+        if not any(differences.values()):
+            continue
+        code = target_row.get("code") or source_row.get("code")
+        journal_type = (
+            target_row.get("journal_type")
+            or source_row.get("journal_type")
+        )
+        if code == "CABA":
+            classification = "native_cash_basis_timing_and_aggregation"
+        elif code == "EXCH":
+            classification = "native_exchange_timing_and_aggregation"
+        elif journal_type in {"bank", "cash", "credit"}:
+            classification = "native_bank_allocation_segmentation"
+        else:
+            classification = "unclassified_current_journal_difference"
+        journal_differences.append({
+            "source_journal_id": (
+                None if key.startswith("target:") else key
+            ),
+            "target_journal_id": target_row.get("target_journal_id"),
+            "code": code,
+            "journal_type": journal_type,
+            "classification": classification,
+            "source": {
+                "posted_move_count": source_move_count,
+                "posted_move_line_count": source_line_count,
+                "debit": f"{source_debit:.2f}",
+                "credit": f"{source_credit:.2f}",
+            },
+            "target": {
+                "posted_move_count": target_move_count,
+                "posted_move_line_count": target_line_count,
+                "debit": f"{target_debit:.2f}",
+                "credit": f"{target_credit:.2f}",
+            },
+            "difference": {
+                "posted_move_count": differences["posted_move_count"],
+                "posted_move_line_count": (
+                    differences["posted_move_line_count"]
+                ),
+                "debit": f"{differences['debit']:.2f}",
+                "credit": f"{differences['credit']:.2f}",
+            },
+        })
+
+    source_balances = {
+        row["source_account_id"]: row
+        for row in source_balance_rows
+    }
+    target_balances = {}
+    for row in target_balance_rows:
+        key = row["source_account_id"] or f"target:{row['target_account_id']}"
+        target_balances[key] = row
+    source_account_journals = {
+        (row["source_account_id"], row["source_journal_id"]): row
+        for row in source_account_journal_rows
+    }
+    target_account_journals = {}
+    for row in target_account_journal_rows:
+        account_key = (
+            row["source_account_id"]
+            or f"target:{row['target_account_id']}"
+        )
+        journal_key = (
+            row["source_journal_id"]
+            or f"target:{row['target_journal_id']}"
+        )
+        target_account_journals[account_key, journal_key] = row
+    balance_differences = []
+    for key in sorted(
+        set(source_balances) | set(target_balances),
+        key=lambda value: (
+            value.startswith("target:"),
+            int(value.split(":", 1)[-1]),
+        ),
+    ):
+        source_row = source_balances.get(key, {})
+        target_row = target_balances.get(key, {})
+        source_balance = Decimal(source_row.get("balance") or "0")
+        target_balance = Decimal(target_row.get("balance") or "0")
+        difference = target_balance - source_balance
+        if difference:
+            journal_effects = []
+            account_journal_keys = {
+                journal_key
+                for account_key, journal_key in (
+                    set(source_account_journals)
+                    | set(target_account_journals)
+                )
+                if account_key == key
+            }
+            for journal_key in sorted(
+                account_journal_keys,
+                key=lambda value: (
+                    value.startswith("target:"),
+                    int(value.split(":", 1)[-1]),
+                ),
+            ):
+                source_effect = source_account_journals.get(
+                    (key, journal_key),
+                    {},
+                )
+                target_effect = target_account_journals.get(
+                    (key, journal_key),
+                    {},
+                )
+                source_journal_balance = Decimal(
+                    source_effect.get("balance") or "0",
+                )
+                target_journal_balance = Decimal(
+                    target_effect.get("balance") or "0",
+                )
+                journal_difference = (
+                    target_journal_balance - source_journal_balance
+                )
+                if not journal_difference:
+                    continue
+                journal_effects.append({
+                    "source_journal_id": (
+                        None
+                        if journal_key.startswith("target:")
+                        else journal_key
+                    ),
+                    "target_journal_id": target_effect.get(
+                        "target_journal_id",
+                    ),
+                    "code": (
+                        target_effect.get("code")
+                        or source_effect.get("code")
+                    ),
+                    "journal_type": (
+                        target_effect.get("journal_type")
+                        or source_effect.get("journal_type")
+                    ),
+                    "source_balance": f"{source_journal_balance:.2f}",
+                    "target_balance": f"{target_journal_balance:.2f}",
+                    "difference": f"{journal_difference:.2f}",
+                })
+            journal_codes = {
+                effect["code"]
+                for effect in journal_effects
+            }
+            journal_types = {
+                effect["journal_type"]
+                for effect in journal_effects
+            }
+            if journal_codes and journal_codes <= {"EXCH"}:
+                classification = "native_exchange_balance_timing"
+            elif (
+                "EXCH" in journal_codes
+                and journal_types <= {"general", "bank", "cash", "credit"}
+                and all(
+                    effect["code"] == "EXCH"
+                    or effect["journal_type"] in {"bank", "cash", "credit"}
+                    for effect in journal_effects
+                )
+            ):
+                classification = (
+                    "native_exchange_and_bank_allocation_segmentation"
+                )
+            elif (
+                journal_effects
+                and journal_types <= {"bank", "cash", "credit"}
+            ):
+                classification = "native_bank_allocation_segmentation"
+            else:
+                classification = (
+                    "unclassified_current_balance_difference"
+                )
+            balance_differences.append({
+                "source_account_id": (
+                    None if key.startswith("target:") else key
+                ),
+                "target_account_id": target_row.get("target_account_id"),
+                "account_code": (
+                    target_row.get("account_code")
+                    or source_row.get("account_code")
+                ),
+                "account_type": (
+                    target_row.get("account_type")
+                    or source_row.get("account_type")
+                ),
+                "source_balance": f"{source_balance:.2f}",
+                "target_balance": f"{target_balance:.2f}",
+                "difference": f"{difference:.2f}",
+                "classification": classification,
+                "journal_effects": journal_effects,
+            })
+
+    runtime_signature = replacement_runtime_signature(REPLACEMENT_DB)
+    historical_matches = source_historical == target_historical
+    product_counts_match = {
+        "native_business_document_count": (
+            runtime_signature.get("native_business_document_count") == "284"
+        ),
+        "native_expense_count": (
+            runtime_signature.get("native_expense_count") == "325"
+        ),
+        "native_bank_transaction_count": (
+            runtime_signature.get("native_bank_transaction_count") == "1841"
+        ),
+    }
+    critical_checks = {
+        "historical_ledger_matches": historical_matches,
+        "native_product_counts_match": all(product_counts_match.values()),
+        "posted_moves_balance": (
+            runtime_signature.get("unbalanced_posted_move_count") == "0"
+        ),
+        "source_move_representations_unique": (
+            runtime_signature.get(
+                "duplicate_source_move_representation_count",
+            ) == "0"
+        ),
+    }
+    current_gross_totals_match = source_current == target_current
+    current_account_balances_match = not balance_differences
+    unclassified_journal_differences = [
+        row
+        for row in journal_differences
+        if row["classification"]
+        == "unclassified_current_journal_difference"
+    ]
+    unclassified_balance_differences = [
+        row
+        for row in balance_differences
+        if row["classification"]
+        == "unclassified_current_balance_difference"
+    ]
+    balance_difference_net = sum(
+        (Decimal(row["difference"]) for row in balance_differences),
+        Decimal("0"),
+    )
+    profit_and_loss_account_types = {
+        "income",
+        "income_other",
+        "expense",
+        "expense_depreciation",
+        "expense_direct_cost",
+    }
+    profit_and_loss_balance_difference = sum(
+        (
+            Decimal(row["difference"])
+            for row in balance_differences
+            if row["account_type"] in profit_and_loss_account_types
+        ),
+        Decimal("0"),
+    )
+    move_count_difference_journal_codes = {
+        row["code"]
+        for row in journal_differences
+        if row["difference"]["posted_move_count"]
+    }
+    current_differences_explained = (
+        not unclassified_journal_differences
+        and not unclassified_balance_differences
+        and balance_difference_net == 0
+        and move_count_difference_journal_codes <= {"CABA", "EXCH"}
+    )
+    critical_passed = all(critical_checks.values())
+    status_value = (
+        "failed"
+        if not critical_passed
+        else (
+            "passed"
+            if current_gross_totals_match and current_account_balances_match
+            else "partial"
+        )
+    )
+    status = {
+        "generated_at": utc_now(),
+        "tool_version": TOOL_VERSION,
+        "stage": "replacement-validate",
+        "status": status_value,
+        "classification": (
+            "HYBRID_REPLACEMENT_TARGET_PARITY"
+            if status_value == "passed"
+            else (
+                "HYBRID_REPLACEMENT_TARGET_EXPLAINED_NATIVE_DIFFERENCES"
+                if status_value == "partial"
+                and current_differences_explained
+                else "HYBRID_REPLACEMENT_TARGET_CURRENT_PERIOD_REVIEW_REQUIRED"
+                if status_value == "partial"
+                else "HYBRID_REPLACEMENT_TARGET_DEFECT"
+            )
+        ),
+        "database": REPLACEMENT_DB,
+        "critical_checks": critical_checks,
+        "product_count_checks": product_counts_match,
+        "runtime_signature": runtime_signature,
+        "historical": {
+            "source": source_historical,
+            "target": target_historical,
+            "matches": historical_matches,
+        },
+        "current_period": {
+            "date_from": USL_CURRENT_START,
+            "date_to": "2026-06-30",
+            "source": source_current,
+            "target": target_current,
+            "gross_totals_match": current_gross_totals_match,
+            "account_balances_match": current_account_balances_match,
+            "differences_explained": current_differences_explained,
+            "professional_acceptance_required": (
+                not current_gross_totals_match
+                or not current_account_balances_match
+            ),
+            "posted_move_count_difference": (
+                int(target_current["posted_move_count"])
+                - int(source_current["posted_move_count"])
+            ),
+            "posted_move_line_count_difference": (
+                int(target_current["posted_move_line_count"])
+                - int(source_current["posted_move_line_count"])
+            ),
+            "gross_debit_difference": (
+                f"{Decimal(target_current['debit']) - Decimal(source_current['debit']):.2f}"
+            ),
+            "gross_credit_difference": (
+                f"{Decimal(target_current['credit']) - Decimal(source_current['credit']):.2f}"
+            ),
+            "journal_difference_count": len(journal_differences),
+            "unclassified_journal_difference_count": len(
+                unclassified_journal_differences,
+            ),
+            "journal_differences": journal_differences,
+            "account_balance_difference_count": len(balance_differences),
+            "unclassified_account_balance_difference_count": len(
+                unclassified_balance_differences,
+            ),
+            "account_balance_difference_net": (
+                f"{balance_difference_net:.2f}"
+            ),
+            "profit_and_loss_balance_difference": (
+                f"{profit_and_loss_balance_difference:.2f}"
+            ),
+            "account_balance_differences": balance_differences,
+            "interpretation": (
+                (
+                    "The historical ledger is exact and every current-period "
+                    "difference is attributed to native cash-basis timing, "
+                    "native exchange timing or OCA bank-allocation segmentation. "
+                    f"The {profit_and_loss_balance_difference:.2f} EUR profit-and-loss "
+                    "balance difference still requires professional acceptance "
+                    "before this candidate replaces the exact replay target."
+                )
+                if current_differences_explained
+                else (
+                    "Native current-period workflows are present and the historical "
+                    "ledger is exact. Remaining gross-turnover and account-balance "
+                    "differences must be explained or corrected before this candidate "
+                    "can replace the exact replay target."
+                )
+            ),
+        },
+    }
+    write_json(PRIVATE_ARTIFACTS / "replacement-validate-status.json", status)
+    if status_value == "failed":
+        message = (
+            "Replacement validation failed a historical, balance, uniqueness, "
+            "or native product-count check."
+        )
+        raise HarnessError(message)
     return status
 
 
@@ -12694,6 +13691,9 @@ def run_all(args: argparse.Namespace) -> dict[str, Any]:
         "track_b_bank_categorization": track_b_bank_categorization(args),
         "track_b_bank_external": track_b_bank_external(args),
         "track_b_analytics": track_b_analytics(args),
+        "replacement_reset": replacement_reset(args),
+        "replacement_import": replacement_import(args),
+        "replacement_validate": replacement_validate(args),
         "target_reconciliation_probe": target_reconciliation_probe(args),
         "currency_rate_provider": currency_rate_provider(args),
         "reports": reports(args),
@@ -12733,6 +13733,9 @@ def build_parser() -> argparse.ArgumentParser:
         "track-b-general-reconciliation",
         "track-b-bank-categorization",
         "track-b-bank-external",
+        "replacement-reset",
+        "replacement-import",
+        "replacement-validate",
         "target-reconciliation-probe",
         "currency-rate-provider",
         "reports",
@@ -12797,6 +13800,12 @@ def main(argv: list[str] | None = None) -> int:
             print_summary(args.stage, track_b_bank_categorization(args))
         elif args.stage == "track-b-bank-external":
             print_summary(args.stage, track_b_bank_external(args))
+        elif args.stage == "replacement-reset":
+            print_summary(args.stage, replacement_reset(args))
+        elif args.stage == "replacement-import":
+            print_summary(args.stage, replacement_import(args))
+        elif args.stage == "replacement-validate":
+            print_summary(args.stage, replacement_validate(args))
         elif args.stage == "target-reconciliation-probe":
             print_summary(args.stage, target_reconciliation_probe(args))
         elif args.stage == "currency-rate-provider":

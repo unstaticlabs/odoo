@@ -199,6 +199,74 @@ class RebuildAccountImportRun(models.Model):
             {**options, "source_move_ids": source_move_ids},
         )
 
+    def _native_general_reconciliation_standalone_move_ids(
+        self,
+        conn,
+        options,
+        edge_move_ids,
+        downstream_bank_move_ids,
+    ):
+        rows = self._fetchall(
+            conn,
+            """
+            SELECT move.id, move.date, journal.code, move.ref
+            FROM account_move move
+            JOIN account_journal journal ON journal.id = move.journal_id
+            LEFT JOIN account_bank_statement_line statement_line
+              ON statement_line.move_id = move.id
+            WHERE move.company_id = ANY(%(source_company_ids)s)
+              AND move.state = 'posted'
+              AND move.move_type = 'entry'
+              AND move.date BETWEEN %(date_from)s AND %(date_to)s
+              AND journal.type = 'general'
+              AND journal.code NOT IN ('CABA', 'EXCH')
+              AND statement_line.id IS NULL
+            ORDER BY move.date, move.id
+            """,
+            options,
+        )
+        candidate_ids = [row["id"] for row in rows]
+        represented = self.env["account.move"].with_context(
+            active_test=False,
+        ).search([
+            ("rebuild_source_id", "in", candidate_ids or [0]),
+            ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
+            ("rebuild_source_model", "!=", False),
+        ])
+        represented_by_source_id = {}
+        for move in represented:
+            if move.rebuild_source_id in represented_by_source_id:
+                raise ValueError(
+                    "Source move %s has duplicate target representations."
+                    % move.rebuild_source_id,
+                )
+            represented_by_source_id[move.rebuild_source_id] = move
+
+        edge_move_ids = set(edge_move_ids)
+        downstream_bank_move_ids = set(downstream_bank_move_ids)
+        standalone_rows = []
+        downstream_bank_rows = []
+        for row in rows:
+            if row["id"] in edge_move_ids:
+                continue
+            if row["id"] in downstream_bank_move_ids:
+                downstream_bank_rows.append(row)
+                continue
+            existing = represented_by_source_id.get(row["id"])
+            if (
+                not existing
+                or existing.rebuild_source_model
+                == "account.move.native_general_replay"
+            ):
+                standalone_rows.append(row)
+        return [row["id"] for row in standalone_rows], {
+            "source_operator_general_entry_count": len(rows),
+            "edge_general_entry_count": len(edge_move_ids),
+            "downstream_bank_general_entry_count": len(downstream_bank_rows),
+            "standalone_general_entry_count": len(standalone_rows),
+            "standalone_general_entry_examples": standalone_rows[:20],
+        }
+
     def _native_general_reconciliation_line_rows(
         self,
         conn,
@@ -839,9 +907,33 @@ class RebuildAccountImportRun(models.Model):
                 for row in edge_rows
                 if row["reconciliation_kind"] == "exchange_difference"
             ]
-            manual_move_ids = sorted({
+            edge_manual_move_ids = sorted({
                 row["other_source_move_id"] for row in manual_edges
             })
+            downstream_bank_source_ids = (
+                self._native_bank_external_source_ids(conn, options)
+            )
+            downstream_bank_edges = self._native_bank_external_edge_rows(
+                conn,
+                options,
+                downstream_bank_source_ids,
+            )
+            downstream_bank_move_ids = (
+                self._native_bank_external_manual_move_ids(
+                    downstream_bank_edges,
+                )
+            )
+            standalone_move_ids, standalone_move_stats = (
+                self._native_general_reconciliation_standalone_move_ids(
+                    conn,
+                    options,
+                    edge_manual_move_ids,
+                    downstream_bank_move_ids,
+                )
+            )
+            manual_move_ids = sorted(
+                set(edge_manual_move_ids) | set(standalone_move_ids),
+            )
             move_rows = self._native_general_reconciliation_move_rows(
                 conn,
                 options,
@@ -1023,6 +1115,7 @@ class RebuildAccountImportRun(models.Model):
                 ),
                 "source_manual_general_entry_count": len(move_rows),
                 "source_manual_general_entry_line_count": len(line_rows),
+                "standalone_general_entries": standalone_move_stats,
                 "created_manual_general_entry_count": created_move_count,
                 "reused_manual_general_entry_count": reused_move_count,
                 "source_manual_general_partial_count": len(manual_edges),

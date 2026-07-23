@@ -477,6 +477,47 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(company.city, source_row["city"])
         self.assertEqual(company.country_id, france)
 
+    def test_account_import_syncs_source_company_accounting_defaults(self):
+        import_run = self.env["rebuild.account.import.run"].create({
+            "name": "Company accounting defaults replay",
+            "source_snapshot_id": "unit-company-defaults",
+        })
+        source_account_ids = {
+            "income_currency_exchange_account_id": 990101,
+            "expense_currency_exchange_account_id": 990102,
+            "account_journal_suspense_account_id": 990103,
+            "transfer_account_id": 990104,
+        }
+        accounts = {
+            source_account_ids["income_currency_exchange_account_id"]:
+                self._account("T766991", "Unit exchange income", "income"),
+            source_account_ids["expense_currency_exchange_account_id"]:
+                self._account("T666991", "Unit exchange expense", "expense"),
+            source_account_ids["account_journal_suspense_account_id"]:
+                self._account("T471991", "Unit journal suspense", "asset_current"),
+            source_account_ids["transfer_account_id"]:
+                self._account("T580991", "Unit transfer", "asset_current"),
+        }
+        source_row = {"id": 990001, **source_account_ids}
+        options = {
+            "source_company_ids": [990001],
+            "source_snapshot_id": "unit-company-defaults",
+        }
+
+        with patch.object(type(import_run), "_fetchall", return_value=[source_row]):
+            import_run._sync_company_accounting_defaults(
+                object(),
+                options,
+                {990001: self.company},
+                accounts,
+            )
+
+        for field_name, source_account_id in source_account_ids.items():
+            self.assertEqual(
+                self.company[field_name],
+                accounts[source_account_id],
+            )
+
     def test_journal_replay_preserves_payment_method_lines_when_currency_is_unchanged(self):
         usd = self.env.ref("base.USD")
         journal = self.env["account.journal"].create({
@@ -529,6 +570,139 @@ class TestRebuildAccountMigration(TransactionCase):
             method_line_ids,
         )
         self.assertEqual(self.env["account.payment.method.line"].browse(method_line_ids).journal_id, journal)
+
+    def test_exact_replay_reuses_only_validated_native_source_move_alias(self):
+        snapshot = "unit-replacement-target-alias"
+        debit_account = self._account(
+            "T471991",
+            "Replacement alias debit",
+            "asset_current",
+        )
+        credit_account = self._account(
+            "T455991",
+            "Replacement alias credit",
+            "liability_current",
+        )
+        move = self.env["account.move"].create({
+            "move_type": "entry",
+            "journal_id": self._journal().id,
+            "company_id": self.company.id,
+            "date": "2025-09-30",
+            "rebuild_source_model": "account.move.native_general_replay",
+            "rebuild_source_id": 990100,
+            "rebuild_source_snapshot": snapshot,
+            "line_ids": [
+                Command.create({
+                    "name": "Replacement alias debit",
+                    "account_id": debit_account.id,
+                    "currency_id": self.company.currency_id.id,
+                    "debit": 10.0,
+                    "credit": 0.0,
+                    "amount_currency": 10.0,
+                    "rebuild_source_model": (
+                        "account.move.line.native_general_replay"
+                    ),
+                    "rebuild_source_id": 990101,
+                    "rebuild_source_snapshot": snapshot,
+                }),
+                Command.create({
+                    "name": "Replacement alias credit",
+                    "account_id": credit_account.id,
+                    "currency_id": self.company.currency_id.id,
+                    "debit": 0.0,
+                    "credit": 10.0,
+                    "amount_currency": -10.0,
+                    "rebuild_source_model": (
+                        "account.move.line.native_general_replay"
+                    ),
+                    "rebuild_source_id": 990102,
+                    "rebuild_source_snapshot": snapshot,
+                }),
+            ],
+        })
+        move.action_post()
+        import_run = self.env["rebuild.account.import.run"].create({
+            "name": "Replacement target source alias validation",
+            "source_snapshot_id": snapshot,
+        })
+        options = {
+            "source_snapshot_id": snapshot,
+            "source_trace_aliases": {
+                "account.move": ["account.move.native_general_replay"],
+                "account.move.line": [
+                    "account.move.line.native_general_replay",
+                ],
+            },
+        }
+        source_move = {
+            "id": 990100,
+            "company_id": 990001,
+            "date": fields.Date.from_string("2025-09-30"),
+        }
+        source_lines = [
+            {
+                "id": 990101,
+                "account_id": 990201,
+                "partner_id": False,
+                "currency_id": 990004,
+                "debit": 10.0,
+                "credit": 0.0,
+                "amount_currency": 10.0,
+            },
+            {
+                "id": 990102,
+                "account_id": 990202,
+                "partner_id": False,
+                "currency_id": 990004,
+                "debit": 0.0,
+                "credit": 10.0,
+                "amount_currency": -10.0,
+            },
+        ]
+
+        move_map = import_run._source_trace_record_map(
+            "account.move",
+            [990100],
+            options,
+        )
+        self.assertEqual(move_map[990100], move)
+        result = import_run._validate_exact_replay_move_alias(
+            move,
+            source_move,
+            source_lines,
+            {990001: self.company},
+            {},
+            {
+                990201: debit_account,
+                990202: credit_account,
+            },
+            {990004: self.company.currency_id},
+            options,
+        )
+        self.assertEqual(result["source_move_id"], 990100)
+        self.assertEqual(result["source_line_count"], 2)
+        self.assertEqual(result["debit"], 10.0)
+        self.assertEqual(result["credit"], 10.0)
+
+        invalid_lines = [dict(line) for line in source_lines]
+        invalid_lines[1]["credit"] = 9.0
+        with self.assertRaisesRegex(
+            ValueError,
+            "cannot replace exact source move 990100",
+        ):
+            import_run._validate_exact_replay_move_alias(
+                move,
+                source_move,
+                invalid_lines,
+                {990001: self.company},
+                {},
+                {
+                    990201: debit_account,
+                    990202: credit_account,
+                },
+                {990004: self.company.currency_id},
+                options,
+            )
 
     def test_native_expense_company_dependent_values_accept_source_key_shapes(self):
         import_run = self.env["rebuild.account.import.run"]
@@ -683,6 +857,58 @@ class TestRebuildAccountMigration(TransactionCase):
                 990042,
             )
 
+    def test_native_general_reconciliation_selects_unrepresented_standalone_entries(self):
+        import_run = self.env["rebuild.account.import.run"].create({
+            "name": "Standalone general-entry selection",
+            "source_snapshot_id": "unit-standalone-general",
+        })
+        source_rows = [
+            {
+                "id": 990041,
+                "date": fields.Date.from_string("2025-10-01"),
+                "code": "MISC",
+                "ref": "Already selected through a reconciliation edge",
+            },
+            {
+                "id": 990042,
+                "date": fields.Date.from_string("2025-10-01"),
+                "code": "OUV",
+                "ref": "Standalone opening entry",
+            },
+            {
+                "id": 990043,
+                "date": fields.Date.from_string("2025-10-31"),
+                "code": "PAIE",
+                "ref": "Owned by external bank reconciliation",
+            },
+        ]
+        options = {
+            "source_company_ids": [990001],
+            "source_snapshot_id": "unit-standalone-general",
+            "date_from": "2025-10-01",
+            "date_to": "2026-06-30",
+        }
+
+        with patch.object(type(import_run), "_fetchall", return_value=source_rows):
+            move_ids, stats = (
+                import_run._native_general_reconciliation_standalone_move_ids(
+                    object(),
+                    options,
+                    [990041],
+                    [990043],
+                )
+            )
+
+        self.assertEqual(move_ids, [990042])
+        self.assertEqual(stats["source_operator_general_entry_count"], 3)
+        self.assertEqual(stats["edge_general_entry_count"], 1)
+        self.assertEqual(stats["downstream_bank_general_entry_count"], 1)
+        self.assertEqual(stats["standalone_general_entry_count"], 1)
+        self.assertEqual(
+            stats["standalone_general_entry_examples"],
+            [source_rows[1]],
+        )
+
     def test_native_bank_categorization_converts_partner_suspense_candidate(self):
         import_run = self.env["rebuild.account.import.run"]
         payable_account = self._account(
@@ -794,6 +1020,35 @@ class TestRebuildAccountMigration(TransactionCase):
             second_account,
         })
         self.assertEqual(sorted(counterpart.mapped("balance")), [40.0, 60.0])
+
+    def test_native_external_bank_stages_and_restores_journal_suspense(self):
+        source_suspense = self._account(
+            "T471990",
+            "Unit source journal suspense",
+            "asset_current",
+        )
+        source_suspense.reconcile = True
+        self.company.account_journal_suspense_account_id = source_suspense
+        journal = self._journal("bank")
+        journal.suspense_account_id = source_suspense
+        import_run = self.env["rebuild.account.import.run"]
+
+        staged = import_run._native_bank_external_stage_journal_suspense(
+            {990013: journal},
+            [{"journal_id": 990013}],
+        )
+
+        self.assertIn(journal.id, staged)
+        self.assertEqual(staged[journal.id]["source_suspense"], source_suspense)
+        self.assertEqual(journal.suspense_account_id.code, "TBSUSP")
+        self.assertNotEqual(journal.suspense_account_id, source_suspense)
+        self.assertTrue(journal.suspense_account_id.reconcile)
+        import_run._native_bank_external_restore_journal_suspense(staged)
+        self.assertEqual(journal.suspense_account_id, source_suspense)
+        self.assertEqual(
+            self.company.account_journal_suspense_account_id,
+            source_suspense,
+        )
 
     def test_native_external_bank_classifies_cutoff_boundaries(self):
         import_run = self.env["rebuild.account.import.run"]

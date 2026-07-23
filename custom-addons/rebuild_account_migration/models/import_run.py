@@ -161,6 +161,147 @@ class RebuildAccountImportRun(models.Model):
     def _source_ids_text(values):
         return ",".join(str(value) for value in (values or []) if value is not None)
 
+    @staticmethod
+    def _source_trace_models(model_name, options):
+        aliases = (options.get("source_trace_aliases") or {}).get(model_name, [])
+        return list(dict.fromkeys([model_name, *aliases]))
+
+    def _source_trace_record_map(self, target_model, source_ids, options):
+        source_ids = list(source_ids or [])
+        if not source_ids:
+            return {}
+        trace_models = self._source_trace_models(target_model, options)
+        records = self.env[target_model].with_context(active_test=False).search([
+            ("rebuild_source_model", "in", trace_models),
+            ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
+            ("rebuild_source_id", "in", source_ids),
+        ])
+        priority = {
+            trace_model: index
+            for index, trace_model in enumerate(trace_models)
+        }
+        result = {}
+        for record in records.sorted(
+            key=lambda item: (
+                priority.get(item.rebuild_source_model, len(priority)),
+                item.id,
+            ),
+        ):
+            source_id = record.rebuild_source_id
+            if source_id in result:
+                raise ValueError(
+                    "Source %s %s has multiple target representations: %s and %s."
+                    % (
+                        target_model,
+                        source_id,
+                        result[source_id].display_name,
+                        record.display_name,
+                    ),
+                )
+            result[source_id] = record
+        return result
+
+    def _validate_exact_replay_move_alias(
+        self,
+        move,
+        source_move,
+        source_lines,
+        companies,
+        partners,
+        accounts,
+        currencies,
+        options,
+    ):
+        source_accounting_lines = {
+            line["id"]: line
+            for line in source_lines
+            if line["account_id"]
+        }
+        target_lines = self._source_trace_record_map(
+            "account.move.line",
+            source_accounting_lines,
+            options,
+        )
+        issues = []
+        expected_company = companies.get(source_move["company_id"])
+        if move.state != "posted":
+            issues.append(f"state {move.state!r} is not posted")
+        if move.date != source_move["date"]:
+            issues.append(
+                f"date {move.date} differs from source {source_move['date']}",
+            )
+        if expected_company and move.company_id != expected_company:
+            issues.append(
+                f"company {move.company_id.id} differs from {expected_company.id}",
+            )
+        if set(target_lines) != set(source_accounting_lines):
+            issues.append(
+                "source line identities differ: expected %s, got %s"
+                % (
+                    sorted(source_accounting_lines),
+                    sorted(target_lines),
+                ),
+            )
+        if len(move.line_ids) != len(source_accounting_lines):
+            issues.append(
+                f"line count {len(move.line_ids)} differs from "
+                f"{len(source_accounting_lines)}",
+            )
+
+        for source_line_id, source_line in source_accounting_lines.items():
+            target_line = target_lines.get(source_line_id)
+            if not target_line:
+                continue
+            expected_account = accounts.get(source_line["account_id"])
+            expected_partner = partners.get(source_line["partner_id"])
+            expected_currency = currencies.get(source_line["currency_id"])
+            if expected_account and target_line.account_id != expected_account:
+                issues.append(
+                    f"line {source_line_id} account "
+                    f"{target_line.account_id.id} differs from "
+                    f"{expected_account.id}",
+                )
+            if target_line.partner_id.id != (
+                expected_partner.id if expected_partner else False
+            ):
+                issues.append(
+                    f"line {source_line_id} partner "
+                    f"{target_line.partner_id.id} differs from "
+                    f"{expected_partner.id if expected_partner else False}",
+                )
+            if expected_currency and target_line.currency_id != expected_currency:
+                issues.append(
+                    f"line {source_line_id} currency "
+                    f"{target_line.currency_id.id} differs from "
+                    f"{expected_currency.id if expected_currency else False}",
+                )
+            for field_name in ("debit", "credit", "amount_currency"):
+                source_amount = round(self._amount(source_line[field_name]), 2)
+                target_amount = round(target_line[field_name], 2)
+                if target_amount != source_amount:
+                    issues.append(
+                        f"line {source_line_id} {field_name} "
+                        f"{target_amount:.2f} differs from "
+                        f"{source_amount:.2f}",
+                    )
+        if issues:
+            raise ValueError(
+                "Native target move %s cannot replace exact source move %s: %s"
+                % (
+                    move.display_name,
+                    source_move["id"],
+                    "; ".join(issues),
+                ),
+            )
+        return {
+            "source_move_id": source_move["id"],
+            "target_move_id": move.id,
+            "target_trace_model": move.rebuild_source_model,
+            "source_line_count": len(source_accounting_lines),
+            "debit": round(sum(self._amount(line["debit"]) for line in source_accounting_lines.values()), 2),
+            "credit": round(sum(self._amount(line["credit"]) for line in source_accounting_lines.values()), 2),
+        }
+
     def _upsert_discrepancy(self, vals):
         Discrepancy = self.env["rebuild.account.discrepancy"]
         domain = [("name", "=", vals["name"])]
@@ -1351,6 +1492,26 @@ class RebuildAccountImportRun(models.Model):
                 FROM account_tax_group
                 WHERE advance_tax_payment_account_id IS NOT NULL
                 UNION
+                SELECT DISTINCT income_currency_exchange_account_id AS id
+                FROM res_company
+                WHERE id = ANY(%(source_company_ids)s)
+                  AND income_currency_exchange_account_id IS NOT NULL
+                UNION
+                SELECT DISTINCT expense_currency_exchange_account_id AS id
+                FROM res_company
+                WHERE id = ANY(%(source_company_ids)s)
+                  AND expense_currency_exchange_account_id IS NOT NULL
+                UNION
+                SELECT DISTINCT account_journal_suspense_account_id AS id
+                FROM res_company
+                WHERE id = ANY(%(source_company_ids)s)
+                  AND account_journal_suspense_account_id IS NOT NULL
+                UNION
+                SELECT DISTINCT transfer_account_id AS id
+                FROM res_company
+                WHERE id = ANY(%(source_company_ids)s)
+                  AND transfer_account_id IS NOT NULL
+                UNION
                 SELECT DISTINCT outstanding_account_id AS id
                 FROM account_payment
                 WHERE company_id = ANY(%(source_company_ids)s)
@@ -1475,7 +1636,55 @@ class RebuildAccountImportRun(models.Model):
                 account = Account.with_company(company).create(vals)
             accounts[row["id"]] = account
         self._archive_empty_bootstrap_unaffected_earnings_accounts(rows, options, companies)
+        self._sync_company_accounting_defaults(
+            conn,
+            options,
+            companies,
+            accounts,
+        )
         return accounts, archive_after_post
+
+    def _sync_company_accounting_defaults(
+        self,
+        conn,
+        options,
+        companies,
+        accounts,
+    ):
+        rows = self._fetchall(
+            conn,
+            """
+            SELECT id,
+                   income_currency_exchange_account_id,
+                   expense_currency_exchange_account_id,
+                   account_journal_suspense_account_id,
+                   transfer_account_id
+            FROM res_company
+            WHERE id = ANY(%(source_company_ids)s)
+            ORDER BY id
+            """,
+            options,
+        )
+        field_names = (
+            "income_currency_exchange_account_id",
+            "expense_currency_exchange_account_id",
+            "account_journal_suspense_account_id",
+            "transfer_account_id",
+        )
+        for row in rows:
+            company = companies.get(row["id"])
+            if not company:
+                continue
+            values = {
+                field_name: accounts[source_account_id].id
+                for field_name in field_names
+                if (
+                    (source_account_id := row[field_name])
+                    and source_account_id in accounts
+                )
+            }
+            if values:
+                company.write(values)
 
     def _sync_partner_accounting_properties(
         self,
@@ -2280,15 +2489,11 @@ class RebuildAccountImportRun(models.Model):
             mail_create_nolog=True,
         )
         source_move_line_ids = [row["move_line_id"] for row in rows if row["move_line_id"]]
-        target_lines = self.env["account.move.line"].search([
-            ("rebuild_source_model", "=", "account.move.line"),
-            ("rebuild_source_snapshot", "=", options.get("source_snapshot_id")),
-            ("rebuild_source_id", "in", source_move_line_ids or [0]),
-        ])
-        move_lines_by_source_id = {
-            line.rebuild_source_id: line
-            for line in target_lines
-        }
+        move_lines_by_source_id = self._source_trace_record_map(
+            "account.move.line",
+            source_move_line_ids,
+            options,
+        )
         imported_lines = self.env["account.analytic.line"]
         linked_to_move_line_count = 0
         skipped_missing_account = []
@@ -3059,14 +3264,11 @@ class RebuildAccountImportRun(models.Model):
     def _import_move_line_reviews(self, conn, options, companies, partners, accounts, journals, currencies):
         rows = self._non_account_line_review_rows(conn, options)
         source_move_ids = [row["move_id"] for row in rows]
-        move_map = {
-            move.rebuild_source_id: move
-            for move in self.env["account.move"].with_context(active_test=False).search([
-                ("rebuild_source_model", "=", "account.move"),
-                ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
-                ("rebuild_source_id", "in", source_move_ids or [0]),
-            ])
-        }
+        move_map = self._source_trace_record_map(
+            "account.move",
+            source_move_ids,
+            options,
+        )
         move_review_map = {
             review.rebuild_source_id: review
             for review in self.env["rebuild.account.move.review"].with_context(active_test=False).search([
@@ -3180,7 +3382,7 @@ class RebuildAccountImportRun(models.Model):
                 "name": "Non-account source display lines could not be linked to imported moves",
                 "import_run_id": self.id,
                 "severity": "P1",
-                "classification": "transfer_defect",
+                "classification": "import_defect",
                 "status": "open",
                 "period_key": f"{options['date_from']}:{options['date_to']}",
                 "evidence": json.dumps([
@@ -3195,7 +3397,7 @@ class RebuildAccountImportRun(models.Model):
                 "name": "Non-posted source move lines could not be linked to source move reviews",
                 "import_run_id": self.id,
                 "severity": "P1",
-                "classification": "transfer_defect",
+                "classification": "import_defect",
                 "status": "open",
                 "period_key": f"{options['date_from']}:open",
                 "evidence": json.dumps([
@@ -3310,14 +3512,11 @@ class RebuildAccountImportRun(models.Model):
     def _import_bank_statement_lines(self, conn, options, companies, partners, journals, currencies):
         rows = self._bank_statement_line_rows(conn, options)
         source_move_ids = [row["move_id"] for row in rows if row["move_id"]]
-        move_map = {
-            move.rebuild_source_id: move
-            for move in self.env["account.move"].with_context(active_test=False).search([
-                ("rebuild_source_model", "=", "account.move"),
-                ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
-                ("rebuild_source_id", "in", source_move_ids or [0]),
-            ])
-        }
+        move_map = self._source_trace_record_map(
+            "account.move",
+            source_move_ids,
+            options,
+        )
         StatementLine = self.env["account.bank.statement.line"].with_context(
             active_test=False,
             tracking_disable=True,
@@ -3567,14 +3766,11 @@ class RebuildAccountImportRun(models.Model):
         method_lines = self._payment_method_line_map(conn, journals, accounts)
 
         source_move_ids = [row["move_id"] for row in rows if row["move_id"]]
-        move_map = {
-            move.rebuild_source_id: move
-            for move in self.env["account.move"].with_context(active_test=False).search([
-                ("rebuild_source_model", "=", "account.move"),
-                ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
-                ("rebuild_source_id", "in", source_move_ids or [0]),
-            ])
-        }
+        move_map = self._source_trace_record_map(
+            "account.move",
+            source_move_ids,
+            options,
+        )
 
         Payment = self.env["account.payment"].with_context(
             tracking_disable=True,
@@ -4103,24 +4299,16 @@ class RebuildAccountImportRun(models.Model):
             if row.get("source_exchange_move_id"):
                 source_exchange_move_ids.add(row["source_exchange_move_id"])
 
-        Line = self.env["account.move.line"].with_context(active_test=False)
-        Move = self.env["account.move"].with_context(active_test=False)
-        line_map = {
-            line.rebuild_source_id: line
-            for line in Line.search([
-                ("rebuild_source_model", "=", "account.move.line"),
-                ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
-                ("rebuild_source_id", "in", list(source_line_ids) or [0]),
-            ])
-        }
-        move_map = {
-            move.rebuild_source_id: move
-            for move in Move.search([
-                ("rebuild_source_model", "=", "account.move"),
-                ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
-                ("rebuild_source_id", "in", list(source_exchange_move_ids) or [0]),
-            ])
-        }
+        line_map = self._source_trace_record_map(
+            "account.move.line",
+            source_line_ids,
+            options,
+        )
+        move_map = self._source_trace_record_map(
+            "account.move",
+            source_exchange_move_ids,
+            options,
+        )
 
         for row in rows:
             kind = row["reconciliation_kind"]
@@ -4232,8 +4420,6 @@ class RebuildAccountImportRun(models.Model):
         scope_summary = self._reconciliation_scope_summary(conn, options)
         review_stats = self._import_reconciliation_reviews(conn, options, companies)
 
-        Line = self.env["account.move.line"].with_context(active_test=False)
-        Move = self.env["account.move"].with_context(active_test=False)
         Partial = self.env["account.partial.reconcile"].with_context(
             tracking_disable=True,
             check_move_validity=False,
@@ -4249,22 +4435,16 @@ class RebuildAccountImportRun(models.Model):
             source_line_ids.update(row["line_ids"] or [])
         source_exchange_move_ids = {row["exchange_move_id"] for row in partial_rows if row["exchange_move_id"]}
 
-        line_map = {
-            line.rebuild_source_id: line
-            for line in Line.search([
-                ("rebuild_source_model", "=", "account.move.line"),
-                ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
-                ("rebuild_source_id", "in", list(source_line_ids) or [0]),
-            ])
-        }
-        move_map = {
-            move.rebuild_source_id: move
-            for move in Move.search([
-                ("rebuild_source_model", "=", "account.move"),
-                ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
-                ("rebuild_source_id", "in", list(source_exchange_move_ids) or [0]),
-            ])
-        }
+        line_map = self._source_trace_record_map(
+            "account.move.line",
+            source_line_ids,
+            options,
+        )
+        move_map = self._source_trace_record_map(
+            "account.move",
+            source_exchange_move_ids,
+            options,
+        )
 
         partial_map = {}
         for row in partial_rows:
@@ -4389,11 +4569,14 @@ class RebuildAccountImportRun(models.Model):
         imported_schedule_line_count = 0
         for row in rows:
             source_move_ids = row["source_depreciation_move_ids"] or []
-            target_moves = Move.search([
-                ("rebuild_source_model", "=", "account.move"),
-                ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
-                ("rebuild_source_id", "in", source_move_ids or [0]),
-            ])
+            target_move_map = self._source_trace_record_map(
+                "account.move",
+                source_move_ids,
+                options,
+            )
+            target_moves = Move.browse(
+                [move.id for move in target_move_map.values()],
+            )
             imported_depreciation_move_count += len(target_moves)
             asset = Asset.search([
                 ("rebuild_source_model", "=", "account_asset"),
@@ -4650,7 +4833,6 @@ class RebuildAccountImportRun(models.Model):
             tracking_disable=True,
             mail_create_nolog=True,
         )
-        Move = self.env["account.move"].with_context(active_test=False)
         MoveReview = self.env["rebuild.account.move.review"].with_context(active_test=False)
         source_move_ids = {
             row["original_move_id"]
@@ -4659,14 +4841,11 @@ class RebuildAccountImportRun(models.Model):
             row["deferred_move_id"]
             for row in rows
         }
-        move_map = {
-            move.rebuild_source_id: move
-            for move in Move.search([
-                ("rebuild_source_model", "=", "account.move"),
-                ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
-                ("rebuild_source_id", "in", list(source_move_ids) or [0]),
-            ])
-        }
+        move_map = self._source_trace_record_map(
+            "account.move",
+            source_move_ids,
+            options,
+        )
         move_review_map = {
             review.rebuild_source_id: review
             for review in MoveReview.search([
@@ -6637,13 +6816,28 @@ class RebuildAccountImportRun(models.Model):
                 }
                 for line in skipped_non_account_lines[:20]
             ]
+            existing_move_map = self._source_trace_record_map(
+                "account.move",
+                [move_row["id"] for move_row in move_rows],
+                options,
+            )
+            reused_native_move_representations = []
             for move_row in move_rows:
-                existing = Move.search([
-                    ("rebuild_source_model", "=", "account.move"),
-                    ("rebuild_source_id", "=", move_row["id"]),
-                    ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
-                ], limit=1)
+                existing = existing_move_map.get(move_row["id"])
                 if existing:
+                    if existing.rebuild_source_model != "account.move":
+                        reused_native_move_representations.append(
+                            self._validate_exact_replay_move_alias(
+                                existing,
+                                move_row,
+                                line_rows_by_move[move_row["id"]],
+                                companies,
+                                partners,
+                                accounts,
+                                currencies,
+                                options,
+                            ),
+                        )
                     imported_moves |= existing
                     imported_line_count += len(existing.line_ids)
                     continue
@@ -6748,7 +6942,11 @@ class RebuildAccountImportRun(models.Model):
                             lambda declaration: declaration.rule_id.code == "FR_3517_S"
                             and declaration.fiscalyear_start >= date(2025, 10, 1),
                         ).sorted("fiscalyear_end", reverse=True)[:1]
-                        current_ca12.action_classify_confirmed_vat_refund()
+                        if options.get(
+                            "classify_confirmed_vat_refund",
+                            True,
+                        ):
+                            current_ca12.action_classify_confirmed_vat_refund()
                         declarations.action_refresh_preparation()
                     self.env["rebuild.account.closing.period"].sync_for_company(company)
 
@@ -6794,7 +6992,7 @@ class RebuildAccountImportRun(models.Model):
                 self._upsert_discrepancy({
                     "name": "Non-posted source move review records are incomplete",
                     "severity": "P1",
-                    "classification": "transfer_defect",
+                    "classification": "import_defect",
                     "status": "open",
                     "period_key": f"{options['date_from']}:open",
                     "source_value": str(move_review_stats["source_move_review_count"]),
@@ -6929,7 +7127,7 @@ class RebuildAccountImportRun(models.Model):
                 self._upsert_discrepancy({
                     "name": "Source non-account display lines are not fully represented",
                     "severity": "P1",
-                    "classification": "transfer_defect",
+                    "classification": "import_defect",
                     "status": "open",
                     "period_key": f"{options['date_from']}:{options['date_to']}",
                     "source_value": str(move_line_review_stats["source_move_line_review_count"]),
@@ -6942,7 +7140,7 @@ class RebuildAccountImportRun(models.Model):
                 self._upsert_discrepancy({
                     "name": "Posted source deferred schedule entries are not fully represented",
                     "severity": "P1",
-                    "classification": "transfer_defect",
+                    "classification": "import_defect",
                     "status": "open",
                     "period_key": f"{options['date_from']}:open",
                     "source_value": str(deferred_schedule_stats["source_deferred_schedule_line_count"]),
@@ -7044,6 +7242,12 @@ class RebuildAccountImportRun(models.Model):
                 "source_move_line_count": sum(len(lines) for lines in line_rows_by_move.values()),
                 "imported_move_count": len(imported_moves),
                 "imported_move_line_count": imported_line_count,
+                "reused_native_move_representation_count": len(
+                    reused_native_move_representations,
+                ),
+                "reused_native_move_representations": (
+                    reused_native_move_representations
+                ),
                 "skipped_non_account_line_count": skipped_non_account_line_count,
                 "skipped_non_account_line_examples": skipped_non_account_line_examples,
                 "account_count": len(accounts),
