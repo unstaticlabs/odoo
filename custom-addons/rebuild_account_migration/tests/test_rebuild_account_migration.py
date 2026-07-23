@@ -781,6 +781,156 @@ class TestRebuildAccountMigration(TransactionCase):
         ]), 1)
         self.assertAlmostEqual(existing_rate.rate, 1.30)
 
+    def test_ecb_reference_rate_provider_is_idempotent_and_traced(self):
+        eur = self.env.ref("base.EUR")
+        usd = self.env.ref("base.USD")
+        gbp = self.env.ref("base.GBP")
+        usd.active = True
+        gbp.active = True
+        company = self.env["res.company"].create({
+            "name": "Unit ECB reference-rate company",
+            "currency_id": eur.id,
+            "rebuild_currency_rate_provider": "ecb",
+            "rebuild_currency_rate_auto_update": True,
+        })
+        retrieved_at = fields.Datetime.from_string(
+            "2026-07-22 16:05:00",
+        )
+        payload = b"""<?xml version="1.0" encoding="UTF-8"?>
+<gesmes:Envelope
+    xmlns:gesmes="http://www.gesmes.org/xml/2002-08-01"
+    xmlns="http://www.ecb.int/vocabulary/2002-08-01/eurofxref">
+  <Cube>
+    <Cube time="2026-07-22">
+      <Cube currency="USD" rate="1.1408"/>
+      <Cube currency="GBP" rate="0.85340"/>
+    </Cube>
+  </Cube>
+</gesmes:Envelope>"""
+
+        result = company._rebuild_update_ecb_currency_rates(
+            payload=payload,
+            retrieved_at=retrieved_at,
+        )
+
+        self.assertEqual(result["status"], "passed")
+        self.assertEqual(result["provider"], "ecb")
+        self.assertEqual(result["reference_date"], "2026-07-22")
+        self.assertIn("USD", result["updated_currency_codes"])
+        self.assertIn("GBP", result["updated_currency_codes"])
+        usd_rate = self.env["res.currency.rate"].search([
+            ("company_id", "=", company.id),
+            ("currency_id", "=", usd.id),
+            ("name", "=", "2026-07-22"),
+        ])
+        gbp_rate = self.env["res.currency.rate"].search([
+            ("company_id", "=", company.id),
+            ("currency_id", "=", gbp.id),
+            ("name", "=", "2026-07-22"),
+        ])
+        self.assertEqual(len(usd_rate), 1)
+        self.assertEqual(len(gbp_rate), 1)
+        self.assertAlmostEqual(usd_rate.rate, 1.1408)
+        self.assertAlmostEqual(gbp_rate.rate, 0.85340)
+        self.assertEqual(usd_rate.rebuild_rate_provider, "ecb")
+        self.assertEqual(
+            usd_rate.rebuild_rate_retrieved_at,
+            retrieved_at,
+        )
+        self.assertEqual(
+            company.rebuild_currency_rate_last_sync_status,
+            "passed",
+        )
+        self.assertEqual(
+            company.rebuild_currency_rate_last_reference_date,
+            fields.Date.from_string("2026-07-22"),
+        )
+
+        repeated = company._rebuild_update_ecb_currency_rates(
+            payload=payload,
+            retrieved_at=retrieved_at,
+        )
+
+        self.assertEqual(repeated["created_count"], 0)
+        self.assertGreaterEqual(repeated["updated_count"], 2)
+        self.assertEqual(self.env["res.currency.rate"].search_count([
+            ("company_id", "=", company.id),
+            ("name", "=", "2026-07-22"),
+            ("currency_id", "in", [usd.id, gbp.id]),
+        ]), 2)
+
+    def test_ecb_reference_rate_provider_preserves_source_traced_rate(self):
+        eur = self.env.ref("base.EUR")
+        usd = self.env.ref("base.USD")
+        usd.active = True
+        company = self.env["res.company"].create({
+            "name": "Unit ECB source-preservation company",
+            "currency_id": eur.id,
+            "rebuild_currency_rate_provider": "ecb",
+        })
+        source_rate = self.env["res.currency.rate"].create({
+            "name": "2026-07-22",
+            "currency_id": usd.id,
+            "company_id": company.id,
+            "rate": 1.1394,
+            "rebuild_source_model": "res.currency.rate",
+            "rebuild_source_id": 990022,
+            "rebuild_source_snapshot": "unit-source-rate",
+            "rebuild_rate_provider": "ecb",
+        })
+        payload = b"""<gesmes:Envelope
+    xmlns:gesmes="http://www.gesmes.org/xml/2002-08-01"
+    xmlns="http://www.ecb.int/vocabulary/2002-08-01/eurofxref">
+  <Cube><Cube time="2026-07-22">
+    <Cube currency="USD" rate="1.1408"/>
+  </Cube></Cube>
+</gesmes:Envelope>"""
+
+        result = company._rebuild_update_ecb_currency_rates(
+            payload=payload,
+            retrieved_at="2026-07-22 16:05:00",
+        )
+
+        self.assertEqual(result["preserved_source_count"], 1)
+        self.assertAlmostEqual(source_rate.rate, 1.1394)
+        self.assertEqual(source_rate.rebuild_source_id, 990022)
+
+    def test_currency_rate_automation_menu_and_permissions(self):
+        menu = self.env.ref(
+            "rebuild_account_migration.menu_rebuild_currency_rate_update",
+        )
+        action = self.env.ref(
+            "rebuild_account_migration."
+            "action_rebuild_currency_rate_update_wizard",
+        )
+        cron = self.env.ref(
+            "rebuild_account_migration."
+            "ir_cron_rebuild_currency_rate_provider",
+        )
+        self.assertEqual(
+            menu.parent_id,
+            self.env.ref("account.menu_finance_configuration"),
+        )
+        self.assertEqual(menu.action, action)
+        self.assertTrue(cron.active)
+        self.assertEqual(cron.interval_number, 1)
+        self.assertEqual(cron.interval_type, "days")
+        reviewer = self.env["res.users"].with_context(
+            no_reset_password=True,
+        ).create({
+            "name": "Currency Rate Reviewer",
+            "login": "currency.rate.reviewer@example.invalid",
+            "email": "currency.rate.reviewer@example.invalid",
+            "company_id": self.company.id,
+            "company_ids": [Command.set([self.company.id])],
+            "group_ids": [Command.set([self.reviewer_group.id])],
+        })
+        wizard_model = self.env[
+            "rebuild.currency.rate.update.wizard"
+        ].with_user(reviewer)
+        self.assertFalse(wizard_model.has_access("create"))
+        self.assertFalse(wizard_model.has_access("write"))
+
     def test_native_replay_uses_supported_manual_tax_metadata(self):
         self.company.tax_calculation_rounding_method = "round_globally"
         expense_account = self._account("T606441", "Track B expense", "expense")

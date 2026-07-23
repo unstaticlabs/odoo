@@ -1017,6 +1017,7 @@ Overall status: **technical rehearsal passed; professional acceptance pending**.
 - [ ] Validate multicurrency invoices.
 - [ ] Validate multicurrency payments.
 - [x] Validate restored native currency-rate parity across the full source snapshot (1,877/1,877 rates, provider and retrieval metadata, no mismatches or duplicate traces).
+- [x] Configure and validate automatic future ECB reference rates with native rows, daily scheduling, source-history preservation, idempotence and manager/reviewer access controls.
 - [ ] Validate residual foreign-exchange balances.
 - [ ] Validate realized and unrealized exchange differences where required.
 

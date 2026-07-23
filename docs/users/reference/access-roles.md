@@ -38,7 +38,10 @@ Cannot:
 
 Has stronger authority.
 
-Can perform actions that a reviewer cannot, including gated native reconciliation application where all required acceptance conditions are satisfied.
+Can perform actions that a reviewer cannot, including:
+
+- gated native reconciliation application where all required acceptance conditions are satisfied;
+- ECB reference-rate configuration and immediate retrieval.
 
 Use this role carefully. It can affect accounting presentation.
 
@@ -49,4 +52,3 @@ Company access matters.
 A USL-only reviewer should see Unstatic Labs accounting records and should not see USL Media records. A multi-company accountant may need explicit access to both companies.
 
 Do not grant multi-company access just to make a report easier to find.
-

@@ -6,8 +6,8 @@
         <field name="inherit_id" ref="base.view_currency_rate_tree"/>
         <field name="arch" type="xml">
             <field name="write_date" position="after">
-                <field name="rebuild_rate_provider" string="Source Provider" optional="show"/>
-                <field name="rebuild_rate_retrieved_at" string="Source Retrieved At" optional="hide"/>
+                <field name="rebuild_rate_provider" string="Rate Provider" optional="show"/>
+                <field name="rebuild_rate_retrieved_at" string="Retrieved At" optional="hide"/>
             </field>
         </field>
     </record>
@@ -18,8 +18,8 @@
         <field name="inherit_id" ref="base.view_currency_rate_form"/>
         <field name="arch" type="xml">
             <field name="company_id" position="after">
-                <field name="rebuild_rate_provider" string="Source Provider"/>
-                <field name="rebuild_rate_retrieved_at" string="Source Retrieved At"/>
+                <field name="rebuild_rate_provider" string="Rate Provider"/>
+                <field name="rebuild_rate_retrieved_at" string="Retrieved At"/>
             </field>
         </field>
     </record>
@@ -30,11 +30,64 @@
         <field name="inherit_id" ref="base.view_currency_form"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='rate_ids']/list/field[@name='write_date']" position="after">
-                <field name="rebuild_rate_provider" string="Source Provider" optional="show"/>
-                <field name="rebuild_rate_retrieved_at" string="Source Retrieved At" optional="hide"/>
+                <field name="rebuild_rate_provider" string="Rate Provider" optional="show"/>
+                <field name="rebuild_rate_retrieved_at" string="Retrieved At" optional="hide"/>
             </xpath>
         </field>
     </record>
+
+    <record id="view_rebuild_currency_rate_update_wizard_form" model="ir.ui.view">
+        <field name="name">rebuild.currency.rate.update.wizard.form</field>
+        <field name="model">rebuild.currency.rate.update.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Currency Rate Automation">
+                <div class="alert alert-info" role="alert">
+                    ECB rates are daily euro reference rates published for information.
+                    Preserve the actual bank or platform conversion when it defines a transaction.
+                </div>
+                <group>
+                    <group string="Configuration">
+                        <field name="company_id"/>
+                        <field name="provider"/>
+                        <field name="automatic_update" invisible="provider != 'ecb'"/>
+                        <field name="provider_url" widget="url"/>
+                    </group>
+                    <group string="Latest Retrieval">
+                        <field name="last_sync_status" widget="badge"/>
+                        <field name="last_sync_at"/>
+                        <field name="last_reference_date"/>
+                    </group>
+                </group>
+                <group string="Details" invisible="not last_sync_message">
+                    <field name="last_sync_message" nolabel="1"/>
+                </group>
+                <group string="Technical Result" invisible="not result_json">
+                    <field name="result_json" nolabel="1"/>
+                </group>
+                <footer>
+                    <button name="action_save_configuration" type="object" string="Save Configuration" class="btn-primary"/>
+                    <button name="action_update_now" type="object" string="Retrieve Now" class="btn-secondary" invisible="provider != 'ecb'"/>
+                    <button name="action_open_currency_rates" type="object" string="Open Currency Rates"/>
+                    <button string="Close" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_rebuild_currency_rate_update_wizard" model="ir.actions.act_window">
+        <field name="name">Currency Rate Automation</field>
+        <field name="res_model">rebuild.currency.rate.update.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem
+        id="menu_rebuild_currency_rate_update"
+        name="Currency Rate Automation"
+        parent="account.menu_finance_configuration"
+        action="action_rebuild_currency_rate_update_wizard"
+        sequence="7"
+        groups="account.group_account_manager"/>
 
     <record id="account.menu_finance" model="ir.ui.menu">
         <field name="name">Accounting</field>

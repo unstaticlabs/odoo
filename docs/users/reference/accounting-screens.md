@@ -99,6 +99,17 @@ Operational deferred schedules live under `Accounting > Closing > Deferrals`.
 Native analytic lines, pivot and graph views live under
 `Accounting > Accounting > Analytic Items`.
 
+## Currency Rate Automation
+
+```text
+Accounting > Configuration > Currency Rate Automation
+```
+
+Accounting Managers use this workspace to configure daily ECB reference rates,
+retrieve a rate immediately, inspect the latest status and open the native
+currency-rate rows. Imported source-traced historical rates are protected from
+provider updates. Accountant reviewers cannot open this configuration action.
+
 ## Report Export Wizard
 
 ```text

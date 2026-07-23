@@ -11875,6 +11875,191 @@ def target_reconciliation_probe(args: argparse.Namespace) -> dict[str, Any]:
     return status
 
 
+def currency_rate_provider(args: argparse.Namespace) -> dict[str, Any]:
+    ensure_dirs()
+    script_path = PRIVATE_ARTIFACTS / "currency-rate-provider-check.py"
+    script_path.write_text(
+        "\n".join(
+            [
+                "import json",
+                "from odoo import fields",
+                "Company = env['res.company']",
+                "Currency = env['res.currency'].with_context(active_test=False)",
+                "Rate = env['res.currency.rate'].sudo()",
+                "company = Company.search([('rebuild_source_id', '=', 1)], limit=1)",
+                "if not company:",
+                "    raise RuntimeError('The imported Unstatic Labs company was not found.')",
+                "source_domain = [('rebuild_source_model', '!=', False)]",
+                "source_rate_count_before = Rate.search_count(source_domain)",
+                "first = company._rebuild_update_ecb_currency_rates()",
+                "second = company._rebuild_update_ecb_currency_rates()",
+                "reference_date = fields.Date.to_date(second['reference_date'])",
+                "rate_domain = [",
+                "    ('company_id', '=', company.id),",
+                "    ('name', '=', reference_date),",
+                "    ('rebuild_source_model', '=', False),",
+                "]",
+                "rate_rows = Rate.search(rate_domain, order='currency_id')",
+                "foreign_currencies = Currency.search([",
+                "    ('active', '=', True),",
+                "    ('id', '!=', company.currency_id.id),",
+                "])",
+                "row_details = [{",
+                "    'currency': row.currency_id.name,",
+                "    'rate': row.rate,",
+                "    'provider': row.rebuild_rate_provider,",
+                "    'retrieved_at': fields.Datetime.to_string(row.rebuild_rate_retrieved_at),",
+                "} for row in rate_rows]",
+                "duplicate_currency_codes = sorted({",
+                "    row.currency_id.name",
+                "    for row in rate_rows",
+                "    if Rate.search_count(rate_domain + [('currency_id', '=', row.currency_id.id)]) != 1",
+                "})",
+                "cron = env.ref(",
+                "    'rebuild_account_migration.ir_cron_rebuild_currency_rate_provider',",
+                "    raise_if_not_found=False,",
+                ")",
+                "source_rate_count_after = Rate.search_count(source_domain)",
+                "updated_codes = set(second['updated_currency_codes'])",
+                "required_codes = {'USD', 'GBP'} & set(foreign_currencies.mapped('name'))",
+                "config_ok = (",
+                "    company.rebuild_currency_rate_provider == 'ecb'",
+                "    and company.rebuild_currency_rate_auto_update",
+                ")",
+                "cron_ok = bool(",
+                "    cron",
+                "    and cron.active",
+                "    and cron.interval_number == 1",
+                "    and cron.interval_type == 'days'",
+                ")",
+                "source_preserved = source_rate_count_before == source_rate_count_after",
+                "idempotence_ok = (",
+                "    second['created_count'] == 0",
+                "    and set(first['updated_currency_codes']) == updated_codes",
+                "    and not duplicate_currency_codes",
+                ")",
+                "rate_rows_ok = (",
+                "    bool(rate_rows)",
+                "    and required_codes.issubset(updated_codes)",
+                "    and required_codes.issubset({row.currency_id.name for row in rate_rows})",
+                "    and all(",
+                "        row.rebuild_rate_provider == 'ecb'",
+                "        and row.rebuild_rate_retrieved_at",
+                "        and row.rate > 0",
+                "        for row in rate_rows",
+                "    )",
+                ")",
+                "future_date_ok = reference_date > fields.Date.to_date('2025-09-30')",
+                "checks = {",
+                "    'configuration': config_ok,",
+                "    'daily_cron': cron_ok,",
+                "    'source_rates_preserved': source_preserved,",
+                "    'idempotent_rerun': idempotence_ok,",
+                "    'traced_reference_rates': rate_rows_ok,",
+                "    'reference_date_after_benchmark': future_date_ok,",
+                "}",
+                "payload = {",
+                "    'status': 'passed' if all(checks.values()) else 'failed',",
+                "    'classification': 'FUTURE_REFERENCE_RATE_PROVIDER_GOLDEN_JOURNEY',",
+                "    'database': env.cr.dbname,",
+                "    'company': company.name,",
+                "    'company_currency': company.currency_id.name,",
+                "    'provider': 'ecb',",
+                "    'provider_url': second['provider_url'],",
+                "    'reference_date': second['reference_date'],",
+                "    'first_run': first,",
+                "    'idempotent_rerun': second,",
+                "    'active_foreign_currencies': sorted(foreign_currencies.mapped('name')),",
+                "    'required_currency_codes': sorted(required_codes),",
+                "    'rate_rows': row_details,",
+                "    'duplicate_currency_codes': duplicate_currency_codes,",
+                "    'source_rate_count_before': source_rate_count_before,",
+                "    'source_rate_count_after': source_rate_count_after,",
+                "    'cron': {",
+                "        'active': cron.active if cron else False,",
+                "        'interval_number': cron.interval_number if cron else 0,",
+                "        'interval_type': cron.interval_type if cron else '',",
+                "        'nextcall': fields.Datetime.to_string(cron.nextcall) if cron and cron.nextcall else '',",
+                "    },",
+                "    'checks': checks,",
+                "}",
+                "env.cr.commit()",
+                "print('REBUILD_CURRENCY_RATE_PROVIDER=' + json.dumps(payload, sort_keys=True, default=str))",
+                "",
+            ],
+        ),
+        encoding="utf-8",
+    )
+    result = run(
+        compose_args(
+            "--profile",
+            "init",
+            "run",
+            "--rm",
+            "init-db",
+            "odoo",
+            "shell",
+            "--config=/etc/odoo/odoo.conf",
+            f"--database={TARGET_DB}",
+        ),
+        input_file=script_path,
+        check=False,
+    )
+    marker = None
+    for line in (result.stdout + result.stderr).splitlines():
+        if line.startswith("REBUILD_CURRENCY_RATE_PROVIDER="):
+            marker = line.removeprefix("REBUILD_CURRENCY_RATE_PROVIDER=")
+    if result.returncode or not marker:
+        status = {
+            "generated_at": utc_now(),
+            "tool_version": TOOL_VERSION,
+            "stage": "currency-rate-provider",
+            "status": "failed",
+            "classification": "REFERENCE_RATE_PROVIDER_EXECUTION_DEFECT",
+            "script": str(script_path.relative_to(ROOT)),
+            "exit_code": result.returncode,
+            "output_tail": (result.stdout + result.stderr)[-8000:],
+            "next_action": (
+                "Inspect the target Odoo shell output and ECB feed "
+                "availability, then rerun the provider check."
+            ),
+        }
+        write_json(
+            PRIVATE_ARTIFACTS / "currency-rate-provider-status.json",
+            status,
+        )
+        if not getattr(args, "allow_errors", False):
+            raise HarnessError(
+                "Currency-rate provider validation failed. See "
+                "artifacts/accounting-compat/private/"
+                "currency-rate-provider-status.json"
+            )
+        return status
+    payload = json.loads(marker)
+    status = {
+        "generated_at": utc_now(),
+        "tool_version": TOOL_VERSION,
+        "stage": "currency-rate-provider",
+        "script": str(script_path.relative_to(ROOT)),
+        **payload,
+    }
+    write_json(
+        PRIVATE_ARTIFACTS / "currency-rate-provider-status.json",
+        status,
+    )
+    if status["status"] != "passed" and not getattr(
+        args,
+        "allow_errors",
+        False,
+    ):
+        raise HarnessError(
+            "Currency-rate provider validation did not pass. See "
+            "artifacts/accounting-compat/private/"
+            "currency-rate-provider-status.json"
+        )
+    return status
+
+
 def not_implemented_stage(stage: str) -> dict[str, Any]:
     ensure_dirs()
     status = {
@@ -12062,6 +12247,13 @@ def readiness(args: argparse.Namespace) -> dict[str, Any]:
             PRIVATE_ARTIFACTS / "track-b-bank-external-status.json"
         ),
         "target_reconciliation_probe": PRIVATE_ARTIFACTS / "target-reconciliation-probe-status.json",
+        "currency_rate_provider": (
+            PRIVATE_ARTIFACTS / "currency-rate-provider-status.json"
+        ),
+        "currency_rate_provider_browser": (
+            PRIVATE_ARTIFACTS
+            / "currency-rate-provider-browser-status.json"
+        ),
         "reports": PRIVATE_ARTIFACTS / "reports-status.json",
         "fec": PRIVATE_ARTIFACTS / "fec-status.json",
         "fec_validation": PRIVATE_ARTIFACTS / "fec-validation-status.json",
@@ -12094,6 +12286,8 @@ def readiness(args: argparse.Namespace) -> dict[str, Any]:
         "track_b_bank_categorization": {"passed"},
         "track_b_bank_external": {"passed"},
         "target_reconciliation_probe": {"passed"},
+        "currency_rate_provider": {"passed"},
+        "currency_rate_provider_browser": {"passed"},
         "reports": {"passed", "partial"},
         "fec": {"passed"},
         "fec_validation": {"passed"},
@@ -12266,6 +12460,13 @@ def evidence(args: argparse.Namespace) -> dict[str, Any]:
             PRIVATE_ARTIFACTS / "track-b-bank-external-status.json"
         ),
         "target_reconciliation_probe": PRIVATE_ARTIFACTS / "target-reconciliation-probe-status.json",
+        "currency_rate_provider": (
+            PRIVATE_ARTIFACTS / "currency-rate-provider-status.json"
+        ),
+        "currency_rate_provider_browser": (
+            PRIVATE_ARTIFACTS
+            / "currency-rate-provider-browser-status.json"
+        ),
         "reports": PRIVATE_ARTIFACTS / "reports-status.json",
         "vat_benchmark_investigation": PRIVATE_ARTIFACTS / "vat-benchmark-investigation-2025-09-30.json",
         "source_report_parity": PRIVATE_ARTIFACTS / "source-report-parity-status.json",
@@ -12329,6 +12530,7 @@ def run_all(args: argparse.Namespace) -> dict[str, Any]:
         "track_b_bank_external": track_b_bank_external(args),
         "track_b_analytics": track_b_analytics(args),
         "target_reconciliation_probe": target_reconciliation_probe(args),
+        "currency_rate_provider": currency_rate_provider(args),
         "reports": reports(args),
         "fec": fec(args),
         "fec_preflight": fec_preflight(args),
@@ -12367,6 +12569,7 @@ def build_parser() -> argparse.ArgumentParser:
         "track-b-bank-categorization",
         "track-b-bank-external",
         "target-reconciliation-probe",
+        "currency-rate-provider",
         "reports",
         "fec",
         "fec-preflight",
@@ -12431,6 +12634,8 @@ def main(argv: list[str] | None = None) -> int:
             print_summary(args.stage, track_b_bank_external(args))
         elif args.stage == "target-reconciliation-probe":
             print_summary(args.stage, target_reconciliation_probe(args))
+        elif args.stage == "currency-rate-provider":
+            print_summary(args.stage, currency_rate_provider(args))
         elif args.stage == "reports":
             print_summary(args.stage, reports(args))
         elif args.stage == "fec":

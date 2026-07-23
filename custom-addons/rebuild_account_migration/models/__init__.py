@@ -1,4 +1,5 @@
 from . import source_trace
+from . import currency_rate_provider
 from . import asset
 from . import move_review
 from . import move_line_review

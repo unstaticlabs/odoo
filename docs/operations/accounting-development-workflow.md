@@ -33,6 +33,7 @@ Use four separate states:
 | Odoo XML menus/views | `odoo --update=rebuild_account_migration --stop-after-init` on `odoo_rebuild_accounting_test` | source restore, extract |
 | Odoo Python report formatting only | module update, targeted Odoo tests, one report export smoke test | source restore |
 | Security/ACL changes | module update, role-specific access tests | source restore |
+| Future currency-rate provider changes | module update, targeted provider tests, `accounting-currency-rate-provider`, then manager/reviewer browser journeys | source restore, extract, Track B replay |
 | Importer mapping changes | `accounting-target-reset`, `accounting-target-import`, `accounting-target-validate` | source restore if snapshot unchanged |
 | Source extraction mapping changes | `accounting-extract`, target reset/import/validate | source restore if source DB still running and unchanged |
 | Track B expense/document mapping changes | `accounting-track-b-reset`, `accounting-track-b-expenses`, `accounting-track-b-documents` | source restore, exact-target reset/import |

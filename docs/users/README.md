@@ -47,6 +47,7 @@ The implemented user-facing accounting features are centered on reconstructed ac
 - inspect source report lines and expressions used as parity evidence;
 - inspect non-posted source workflow records and document-regeneration cases;
 - inspect cross-boundary reconciliation reviews before any native reconciliation decision is applied.
+- let Accounting Managers retrieve daily ECB reference rates without changing source-traced historical rates.
 
 The system deliberately distinguishes technical evidence from professional acceptance. A report can have technical evidence and still require accountant approval before Milestone 13 can close.
 
@@ -75,6 +76,7 @@ Use this if this is your first time opening the rebuilt accounting evidence in O
 - [Generate and Review the FEC](how-to/generate-and-review-fec.md)
 - [Review Fixed Assets, Depreciation and Deferred Schedules](how-to/review-assets-and-deferred.md)
 - [Review Reconciliation Boundary Cases](how-to/review-reconciliation-boundaries.md)
+- [Manage Currency Rate Automation](how-to/manage-currency-rate-automation.md)
 - [Use Accountant Access Safely](how-to/use-accountant-access.md)
 
 ### Reference
@@ -97,6 +99,7 @@ Use this if this is your first time opening the rebuilt accounting evidence in O
 - Do not manually change imported posted accounting entries unless an authorized correction process exists.
 - Do not record acceptance decisions unless you have reviewed the evidence and have the authority to approve.
 - Do not apply native cross-boundary reconciliations without an accepted review decision.
+- Do not replace an actual bank or platform conversion with an ECB reference rate when the actual conversion defines the transaction.
 - Do not treat access to the reconciliation workbench as proof that every reconciliation behavior is accepted. Matching, write-off, partial-reconciliation and historical-reconciliation behavior still require validation before Milestone 13 closure.
 - Do not use synthetic bootstrap data as production accounting evidence.
 

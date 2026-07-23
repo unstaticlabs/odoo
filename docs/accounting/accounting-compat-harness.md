@@ -31,6 +31,7 @@ make accounting-track-b-bank-categorization
 make accounting-track-b-bank-external
 make accounting-track-b-analytics
 make accounting-target-reconciliation-probe
+make accounting-currency-rate-provider
 make accounting-reports
 make accounting-fec
 make accounting-fec-preflight
@@ -69,6 +70,7 @@ source package validation
 → native General Reconciliation and full bank categorization
 → cross-stage multi-plan analytic reconciliation
 → rollback-only native reconciliation probe for generated draft endpoints
+→ live ECB reference-rate retrieval and idempotence check
 → Odoo-facing report view, drill-down and export-wizard checks
 → FEC test-mode export
 → local FEC structural preflight
@@ -136,6 +138,7 @@ Stage dependencies:
 | `make accounting-track-b-bank-categorization` | Track B through General Reconciliation plus source bank transactions without external partial endpoints | Native OCA-categorized interest, fees, transfers and account allocations plus source-open transactions retained for review; private proof artifact | It replays the operator's account, partner, analytic and currency inputs for direct categorizations and deliberately leaves source-unreconciled transactions open. |
 | `make accounting-track-b-bank-external` | Track B through direct categorization plus the remaining source bank/external-reconciliation graph | Exact multi-line OCA bank categorizations, posted payroll/tax/clearing entries, native General Reconciliation and explicit cutoff boundaries; private proof artifact | It completes all current-period bank transactions while keeping draft/post-cutoff documents as prepayments and identifying five aggregates from earlier bounded settlement stages that still need refinement. |
 | `make accounting-track-b-analytics` | Completed Track B native stages plus source expense decisions, finalized analytic distributions and analytic lines | Explicit analytic-correction audit records and direct source/target reconciliation across both analytic plans; private proof artifact | It runs last, after every posting stage. Native business objects remain the accounting input; the stage applies only source post-posting analytic classifications through Odoo's supported distribution write, then compares both theoretical allocations and actual analytic lines. |
+| `make accounting-currency-rate-provider` | Imported target company configuration and the official ECB daily XML feed | Native future-dated `res.currency.rate` rows plus provider, retrieval, cron and idempotence evidence | It runs after historical replay. It must never replace a source-traced historical rate, and its reference rows remain separate from transaction-specific bank or platform conversion evidence. |
 | `make accounting-reports` | Imported and validated target database | Report preview/export/drill-down evidence artifacts | It proves the user-facing report surfaces can generate and trace values. |
 
 Do not stop `accounting-source-db` after `accounting-source-restore`. Later stages still query it for source metadata, snapshot dates, controls and comparisons. If a later stage fails with `service "accounting-source-db" is not running`, restart it:
@@ -206,6 +209,8 @@ artifacts/accounting-compat/private/track-b-general-reconciliation-status.json
 artifacts/accounting-compat/private/track-b-bank-categorization-status.json
 artifacts/accounting-compat/private/track-b-bank-external-status.json
 artifacts/accounting-compat/private/target-reconciliation-probe-status.json
+artifacts/accounting-compat/private/currency-rate-provider-status.json
+artifacts/accounting-compat/private/currency-rate-provider-browser-status.json
 artifacts/accounting-compat/private/reports-status.json
 artifacts/accounting-compat/private/fec-status.json
 artifacts/accounting-compat/private/fec-structural-preflight.json
@@ -360,6 +365,26 @@ This proves current-period native expense approval/refusal/posting, invoice/bill
 `make accounting-target-idempotence` now proves accidental repeated import safety for the disposable target. The stage snapshots source-traced accounting consequence counts, posted-ledger debit/credit/balance totals, generated-draft totals, discrepancy counts and duplicate-trace invariants; reruns `make accounting-target-import` against the already processed target; reruns target validation; and then compares the same signature. The importer also preserves post-generation document-regeneration state, so a repeated import after `make accounting-document-regeneration` keeps the `189` validated candidate drafts validated, keeps the `5` review-only cases marked not applicable, and reintroduces `0` document-regeneration blockers. The latest clean rehearsal passed with `signature_matches = true`, `observed_import_run_delta = 1`, `target_validate_status = passed` and no duplicate-trace failures. The additional import-run row is expected audit evidence and is not an accounting consequence.
 
 `make accounting-target-failure-tests` now provides rollback-only target conflict and invariant failure injections. It creates a duplicate source-trace record in `rebuild.account.move.review` inside a savepoint, verifies that the duplicate-trace detector sees one injected duplicate group, rolls the savepoint back, and then verifies both duplicate count and target signature returned to baseline. It also temporarily perturbs one imported posted journal item so a posted move becomes unbalanced, verifies the unbalanced-move detector sees the injected group, rolls back and verifies the target is clean. The same stage now injects an invalid `account_move_line.account_id`, an invalid `account_move_line_account_tax_rel.account_tax_id`, an invalid `account_partial_reconcile.credit_move_id`, corrupted checksum metadata on one imported accounting attachment and source attachment metadata pointing to a missing filestore file. It verifies PostgreSQL rejects the three missing-reference conditions through the target schema, verifies no orphan account, tax relation or reconciliation endpoint remains after rollback, verifies attachment checksum/store metadata mismatch detection fires while injected, verifies source-metadata-driven missing-file discrepancy creation fires while injected, and verifies both evidence probes disappear after rollback. The latest run passed with `baseline_duplicate_groups = 0`, `injected_duplicate_groups = 1`, `final_duplicate_groups = 0`, `baseline_unbalanced_groups = 0`, `injected_unbalanced_groups = 1`, `final_unbalanced_groups = 0`, `baseline_missing_account_lines = 0`, `final_missing_account_lines = 0`, `baseline_missing_tax_relations = 0`, `final_missing_tax_relations = 0`, `baseline_incomplete_reconciliations = 0`, `final_incomplete_reconciliations = 0`, `baseline_attachment_metadata_mismatches = 0`, `injected_attachment_metadata_mismatches = 1`, `final_attachment_metadata_mismatches = 0`, `baseline_missing_file_discrepancies = 0`, `injected_missing_file_discrepancies = 1`, `final_missing_file_discrepancies = 0` and `signature_matches_after_rollback = true`.
+
+## Future reference-rate provider
+
+Historical reconstruction and future automation deliberately use different paths. Three credible alternatives were assessed:
+
+1. rely on the absent Enterprise live-currency module;
+2. install a maintained OCA 19 currency updater;
+3. add a focused adapter that writes official ECB reference rates through Odoo's native `res.currency.rate` model.
+
+The checked Community/OCA dependency set contains no deployable automatic updater, so option 3 is selected for future reference rates. Historical source-traced rows remain immutable; the adapter skips any same-date row carrying a source trace. It parses the official ECB XML with entity and network resolution disabled, validates one date and positive finite rates, calculates cross-rates for a non-EUR company currency, limits the response size, and stores `ecb` plus the retrieval timestamp on native rate rows.
+
+Accounting Managers configure and run it under:
+
+```text
+Accounting > Configuration > Currency Rate Automation
+```
+
+The daily cron is enabled and scheduled after the ECB's normal publication window. ECB rates are reference information: when a bank, card processor or platform conversion defines a transaction, preserve that actual conversion instead of replacing it with the reference rate.
+
+`make accounting-currency-rate-provider` performs two live updates on `odoo_rebuild_accounting_test`, proves the second creates no row, checks the daily cron and provider trace, and verifies the source-traced historical-rate count is unchanged. The 2026-07-23 proof retrieved the 2026-07-22 feed, wrote GBP `0.8534` and USD `1.1408` per EUR, found no duplicate currency/date row, and preserved all `1,877` imported source rates. The manager browser journey passed, while the accountant-reviewer persona received the expected Accounting Administrator access error.
 
 ## Current Odoo-facing report views
 
@@ -619,5 +644,12 @@ The following official sources were checked on 2026-07-21 before documenting Fre
 The DGFiP `Test Compta Demat` FEC tester page was checked on 2026-07-22:
 
 - DGFiP FEC structural test tool: https://www.economie.gouv.fr/dgfip/outil-de-test-des-fichiers-des-ecritures-comptables-fec
+
+The ECB reference-rate publication and API guidance were checked on
+2026-07-23:
+
+- ECB euro reference rates and publication policy: https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html
+- ECB Data Portal API overview: https://data.ecb.europa.eu/help/api/overview
+- ECB Data Portal data guidance: https://data.ecb.europa.eu/help/api/data
 
 These checks do not replace accountant, legal or compliance review.

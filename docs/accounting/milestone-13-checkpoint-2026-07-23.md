@@ -9,6 +9,7 @@ This checkpoint supersedes the 2026-07-22 checkpoint. It is not a milestone clos
 The disposable `odoo_rebuild_accounting_test` target provides the broad Milestone 13 rehearsal:
 
 - source-traced historical reconstruction and benchmark parity;
+- automatic future ECB reference rates kept separate from historical replay;
 - isolated Track B native document, expense, payment, bank, reconciliation, asset, deferral and multi-plan analytic replay;
 - distinct Bank Matching and General Reconciliation workbenches;
 - canonical report navigation, interactive OCA reports, drill-down and PDF/XLSX exports;
@@ -28,9 +29,10 @@ TECHNICAL_REHEARSAL_PASSED_PROFESSIONAL_ACCEPTANCE_PENDING
 
 That artifact reported `0` technical failures against the gates then encoded.
 A full objective audit subsequently identified missing direct Track B proof for
-deferral schedules and cross-stage analytics. Those gates are now implemented,
-passed and included in readiness/evidence generation. This does not convert the
-remaining professional decisions into technical acceptances.
+deferral schedules and cross-stage analytics, plus the absent future reference-
+rate provider. Those gates are now implemented, passed and included in
+readiness/evidence generation. This does not convert the remaining professional
+decisions into technical acceptances.
 
 ## Architecture decision
 
@@ -42,6 +44,14 @@ Alternatives rejected for this milestone:
 2. A custom tax engine or electronic filing client: duplicates official compliance logic and creates unnecessary legal, maintenance and migration risk.
 
 Electronic submission is therefore explicitly outside this implementation; accurate preparation and external filing tracking remain in scope.
+
+For future exchange rates, the absent Enterprise live-currency module and the
+lack of a deployable updater in the checked OCA 19 dependency set were compared
+with a focused native-rate adapter. The selected ECB adapter does not regenerate
+history: it skips source-traced rows, records provider/retrieval metadata and
+runs daily after the normal publication window. ECB values are informational
+reference rates; actual bank or platform conversions remain authoritative for
+transactions where they define the conversion.
 
 ## Reconstruction evidence
 
@@ -87,6 +97,20 @@ source and target actual analytic-line totals also match, all `324` directly
 traced analytic lines match, and no line is unmapped. Odoo's per-line rounding
 creates only a theoretical `+0.01/-0.01` pair, within company-currency
 precision; actual analytic-line totals reconcile exactly to source.
+
+## Future reference rates
+
+The live target provider gate retrieved the official ECB daily feed twice. The
+latest reference date was `2026-07-22`, with GBP `0.8534` and USD `1.1408` per
+EUR. The idempotent rerun created `0` rows and updated the same `2`; all `1,877`
+source-traced historical rates remained unchanged, no duplicate currency/date
+row appeared, and the daily cron is active.
+
+The Accounting Manager browser journey opened `Accounting > Configuration >
+Currency Rate Automation`, showed the retrieved state and opened both native
+rate rows. A USL accountant-reviewer persona received the expected Accounting
+Administrator access error. The disposable browser user was removed after the
+check.
 
 ## Report evidence
 
@@ -221,6 +245,7 @@ make accounting-document-regeneration
 make accounting-track-b-deferrals
 make accounting-track-b-analytics
 make accounting-target-reconciliation-probe
+make accounting-currency-rate-provider
 make accounting-reports
 make accounting-fec
 make accounting-fec-validate
@@ -229,7 +254,7 @@ make accounting-readiness
 make accounting-evidence
 ```
 
-The scoped declaration/closing Odoo tests and the broader `TestRebuildAccountMigration` suite also pass. The final isolated run contains `57` post-test methods (`60` tests in Odoo statistics) and completed with exit code `0`; targeted Ruff also passed. Module initialization emitted the existing docutils indentation warnings but no test failure or error.
+The scoped declaration/closing Odoo tests and the broader `TestRebuildAccountMigration` suite also pass. The fresh isolated run included the three ECB provider/idempotence/access tests and completed with exit code `0`; targeted Ruff also passed. Module initialization emitted the existing docutils indentation warnings but no test failure or error.
 
 `ruff` is not installed on the host or long-running Odoo container, so the repository's devcontainer was used. The changed tests pass targeted Ruff validation; a whole-file check of the historical `accounting_compat/cli.py` still reports its pre-existing baseline warnings.
 
