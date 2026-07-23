@@ -80,11 +80,12 @@ Observed current stage artifacts under `artifacts/accounting-compat/private/` sh
 - hybrid historical import: `passed`, classified as `HYBRID_HISTORICAL_EXACT_NATIVE_CURRENT_IMPORT`
 - hybrid replacement validation: `partial`, classified as `HYBRID_REPLACEMENT_TARGET_EXPLAINED_NATIVE_DIFFERENCES`
 - hybrid replacement browser: `passed`, classified as `HYBRID_REPLACEMENT_MANAGER_REVIEWER_BROWSER_GOLDEN_JOURNEY`
+- reconciliation review browser: `passed`, classified as `RECONCILIATION_BOUNDARY_MANAGER_REVIEWER_BROWSER_GOLDEN_JOURNEY`
 - FEC role browser: `passed`, classified as `FEC_MANAGER_REVIEWER_OPERATOR_BROWSER_GOLDEN_JOURNEY`
 - FEC validation artifact: `passed`, classified as `OFFICIAL_DGFIP_SOURCE_VALIDATION_PASSED`
 - readiness: `blocked`, classified as `TECHNICAL_REHEARSAL_PASSED_PROFESSIONAL_ACCEPTANCE_PENDING`
 
-This means the technical import, user-facing report workbench and validation harness are ahead of the professional acceptance record. Readiness remains blocked until the named reviewer decisions are recorded.
+The readiness artifact now gates on the hybrid reset/import/validation/browser chain, FEC role browser and reconciliation review browser as well as the core replay/report controls. It reports `0` technical failures, `1` open P0, `1` open P1, `1` accountant-owned P2 and `45` draft review decisions. The hybrid validation's classified `partial` status is expected technical evidence for its fully explained native differences; it is not professional acceptance or candidate promotion. Readiness remains blocked until the named reviewer decisions are recorded.
 
 ### Runtime side-effect controls
 
@@ -514,7 +515,7 @@ Current outcome: the dynamic report screens, readable exports, declaration works
 ### Partial and not yet acceptable
 
 - professional acceptance of report formulas, variants and presentation
-- reconciliation user experience
+- professional policy acceptance of the draft-boundary reconciliation treatment
 - tax-return workflow UX
 - broader accounting menu hierarchy and daily workflow naming
 - accountant validation of cash-basis VAT treatment
@@ -526,7 +527,7 @@ Current outcome: the dynamic report screens, readable exports, declaration works
 - full statutory French statements with accountant acceptance
 - final CA12 and tax package review
 - accountant-reviewed FEC dossier
-- full accountant access testing
+- external-accountant onboarding and named-user acceptance
 - final closure evidence package
 
 ## Checklist left to complete
@@ -563,7 +564,7 @@ Current outcome: the dynamic report screens, readable exports, declaration works
 - [ ] Complete VAT, CA12 and tax-package mapping review.
 - [ ] Complete fixed-asset and depreciation reconciliation to statements and tax mappings.
 - [x] Validate programmatic lock-date behavior, reviewer gating and before/after evidence for the new closing workspace. Final named-user browser validation remains part of the acceptance walkthrough.
-- [x] Validate sequence and chronology behavior. Exact name/date/prefix/number parity is blocking; the target preserves the source's `2` gaps and `3` date-order decreases and exposes them for accountant review rather than resequencing locked history.
+- [x] Validate sequence and chronology behavior. Exact name/date/prefix/number parity is blocking; the locked `2,046`-move benchmark preserves the source's `2` gaps and `3` date-order decreases, while the full `4,843`-move replay preserves `16` gaps and `104` decreases. Both match source exactly and expose the anomalies for accountant review rather than resequencing locked history.
 - [x] Validate full and partial reconciliation behavior through a user-facing review path. Track B proves native accounting effects; the exact-target manager/reviewer journey shows all `39` partial and `36` full boundary rows, balanced endpoint previews and decision controls without mutating the replay baseline.
 - [ ] Complete the accountant-reviewed FEC dossier. Official DGFiP structural validation already passes.
 - [x] Run a second clean reconstruction and compare deterministic outputs. The focused hybrid reset/import/validate sequence reproduced the prior clean candidate signature and every classified difference after the final FEC/UI changes.
@@ -571,8 +572,8 @@ Current outcome: the dynamic report screens, readable exports, declaration works
 
 ### Later roadmap
 
-- [ ] Keep payment providers out of the Milestone 13 required scope.
-- [ ] Keep bank synchronization as a later roadmap topic after the historical accounting core is trustworthy.
+- [x] Keep payment providers out of the Milestone 13 required scope.
+- [x] Keep bank synchronization as a later roadmap topic after the historical accounting core is trustworthy.
 
 ## Remaining questions and doubts
 

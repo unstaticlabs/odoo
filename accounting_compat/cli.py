@@ -13594,8 +13594,27 @@ def readiness(args: argparse.Namespace) -> dict[str, Any]:
             PRIVATE_ARTIFACTS
             / "accounting-hygiene-browser-status.json"
         ),
+        "reconciliation_review_browser": (
+            PRIVATE_ARTIFACTS
+            / "reconciliation-review-browser-status.json"
+        ),
+        "replacement_reset": (
+            PRIVATE_ARTIFACTS / "replacement-reset-status.json"
+        ),
+        "replacement_import": (
+            PRIVATE_ARTIFACTS / "replacement-import-status.json"
+        ),
+        "replacement_validate": (
+            PRIVATE_ARTIFACTS / "replacement-validate-status.json"
+        ),
+        "replacement_browser": (
+            PRIVATE_ARTIFACTS / "replacement-browser-status.json"
+        ),
         "fec": PRIVATE_ARTIFACTS / "fec-status.json",
         "fec_validation": PRIVATE_ARTIFACTS / "fec-validation-status.json",
+        "fec_role_browser": (
+            PRIVATE_ARTIFACTS / "fec-role-browser-status.json"
+        ),
         "compare": PRIVATE_ARTIFACTS / "compare-status.json",
     }
     artifact_statuses = {
@@ -13632,8 +13651,14 @@ def readiness(args: argparse.Namespace) -> dict[str, Any]:
         "dynamic_report_browser": {"passed"},
         "accounting_home_browser": {"passed"},
         "accounting_hygiene_browser": {"passed"},
+        "reconciliation_review_browser": {"passed"},
+        "replacement_reset": {"passed"},
+        "replacement_import": {"passed"},
+        "replacement_validate": {"partial"},
+        "replacement_browser": {"passed"},
         "fec": {"passed"},
         "fec_validation": {"passed"},
+        "fec_role_browser": {"passed"},
         "compare": {"passed"},
     }
     technical_failures = [
@@ -13827,12 +13852,31 @@ def evidence(args: argparse.Namespace) -> dict[str, Any]:
             PRIVATE_ARTIFACTS
             / "accounting-hygiene-browser-status.json"
         ),
+        "reconciliation_review_browser": (
+            PRIVATE_ARTIFACTS
+            / "reconciliation-review-browser-status.json"
+        ),
+        "replacement_reset": (
+            PRIVATE_ARTIFACTS / "replacement-reset-status.json"
+        ),
+        "replacement_import": (
+            PRIVATE_ARTIFACTS / "replacement-import-status.json"
+        ),
+        "replacement_validate": (
+            PRIVATE_ARTIFACTS / "replacement-validate-status.json"
+        ),
+        "replacement_browser": (
+            PRIVATE_ARTIFACTS / "replacement-browser-status.json"
+        ),
         "vat_benchmark_investigation": PRIVATE_ARTIFACTS / "vat-benchmark-investigation-2025-09-30.json",
         "source_report_parity": PRIVATE_ARTIFACTS / "source-report-parity-status.json",
         "review_decision_seed": PRIVATE_ARTIFACTS / "review-decision-seed-status.json",
         "fec": PRIVATE_ARTIFACTS / "fec-status.json",
         "fec_structural_preflight": PRIVATE_ARTIFACTS / "fec-structural-preflight.json",
         "fec_validation": PRIVATE_ARTIFACTS / "fec-validation-status.json",
+        "fec_role_browser": (
+            PRIVATE_ARTIFACTS / "fec-role-browser-status.json"
+        ),
         "fec_dgfip_source_validation": PRIVATE_ARTIFACTS / "fec-dgfip-source-validation" / "summary.json",
         "fec_dgfip_source_validation_artifacts": PRIVATE_ARTIFACTS / "fec-dgfip-source-validation",
         "compare": PRIVATE_ARTIFACTS / "compare-status.json",

@@ -22,18 +22,20 @@ The disposable `odoo_rebuild_accounting_test` target provides the broad Mileston
 - a polished 13-page PDF and three-sheet XLSX closing review package;
 - two clean reconstruction rehearsals.
 
-The most recent pre-audit readiness classification was:
+The current readiness classification is:
 
 ```text
 TECHNICAL_REHEARSAL_PASSED_PROFESSIONAL_ACCEPTANCE_PENDING
 ```
 
-That artifact reported `0` technical failures against the gates then encoded.
-A full objective audit subsequently identified missing direct Track B proof for
-deferral schedules and cross-stage analytics, plus the absent future reference-
-rate provider. Those gates are now implemented, passed and included in
-readiness/evidence generation. This does not convert the remaining professional
-decisions into technical acceptances.
+The refreshed artifact reports `0` technical failures, `1` open P0, `1` open
+P1, `1` accountant-owned P2 and `45` draft professional decisions. Its gate set
+now includes direct Track B deferral and cross-stage analytic proof, the future
+reference-rate provider, the hybrid reset/import/validation/browser chain, FEC
+role-browser proof and reconciliation review-browser proof. The hybrid
+validation's expected `partial` classification records fully explained native
+differences; it does not convert candidate promotion or any remaining
+professional decision into a technical acceptance.
 
 ## Architecture decision
 
@@ -184,6 +186,14 @@ Those five exceptions are source anomalies, not target drift: they remain
 unchanged and are visible as an investigating P2 discrepancy owned by the
 accountant. Their business explanation and acceptance remain open.
 
+The exact target separately checks the full posted source replay through
+`2026-07-21`. Across `4,843` moves, source and target have no blank or duplicate
+entry references and no duplicate sequence numbers; both have `16` sequence
+gaps and `104` sequence-ordered date decreases. This full-snapshot profile is
+broader than the locked benchmark's `2` gaps and `3` decreases. Both profiles
+match exactly, and the same accountant-owned P2 keeps their explanation and
+acceptance open.
+
 Every current-period journal and account-balance difference is classified as
 native cash-basis timing/aggregation, native exchange timing/aggregation or OCA
 bank-allocation segmentation. The `12` account differences net to EUR `0.00`;
@@ -317,7 +327,9 @@ Valentin/Accounting Manager journey:
   `2` controls; the later Hygiene refresh recomputed `4` blockers. The next
   visible declaration deadline was 24 July 2024, `15` obligations were overdue
   and `1` was within 45 days;
-- prepared-action counts were `2` for Valentin and `44` for Prosper;
+- that browser capture, taken before the chronology P2 seed, showed `2`
+  prepared actions for Valentin and `44` for Prosper; the refreshed exact
+  target now has `45` accountant actions;
 - the report route opened Trial Balance with native scope and fiscal
   year-to-date defaults;
 - refresh, browser back and a direct Home route preserved the correct title and
@@ -361,8 +373,10 @@ Accounting Hygiene journey:
   accounts and the configured 1 October 2025 fiscal-year start for profit and
   loss accounts. French contra accounts and documented two-sided policies were
   not treated as errors;
-- the workbench separated `2` decisions prepared for Valentin from `44`
-  prepared for Prosper and retained the open `1` P0 / `1` P1 evidence;
+- the browser capture separated `2` decisions prepared for Valentin from `44`
+  prepared for Prosper and retained the open `1` P0 / `1` P1 evidence; the
+  later chronology seed adds the current P2 and raises the exact-target
+  accountant queue to `45`;
 - the current period control set contained all `14` accounting, document,
   bank, tax, payroll, asset, currency, analytic, issue, report, FEC and lock
   controls;
@@ -571,7 +585,7 @@ rollback transaction and proves the generate-time guard catches it. Fresh
 runs `odoo_m13_fec_roles_unit_20260723_9`, `_10` and final `_11` passed; only
 the final run covers the completed download and official-cursor fixes.
 
-## Remaining P0/P1 decisions
+## Remaining professional decisions
 
 ### P0 — report acceptance
 
@@ -585,6 +599,14 @@ partial probe and manager/reviewer partial/full preview journeys now pass.
 Required action: accept review-only historical treatment, or authorize a
 separate draft-endpoint application workflow after accountant/product review.
 
+### P2 — source sequence and chronology explanation
+
+The locked benchmark (`2` gaps and `3` date-order decreases) and the full
+snapshot (`16` gaps and `104` decreases) match their targets exactly. Required
+action: the accountant explains or accepts the preserved source exceptions;
+the implementation agent must not resequence posted history or self-accept the
+P2.
+
 ## Closure rule
 
-Do not close Milestone 13 or authorize production migration until the two decisions above, FEC acceptance, declaration acceptance and final milestone approval are recorded by their named authorities.
+Do not close Milestone 13 or authorize production migration until the three decisions above, FEC acceptance, declaration acceptance and final milestone approval are recorded by their named authorities.

@@ -37,7 +37,7 @@ Overall status: **technical rehearsal passed; professional acceptance pending**.
 - [ ] Valentin acceptance of the two SASU report scope exclusions and final product presentation.
 - [ ] Accountant/product decision for the 75 draft/future cross-boundary reconciliation relationships: retain review-only treatment or authorize a separate application workflow.
 - [ ] Accountant acceptance or objection for the hybrid candidate's EUR `2.64` current-period exchange profit-and-loss difference, followed by an explicit promotion decision.
-- [ ] Accountant explanation or acceptance of the `2` historical source sequence gaps and `3` sequence-ordered date decreases.
+- [ ] Accountant explanation or acceptance of the preserved source sequence exceptions: `2` gaps and `3` sequence-ordered date decreases in the locked `2,046`-move benchmark; `16` gaps and `104` decreases in the full `4,843`-move snapshot.
 - [ ] Recorded FEC, declaration and final milestone acceptance by their named authorities.
 
 ### Non-blocking polish
@@ -47,8 +47,8 @@ Overall status: **technical rehearsal passed; professional acceptance pending**.
 
 ### Deferred or outside Milestone 13
 
-- [ ] Payment providers are not a Milestone 13 target.
-- [ ] Live bank synchronization remains a later roadmap item.
+- [x] Payment providers are not a Milestone 13 target.
+- [x] Live bank synchronization remains a later roadmap item.
 
 # 0. Programme governance and invariants
 
