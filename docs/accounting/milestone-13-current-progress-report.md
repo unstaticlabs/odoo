@@ -4,7 +4,7 @@ Last updated: 2026-07-23
 
 Audience: Valentin, USL finance operators, the USL accountant, and the next implementation agent.
 
-This report describes the current implementation state. It is not a closure report. The current system has made real progress on deterministic source reconstruction and evidence capture, but it is not yet an Odoo Online Enterprise-equivalent accounting user experience.
+This report describes the current implementation state. It is not a closure report. Deterministic reconstruction, the Community-compatible accounting report workbench and the main accounting review surfaces are technically implemented; professional report, tax, FEC and milestone acceptance is still pending.
 
 Formal checkpoint:
 
@@ -62,7 +62,7 @@ Observed current stage artifacts under `artifacts/accounting-compat/private/` sh
 - target import: `partial`, classified as `POSTED_SOURCE_REPLAY_THROUGH_SNAPSHOT`
 - target validation: `passed`, classified as `POSTED_LEDGER_SLICE_PARITY`
 - compare: `passed`, classified as `POSTED_LEDGER_SLICE_PARITY`
-- reports: `partial`, classified as `HARNESS_AND_ODOO_REPORT_ARTIFACTS_PARTIAL`
+- reports: `passed`, classified as `DYNAMIC_ODOO_REPORT_WORKBENCH_TECHNICALLY_VALIDATED`
 - idempotence guardrail: `passed`
 - target failure guardrails: `passed`
 - document-regeneration cases: `passed`
@@ -76,7 +76,7 @@ Observed current stage artifacts under `artifacts/accounting-compat/private/` sh
 - FEC validation artifact: `passed`, classified as `OFFICIAL_DGFIP_SOURCE_VALIDATION_PASSED`
 - readiness: `blocked`, classified as `TECHNICAL_REHEARSAL_PASSED_PROFESSIONAL_ACCEPTANCE_PENDING`
 
-This means the technical import and validation harness is materially ahead of the user-facing product.
+This means the technical import, user-facing report workbench and validation harness are ahead of the professional acceptance record. Readiness remains blocked until the named reviewer decisions are recorded.
 
 ### Runtime side-effect controls
 
@@ -113,31 +113,31 @@ The following OCA modules installed successfully on the disposable imported targ
 - `partner_statement` `19.0.1.1.0`
 - `mis_builder` `19.0.1.1.1`
 
-Observed Odoo menu entries now include OCA Trial Balance, General Ledger, Journal Ledger, Partner Ledger, statement reports, tax balance support, MIS Reporting, Import Statement, Bank Matching and General Reconciliation actions.
+The OCA modules remain installed as maintained accounting foundations for reconciliation, statement import, partner statements, XLSX support and technical report comparison. Their report actions remain available for technical validation, but duplicate OCA report menus are hidden from normal Accounting navigation.
 
 The full-accounting role hierarchy is now activated by the USL add-on: an Accounting Manager implies Odoo's full Accounting user group instead of remaining in Community's invoicing-only mode. This exposes the native/OCA accounting surfaces without per-database manual group repair. The Accounting app now uses the seven-area navigation from the product target: `Dashboard`, `Customers`, `Vendors`, `Accounting`, `Review`, `Reporting`, and `Configuration`.
 
-Current targeted fixes:
+The selected report architecture compared three credible options:
 
-- the imported target now keeps the source-traced retained-earnings account active and archives empty clean-target bootstrap retained-earnings accounts, which removes the OCA Trial Balance blocker `Trial Balance can be computed only if selected company have only one unaffected earnings account`;
-- imported companies receive Odoo's standard external report layout when the source company has no target layout, so OCA report actions render through normal report templates instead of sending users to the document-layout setup wizard;
-- OCA interactive report launchers default to the USL benchmark period `2024-01-10` through `2025-09-30` in posted mode for the first accounting review pass;
-- OCA Trial Balance was browser-smoke-tested on `odoo_rebuild_accounting_test`: the wizard opens with `Jan 10, 2024` and `Sep 30, 2025`, `View` opens the standard Odoo report viewer, and the embedded HTML report renders imported USL rows including capital, fixed assets, VAT, bank, expense, revenue and retained-earnings accounts;
-- OCA General Ledger, Journal Ledger, VAT Report, Open Items and Aged Partner Balance were also browser-smoke-tested on `odoo_rebuild_accounting_test`; each opens with USL benchmark defaults and renders through the standard Odoo report viewer with imported ledger content;
-- Open Items and Aged Partner Balance currently default to both receivable and payable filters so the OCA required account selector is populated on first open;
-- two additional OCA-native shortcuts, `Aged Receivable` and `Aged Payable`, now open the same aged-partner wizard with customer-only or supplier-only account filters for clearer daily review routines.
-- the primary Accounting report menu entries for Trial Balance, General Ledger, Journal Report, Open Items, Aged Receivable, Aged Payable and VAT now open those interactive OCA report wizards instead of defaulting to the USL technical export wizard.
-- two MIS Builder report templates and saved instances now exist for the USL benchmark period:
-  - `USL Balance Sheet`
-  - `USL Profit and Loss`
-- the normal `Reporting -> Statement Reports` Balance Sheet and Profit and Loss entries now open those saved MIS instances instead of the older artifact-export wizard;
-- the MIS instance forms expose OCA's normal `Preview`, `Print` and `Export` controls;
-- browser smoke testing on `odoo_rebuild_accounting_test` confirmed both previews render without an Odoo error:
-  - Balance Sheet: Assets `71,356`, Equity and liabilities before current-year result `15,133`, Current-year result `56,223`, Equity and liabilities `71,356`, Balance check `0`;
-  - Profit and Loss: Income `129,271`, Expenses `73,048`, Net result `56,223`.
-- MIS account-detail expansion now includes archived imported historical accounts. The browser smoke test confirmed the Profit and Loss preview renders archived account `625101 Voyages et déplacements`, which is inactive in the target but has 20 posted move lines from the source.
+1. expose the maintained OCA report wizards directly; this supplied useful calculations but fragmented the normal user experience across unrelated wizards and viewers;
+2. depend on the proprietary Enterprise `account_reports` application; that application is absent from the Community checkout and its code is not copied;
+3. implement one original Community-compatible dynamic workbench over the native ledger, while retaining OCA as a maintained technical foundation.
 
-Status: this is dependency, platform and primary-menu UX enablement, not final report parity. The next implementation phase must validate OCA report calculations against imported controls, add missing statutory/tax/declaration reports, and decide where custom USL reports remain necessary.
+Option 3 is implemented. The normal `Reporting` menus for Trial Balance, General Ledger, Journal Report, Partner Ledger, Customer Statement, Open Items, Aged Receivable, Aged Payable, Balance Sheet, Profit and Loss, VAT/tax, management, assets, deferrals, French statements and declarations now open the same full-page workbench. It provides:
+
+- company and multi-company scope, with statutory/FEC single-company safeguards;
+- native-ledger scope by default and an explicit imported-only audit scope;
+- month, quarter, fiscal-year, year-to-date and custom periods;
+- previous-period, previous-year and custom comparisons;
+- journal, account, partner and analytic filters;
+- grouping by section, account, partner, journal, month or analytic account;
+- search, expand/collapse, row-level source drilldown and visible draft-entry warnings;
+- consistent CSV, XLSX and PDF metadata and downloadable output;
+- a true Trial Balance equation with opening, debit, credit, movement and closing columns.
+
+The OCA Trial Balance, General Ledger, Journal Ledger, Open Items, Aged Partner Balance and MIS reports were retained and tested as comparison surfaces. The primary Accounting menus and the Balance Sheet/Profit and Loss entries no longer send normal users to those competing screens.
+
+The latest `make accounting-reports` run passed with `90` grouped Trial Balance rows, `180` expanded rows, a smaller collapsed result, successful search, previous-year comparison, `4` excluded-draft warnings, matching `180`-row XLSX output, canonical-menu checks and duplicate-menu hiding. All `38` source report families remain at `level_4_evidence_partial` until an authorized accountant records acceptance.
 
 Technical note: OCA MIS Builder's detail-label lookup was active-account-only. The custom addon now patches that lookup to include inactive accounts, because archived accounts are valid historical accounting evidence when they carry posted source lines.
 
@@ -258,13 +258,11 @@ Validated by artifacts or code inspection:
 - The custom report export wizard can generate CSV, XLSX, PDF and FEC TXT payloads.
 - The FEC validation artifact exists and reports a successful DGFiP source-validation run.
 
-Not yet validated as finished product behavior:
+Not yet professionally accepted as finished product behavior:
 
 - deliberate acceptance of draft/post-cutoff prepayment boundaries, write-offs and undo behavior
-- dynamic Odoo Online-style accounting reports
-- readable templated PDF/XLSX reports
-- report UX parity with filters, unfold, annotations and exports as seen on screen
 - accountant access for official non-test FEC export
+- accountant acceptance of dynamic report formulas, French variants, drilldowns and export presentation
 - accountant validation of the source cash-basis VAT treatment
 - accountant review of FEC and statutory/tax outputs
 - complete second clean rehearsal evidence after the latest UX changes
@@ -306,14 +304,14 @@ USL-developed work currently covers:
 - imported asset/deferred evidence
 - imported source report catalogue preservation
 - report-line evidence views
-- custom export wizard
+- canonical Community-compatible dynamic accounting report workbench
 - user documentation browser
 - discrepancy, decision and external-value review models
 - regression tests for selected FEC and add-on behavior
 
 ### Important distinction
 
-The current reporting implementation is evidence-oriented. It calculates and exports from imported ledger data, but it does not yet behave like Odoo Online's dynamic report workbench.
+The current reporting implementation is an original Community-compatible dynamic workbench. It queries native `account.move.line` and related native records by default; the imported-only scope is an explicit audit option. It does not depend on or copy Enterprise `account_reports`.
 
 Official Odoo 19 documentation describes dynamic accounting reports such as Balance Sheet, Profit and Loss, Executive Summary, General Ledger, Aged Receivable, Aged Payable, Cash Flow Statement and Tax Report, with expand/drill-down behavior, period comparison and PDF/XLSX export:
 
@@ -323,7 +321,7 @@ Official Odoo 19 tax-return documentation also describes a Tax Return workflow f
 
 - https://www.odoo.com/documentation/19.0/applications/finance/accounting/reporting/tax_returns.html
 
-The current USL implementation does not yet reproduce that full interactive behavior.
+The USL workbench now reproduces the required normal-user behavior for filters, period presets, comparisons, grouping, search, expand/collapse, draft warnings, drilldowns and screen-consistent exports. It is not claimed to be the proprietary Enterprise implementation, and professional acceptance of formulas and statutory interpretations remains outside the technical harness.
 
 ## Feedback assessment
 
@@ -363,15 +361,15 @@ Impact: transaction history, bank matching and general reconciliation now have d
 
 Required work: validate the native operational reconciliation flow end to end, including matching invoices/bills/payments, write-offs, partial reconciliations, and interaction with imported historical reconciliation evidence. This remains a product/accounting UX blocker for Milestone 13 until behavior and accounting effects are verified.
 
-### Poor PDF and XLSX report readability
+### PDF and XLSX report readability
 
-Status: confirmed implementation limitation.
+Status: technically implemented; accountant presentation acceptance remains pending.
 
-Evidence: `custom-addons/rebuild_account_migration/models/report_export_wizard.py` uses `xlsxwriter` for XLSX and low-level ReportLab `canvas` drawing for PDFs. It does not use a full Odoo report template stack or the absent `account_reports` dynamic report engine.
+Evidence: the same workbench result drives the on-screen preview and the CSV, XLSX and PDF payloads. XLSX uses typed numeric cells, report headers and filter metadata; PDF uses structured ReportLab document tables with company, period, scope and filter evidence. The report harness validates workbook/PDF structure and row counts, and both manager and reviewer browser journeys reached the download surface without an access error.
 
-Impact: exports are useful as machine evidence, but they are not accountant-ready or comparable to Odoo Online's report presentation.
+Impact: exports are no longer raw static prototypes. They are readable review packages tied to the exact dynamic filters shown in Odoo.
 
-Required work: replace or wrap the current report wizard with a user-facing dynamic report experience and human-readable exports. The likely target is an independently implemented Community-compatible equivalent of the relevant Odoo reporting behavior, using lawful source-record analysis and standard Odoo extension patterns, not copied Enterprise code.
+Remaining work: obtain independent accountant feedback on presentation density, French statutory conventions and the final annual-accounts package before recording professional acceptance.
 
 ### Menus and documentation are hard to read
 
@@ -417,7 +415,7 @@ Evidence: the supplied annual accounts PDF contains the expected annual report p
 
 Impact: Milestone 13 reporting cannot stop at ledger controls or raw CSV/PDF artifacts. The product must generate readable, reviewable accounting packages and guide the user through official declaration values.
 
-Required work: implement human-readable dynamic report screens and exports, then add declaration guidance and closing-package workflows.
+Current outcome: the dynamic report screens, readable exports, declaration workspaces and closing-package workflows now exist. The supplied references remain the presentation benchmark for the independent accountant review.
 
 ## Current progress summary
 
@@ -429,16 +427,14 @@ Required work: implement human-readable dynamic report screens and exports, then
 - posted ledger replay into a source-traced target
 - target validation and comparison artifacts for the posted ledger slice
 - imported source report catalogue preservation
-- preliminary report artifact generation
+- canonical dynamic report workbench and technical report evidence
 - FEC generation/validation harness artifact
 - accountant/review evidence models
 - Diataxis user docs and Odoo docs browser
 
 ### Partial and not yet acceptable
 
-- user-facing reports
-- report PDF/XLSX presentation
-- Odoo Online-style report interaction
+- professional acceptance of report formulas, variants and presentation
 - reconciliation user experience
 - tax-return workflow UX
 - official non-test FEC access policy
@@ -470,15 +466,15 @@ Required work: implement human-readable dynamic report screens and exports, then
 
 ### Short term
 
-- [ ] Replace the current machine-oriented PDF output with readable, accountant-ready templates.
-- [x] Make OCA dynamic interactive report screens the primary path for the general reports OCA already covers.
-- [ ] Replace or augment the remaining technical wizard flows with dynamic interactive report screens where the current OCA/MIS foundation does not cover the mandatory user need.
-- [ ] Preserve the current CSV/XLSX evidence exports as audit artifacts, but distinguish them from user-facing reports.
+- [x] Replace the machine-oriented report output with structured screen, XLSX and PDF presentation; final accountant presentation acceptance remains open.
+- [x] Deliver one canonical Community-compatible dynamic workbench for normal report navigation while retaining OCA report screens as technical comparison surfaces.
+- [x] Cover the mandatory report launchers with the same dynamic filter, comparison, grouping, drilldown and export behavior.
+- [x] Preserve benchmark CSV/XLSX evidence packages as audit artifacts and label them separately from the live native-ledger workbench.
 - [x] Add CFS Pro declaration guidance views with field, value, source, calculation, warning and reviewer state. The workflow links to the current official source and professional filing portal; no electronic filing is claimed.
 - [x] Add a versioned declaration schedule and calendar for the confirmed French SASU profile, including conditional form suppression.
-- [ ] Add drill-down from report lines to journal items and evidence in the normal UI.
-- [ ] Update user docs after the menu and reporting UX are redesigned.
-- [ ] Add realistic user-role tests for Valentin, accountant, finance operator and read-only reviewer.
+- [x] Add row-level drill-down from report lines to native journal items or analytic lines in the normal UI.
+- [x] Update user docs for the canonical report workbench, native/imported scope, comparisons, grouping, drilldown and export.
+- [ ] Complete the named-user acceptance matrix for Valentin, accountant and finance operator. Automated ACL tests and live Accounting Manager/read-only reviewer report journeys pass.
 
 ### Milestone 13 core
 
@@ -489,7 +485,7 @@ Required work: implement human-readable dynamic report screens and exports, then
 - [x] Validate programmatic lock-date behavior, reviewer gating and before/after evidence for the new closing workspace. Final named-user browser validation remains part of the acceptance walkthrough.
 - [ ] Validate sequence and chronology behavior.
 - [ ] Validate full and partial reconciliation behavior through a user-facing review path.
-- [ ] Complete official FEC validation and accountant review dossier.
+- [ ] Complete the accountant-reviewed FEC dossier. Official DGFiP structural validation already passes.
 - [ ] Run a second clean reconstruction and compare deterministic outputs.
 - [ ] Resolve or formally accept every P0/P1 discrepancy.
 
@@ -500,10 +496,10 @@ Required work: implement human-readable dynamic report screens and exports, then
 
 ## Remaining questions and doubts
 
-- Validation question: do the selected OCA report screens produce USL/Odoo Online-equivalent interactive results once mapped to the imported ledger, or do specific reports still need a custom USL implementation?
+- Acceptance question: does the accountant accept the formulas, PCG variants, statutory interpretations and presentation exposed by the canonical Community-compatible workbench?
 - Validation question: does the OCA reconciliation workbench correctly perform operational matching, write-offs and partial reconciliations on imported statement lines without damaging historical source-traced reconciliation evidence?
 - Accounting question: which cash-basis VAT behavior in the source is legally required for USL, and which behavior is only a side effect of imported localization configuration? The technical Settings inconsistency is fixed, but the tax rule still requires accountant validation.
-- Accounting question: which generated statutory PDFs/XLSX must match the accountant benchmark visual structure, and which can remain machine-oriented evidence exports under Advanced Audit?
+- Accounting question: which generated statutory PDFs/XLSX require further visual alignment with the supplied accountant benchmark, and which technically validated workbench exports are acceptable as-is?
 - Access question: which exact source documents or attachments should be visible to the accountant as evidence versus restricted accounting evidence?
 - What exact accountant review workflow is required before Milestone 13 can close?
 

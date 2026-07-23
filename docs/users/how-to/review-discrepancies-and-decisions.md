@@ -9,7 +9,7 @@ Use this guide when a report, tax value, reconciliation boundary or scope decisi
 Go to:
 
 ```text
-Accounting > Review > Rebuild Evidence > Discrepancies
+Accounting > Review > Advanced Audit > Discrepancies
 ```
 
 Filter for:
@@ -82,4 +82,3 @@ Recorded decisions are intentionally immutable. If the conclusion changes later,
 - Do not record accountant acceptance if you are only preparing the file.
 - Do not use a review decision to hide an unexplained accounting difference.
 - Do not accept a tax value without checking its source.
-

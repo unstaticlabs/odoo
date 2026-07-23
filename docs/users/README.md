@@ -34,11 +34,11 @@ The implemented user-facing accounting features are centered on reconstructed ac
 - open Accounting > Transactions > Bank Matching to review imported bank statement lines in the bank workbench;
 - open Accounting > Closing > General Reconciliation to reconcile open accounting items independently of bank matching;
 - open the native Expenses workspace from the supplier accounting area;
-- use OCA interactive report wizards for Trial Balance, General Ledger, Journal Ledger, Open Items, Aged Partner Balance and VAT;
+- use one canonical Accounting Report Workbench for Trial Balance, General Ledger, partner, statement, tax, management, asset and analytic reports;
 - open a reconstruction summary for each imported company;
 - inspect imported posted journal items;
 - inspect source-traced accounting reports and report evidence;
-- preview and export supported accounting reports;
+- filter, compare, group, search, fold, drill down and export supported accounting reports;
 - generate a FEC export for the benchmark period;
 - inspect French annual statement and tax-package mappings;
 - inspect fixed assets, depreciation schedules, deferred schedules, bank reconciliation, currency exposure, analytic reporting, EC/OSS evidence and tax reports;

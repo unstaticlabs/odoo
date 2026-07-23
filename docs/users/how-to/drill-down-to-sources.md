@@ -6,12 +6,12 @@ Use this guide when you need to understand what makes up a report total.
 
 ## Start from a Report Preview
 
-1. Open `Imported Accounting Report Export`.
-2. Choose a report.
-3. Set company and dates.
-4. Click `Preview`.
+1. Open a report from `Accounting > Reporting`.
+2. Set company, native/imported scope and dates.
+3. Choose optional comparison, grouping and filters.
+4. Click `Apply Period` or `Refresh`.
 
-The preview table shows report rows.
+The Accounting Report Workbench shows the resulting report rows on the same page.
 
 ## Open Sources for One Row
 
@@ -23,6 +23,8 @@ Odoo opens the source records behind the row.
 For ledger-backed reports, this usually opens `account.move.line` journal items.
 
 For analytic reports, this opens `account.analytic.line` records.
+
+For Trial Balance, the source action follows the closing balance and therefore includes eligible entries up to the report end date, including the opening-balance composition.
 
 ## What to Check in Journal Items
 
@@ -49,6 +51,8 @@ A report is not proven by its total alone. Use drill-down to confirm:
 - the right company is included;
 - the right period is included;
 - only posted entries are included when required;
+- the native or imported-only data scope is intentional;
+- the comparison period and difference are sensible;
 - the right accounts contribute to the row;
 - the amounts match the ledger;
 - taxes and partners make sense;
@@ -65,4 +69,3 @@ Some reports are not pure journal-item reports:
 - Reconciliation Boundary Review opens imported and generated endpoint lines.
 
 These records are still accounting evidence. They are not hidden developer logs.
-

@@ -11,6 +11,7 @@ The accountant reviewer can inspect:
 - imported journal items;
 - accounting attachments linked to imported accounting evidence;
 - report previews and exports;
+- report comparisons, grouping, search and source drilldowns;
 - discrepancies;
 - review decisions;
 - external report values;
@@ -53,3 +54,4 @@ Ask an administrator to check:
 
 Do not work around missing access by sharing private exports outside the intended review process.
 
+The reviewer report path is intentionally read-only. A reviewer can refresh a report repeatedly, export it and open contributing journal items or analytic lines, but the source lists do not expose create or edit controls.

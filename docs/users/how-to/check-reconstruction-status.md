@@ -9,7 +9,7 @@ Use this guide when you need to know whether the reconstructed accounting databa
 Go to:
 
 ```text
-Accounting > Review > Rebuild Evidence > Accounting Reconstruction Review
+Accounting > Review > Control > Issues
 ```
 
 Open the company you want to review.
@@ -60,4 +60,3 @@ For a technically clean reconstruction:
 - remaining blockers are clearly classified and assigned to review.
 
 Do not close the accounting review while there are open P0 discrepancies or pending accountant review decisions.
-

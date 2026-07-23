@@ -1,14 +1,23 @@
 import base64
+import calendar
 import csv
 import hashlib
 import io
 import json
+from datetime import date, timedelta
 from decimal import Decimal
 
 from odoo import Command, api, fields, models
 from odoo.exceptions import AccessError, UserError
 
-ACCOUNT_CODE_SQL = "COALESCE(account.code_store->>company.rebuild_source_id::text, account.code_store->>'1', account.code_store::text)"
+ACCOUNT_CODE_SQL = (
+    "COALESCE("
+    "account.code_store->>company.rebuild_source_id::text, "
+    "account.code_store->>company.id::text, "
+    "account.code_store->>'1', "
+    "account.code_store::text"
+    ")"
+)
 ACCOUNT_NAME_SQL = "COALESCE(account.name->>'fr_FR', account.name->>'en_US', account.name::text)"
 
 
@@ -30,7 +39,7 @@ def _matches(row, prefixes):
 
 class RebuildAccountReportExportWizard(models.TransientModel):
     _name = "rebuild.account.report.export.wizard"
-    _description = "USL Imported Accounting Report Export"
+    _description = "USL Dynamic Accounting Report Workbench"
 
     report_type = fields.Selection(
         [
@@ -71,8 +80,52 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         default="trial_balance",
     )
     company_id = fields.Many2one("res.company", required=True, default=lambda self: self.env.company)
+    company_ids = fields.Many2many(
+        "res.company",
+        string="Companies",
+        default=lambda self: self.env.company,
+    )
+    data_scope = fields.Selection(
+        [
+            ("native", "All Native Accounting"),
+            ("imported", "Imported Historical Replay Only"),
+        ],
+        required=True,
+        default="native",
+        help=(
+            "All Native Accounting is the operational report scope. "
+            "Imported Historical Replay Only is an advanced audit scope."
+        ),
+    )
+    period_preset = fields.Selection(
+        [
+            ("custom", "Custom Dates"),
+            ("month", "Month"),
+            ("quarter", "Quarter"),
+            ("fiscal_year", "Fiscal Year"),
+            ("year_to_date", "Fiscal Year to Date"),
+        ],
+        required=True,
+        default="custom",
+    )
+    period_anchor_date = fields.Date(
+        string="Period Containing",
+        default=fields.Date.context_today,
+    )
     date_from = fields.Date(required=True, default="2024-01-10")
-    date_to = fields.Date(required=True, default=lambda self: fields.Date.context_today(self))
+    date_to = fields.Date(required=True, default=fields.Date.context_today)
+    comparison_mode = fields.Selection(
+        [
+            ("none", "No Comparison"),
+            ("previous_period", "Previous Period"),
+            ("previous_year", "Same Period Last Year"),
+            ("custom", "Custom Comparison"),
+        ],
+        required=True,
+        default="none",
+    )
+    comparison_date_from = fields.Date()
+    comparison_date_to = fields.Date()
     target_move = fields.Selection(
         [
             ("posted", "Posted Entries Only"),
@@ -95,6 +148,36 @@ class RebuildAccountReportExportWizard(models.TransientModel):
     journal_ids = fields.Many2many("account.journal", string="Journals")
     account_ids = fields.Many2many("account.account", string="Accounts")
     partner_ids = fields.Many2many("res.partner", string="Partners")
+    analytic_plan_ids = fields.Many2many(
+        "account.analytic.plan",
+        "rebuild_report_analytic_plan_rel",
+        "wizard_id",
+        "plan_id",
+        string="Analytic Plans",
+    )
+    analytic_account_ids = fields.Many2many(
+        "account.analytic.account",
+        "rebuild_report_analytic_account_rel",
+        "wizard_id",
+        "analytic_account_id",
+        string="Analytic Accounts",
+    )
+    group_by = fields.Selection(
+        [
+            ("none", "No Grouping"),
+            ("section", "Section"),
+            ("account", "Account"),
+            ("partner", "Partner"),
+            ("journal", "Journal"),
+            ("month", "Month"),
+            ("analytic", "Analytic Account"),
+        ],
+        required=True,
+        default="none",
+    )
+    search_text = fields.Char(string="Search Report")
+    show_details = fields.Boolean(default=True)
+    collapsed_group_keys = fields.Text(default="[]")
     export_file = fields.Binary(readonly=True, attachment=True)
     export_filename = fields.Char(readonly=True)
     export_metadata = fields.Text(readonly=True)
@@ -108,48 +191,83 @@ class RebuildAccountReportExportWizard(models.TransientModel):
     preview_truncated = fields.Boolean(readonly=True)
     preview_generated_at = fields.Datetime(readonly=True)
     preview_metadata = fields.Text(readonly=True)
+    draft_entry_count = fields.Integer(readonly=True)
+    preview_warning = fields.Text(readonly=True)
+
+    def action_apply_period(self):
+        self.ensure_one()
+        self._apply_period_values()
+        return self.action_preview_report()
+
+    def action_expand_all(self):
+        self.ensure_one()
+        self.write({
+            "show_details": True,
+            "collapsed_group_keys": "[]",
+        })
+        return self.action_preview_report()
+
+    def action_collapse_all(self):
+        self.ensure_one()
+        self.write({"show_details": False})
+        return self.action_preview_report()
 
     def action_preview_report(self):
         self.ensure_one()
+        self._prepare_dynamic_filters()
         self._validate_filter_scope()
         if self.report_type == "fec":
-            raise UserError("Use Generate Export to create and download the FEC file. FEC preview is limited to generated export metadata.")
+            message = (
+                "Use Generate Export to create and download the FEC file. "
+                "FEC preview is limited to generated export metadata."
+            )
+            raise UserError(message)
         rows = self._report_rows()
         limit = max(1, min(self.preview_limit or 500, 5000))
-        preview_rows = rows[:limit] if rows else [{"empty_report": "true"}]
+        visible_rows = self._visible_preview_rows(rows)
+        preview_rows = (
+            visible_rows[:limit]
+            if visible_rows
+            else [{"empty_report": "true"}]
+        )
+        draft_count, warning = self._draft_entry_warning()
         metadata = self._export_metadata(len(rows))
         metadata.update({
             "preview_limit": limit,
-            "previewed_row_count": len(preview_rows) if rows else 0,
-            "preview_truncated": len(rows) > limit,
+            "previewed_row_count": len(preview_rows) if visible_rows else 0,
+            "preview_visible_row_count": len(visible_rows),
+            "preview_truncated": len(visible_rows) > limit,
+            "draft_entry_count": draft_count,
+            "warning": warning,
         })
+        self.preview_line_ids.sudo().unlink()
         self.write({
             "preview_limit": limit,
             "preview_line_ids": [
-                Command.clear(),
                 *[
                     Command.create(self._preview_line_values(sequence, row))
                     for sequence, row in enumerate(preview_rows, start=1)
                 ],
             ],
             "preview_row_count": len(rows),
-            "preview_truncated": len(rows) > limit,
+            "preview_truncated": len(visible_rows) > limit,
             "preview_generated_at": fields.Datetime.now(),
             "preview_metadata": json.dumps(metadata, indent=2, sort_keys=True),
+            "draft_entry_count": draft_count,
+            "preview_warning": warning,
         })
         return {
             "type": "ir.actions.act_window",
-            "name": f"{self._report_type_label()} Preview",
+            "name": self._report_type_label(),
             "res_model": self._name,
             "res_id": self.id,
             "view_mode": "form",
-            "target": "new",
+            "target": "current",
         }
 
     def action_generate_export(self):
         self.ensure_one()
-        if self.date_from > self.date_to:
-            raise UserError("The start date must be before or equal to the end date.")
+        self._prepare_dynamic_filters()
         self._validate_filter_scope()
         if self.report_type == "fec":
             payload, filename, metadata = self._fec_export_payload()
@@ -169,8 +287,169 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "res_model": self._name,
             "res_id": self.id,
             "view_mode": "form",
-            "target": "new",
+            "target": "current",
         }
+
+    def _prepare_dynamic_filters(self):
+        self.ensure_one()
+        if not self.date_from or not self.date_to:
+            message = "Select a report start and end date."
+            raise UserError(message)
+        if self.date_from > self.date_to:
+            message = "The start date must be before or equal to the end date."
+            raise UserError(message)
+        if self.comparison_mode != "none":
+            self._apply_comparison_values()
+            if (
+                not self.comparison_date_from
+                or not self.comparison_date_to
+            ):
+                message = "Select comparison start and end dates."
+                raise UserError(message)
+            if self.comparison_date_from > self.comparison_date_to:
+                message = (
+                    "The comparison start date must be before or equal "
+                    "to the comparison end date."
+                )
+                raise UserError(message)
+
+    def _apply_period_values(self):
+        self.ensure_one()
+        if self.period_preset == "custom":
+            self._apply_comparison_values()
+            return
+        anchor = fields.Date.to_date(
+            self.period_anchor_date
+            or fields.Date.context_today(self),
+        )
+        if self.period_preset == "month":
+            date_from = anchor.replace(day=1)
+            date_to = anchor.replace(
+                day=calendar.monthrange(anchor.year, anchor.month)[1],
+            )
+        elif self.period_preset == "quarter":
+            first_month = ((anchor.month - 1) // 3) * 3 + 1
+            date_from = anchor.replace(month=first_month, day=1)
+            last_month = first_month + 2
+            date_to = anchor.replace(
+                month=last_month,
+                day=calendar.monthrange(anchor.year, last_month)[1],
+            )
+        else:
+            fiscal_from, fiscal_to = self._fiscal_year_dates(anchor)
+            date_from = fiscal_from
+            date_to = (
+                anchor
+                if self.period_preset == "year_to_date"
+                else fiscal_to
+            )
+        self.write({
+            "date_from": date_from,
+            "date_to": date_to,
+        })
+        self._apply_comparison_values()
+
+    def _fiscal_year_dates(self, anchor):
+        self.ensure_one()
+        company = self.company_id
+        end_month = int(company.fiscalyear_last_month or 12)
+        end_day = min(
+            company.fiscalyear_last_day or 31,
+            calendar.monthrange(anchor.year, end_month)[1],
+        )
+        fiscal_end = date(anchor.year, end_month, end_day)
+        if anchor > fiscal_end:
+            next_year = anchor.year + 1
+            fiscal_end = date(
+                next_year,
+                end_month,
+                min(
+                    company.fiscalyear_last_day or 31,
+                    calendar.monthrange(next_year, end_month)[1],
+                ),
+            )
+        previous_end_year = fiscal_end.year - 1
+        previous_end = date(
+            previous_end_year,
+            end_month,
+            min(
+                company.fiscalyear_last_day or 31,
+                calendar.monthrange(previous_end_year, end_month)[1],
+            ),
+        )
+        return previous_end + timedelta(days=1), fiscal_end
+
+    def _apply_comparison_values(self):
+        self.ensure_one()
+        if self.comparison_mode == "none":
+            self.write({
+                "comparison_date_from": False,
+                "comparison_date_to": False,
+            })
+            return
+        if self.comparison_mode == "custom":
+            return
+        if not self.date_from or not self.date_to:
+            return
+        date_from = fields.Date.to_date(self.date_from)
+        date_to = fields.Date.to_date(self.date_to)
+        if self.comparison_mode == "previous_period":
+            period_days = (date_to - date_from).days + 1
+            comparison_to = date_from - timedelta(days=1)
+            comparison_from = comparison_to - timedelta(
+                days=period_days - 1,
+            )
+        else:
+            comparison_from = self._previous_year_date(date_from)
+            comparison_to = self._previous_year_date(date_to)
+        self.write({
+            "comparison_date_from": comparison_from,
+            "comparison_date_to": comparison_to,
+        })
+
+    @staticmethod
+    def _previous_year_date(value):
+        try:
+            return value.replace(year=value.year - 1)
+        except ValueError:
+            return value.replace(year=value.year - 1, day=28)
+
+    def _selected_companies(self):
+        self.ensure_one()
+        companies = self.company_ids | self.company_id
+        unauthorized = companies - self.env.companies
+        if unauthorized:
+            message = (
+                "You cannot report on a company outside your allowed "
+                "companies."
+            )
+            raise AccessError(message)
+        return companies.sorted(lambda company: (company.name, company.id))
+
+    def _draft_entry_warning(self):
+        self.ensure_one()
+        domain = [
+            ("company_id", "in", self._selected_companies().ids),
+            ("date", ">=", self.date_from),
+            ("date", "<=", self.date_to),
+            ("state", "=", "draft"),
+            ("line_ids", "!=", False),
+        ]
+        if self.data_scope == "imported":
+            domain.append(("rebuild_source_model", "=", "account.move"))
+        count = self.env["account.move"].search_count(domain)
+        if not count:
+            return 0, ""
+        treatment = (
+            "included in this report"
+            if self.target_move == "all"
+            else "excluded because Posted Entries Only is selected"
+        )
+        entry_grammar = "entry is" if count == 1 else "entries are"
+        return (
+            count,
+            f"{count} draft accounting {entry_grammar} {treatment}.",
+        )
 
     def action_open_journal_items(self):
         self.ensure_one()
@@ -194,9 +473,17 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         }
 
     def _export_filename(self):
+        company_key = (
+            "multi-company"
+            if len(self._selected_companies()) > 1
+            else str(
+                self.company_id.rebuild_source_id
+                or self.company_id.id,
+            )
+        )
         return "%s-%s-%s-%s.%s" % (
             self.report_type.replace("_", "-"),
-            self.company_id.rebuild_source_id or self.company_id.id,
+            company_key,
             fields.Date.to_string(self.date_from),
             fields.Date.to_string(self.date_to),
             self.export_format,
@@ -238,6 +525,10 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             )
         return {
             "sequence": sequence,
+            "company_id": (
+                row.get("report_company_id")
+                or self.company_id.id
+            ),
             "date": row.get("date") or row.get("due_date") or row.get("deferred_date"),
             "section": row.get("section") or row.get("statement_name") or row.get("report_section") or row.get("form_code") or row.get("journal_code"),
             "line_code": row.get("line_code") or row.get("field_code") or row.get("account_code") or row.get("journal_code"),
@@ -246,22 +537,96 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "account_name": row.get("account_name"),
             "partner_name": row.get("partner_name"),
             "move_name": row.get("move_name"),
+            "opening_balance": _amount(row.get("opening_balance")),
             "debit": _amount(row.get("debit")),
             "credit": _amount(row.get("credit")),
-            "balance": _amount(row.get("balance") or row.get("amount") or row.get("net_amount") or row.get("statement_balance")),
+            "movement": _amount(
+                row.get("movement")
+                or row.get("balance"),
+            ),
+            "closing_balance": _amount(row.get("closing_balance")),
+            "balance": _amount(
+                row.get("period_value")
+                or row.get("balance")
+                or row.get("amount")
+                or row.get("net_amount")
+                or row.get("statement_balance"),
+            ),
             "residual": _amount(row.get("presented_residual") or row.get("residual") or row.get("amount_residual") or row.get("imported_period_net_value")),
-            "currency_id": self.company_id.currency_id.id,
+            "comparison_value": _amount(row.get("comparison_value")),
+            "difference": _amount(row.get("difference")),
+            "record_count": int(row.get("record_count") or 0),
+            "is_group": row.get("is_group") in (True, "true"),
+            "level": int(row.get("row_level") or 0),
+            "group_key": row.get("group_key"),
+            "parent_group_key": row.get("parent_group_key"),
+            "currency_id": (
+                row.get("report_currency_id")
+                or self.company_id.currency_id.id
+            ),
             "row_json": json.dumps(row, indent=2, sort_keys=True, default=str),
         }
 
-    def _journal_item_domain(self):
+    def _visible_preview_rows(self, rows):
+        self.ensure_one()
+        if self.group_by == "none":
+            return rows
+        collapsed = self._collapsed_group_key_set()
+        visible = []
+        for row in rows:
+            if row.get("is_group") in (True, "true"):
+                visible.append(row)
+                continue
+            parent_key = row.get("parent_group_key")
+            if not self.show_details or parent_key in collapsed:
+                continue
+            visible.append(row)
+        return visible
+
+    def _collapsed_group_key_set(self):
+        self.ensure_one()
+        try:
+            values = json.loads(self.collapsed_group_keys or "[]")
+        except json.JSONDecodeError:
+            return set()
+        return {
+            str(value)
+            for value in values
+            if value not in (None, "")
+        }
+
+    def _toggle_preview_group(self, group_key):
+        self.ensure_one()
+        if not group_key:
+            return self.action_preview_report()
+        collapsed = self._collapsed_group_key_set()
+        if group_key in collapsed:
+            collapsed.remove(group_key)
+        else:
+            collapsed.add(group_key)
+        self.write({
+            "show_details": True,
+            "collapsed_group_keys": json.dumps(sorted(collapsed)),
+        })
+        return self.action_preview_report()
+
+    def _journal_item_domain(self, company_ids=None):
+        companies = (
+            self.env["res.company"].browse(company_ids)
+            if company_ids
+            else self._selected_companies()
+        )
         domain = [
-            ("company_id", "=", self.company_id.id),
-            ("rebuild_source_model", "=", "account.move.line"),
-            ("move_id.rebuild_source_model", "=", "account.move"),
-            ("move_id.date", ">=", self.date_from),
+            ("company_id", "in", companies.ids),
             ("move_id.date", "<=", self.date_to),
         ]
+        if self.report_type != "trial_balance":
+            domain.append(("move_id.date", ">=", self.date_from))
+        if self.data_scope == "imported":
+            domain.extend([
+                ("rebuild_source_model", "=", "account.move.line"),
+                ("move_id.rebuild_source_model", "=", "account.move"),
+            ])
         if self.target_move == "posted":
             domain.append(("move_id.state", "=", "posted"))
         if self.journal_ids:
@@ -305,24 +670,40 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             ])
             source_move_ids = sorted(set(
                 schedules.mapped("source_original_move_id")
-                + schedules.mapped("source_deferred_move_id")
+                + schedules.mapped("source_deferred_move_id"),
             ))
             domain.append(("move_id.rebuild_source_id", "in", source_move_ids or [0]))
         return domain
 
-    def _analytic_line_domain(self):
+    def _analytic_line_domain(self, company_ids=None):
+        companies = (
+            self.env["res.company"].browse(company_ids)
+            if company_ids
+            else self._selected_companies()
+        )
         domain = [
-            ("company_id", "=", self.company_id.id),
-            ("rebuild_source_model", "=", "account.analytic.line"),
+            ("company_id", "in", companies.ids),
             ("date", ">=", self.date_from),
             ("date", "<=", self.date_to),
         ]
+        if self.data_scope == "imported":
+            domain.append(
+                ("rebuild_source_model", "=", "account.analytic.line"),
+            )
         if self.journal_ids:
             domain.append(("move_line_id.journal_id", "in", self.journal_ids.ids))
         if self.account_ids:
             domain.append(("general_account_id", "in", self.account_ids.ids))
         if self.partner_ids:
             domain.append(("partner_id", "in", self.partner_ids.ids))
+        if self.analytic_plan_ids:
+            domain.append(
+                ("account_id.plan_id", "in", self.analytic_plan_ids.ids),
+            )
+        if self.analytic_account_ids:
+            domain.append(
+                ("account_id", "in", self.analytic_account_ids.ids),
+            )
         if self.target_move == "posted":
             domain.extend([
                 "|",
@@ -360,7 +741,12 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         return f"{fallback} - {label}"[:120]
 
     def _preview_journal_item_domain(self, row):
-        domain = list(self._journal_item_domain())
+        row_company_id = self._row_int(row, "report_company_id")
+        domain = list(
+            self._journal_item_domain(
+                company_ids=[row_company_id] if row_company_id else None,
+            ),
+        )
         refinements = []
 
         source_line_id = self._row_int(row, "source_line_id")
@@ -388,6 +774,9 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         if source_partner_id:
             domain.append(("partner_id.rebuild_source_id", "=", source_partner_id))
             refinements.append("source_partner_id")
+        elif row.get("partner_name"):
+            domain.append(("partner_id.name", "=", row["partner_name"]))
+            refinements.append("partner_name")
 
         source_account_ids = self._row_int_values(row, "source_account_id")
         accounts = self._preview_accounts(row, source_account_ids=source_account_ids)
@@ -420,15 +809,56 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             domain.append(("account_id.account_type", "=", account_type))
             refinements.append("account_type")
 
+        report_month = row.get("report_month")
+        if report_month and len(str(report_month)) == 7:
+            year, month = map(int, str(report_month).split("-"))
+            month_from = date(year, month, 1)
+            month_to = date(
+                year,
+                month,
+                calendar.monthrange(year, month)[1],
+            )
+            domain.extend([
+                ("move_id.date", ">=", month_from),
+                ("move_id.date", "<=", month_to),
+            ])
+            refinements.append("report_month")
+
         if not refinements:
             return domain
         return domain
 
     def _preview_analytic_line_domain(self, row):
-        domain = list(self._analytic_line_domain())
+        row_company_id = self._row_int(row, "report_company_id")
+        domain = list(
+            self._analytic_line_domain(
+                company_ids=[row_company_id] if row_company_id else None,
+            ),
+        )
         analytic_key = self._row_int(row, "analytic_key")
         if analytic_key:
-            domain.append(("rebuild_source_analytic_account_id", "=", analytic_key))
+            if self.data_scope == "imported":
+                domain.append(
+                    (
+                        "rebuild_source_analytic_account_id",
+                        "=",
+                        analytic_key,
+                    ),
+                )
+            else:
+                domain.extend([
+                    "|",
+                    ("account_id", "=", analytic_key),
+                    (
+                        "rebuild_source_analytic_account_id",
+                        "=",
+                        analytic_key,
+                    ),
+                ])
+        elif row.get("analytic_name"):
+            domain.append(
+                ("account_id.name", "=", row["analytic_name"]),
+            )
         source_partner_id = self._row_int(row, "source_partner_id")
         if source_partner_id:
             domain.append(("partner_id.rebuild_source_id", "=", source_partner_id))
@@ -515,10 +945,19 @@ class RebuildAccountReportExportWizard(models.TransientModel):
 
     def _export_metadata(self, row_count=None):
         partner = self.company_id.partner_id
+        companies = self._selected_companies()
         return {
             "report_type": self.report_type,
             "report_name": self._report_type_label(),
-            "company": self.company_id.display_name,
+            "company": ", ".join(companies.mapped("display_name")),
+            "companies": [
+                {
+                    "id": company.id,
+                    "name": company.display_name,
+                    "currency": company.currency_id.name,
+                }
+                for company in companies
+            ],
             "legal_name": self.company_id.name,
             "company_registry": self.company_id.company_registry or "",
             "vat_number": self.company_id.vat or "",
@@ -534,6 +973,21 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "currency": self.company_id.currency_id.name,
             "generated_at": fields.Datetime.to_string(fields.Datetime.now()),
             "target_move": self.target_move,
+            "data_scope": self.data_scope,
+            "period_preset": self.period_preset,
+            "comparison_mode": self.comparison_mode,
+            "comparison_date_from": (
+                fields.Date.to_string(self.comparison_date_from)
+                if self.comparison_date_from
+                else None
+            ),
+            "comparison_date_to": (
+                fields.Date.to_string(self.comparison_date_to)
+                if self.comparison_date_to
+                else None
+            ),
+            "group_by": self.group_by,
+            "search_text": self.search_text or "",
             "row_count": row_count,
             "format": self.export_format,
             "report_variant": self._report_variant_key(),
@@ -564,6 +1018,22 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 }
                 for partner in self.partner_ids.sorted("display_name")
             ],
+            "analytic_plan_filter": [
+                {
+                    "id": plan.id,
+                    "name": plan.display_name,
+                }
+                for plan in self.analytic_plan_ids.sorted("display_name")
+            ],
+            "analytic_account_filter": [
+                {
+                    "id": account.id,
+                    "name": account.display_name,
+                }
+                for account in self.analytic_account_ids.sorted(
+                    "display_name",
+                )
+            ],
         }
 
     @api.onchange("report_type")
@@ -582,7 +1052,8 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             return self._xlsx_payload(rows)
         if self.export_format == "pdf":
             return self._pdf_payload(rows)
-        raise UserError("Unsupported export format.")
+        message = "Unsupported export format."
+        raise UserError(message)
 
     def _csv_payload(self, rows):
         output = io.StringIO()
@@ -601,6 +1072,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
     def _report_export_columns(self, rows):
         available = {key for row in rows for key in row}
         labels = {
+            "report_company_name": "Company",
             "section": "Section",
             "statement_name": "Statement",
             "report_section": "Section",
@@ -638,6 +1110,9 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "validation": "Validation",
             "review_status": "Review status",
             "record_count": "Count",
+            "period_value": "Selected Period",
+            "comparison_value": "Comparison Period",
+            "difference": "Difference",
             "details": "Details",
             "next_action": "Next action",
             "evidence": "Evidence",
@@ -673,7 +1148,33 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "french_tax_package": ["form_code", "field_code", "field_label", "amount", "rounded_amount", "review_status", "source_reference"],
             "closing_package": ["section", "line_code", "label", "status", "validation", "record_count", "amount", "details", "next_action", "evidence"],
         }.get(self.report_type, [])
-        chosen = [key for key in preferred if key in available]
+        if self.group_by != "none":
+            chosen = [
+                key
+                for key in (
+                    "report_company_name",
+                    "label",
+                    "record_count",
+                    "period_value",
+                    "comparison_value",
+                    "difference",
+                )
+                if key in available
+            ]
+        else:
+            chosen = [key for key in preferred if key in available]
+            if len(self._selected_companies()) > 1:
+                chosen.insert(0, "report_company_name")
+            if self.comparison_mode != "none":
+                chosen.extend([
+                    key
+                    for key in (
+                        "period_value",
+                        "comparison_value",
+                        "difference",
+                    )
+                    if key in available and key not in chosen
+                ])
         if not chosen:
             excluded = {
                 key for key in available
@@ -691,6 +1192,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "amount", "gross_amount", "depreciation_amount", "net_amount", "residual",
             "presented_residual", "amount_residual", "imported_period_net_value", "original_value",
             "amount_currency", "rounded_amount", "statement_balance", "record_count",
+            "period_value", "comparison_value", "difference",
         }
         if value in (None, "", False):
             worksheet.write_blank(row, column, None, formats["body"])
@@ -813,9 +1315,16 @@ class RebuildAccountReportExportWizard(models.TransientModel):
     def _pdf_payload(self, rows):
         try:
             from reportlab.lib import colors  # noqa: PLC0415
-            from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT  # noqa: PLC0415
+            from reportlab.lib.enums import (  # noqa: PLC0415
+                TA_CENTER,
+                TA_LEFT,
+                TA_RIGHT,
+            )
             from reportlab.lib.pagesizes import A4, landscape  # noqa: PLC0415
-            from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet  # noqa: PLC0415
+            from reportlab.lib.styles import (  # noqa: PLC0415
+                ParagraphStyle,
+                getSampleStyleSheet,
+            )
             from reportlab.lib.units import mm  # noqa: PLC0415
             from reportlab.pdfbase import pdfmetrics  # noqa: PLC0415
             from reportlab.pdfbase.ttfonts import TTFError, TTFont  # noqa: PLC0415
@@ -947,6 +1456,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "amount", "gross_amount", "depreciation_amount", "net_amount", "residual",
             "presented_residual", "amount_residual", "imported_period_net_value", "original_value",
             "amount_currency", "rounded_amount", "statement_balance",
+            "period_value", "comparison_value", "difference",
         }
         status_labels = {
             "pass": "Conforme",
@@ -1219,6 +1729,377 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         return output.getvalue()
 
     def _report_rows(self):
+        self.ensure_one()
+        current_rows = self._raw_report_rows(
+            self.date_from,
+            self.date_to,
+        )
+        current_rows = self._search_report_rows(current_rows)
+        current_rows = self._group_report_rows(current_rows)
+        comparison_rows = []
+        if self.comparison_mode != "none":
+            comparison_rows = self._raw_report_rows(
+                self.comparison_date_from,
+                self.comparison_date_to,
+            )
+            comparison_rows = self._search_report_rows(
+                comparison_rows,
+            )
+            comparison_rows = self._group_report_rows(
+                comparison_rows,
+            )
+        return self._attach_comparison_values(
+            current_rows,
+            comparison_rows,
+        )
+
+    def _raw_report_rows(self, date_from, date_to):
+        self.ensure_one()
+        rows = []
+        for company in self._selected_companies():
+            clone = self.env[self._name].with_company(company).create(
+                self._report_clone_values(
+                    company,
+                    date_from,
+                    date_to,
+                ),
+            )
+            try:
+                company_rows = clone._report_rows_single()
+            finally:
+                clone.sudo().unlink()
+            for row in company_rows:
+                row = dict(row)
+                row.update({
+                    "report_company_id": company.id,
+                    "report_company_name": company.display_name,
+                    "report_currency_id": company.currency_id.id,
+                    "report_currency": company.currency_id.name,
+                })
+                rows.append(row)
+        return rows
+
+    def _report_clone_values(self, company, date_from, date_to):
+        journals = self.journal_ids.filtered(
+            lambda journal: not journal.company_id
+            or journal.company_id == company,
+        )
+        accounts = self.account_ids.filtered(
+            lambda account: company in account.company_ids,
+        )
+        values = {
+            "report_type": self.report_type,
+            "company_id": company.id,
+            "company_ids": [Command.set([company.id])],
+            "data_scope": self.data_scope,
+            "period_preset": "custom",
+            "date_from": date_from,
+            "date_to": date_to,
+            "comparison_mode": "none",
+            "target_move": self.target_move,
+            "export_format": self.export_format,
+            "fec_test_mode": self.fec_test_mode,
+            "journal_ids": [Command.set(journals.ids)],
+            "account_ids": [Command.set(accounts.ids)],
+            "partner_ids": [Command.set(self.partner_ids.ids)],
+            "group_by": "none",
+            "preview_limit": self.preview_limit,
+        }
+        if self.analytic_plan_ids:
+            values["analytic_plan_ids"] = [
+                Command.set(self.analytic_plan_ids.ids),
+            ]
+        if self.analytic_account_ids:
+            analytic_accounts = self.analytic_account_ids.filtered(
+                lambda account: not account.company_id
+                or account.company_id == company,
+            )
+            values["analytic_account_ids"] = [
+                Command.set(analytic_accounts.ids),
+            ]
+        return values
+
+    def _search_report_rows(self, rows):
+        self.ensure_one()
+        query = (self.search_text or "").strip().casefold()
+        if not query:
+            return rows
+        result = []
+        for row in rows:
+            searchable = " ".join(
+                str(value)
+                for key, value in row.items()
+                if value not in (None, False)
+                and not key.startswith("source_")
+                and not key.endswith("_id")
+            ).casefold()
+            if query in searchable:
+                result.append(row)
+        return result
+
+    def _group_report_rows(self, rows):
+        self.ensure_one()
+        if self.group_by == "none":
+            return rows
+        groups = {}
+        for row in rows:
+            group_key, label, group_values = self._report_group(row)
+            bucket = groups.setdefault(
+                group_key,
+                {
+                    "label": label,
+                    "values": group_values,
+                    "rows": [],
+                },
+            )
+            bucket["rows"].append(row)
+        result = []
+        for group_key, bucket in groups.items():
+            children = bucket["rows"]
+            group_row = {
+                **bucket["values"],
+                "is_group": "true",
+                "row_level": 0,
+                "group_key": group_key,
+                "label": bucket["label"],
+                "record_count": str(len(children)),
+            }
+            for field_name in self._summable_report_fields():
+                values = [
+                    _amount(row.get(field_name))
+                    for row in children
+                    if row.get(field_name) not in (None, "")
+                ]
+                if values:
+                    group_row[field_name] = _amount_text(sum(values))
+            result.append(group_row)
+            result.extend([
+                {
+                    **row,
+                    "is_group": "false",
+                    "row_level": 1,
+                    "parent_group_key": group_key,
+                }
+                for row in children
+            ])
+        return result
+
+    def _report_group(self, row):
+        company_key = str(row.get("report_company_id") or "")
+        company_name = row.get("report_company_name") or ""
+        field_map = {
+            "section": (
+                "section",
+                row.get("section")
+                or row.get("statement_name")
+                or row.get("report_section")
+                or row.get("form_code"),
+            ),
+            "account": (
+                "account_code",
+                row.get("account_code")
+                or row.get("asset_account")
+                or row.get("deferred_account_code"),
+            ),
+            "partner": ("partner_name", row.get("partner_name")),
+            "journal": (
+                "journal_code",
+                row.get("journal_code")
+                or row.get("journal_name"),
+            ),
+            "analytic": (
+                "analytic_name",
+                row.get("analytic_name")
+                or row.get("analytic_account_name")
+                or row.get("analytic_code"),
+            ),
+        }
+        if self.group_by == "month":
+            raw_date = (
+                row.get("date")
+                or row.get("due_date")
+                or row.get("deferred_date")
+                or row.get("depreciation_date")
+                or ""
+            )
+            value = str(raw_date)[:7] or "No date"
+            field_name = "report_month"
+        else:
+            field_name, value = field_map.get(
+                self.group_by,
+                ("section", ""),
+            )
+            value = str(value or "Not specified")
+        group_key = f"{company_key}|{self.group_by}|{value}"
+        label = (
+            f"{company_name} — {value}"
+            if len(self.company_ids or self.company_id) > 1
+            else value
+        )
+        values = {
+            "report_company_id": row.get("report_company_id"),
+            "report_company_name": company_name,
+            "report_currency_id": row.get("report_currency_id"),
+            "report_currency": row.get("report_currency"),
+            field_name: value,
+        }
+        if field_name == "account_code":
+            values["account_name"] = row.get("account_name") or ""
+        return group_key, label, values
+
+    @staticmethod
+    def _summable_report_fields():
+        return {
+            "opening_balance",
+            "debit",
+            "credit",
+            "balance",
+            "closing_balance",
+            "movement",
+            "amount",
+            "gross_amount",
+            "depreciation_amount",
+            "net_amount",
+            "residual",
+            "presented_residual",
+            "amount_residual",
+            "imported_period_net_value",
+            "original_value",
+            "amount_currency",
+            "rounded_amount",
+            "statement_balance",
+            "not_due",
+            "bucket_1_30",
+            "bucket_31_60",
+            "bucket_61_90",
+            "bucket_over_90",
+            "total",
+            "allocated_debit",
+            "allocated_credit",
+            "allocated_balance",
+        }
+
+    def _attach_comparison_values(self, current_rows, comparison_rows):
+        self.ensure_one()
+        comparison_by_key = {
+            self._comparison_key(row): row
+            for row in comparison_rows
+            if not (
+                self.group_by != "none"
+                and row.get("is_group") not in (True, "true")
+            )
+        }
+        result = []
+        seen_keys = set()
+        for row in current_rows:
+            row = dict(row)
+            key = self._comparison_key(row)
+            seen_keys.add(key)
+            period_value = self._row_period_value(row)
+            row["period_value"] = _amount_text(period_value)
+            if self.comparison_mode == "none":
+                result.append(row)
+                continue
+            if (
+                self.group_by != "none"
+                and row.get("is_group") not in (True, "true")
+            ):
+                row.update({
+                    "comparison_value": "",
+                    "difference": "",
+                })
+                result.append(row)
+                continue
+            comparison_row = comparison_by_key.get(key, {})
+            comparison_value = self._row_period_value(comparison_row)
+            row.update({
+                "comparison_value": _amount_text(comparison_value),
+                "difference": _amount_text(
+                    period_value - comparison_value,
+                ),
+            })
+            result.append(row)
+        for key, comparison_row in comparison_by_key.items():
+            if key in seen_keys:
+                continue
+            comparison_value = self._row_period_value(comparison_row)
+            row = {
+                **comparison_row,
+                "period_value": "0.00",
+                "comparison_value": _amount_text(comparison_value),
+                "difference": _amount_text(-comparison_value),
+                "comparison_only": "true",
+            }
+            result.append(row)
+        return result
+
+    def _comparison_key(self, row):
+        if row.get("group_key"):
+            return ("group", row["group_key"])
+        values = [
+            row.get("report_company_id"),
+            row.get("section")
+            or row.get("statement_name")
+            or row.get("report_section")
+            or row.get("form_code"),
+            row.get("line_code") or row.get("field_code"),
+            row.get("account_code")
+            or row.get("asset_account")
+            or row.get("deferred_account_code"),
+            row.get("journal_code"),
+            row.get("source_asset_id"),
+            row.get("source_partner_id") or row.get("partner_name"),
+            row.get("analytic_key")
+            or row.get("analytic_name")
+            or row.get("analytic_account_name"),
+            row.get("source_line_id")
+            or row.get("source_statement_line_id")
+            or row.get("move_name"),
+        ]
+        return tuple(str(value or "") for value in values)
+
+    def _row_period_value(self, row):
+        if not row:
+            return Decimal("0.00")
+        preferred = {
+            "aged_receivable": ("total", "residual"),
+            "aged_payable": ("total", "residual"),
+            "fixed_assets": (
+                "imported_period_net_value",
+                "net_amount",
+            ),
+            "fixed_asset_group_account": (
+                "imported_period_net_value",
+                "net_amount",
+            ),
+            "depreciation_schedule": (
+                "depreciation_amount",
+                "amount",
+            ),
+            "analytic_report": (
+                "allocated_balance",
+                "balance",
+            ),
+        }.get(self.report_type, ())
+        keys = (
+            *preferred,
+            "closing_balance",
+            "amount",
+            "net_amount",
+            "balance",
+            "statement_balance",
+            "presented_residual",
+            "residual",
+            "total",
+        )
+        for key in keys:
+            if row.get(key) not in (None, ""):
+                return _amount(row[key])
+        debit = _amount(row.get("debit"))
+        credit = _amount(row.get("credit"))
+        return debit - credit
+
+    def _report_rows_single(self):
         if self.report_type == "trial_balance":
             return self._trial_balance_rows()
         if self.report_type == "general_ledger":
@@ -1284,38 +2165,118 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             return self._french_tax_package_rows()
         if self.report_type == "closing_package":
             return self._closing_package_rows()
-        raise UserError("Unsupported report type.")
+        message = "Unsupported report type."
+        raise UserError(message)
 
     def _state_sql(self):
         return "" if self.target_move == "all" else "AND move.state = 'posted'"
 
+    def _ledger_scope_sql(self):
+        if self.data_scope == "imported":
+            return (
+                "AND line.rebuild_source_model = 'account.move.line' "
+                "AND move.rebuild_source_model = 'account.move'"
+            )
+        return ""
+
+    def _bank_scope_sql(self):
+        if self.data_scope == "imported":
+            return (
+                "AND bsl.rebuild_source_model = "
+                "'account.bank.statement.line' "
+                "AND move.rebuild_source_model = 'account.move'"
+            )
+        return ""
+
+    def _analytic_scope_sql(self):
+        if self.data_scope == "imported":
+            return (
+                "AND analytic.rebuild_source_model = "
+                "'account.analytic.line'"
+            )
+        return ""
+
     def _validate_filter_scope(self, for_drilldown=False):
         if for_drilldown:
             return
+        companies = self._selected_companies()
+        if self.company_id not in companies:
+            message = "The primary company must be included in Companies."
+            raise UserError(message)
+        if (
+            self.analytic_plan_ids or self.analytic_account_ids
+        ) and self.report_type != "analytic_report":
+            message = (
+                "Analytic plan and account filters are available on the "
+                "Analytic Report."
+            )
+            raise UserError(message)
         if self.report_type == "fec":
+            if len(companies) != 1:
+                message = "Generate one FEC per company."
+                raise UserError(message)
             if self.company_id not in self.env.companies:
-                raise AccessError("You cannot export a FEC for a company outside your allowed companies.")
+                message = (
+                    "You cannot export a FEC for a company outside your "
+                    "allowed companies."
+                )
+                raise AccessError(message)
             if not self.fec_test_mode and not self.env.user.has_group("account.group_account_manager"):
-                raise UserError("Only an Accounting Manager can generate an official non-test FEC because it may update lock dates.")
+                message = (
+                    "Only an Accounting Manager can generate an official "
+                    "non-test FEC because it may update lock dates."
+                )
+                raise UserError(message)
             if self.export_format != "txt":
-                raise UserError("FEC exports must use the FEC TXT format.")
+                message = "FEC exports must use the FEC TXT format."
+                raise UserError(message)
             if self.target_move != "posted":
-                raise UserError("Official FEC generation uses posted entries only.")
+                message = "Official FEC generation uses posted entries only."
+                raise UserError(message)
             if self.journal_ids or self.account_ids or self.partner_ids:
-                raise UserError("FEC exports cannot be filtered by journal, account or partner. Use General Ledger for filtered review.")
+                message = (
+                    "FEC exports cannot be filtered by journal, account or "
+                    "partner. Use General Ledger for filtered review."
+                )
+                raise UserError(message)
             return
+        if self.report_type in {
+            "french_tax_package",
+            "closing_package",
+        } and len(companies) != 1:
+            message = (
+                "French statutory and closing packages must be generated "
+                "for one company at a time."
+            )
+            raise UserError(message)
         if self.export_format == "txt":
-            raise UserError("The FEC TXT format is only available for FEC exports.")
+            message = "The FEC TXT format is only available for FEC exports."
+            raise UserError(message)
         if self.report_type in {"french_tax_package", "closing_package"} and (self.journal_ids or self.account_ids or self.partner_ids):
-            raise UserError("French statutory benchmark mapping and closing packages use company and period filters only.")
+            message = (
+                "French statutory benchmark mapping and closing packages "
+                "use company and period filters only."
+            )
+            raise UserError(message)
         if self.report_type in ("fixed_assets", "fixed_asset_group_account", "depreciation_schedule") and (self.journal_ids or self.partner_ids):
-            raise UserError("Journal and partner filters are not applicable to fixed-asset and depreciation-schedule exports.")
+            message = (
+                "Journal and partner filters are not applicable to "
+                "fixed-asset and depreciation-schedule exports."
+            )
+            raise UserError(message)
         if self.report_type == "bank_reconciliation" and self.account_ids:
-            raise UserError("Account filters are not applicable to bank reconciliation exports. Use the journal, partner and period filters.")
+            message = (
+                "Account filters are not applicable to bank reconciliation "
+                "exports. Use the journal, partner and period filters."
+            )
+            raise UserError(message)
 
     def _fec_export_payload(self):
         if "l10n_fr.fec.export.wizard" not in self.env:
-            raise UserError("French FEC generation requires the l10n_fr_account module.")
+            message = (
+                "French FEC generation requires the l10n_fr_account module."
+            )
+            raise UserError(message)
         Wizard = self.env["l10n_fr.fec.export.wizard"].sudo().with_company(self.company_id).with_context(
             allowed_company_ids=self.company_id.ids,
             fec_test_mode=self.fec_test_mode,
@@ -1384,6 +2345,12 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         if self.partner_ids:
             clauses.append("AND analytic.partner_id IN %s")
             params.append(tuple(self.partner_ids.ids))
+        if self.analytic_plan_ids:
+            clauses.append("AND analytic_account.plan_id IN %s")
+            params.append(tuple(self.analytic_plan_ids.ids))
+        if self.analytic_account_ids:
+            clauses.append("AND analytic.account_id IN %s")
+            params.append(tuple(self.analytic_account_ids.ids))
         return "\n               ".join(clauses), params
 
     def _analytic_state_sql(self):
@@ -1445,10 +2412,12 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             ("date_to", "=", self.date_to),
         ], order="period_type desc, id desc", limit=1)
         if not closing:
-            raise UserError(
+            message = (
                 "No closing workspace matches the selected company and exact dates. "
-                "Open Closing Workspaces, synchronize the company profile and use Generate Package from that period."
+                "Open Closing Workspaces, synchronize the company profile and use "
+                "Generate Package from that period."
             )
+            raise UserError(message)
         rows = [{
             "section": "Closing overview",
             "line_code": "CLOSE_STATUS",
@@ -1529,24 +2498,72 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                    {ACCOUNT_NAME_SQL} AS account_name,
                    account.account_type AS account_type,
                    account.rebuild_source_id::text AS source_account_id,
-                   count(line.id)::text AS move_line_count,
-                   round(sum(line.debit)::numeric, 2)::text AS debit,
-                   round(sum(line.credit)::numeric, 2)::text AS credit,
-                   round(sum(line.balance)::numeric, 2)::text AS balance
+                   count(line.id) FILTER (
+                       WHERE move.date BETWEEN %s AND %s
+                   )::text AS move_line_count,
+                   round(sum(
+                       CASE
+                           WHEN move.date < %s THEN line.balance
+                           ELSE 0
+                       END
+                   )::numeric, 2)::text AS opening_balance,
+                   round(sum(
+                       CASE
+                           WHEN move.date BETWEEN %s AND %s
+                           THEN line.debit
+                           ELSE 0
+                       END
+                   )::numeric, 2)::text AS debit,
+                   round(sum(
+                       CASE
+                           WHEN move.date BETWEEN %s AND %s
+                           THEN line.credit
+                           ELSE 0
+                       END
+                   )::numeric, 2)::text AS credit,
+                   round(sum(
+                       CASE
+                           WHEN move.date BETWEEN %s AND %s
+                           THEN line.balance
+                           ELSE 0
+                       END
+                   )::numeric, 2)::text AS movement,
+                   round(sum(
+                       CASE
+                           WHEN move.date BETWEEN %s AND %s
+                           THEN line.balance
+                           ELSE 0
+                       END
+                   )::numeric, 2)::text AS balance,
+                   round(sum(line.balance)::numeric, 2)::text AS closing_balance
               FROM account_move_line line
               JOIN account_move move ON move.id = line.move_id
               JOIN res_company company ON company.id = line.company_id
               JOIN account_account account ON account.id = line.account_id
-             WHERE line.rebuild_source_model = 'account.move.line'
-               AND move.rebuild_source_model = 'account.move'
-               AND line.company_id = %s
-               AND move.date BETWEEN %s AND %s
+             WHERE line.company_id = %s
+               AND move.date <= %s
+               {self._ledger_scope_sql()}
                {self._state_sql()}
                {filter_sql}
              GROUP BY account.id, company.rebuild_source_id, {ACCOUNT_CODE_SQL}, {ACCOUNT_NAME_SQL}, account.account_type, account.rebuild_source_id
              ORDER BY {ACCOUNT_CODE_SQL}
             """,
-            [self.company_id.id, self.date_from, self.date_to, *filter_params],
+            [
+                self.date_from,
+                self.date_to,
+                self.date_from,
+                self.date_from,
+                self.date_to,
+                self.date_from,
+                self.date_to,
+                self.date_from,
+                self.date_to,
+                self.date_from,
+                self.date_to,
+                self.company_id.id,
+                self.date_to,
+                *filter_params,
+            ],
         )
         return [dict(row) for row in self.env.cr.dictfetchall()]
 
@@ -1577,10 +2594,9 @@ class RebuildAccountReportExportWizard(models.TransientModel):
               JOIN account_journal journal ON journal.id = move.journal_id
               LEFT JOIN res_partner partner ON partner.id = line.partner_id
               LEFT JOIN res_currency currency ON currency.id = line.currency_id
-             WHERE line.rebuild_source_model = 'account.move.line'
-               AND move.rebuild_source_model = 'account.move'
-               AND line.company_id = %s
+             WHERE line.company_id = %s
                AND move.date BETWEEN %s AND %s
+               {self._ledger_scope_sql()}
                {self._state_sql()}
                {filter_sql}
              ORDER BY {ACCOUNT_CODE_SQL}, move.date, move.name, line.rebuild_source_id
@@ -1604,10 +2620,9 @@ class RebuildAccountReportExportWizard(models.TransientModel):
               FROM account_move_line line
               JOIN account_move move ON move.id = line.move_id
               JOIN account_journal journal ON journal.id = move.journal_id
-             WHERE line.rebuild_source_model = 'account.move.line'
-               AND move.rebuild_source_model = 'account.move'
-               AND line.company_id = %s
+             WHERE line.company_id = %s
                AND move.date BETWEEN %s AND %s
+               {self._ledger_scope_sql()}
                {self._state_sql()}
                {filter_sql}
              GROUP BY journal.id, journal.code, journal.name, journal.type
@@ -1662,12 +2677,11 @@ class RebuildAccountReportExportWizard(models.TransientModel):
               JOIN account_journal journal ON journal.id = move.journal_id
               JOIN res_partner partner ON partner.id = line.partner_id
               LEFT JOIN res_currency currency ON currency.id = line.currency_id
-             WHERE line.rebuild_source_model = 'account.move.line'
-               AND move.rebuild_source_model = 'account.move'
-               AND line.company_id = %s
+             WHERE line.company_id = %s
                AND move.date BETWEEN %s AND %s
                AND account.account_type = 'asset_receivable'
                {customer_filter_sql}
+               {self._ledger_scope_sql()}
                {self._state_sql()}
                {filter_sql}
              ORDER BY partner.name, move.date, move.name, line.rebuild_source_id
@@ -1699,12 +2713,11 @@ class RebuildAccountReportExportWizard(models.TransientModel):
               JOIN res_company company ON company.id = line.company_id
               JOIN account_account account ON account.id = line.account_id
               LEFT JOIN res_partner partner ON partner.id = line.partner_id
-             WHERE line.rebuild_source_model = 'account.move.line'
-               AND move.rebuild_source_model = 'account.move'
-               AND line.company_id = %s
+             WHERE line.company_id = %s
                AND move.date BETWEEN %s AND %s
                AND account.account_type IN ('asset_receivable', 'liability_payable')
                AND (line.reconciled IS NOT TRUE OR abs(line.amount_residual) > 0.004)
+               {self._ledger_scope_sql()}
                {self._state_sql()}
                {filter_sql}
              ORDER BY line.date_maturity, partner.name, move.name, line.rebuild_source_id
@@ -1728,12 +2741,11 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                   JOIN account_move move ON move.id = line.move_id
                   JOIN account_account account ON account.id = line.account_id
                   LEFT JOIN res_partner partner ON partner.id = line.partner_id
-                 WHERE line.rebuild_source_model = 'account.move.line'
-                   AND move.rebuild_source_model = 'account.move'
-                   AND line.company_id = %s
+                 WHERE line.company_id = %s
                    AND move.date BETWEEN %s AND %s
                    AND account.account_type = %s
                    AND (line.reconciled IS NOT TRUE OR abs(line.amount_residual) > 0.004)
+                   {self._ledger_scope_sql()}
                    {self._state_sql()}
                    {filter_sql}
             )
@@ -1865,10 +2877,9 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                   JOIN account_move move ON move.id = line.move_id
                   JOIN res_company company ON company.id = line.company_id
                   JOIN account_account account ON account.id = line.account_id
-                 WHERE line.rebuild_source_model = 'account.move.line'
-                   AND move.rebuild_source_model = 'account.move'
-                   AND line.company_id = %s
+                 WHERE line.company_id = %s
                    AND move.date BETWEEN %s AND %s
+                   {self._ledger_scope_sql()}
                    {self._state_sql()}
                    {filter_sql}
                  GROUP BY tag.rebuild_source_id,
@@ -1893,11 +2904,10 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                   JOIN account_move move ON move.id = line.move_id
                   JOIN res_company company ON company.id = line.company_id
                   JOIN account_account account ON account.id = line.account_id
-                 WHERE line.rebuild_source_model = 'account.move.line'
-                   AND move.rebuild_source_model = 'account.move'
-                   AND line.company_id = %s
+                 WHERE line.company_id = %s
                    AND move.date BETWEEN %s AND %s
                    AND {ACCOUNT_CODE_SQL} LIKE '445%%'
+                   {self._ledger_scope_sql()}
                    {self._state_sql()}
                    {filter_sql}
                  GROUP BY account.rebuild_source_id,
@@ -2030,10 +3040,9 @@ class RebuildAccountReportExportWizard(models.TransientModel):
               LEFT JOIN res_currency currency ON currency.id = bsl.currency_id
               LEFT JOIN res_currency foreign_currency ON foreign_currency.id = bsl.foreign_currency_id
               LEFT JOIN account_move_line line ON line.move_id = move.id
-             WHERE bsl.rebuild_source_model = 'account.bank.statement.line'
-               AND move.rebuild_source_model = 'account.move'
-               AND bsl.company_id = %s
+             WHERE bsl.company_id = %s
                AND move.date BETWEEN %s AND %s
+               {self._bank_scope_sql()}
                {self._state_sql()}
                {filter_sql}
              GROUP BY bsl.id,
@@ -2082,12 +3091,11 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                   JOIN account_account account ON account.id = line.account_id
                   JOIN res_currency currency ON currency.id = line.currency_id
                   LEFT JOIN res_partner partner ON partner.id = line.partner_id
-                 WHERE line.rebuild_source_model = 'account.move.line'
-                   AND move.rebuild_source_model = 'account.move'
-                   AND line.company_id = %s
+                 WHERE line.company_id = %s
                    AND move.date BETWEEN %s AND %s
                    AND line.currency_id IS NOT NULL
                    AND line.currency_id != company.currency_id
+                   {self._ledger_scope_sql()}
                    {self._state_sql()}
                    {filter_sql}
                 UNION ALL
@@ -2110,11 +3118,10 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                   JOIN account_account account ON account.id = line.account_id
                   LEFT JOIN res_currency currency ON currency.id = line.currency_id
                   LEFT JOIN res_partner partner ON partner.id = line.partner_id
-                 WHERE line.rebuild_source_model = 'account.move.line'
-                   AND move.rebuild_source_model = 'account.move'
-                   AND line.company_id = %s
+                 WHERE line.company_id = %s
                    AND move.date BETWEEN %s AND %s
                    AND ({ACCOUNT_CODE_SQL} LIKE '666%%' OR {ACCOUNT_CODE_SQL} LIKE '766%%')
+                   {self._ledger_scope_sql()}
                    {self._state_sql()}
                    {filter_sql}
                 UNION ALL
@@ -2137,14 +3144,13 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                   JOIN account_account account ON account.id = line.account_id
                   JOIN res_currency currency ON currency.id = line.currency_id
                   LEFT JOIN res_partner partner ON partner.id = line.partner_id
-                 WHERE line.rebuild_source_model = 'account.move.line'
-                   AND move.rebuild_source_model = 'account.move'
-                   AND line.company_id = %s
+                 WHERE line.company_id = %s
                    AND move.date BETWEEN %s AND %s
                    AND line.currency_id IS NOT NULL
                    AND line.currency_id != company.currency_id
                    AND account.account_type IN ('asset_receivable', 'liability_payable')
                    AND (line.reconciled IS NOT TRUE OR abs(line.amount_residual) > 0.004 OR abs(line.amount_residual_currency) > 0.004)
+                   {self._ledger_scope_sql()}
                    {self._state_sql()}
                    {filter_sql}
             )
@@ -2257,10 +3263,9 @@ class RebuildAccountReportExportWizard(models.TransientModel):
               FROM account_move_line line
               JOIN account_move move ON move.id = line.move_id
               JOIN account_account account ON account.id = line.account_id
-             WHERE line.rebuild_source_model = 'account.move.line'
-               AND move.rebuild_source_model = 'account.move'
-               AND line.company_id = %s
+             WHERE line.company_id = %s
                AND move.date BETWEEN %s AND %s
+               {self._ledger_scope_sql()}
                {self._state_sql()}
                {filter_sql}
             """,
@@ -2357,13 +3362,17 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                        analytic.amount
                   FROM account_analytic_line analytic
                   JOIN res_company company ON company.id = analytic.company_id
-                  LEFT JOIN account_analytic_account analytic_account ON analytic_account.id = analytic.rebuild_analytic_account_id
+                  LEFT JOIN account_analytic_account analytic_account
+                    ON analytic_account.id = COALESCE(
+                        analytic.account_id,
+                        analytic.rebuild_analytic_account_id
+                    )
                   LEFT JOIN account_account account ON account.id = analytic.general_account_id
                   LEFT JOIN account_move_line line ON line.id = analytic.move_line_id
                   LEFT JOIN account_move move ON move.id = line.move_id
-                 WHERE analytic.rebuild_source_model = 'account.analytic.line'
-                   AND analytic.company_id = %s
+                 WHERE analytic.company_id = %s
                    AND analytic.date BETWEEN %s AND %s
+                   {self._analytic_scope_sql()}
                    {self._analytic_state_sql()}
                    {filter_sql}
             )
@@ -2670,7 +3679,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
 
 class RebuildAccountReportPreviewLine(models.TransientModel):
     _name = "rebuild.account.report.preview.line"
-    _description = "USL Imported Accounting Report Preview Line"
+    _description = "USL Dynamic Accounting Report Preview Line"
     _order = "sequence, id"
 
     wizard_id = fields.Many2one(
@@ -2679,6 +3688,7 @@ class RebuildAccountReportPreviewLine(models.TransientModel):
         ondelete="cascade",
     )
     sequence = fields.Integer(readonly=True)
+    company_id = fields.Many2one("res.company", readonly=True)
     date = fields.Date(readonly=True)
     section = fields.Char(readonly=True)
     line_code = fields.Char(readonly=True)
@@ -2687,18 +3697,37 @@ class RebuildAccountReportPreviewLine(models.TransientModel):
     account_name = fields.Char(readonly=True)
     partner_name = fields.Char(readonly=True)
     move_name = fields.Char(readonly=True)
+    opening_balance = fields.Monetary(readonly=True)
     debit = fields.Monetary(readonly=True)
     credit = fields.Monetary(readonly=True)
+    movement = fields.Monetary(readonly=True)
+    closing_balance = fields.Monetary(readonly=True)
     balance = fields.Monetary(readonly=True)
     residual = fields.Monetary(readonly=True)
+    comparison_value = fields.Monetary(readonly=True)
+    difference = fields.Monetary(readonly=True)
+    record_count = fields.Integer(readonly=True)
+    is_group = fields.Boolean(readonly=True)
+    level = fields.Integer(readonly=True)
+    group_key = fields.Char(readonly=True)
+    parent_group_key = fields.Char(readonly=True)
     currency_id = fields.Many2one("res.currency", readonly=True)
     row_json = fields.Text(readonly=True)
 
     def action_open_sources(self):
         self.ensure_one()
         if not self.wizard_id:
-            raise UserError("Preview source drill-down requires the report wizard context.")
+            message = (
+                "Preview source drill-down requires the report wizard context."
+            )
+            raise UserError(message)
         return self.wizard_id._preview_source_action(self)
+
+    def action_toggle_group(self):
+        self.ensure_one()
+        if not self.is_group:
+            return self.wizard_id.action_preview_report()
+        return self.wizard_id._toggle_preview_group(self.group_key)
 
     def _row_payload(self):
         self.ensure_one()

@@ -4,11 +4,13 @@ Audience: accountant, CEO, finance operator.
 
 This reference lists supported report types and the normal use for each.
 
+All report families below use the canonical Accounting Report Workbench. Normal reports query all native accounting by default and can be filtered, compared, grouped, searched, folded, drilled down and exported. `Imported Accounting Only` is reserved for reconstruction audit.
+
 ## General Accounting
 
 | Report | Main Use | Typical Format |
 | --- | --- | --- |
-| Trial Balance | Check account debit, credit and closing balance | XLSX, CSV |
+| Trial Balance | Check opening, period debit/credit, movement and closing balance | XLSX, CSV, PDF |
 | General Ledger | Inspect all journal items by account | XLSX, CSV |
 | Journal Report | Review activity by journal | XLSX, CSV |
 | Partner Ledger | Review partner balances and entries | XLSX, CSV |
@@ -61,4 +63,3 @@ This reference lists supported report types and the normal use for each.
 | FEC | French accounting entries file | TXT |
 
 The FEC is generated from posted entries and must be reviewed by the accountant even after structural validation passes.
-

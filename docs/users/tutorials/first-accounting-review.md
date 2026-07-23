@@ -78,11 +78,12 @@ Open one journal item. Notice the source-trace fields where available. These fie
 3. In the wizard, set:
    - Report Type: `Trial Balance`
    - Company: `Unstatic Labs`
+   - Data Scope: `All Native Accounting`
    - Start Date: `2024-01-10`
    - End Date: `2025-09-30`
    - Target Move: `Posted Entries Only`
    - Export Format: `XLSX`
-4. Click `Preview`.
+4. Click `Apply Period` or `Refresh`.
 
 You should see preview rows. The preview is useful before downloading an export.
 
@@ -90,7 +91,8 @@ What to notice:
 
 - Preview Row Count tells you how many rows match the selected filters.
 - Preview Metadata records the company, dates, report type and selected filters.
-- Preview lines include account code, account name, debit, credit and balance where applicable.
+- Trial Balance lines include account code, account name, opening, debit, credit, movement and closing.
+- The draft warning explains whether draft entries are excluded or included.
 
 ## 5. Drill Down from the Preview
 
@@ -136,7 +138,7 @@ This is not a ledger mismatch. It means technical evidence exists, but a human w
 1. Go to:
 
 ```text
-Accounting > Review > Rebuild Evidence > Review Decisions
+Accounting > Review > Advanced Audit > Review Decisions
 ```
 
 2. Filter by state `Draft`.
@@ -149,7 +151,7 @@ Do not record a decision yet unless you have reviewed the evidence and have auth
 1. Go to:
 
 ```text
-Accounting > Review > Rebuild Evidence > Source Report Catalogue
+Accounting > Review > Advanced Audit > Source Report Catalogue
 ```
 
 2. Open a source report, for example Trial Balance or Balance Sheet.

@@ -9,7 +9,7 @@ Use this guide when imported reconciliations touch records outside the posted re
 Go to:
 
 ```text
-Accounting > Review > Rebuild Evidence > Source Reconciliation Boundary Review
+Accounting > Review > Advanced Audit > Source Reconciliation Boundary Review
 ```
 
 These rows represent source reconciliations that include at least one imported posted endpoint and at least one endpoint outside the selected posted replay scope.
@@ -60,4 +60,3 @@ Before applying:
 Click `Apply Native Partial` only after those conditions are met.
 
 This action changes target reconciliation presentation. Do not use it as a routine cleanup tool.
-

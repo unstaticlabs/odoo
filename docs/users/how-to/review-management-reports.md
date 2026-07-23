@@ -20,7 +20,7 @@ Accounting > Reporting > Analytic Report
 If you start from the reconstruction summary, open:
 
 ```text
-Accounting > Review > Rebuild Evidence > Accounting Reconstruction Review
+Accounting > Review > Control > Issues
 ```
 
 Then click `Report Export` and select the report type.
@@ -34,6 +34,7 @@ Report Type: SIG and CAF (2024 PCG)
 Start Date: 2024-01-10
 End Date: 2025-09-30
 Target Move: Posted Entries Only
+Data Scope: All Native Accounting
 Export Format: PDF
 ```
 
@@ -120,7 +121,7 @@ the original expense business input. It is not a second analytic ledger.
 
 ## Drill Down
 
-Click `Preview`, then use the external-link icon or `Open Journal Items`.
+Click `Apply Period` or `Refresh`, then use the external-link icon or `Open Entries`.
 
 For analytic reports, drill-down opens analytic lines. For other management reports, drill-down opens the related accounting items where available.
 

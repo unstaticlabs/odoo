@@ -152,9 +152,7 @@
         </field>
     </record>
     <record id="account_financial_report.menu_oca_reports" model="ir.ui.menu">
-        <field name="name">Interactive Reports</field>
-        <field name="sequence">1</field>
-        <field name="group_ids" eval="[(6, 0, [ref('account.group_account_readonly')])]"/>
+        <field name="active" eval="False"/>
     </record>
     <record id="account_financial_report.action_trial_balance_wizard" model="ir.actions.act_window">
         <field name="context">{'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_target_move': 'posted'}</field>
@@ -3165,77 +3163,124 @@
         <field name="name">rebuild.account.report.export.wizard.form</field>
         <field name="model">rebuild.account.report.export.wizard</field>
         <field name="arch" type="xml">
-            <form string="Imported Accounting Report Export">
-                <group>
+            <form string="Accounting Report Workbench">
+                <header>
+                    <button name="action_preview_report" type="object" string="Refresh" class="btn-primary"/>
+                    <button name="action_generate_export" type="object" string="Generate Export"/>
+                    <button name="action_open_journal_items" type="object" string="Open Entries"/>
+                    <button name="action_expand_all" type="object" string="Expand All" invisible="group_by == 'none'"/>
+                    <button name="action_collapse_all" type="object" string="Collapse All" invisible="group_by == 'none'"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="report_type"/>
+                        </h1>
+                    </div>
+                    <div class="alert alert-warning" role="alert" invisible="not preview_warning">
+                        <field name="preview_warning" nolabel="1" readonly="1"/>
+                    </div>
                     <group>
-                        <field name="report_type"/>
-                        <field name="company_id"/>
-                        <field name="target_move"/>
+                        <group string="Scope">
+                            <field name="company_id"/>
+                            <field name="company_ids" widget="many2many_tags"/>
+                            <field name="data_scope"/>
+                            <field name="target_move"/>
+                        </group>
+                        <group string="Period">
+                            <field name="period_preset"/>
+                            <field name="period_anchor_date" invisible="period_preset == 'custom'"/>
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                            <button name="action_apply_period" type="object" string="Apply Period" class="btn-secondary"/>
+                        </group>
                     </group>
                     <group>
-                        <field name="date_from"/>
-                        <field name="date_to"/>
+                        <group string="Comparison">
+                            <field name="comparison_mode"/>
+                            <field name="comparison_date_from" invisible="comparison_mode == 'none'"/>
+                            <field name="comparison_date_to" invisible="comparison_mode == 'none'"/>
+                        </group>
+                        <group string="View">
+                            <field name="group_by"/>
+                            <field name="search_text" placeholder="Account, partner, entry, label…"/>
+                            <field name="preview_limit"/>
+                            <field name="show_details" invisible="group_by == 'none'"/>
+                            <field name="collapsed_group_keys" invisible="1"/>
+                        </group>
+                    </group>
+                    <group string="Optional Filters">
+                        <field name="journal_ids" widget="many2many_tags" domain="['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]"/>
+                        <field name="account_ids" widget="many2many_tags" domain="[('company_ids', 'in', company_ids)]"/>
+                        <field name="partner_ids" widget="many2many_tags"/>
+                        <field name="analytic_plan_ids" widget="many2many_tags" invisible="report_type != 'analytic_report'"/>
+                        <field name="analytic_account_ids" widget="many2many_tags" invisible="report_type != 'analytic_report'"/>
+                    </group>
+                    <group string="Export">
                         <field name="export_format"/>
                         <field name="fec_test_mode" invisible="report_type != 'fec'"/>
                     </group>
-                </group>
-                <group string="Optional Ledger Filters">
-                    <field name="journal_ids" widget="many2many_tags" domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]"/>
-                    <field name="account_ids" widget="many2many_tags" domain="[('company_ids', '=', company_id)]"/>
-                    <field name="partner_ids" widget="many2many_tags"/>
-                </group>
-                <group string="Preview">
-                    <field name="preview_limit"/>
-                    <field name="preview_row_count" readonly="1"/>
-                    <field name="preview_truncated" readonly="1"/>
-                    <field name="preview_generated_at" readonly="1"/>
-                </group>
-                <notebook invisible="not preview_generated_at">
-                    <page string="Report Preview">
-                        <field name="preview_line_ids" nolabel="1" readonly="1">
-                            <list create="0" edit="0" delete="0" limit="80">
-                                <button name="action_open_sources" type="object" icon="fa-external-link" title="Open Sources"/>
-                                <field name="sequence"/>
-                                <field name="date"/>
-                                <field name="section"/>
-                                <field name="line_code"/>
-                                <field name="label"/>
-                                <field name="account_code"/>
-                                <field name="account_name"/>
-                                <field name="partner_name"/>
-                                <field name="move_name"/>
-                                <field name="currency_id" column_invisible="1"/>
-                                <field name="debit" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                                <field name="credit" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                                <field name="balance" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                                <field name="residual" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                            </list>
-                        </field>
-                    </page>
-                    <page string="Preview Metadata">
-                        <field name="preview_metadata" nolabel="1" readonly="1"/>
-                    </page>
-                </notebook>
-                <group invisible="not export_file">
-                    <field name="export_filename" readonly="1"/>
-                    <field name="export_file" filename="export_filename" readonly="1"/>
-                    <field name="export_metadata" readonly="1"/>
-                </group>
-                <footer>
-                    <button name="action_preview_report" type="object" string="Preview" class="btn-primary"/>
-                    <button name="action_generate_export" type="object" string="Generate Export"/>
-                    <button name="action_open_journal_items" type="object" string="Open Journal Items"/>
-                    <button string="Close" special="cancel"/>
-                </footer>
+                    <group string="Current Result" invisible="not preview_generated_at">
+                        <field name="preview_row_count" readonly="1"/>
+                        <field name="preview_truncated" readonly="1"/>
+                        <field name="preview_generated_at" readonly="1"/>
+                        <field name="draft_entry_count" readonly="1"/>
+                    </group>
+                    <notebook invisible="not preview_generated_at">
+                        <page string="Report">
+                            <field name="preview_line_ids" nolabel="1" readonly="1">
+                                <list create="0" edit="0" delete="0" limit="80" decoration-bf="is_group">
+                                    <button name="action_toggle_group" type="object" icon="fa-sitemap" title="Expand or collapse this group" invisible="not is_group"/>
+                                    <button name="action_open_sources" type="object" icon="fa-external-link" title="Open Sources"/>
+                                    <field name="sequence" optional="hide"/>
+                                    <field name="level" optional="hide"/>
+                                    <field name="company_id" optional="hide"/>
+                                    <field name="date" optional="show"/>
+                                    <field name="section" optional="show"/>
+                                    <field name="line_code" optional="show"/>
+                                    <field name="label"/>
+                                    <field name="record_count" optional="show"/>
+                                    <field name="account_code" optional="show"/>
+                                    <field name="account_name" optional="show"/>
+                                    <field name="partner_name" optional="show"/>
+                                    <field name="move_name" optional="show"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                    <field name="opening_balance" string="Opening" widget="monetary" options="{'currency_field': 'currency_id'}" column_invisible="parent.report_type not in ['trial_balance', 'balance_sheet']"/>
+                                    <field name="debit" widget="monetary" options="{'currency_field': 'currency_id'}" optional="show" column_invisible="parent.report_type not in ['trial_balance', 'general_ledger', 'journal_report', 'partner_ledger', 'customer_statement', 'tax_report', 'tax_report_group_account_tax', 'tax_report_group_tax_account', 'analytic_report']"/>
+                                    <field name="credit" widget="monetary" options="{'currency_field': 'currency_id'}" optional="show" column_invisible="parent.report_type not in ['trial_balance', 'general_ledger', 'journal_report', 'partner_ledger', 'customer_statement', 'tax_report', 'tax_report_group_account_tax', 'tax_report_group_tax_account', 'analytic_report']"/>
+                                    <field name="movement" string="Movement" widget="monetary" options="{'currency_field': 'currency_id'}" column_invisible="parent.report_type not in ['trial_balance', 'balance_sheet']"/>
+                                    <field name="closing_balance" string="Closing" widget="monetary" options="{'currency_field': 'currency_id'}" column_invisible="parent.report_type not in ['trial_balance', 'balance_sheet']"/>
+                                    <field name="balance" string="Selected Period" widget="monetary" options="{'currency_field': 'currency_id'}" column_invisible="parent.report_type in ['trial_balance', 'balance_sheet']"/>
+                                    <field name="comparison_value" string="Comparison" widget="monetary" options="{'currency_field': 'currency_id'}" column_invisible="parent.comparison_mode == 'none'"/>
+                                    <field name="difference" widget="monetary" options="{'currency_field': 'currency_id'}" column_invisible="parent.comparison_mode == 'none'"/>
+                                    <field name="residual" widget="monetary" options="{'currency_field': 'currency_id'}" optional="hide"/>
+                                    <field name="is_group" column_invisible="1"/>
+                                    <field name="group_key" column_invisible="1"/>
+                                    <field name="parent_group_key" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Filters and Evidence">
+                            <field name="preview_metadata" nolabel="1" readonly="1"/>
+                        </page>
+                        <page string="Download" invisible="not export_file">
+                            <group>
+                                <field name="export_filename" readonly="1"/>
+                                <field name="export_file" filename="export_filename" readonly="1"/>
+                            </group>
+                            <field name="export_metadata" nolabel="1" readonly="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
             </form>
         </field>
     </record>
 
     <record id="action_rebuild_account_report_export_wizard" model="ir.actions.act_window">
-        <field name="name">Imported Accounting Report Export</field>
+        <field name="name">Accounting Reports</field>
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
-        <field name="target">new</field>
+        <field name="target">current</field>
         <field name="context">{'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30'}</field>
     </record>
 
@@ -3249,7 +3294,7 @@
         <field name="name">Trial Balance</field>
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
-        <field name="target">new</field>
+        <field name="target">current</field>
         <field name="context">{'default_report_type': 'trial_balance', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'xlsx'}</field>
     </record>
 
@@ -3257,7 +3302,7 @@
         <field name="name">General Ledger</field>
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
-        <field name="target">new</field>
+        <field name="target">current</field>
         <field name="context">{'default_report_type': 'general_ledger', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'xlsx'}</field>
     </record>
 
@@ -3265,7 +3310,7 @@
         <field name="name">Journal Report</field>
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
-        <field name="target">new</field>
+        <field name="target">current</field>
         <field name="context">{'default_report_type': 'journal_report', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'xlsx'}</field>
     </record>
 
@@ -3273,7 +3318,7 @@
         <field name="name">Partner Ledger</field>
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
-        <field name="target">new</field>
+        <field name="target">current</field>
         <field name="context">{'default_report_type': 'partner_ledger', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'xlsx'}</field>
     </record>
 
@@ -3281,7 +3326,7 @@
         <field name="name">Customer Statement</field>
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
-        <field name="target">new</field>
+        <field name="target">current</field>
         <field name="context">{'default_report_type': 'customer_statement', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'xlsx'}</field>
     </record>
 
@@ -3289,7 +3334,7 @@
         <field name="name">Open Items</field>
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
-        <field name="target">new</field>
+        <field name="target">current</field>
         <field name="context">{'default_report_type': 'open_items', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'xlsx'}</field>
     </record>
 
@@ -3297,7 +3342,7 @@
         <field name="name">Aged Receivable</field>
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
-        <field name="target">new</field>
+        <field name="target">current</field>
         <field name="context">{'default_report_type': 'aged_receivable', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'xlsx'}</field>
     </record>
 
@@ -3305,7 +3350,7 @@
         <field name="name">Aged Payable</field>
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
-        <field name="target">new</field>
+        <field name="target">current</field>
         <field name="context">{'default_report_type': 'aged_payable', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'xlsx'}</field>
     </record>
 
@@ -3313,7 +3358,7 @@
         <field name="name">Balance Sheet</field>
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
-        <field name="target">new</field>
+        <field name="target">current</field>
         <field name="context">{'default_report_type': 'balance_sheet', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'pdf'}</field>
     </record>
 
@@ -3321,7 +3366,7 @@
         <field name="name">Profit and Loss</field>
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
-        <field name="target">new</field>
+        <field name="target">current</field>
         <field name="context">{'default_report_type': 'profit_loss', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'pdf'}</field>
     </record>
 
@@ -3329,7 +3374,7 @@
         <field name="name">VAT and Tax Report</field>
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
-        <field name="target">new</field>
+        <field name="target">current</field>
         <field name="context">{'default_report_type': 'tax_report', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'xlsx'}</field>
     </record>
 
@@ -3337,7 +3382,7 @@
         <field name="name">Tax Report by Account then Tax</field>
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
-        <field name="target">new</field>
+        <field name="target">current</field>
         <field name="context">{'default_report_type': 'tax_report_group_account_tax', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'xlsx'}</field>
     </record>
 
@@ -3345,7 +3390,7 @@
         <field name="name">Tax Report by Tax then Account</field>
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
-        <field name="target">new</field>
+        <field name="target">current</field>
         <field name="context">{'default_report_type': 'tax_report_group_tax_account', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'xlsx'}</field>
     </record>
 
@@ -3353,7 +3398,7 @@
         <field name="name">French Tax Package and CA12 Mapping</field>
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
-        <field name="target">new</field>
+        <field name="target">current</field>
         <field name="context">{'default_report_type': 'french_tax_package', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'pdf'}</field>
     </record>
 
@@ -3361,7 +3406,7 @@
         <field name="name">FEC</field>
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
-        <field name="target">new</field>
+        <field name="target">current</field>
         <field name="context">{'default_report_type': 'fec', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'txt', 'default_target_move': 'posted', 'default_fec_test_mode': True}</field>
     </record>
 
@@ -3369,7 +3414,7 @@
         <field name="name">French Annual Statements</field>
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
-        <field name="target">new</field>
+        <field name="target">current</field>
         <field name="context">{'default_report_type': 'french_annual', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'pdf'}</field>
     </record>
 
@@ -3377,7 +3422,7 @@
         <field name="name">French Balance Sheet (2024 PCG)</field>
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
-        <field name="target">new</field>
+        <field name="target">current</field>
         <field name="context">{'default_report_type': 'french_balance_sheet_2024', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'pdf'}</field>
     </record>
 
@@ -3385,7 +3430,7 @@
         <field name="name">French Profit and Loss (2024 PCG)</field>
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
-        <field name="target">new</field>
+        <field name="target">current</field>
         <field name="context">{'default_report_type': 'french_profit_loss_2024', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'pdf'}</field>
     </record>
 
@@ -3393,7 +3438,7 @@
         <field name="name">SIG and CAF (2024 PCG)</field>
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
-        <field name="target">new</field>
+        <field name="target">current</field>
         <field name="context">{'default_report_type': 'sig_caf_2024', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'pdf'}</field>
     </record>
 
@@ -3401,7 +3446,7 @@
         <field name="name">Bank Reconciliation Report</field>
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
-        <field name="target">new</field>
+        <field name="target">current</field>
         <field name="context">{'default_report_type': 'bank_reconciliation', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'xlsx'}</field>
     </record>
 
@@ -3409,7 +3454,7 @@
         <field name="name">Currency Gains, Losses and Exposure</field>
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
-        <field name="target">new</field>
+        <field name="target">current</field>
         <field name="context">{'default_report_type': 'currency_report', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'xlsx'}</field>
     </record>
 
@@ -3417,7 +3462,7 @@
         <field name="name">Cash Flow Statement</field>
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
-        <field name="target">new</field>
+        <field name="target">current</field>
         <field name="context">{'default_report_type': 'cash_flow', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'pdf'}</field>
     </record>
 
@@ -3425,7 +3470,7 @@
         <field name="name">Executive Summary</field>
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
-        <field name="target">new</field>
+        <field name="target">current</field>
         <field name="context">{'default_report_type': 'executive_summary', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'pdf'}</field>
     </record>
 
@@ -3433,7 +3478,7 @@
         <field name="name">Analytic Report</field>
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
-        <field name="target">new</field>
+        <field name="target">current</field>
         <field name="context">{'default_report_type': 'analytic_report', 'default_date_from': '2025-10-01', 'default_export_format': 'xlsx'}</field>
     </record>
 
@@ -3441,7 +3486,7 @@
         <field name="name">Fixed Asset Register</field>
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
-        <field name="target">new</field>
+        <field name="target">current</field>
         <field name="context">{'default_report_type': 'fixed_assets', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'pdf'}</field>
     </record>
 
@@ -3449,7 +3494,7 @@
         <field name="name">Fixed Asset Register by Account</field>
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
-        <field name="target">new</field>
+        <field name="target">current</field>
         <field name="context">{'default_report_type': 'fixed_asset_group_account', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'xlsx'}</field>
     </record>
 
@@ -3457,7 +3502,7 @@
         <field name="name">Depreciation Schedule</field>
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
-        <field name="target">new</field>
+        <field name="target">current</field>
         <field name="context">{'default_report_type': 'depreciation_schedule', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'pdf'}</field>
     </record>
 
@@ -3465,7 +3510,7 @@
         <field name="name">Deferred Expense and Revenue Schedule</field>
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
-        <field name="target">new</field>
+        <field name="target">current</field>
         <field name="context">{'default_report_type': 'deferred_schedule', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'xlsx'}</field>
     </record>
 
@@ -3473,7 +3518,7 @@
         <field name="name">EC Sales List</field>
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
-        <field name="target">new</field>
+        <field name="target">current</field>
         <field name="context">{'default_report_type': 'ec_sales_list', 'default_date_from': '2025-10-01', 'default_export_format': 'xlsx'}</field>
     </record>
 
@@ -3481,7 +3526,7 @@
         <field name="name">OSS Sales</field>
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
-        <field name="target">new</field>
+        <field name="target">current</field>
         <field name="context">{'default_report_type': 'oss_sales', 'default_date_from': '2025-10-01', 'default_export_format': 'xlsx'}</field>
     </record>
 
@@ -3489,7 +3534,7 @@
         <field name="name">OSS Imports</field>
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
-        <field name="target">new</field>
+        <field name="target">current</field>
         <field name="context">{'default_report_type': 'oss_imports', 'default_date_from': '2025-10-01', 'default_export_format': 'xlsx'}</field>
     </record>
 
@@ -4076,36 +4121,36 @@
         id="menu_rebuild_account_report_trial_balance_launcher"
         name="Trial Balance"
         parent="account.account_reports_legal_statements_menu"
-        action="account_financial_report.action_trial_balance_wizard"
+        action="action_rebuild_account_report_export_trial_balance"
         sequence="1"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_general_ledger_launcher"
         name="General Ledger"
         parent="account.account_reports_legal_statements_menu"
-        action="account_financial_report.action_general_ledger_wizard"
+        action="action_rebuild_account_report_export_general_ledger"
         sequence="2"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_journal_report_launcher"
         name="Journal Report"
         parent="account.account_reports_legal_statements_menu"
-        action="account_financial_report.action_journal_ledger_wizard"
+        action="action_rebuild_account_report_export_journal_report"
         sequence="3"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_balance_sheet_launcher"
-        name="Balance Sheet Export Package"
+        name="Balance Sheet"
         parent="account.account_reports_legal_statements_menu"
         action="action_rebuild_account_report_export_balance_sheet"
-        sequence="44"
+        sequence="4"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_profit_loss_launcher"
-        name="Profit and Loss Export Package"
+        name="Profit and Loss"
         parent="account.account_reports_legal_statements_menu"
         action="action_rebuild_account_report_export_profit_loss"
-        sequence="45"
+        sequence="5"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_french_annual_launcher"
@@ -4203,21 +4248,21 @@
         id="menu_rebuild_account_report_open_items_launcher"
         name="Open Items"
         parent="account.account_reports_partners_reports_menu"
-        action="account_financial_report.action_open_items_wizard"
+        action="action_rebuild_account_report_export_open_items"
         sequence="3"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_aged_receivable_launcher"
         name="Aged Receivable"
         parent="account.account_reports_partners_reports_menu"
-        action="action_rebuild_oca_aged_receivable_wizard"
+        action="action_rebuild_account_report_export_aged_receivable"
         sequence="4"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_aged_payable_launcher"
         name="Aged Payable"
         parent="account.account_reports_partners_reports_menu"
-        action="action_rebuild_oca_aged_payable_wizard"
+        action="action_rebuild_account_report_export_aged_payable"
         sequence="5"
         groups="account.group_account_readonly"/>
 
@@ -4247,7 +4292,7 @@
         id="menu_rebuild_account_report_tax_launcher"
         name="VAT and Tax Report"
         parent="account.account_reports_taxes_and_fiscal_menu"
-        action="account_financial_report.action_vat_report_wizard"
+        action="action_rebuild_account_report_export_tax_report"
         sequence="1"
         groups="account.group_account_readonly"/>
     <menuitem

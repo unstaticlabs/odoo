@@ -147,4 +147,10 @@
         action="action_rebuild_mis_profit_loss"
         sequence="5"
         groups="account.group_account_readonly"/>
+    <record id="menu_rebuild_mis_balance_sheet" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="menu_rebuild_mis_profit_loss" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
 </odoo>

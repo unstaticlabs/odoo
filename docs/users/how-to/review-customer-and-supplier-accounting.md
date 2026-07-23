@@ -22,7 +22,7 @@ Target Move: Posted Entries Only
 
 Use the `Partners` filter if you want one customer, supplier or shareholder account.
 
-Click `Preview`.
+Click `Apply Period` or `Refresh`.
 
 ## Review Customer Balances
 
@@ -44,7 +44,7 @@ In the preview, check:
 - residual;
 - balance.
 
-Use `Open Journal Items` or the external-link icon on a preview row to inspect the contributing journal items.
+Use `Open Entries` or the external-link icon on a preview row to inspect the contributing journal items.
 
 ## Review Supplier Balances
 
@@ -69,7 +69,7 @@ In supplier review, check:
 
 From a report row:
 
-1. Click the external-link icon or `Open Journal Items`.
+1. Click the external-link icon or `Open Entries`.
 2. Open the journal item.
 3. Check the source-trace fields.
 4. Open the parent journal entry.

@@ -8487,7 +8487,7 @@ def odoo_report_export_wizard_controls() -> dict[str, Any]:
                 "        'status': 'passed' if rows and wizard.export_filename and wizard.export_file else 'failed',",
                 "    }",
                 "    expected_preview_line_count = min(item['row_count'], wizard.preview_limit) if item['row_count'] else 1",
-                "    preview_status = 'passed' if preview_action.get('name') == dict(Wizard._fields['report_type'].selection)[report_type] + ' Preview' and preview_metadata.get('report_type') == report_type and preview_metadata.get('row_count') == item['row_count'] and preview_metadata.get('preview_limit') == wizard.preview_limit and preview_line_count == expected_preview_line_count and preview_truncated == (item['row_count'] > wizard.preview_limit) and preview_source_status == 'passed' else 'failed'",
+                "    preview_status = 'passed' if preview_action.get('name') == dict(Wizard._fields['report_type'].selection)[report_type] and preview_action.get('target') == 'current' and preview_metadata.get('report_type') == report_type and preview_metadata.get('row_count') == item['row_count'] and preview_metadata.get('preview_limit') == wizard.preview_limit and preview_line_count == expected_preview_line_count and preview_truncated == (item['row_count'] > wizard.preview_limit) and preview_source_status == 'passed' else 'failed'",
                 "    item['preview'] = {",
                 "        'action_name': preview_action.get('name'),",
                 "        'line_count': preview_line_count,",
@@ -8634,6 +8634,84 @@ def odoo_report_export_wizard_controls() -> dict[str, Any]:
                 "    if item['preview']['status'] != 'passed':",
                 "        item['status'] = 'failed'",
                 "    results[report_type] = item",
+                "dynamic_wizard = Wizard.create({",
+                "    'report_type': 'trial_balance',",
+                "    'company_id': company.id,",
+                "    'company_ids': [(6, 0, [company.id])],",
+                "    'data_scope': 'native',",
+                "    'period_preset': 'month',",
+                "    'period_anchor_date': '2025-10-15',",
+                "    'comparison_mode': 'previous_year',",
+                "    'target_move': 'posted',",
+                "    'group_by': 'account',",
+                "    'export_format': 'xlsx',",
+                "    'preview_limit': 500,",
+                "})",
+                "dynamic_action = dynamic_wizard.action_apply_period()",
+                "dynamic_metadata = json.loads(dynamic_wizard.preview_metadata or '{}')",
+                "dynamic_group_lines = dynamic_wizard.preview_line_ids.filtered('is_group')",
+                "dynamic_group_count = len(dynamic_group_lines)",
+                "dynamic_comparison_status = any(line.comparison_value or line.difference for line in dynamic_group_lines)",
+                "dynamic_search_code = dynamic_group_lines[:1].account_code if dynamic_group_lines else ''",
+                "expanded_visible_count = dynamic_metadata.get('preview_visible_row_count')",
+                "dynamic_wizard.action_collapse_all()",
+                "collapsed_metadata = json.loads(dynamic_wizard.preview_metadata or '{}')",
+                "dynamic_wizard.action_expand_all()",
+                "expanded_again_metadata = json.loads(dynamic_wizard.preview_metadata or '{}')",
+                "search_status = False",
+                "if dynamic_search_code:",
+                "    dynamic_wizard.write({'search_text': dynamic_search_code})",
+                "    dynamic_wizard.action_preview_report()",
+                "    search_metadata = json.loads(dynamic_wizard.preview_metadata or '{}')",
+                "    search_status = 0 < search_metadata.get('row_count', 0) < dynamic_metadata.get('row_count', 0)",
+                "dynamic_wizard.write({'search_text': ''})",
+                "dynamic_wizard.action_generate_export()",
+                "dynamic_export_metadata = json.loads(dynamic_wizard.export_metadata or '{}')",
+                "dynamic_raw = base64.b64decode(dynamic_wizard.export_file or b'')",
+                "canonical_menu_xmlids = [",
+                "    'menu_rebuild_account_report_trial_balance_launcher',",
+                "    'menu_rebuild_account_report_general_ledger_launcher',",
+                "    'menu_rebuild_account_report_balance_sheet_launcher',",
+                "    'menu_rebuild_account_report_profit_loss_launcher',",
+                "    'menu_rebuild_account_report_tax_launcher',",
+                "]",
+                "canonical_menus = [env.ref('rebuild_account_migration.' + xmlid) for xmlid in canonical_menu_xmlids]",
+                "canonical_menu_status = all(menu.active and menu.action.res_model == Wizard._name and menu.action.target == 'current' for menu in canonical_menus)",
+                "competing_menu_status = not env.ref('account_financial_report.menu_oca_reports').active and not env.ref('rebuild_account_migration.menu_rebuild_mis_balance_sheet').active and not env.ref('rebuild_account_migration.menu_rebuild_mis_profit_loss').active",
+                "dynamic_status = all([",
+                "    dynamic_action.get('target') == 'current',",
+                "    str(dynamic_wizard.date_from) == '2025-10-01',",
+                "    str(dynamic_wizard.date_to) == '2025-10-31',",
+                "    str(dynamic_wizard.comparison_date_from) == '2024-10-01',",
+                "    str(dynamic_wizard.comparison_date_to) == '2024-10-31',",
+                "    dynamic_wizard.draft_entry_count == 4,",
+                "    'excluded' in (dynamic_wizard.preview_warning or ''),",
+                "    dynamic_group_count > 0,",
+                "    dynamic_comparison_status,",
+                "    collapsed_metadata.get('preview_visible_row_count', 0) < expanded_visible_count,",
+                "    expanded_again_metadata.get('preview_visible_row_count') == expanded_visible_count,",
+                "    search_status,",
+                "    dynamic_export_metadata.get('data_scope') == 'native',",
+                "    dynamic_export_metadata.get('group_by') == 'account',",
+                "    dynamic_export_metadata.get('comparison_mode') == 'previous_year',",
+                "    dynamic_export_metadata.get('row_count') == dynamic_metadata.get('row_count'),",
+                "    dynamic_raw.startswith(b'PK'),",
+                "    canonical_menu_status,",
+                "    competing_menu_status,",
+                "])",
+                "results['dynamic_workbench'] = {",
+                "    'period': [str(dynamic_wizard.date_from), str(dynamic_wizard.date_to)],",
+                "    'comparison_period': [str(dynamic_wizard.comparison_date_from), str(dynamic_wizard.comparison_date_to)],",
+                "    'draft_entry_count': dynamic_wizard.draft_entry_count,",
+                "    'group_count': dynamic_group_count,",
+                "    'expanded_visible_row_count': expanded_visible_count,",
+                "    'collapsed_visible_row_count': collapsed_metadata.get('preview_visible_row_count'),",
+                "    'search_status': 'passed' if search_status else 'failed',",
+                "    'export_row_count': dynamic_export_metadata.get('row_count'),",
+                "    'canonical_menu_status': 'passed' if canonical_menu_status else 'failed',",
+                "    'competing_menu_status': 'passed' if competing_menu_status else 'failed',",
+                "    'status': 'passed' if dynamic_status else 'failed',",
+                "}",
                 "move = env['account.move'].search([",
                 "    ('company_id', '=', company.id),",
                 "    ('rebuild_source_model', '=', 'account.move'),",
@@ -9687,8 +9765,8 @@ def reports(args: argparse.Namespace) -> dict[str, Any]:
             "closing_balance": amount_text(sum(Decimal(row["closing_balance"]) for row in tb_rows)),
         },
         "limitations": [
-            "Generated as a harness artifact, not yet a complete user-facing Odoo account.report implementation.",
-            "Covers posted benchmark ledger lines imported from the source backup.",
+            "The files in this harness package are benchmark snapshots; the canonical Odoo workbench itself queries the native ledger dynamically.",
+            "Final Level 4 source-report acceptance remains an accountant decision and is not inferred from technical checks.",
         ],
     }
     write_json(tb_json, tb_payload)
@@ -10061,12 +10139,27 @@ def reports(args: argparse.Namespace) -> dict[str, Any]:
             "allocated_balance",
         ],
     )
+    technical_status = all(
+        payload.get("status") == "passed"
+        for payload in (
+            odoo_views,
+            odoo_drilldowns,
+            odoo_exports,
+            source_report_parity,
+            review_decision_seed,
+            accountant_access,
+        )
+    )
     status = {
         "generated_at": utc_now(),
         "tool_version": TOOL_VERSION,
         "stage": "reports",
-        "status": "partial",
-        "classification": "HARNESS_AND_ODOO_REPORT_ARTIFACTS_PARTIAL",
+        "status": "passed" if technical_status else "partial",
+        "classification": (
+            "DYNAMIC_ODOO_REPORT_WORKBENCH_TECHNICALLY_VALIDATED"
+            if technical_status
+            else "DYNAMIC_ODOO_REPORT_WORKBENCH_TECHNICAL_GAPS"
+        ),
         "reports": [
             {
                 "name": "Trial Balance",
@@ -10151,7 +10244,10 @@ def reports(args: argparse.Namespace) -> dict[str, Any]:
         "review_decision_seed": review_decision_seed,
         "odoo_accountant_access": accountant_access,
         "limitations": tb_payload["limitations"],
-        "next_action": "Continue from these Odoo-facing report views to full account.report-style semantics, drill-down actions, statutory French mappings and exports before Milestone 13 closure.",
+        "next_action": (
+            "Obtain independent accountant review of source formulas, variants, "
+            "drilldowns and statutory interpretations before Level 4 acceptance."
+        ),
     }
     write_json(PRIVATE_ARTIFACTS / "reports-status.json", status)
     return status
@@ -12255,6 +12351,10 @@ def readiness(args: argparse.Namespace) -> dict[str, Any]:
             / "currency-rate-provider-browser-status.json"
         ),
         "reports": PRIVATE_ARTIFACTS / "reports-status.json",
+        "dynamic_report_browser": (
+            PRIVATE_ARTIFACTS
+            / "dynamic-report-browser-status.json"
+        ),
         "fec": PRIVATE_ARTIFACTS / "fec-status.json",
         "fec_validation": PRIVATE_ARTIFACTS / "fec-validation-status.json",
         "compare": PRIVATE_ARTIFACTS / "compare-status.json",
@@ -12289,6 +12389,7 @@ def readiness(args: argparse.Namespace) -> dict[str, Any]:
         "currency_rate_provider": {"passed"},
         "currency_rate_provider_browser": {"passed"},
         "reports": {"passed", "partial"},
+        "dynamic_report_browser": {"passed"},
         "fec": {"passed"},
         "fec_validation": {"passed"},
         "compare": {"passed"},
@@ -12468,6 +12569,10 @@ def evidence(args: argparse.Namespace) -> dict[str, Any]:
             / "currency-rate-provider-browser-status.json"
         ),
         "reports": PRIVATE_ARTIFACTS / "reports-status.json",
+        "dynamic_report_browser": (
+            PRIVATE_ARTIFACTS
+            / "dynamic-report-browser-status.json"
+        ),
         "vat_benchmark_investigation": PRIVATE_ARTIFACTS / "vat-benchmark-investigation-2025-09-30.json",
         "source_report_parity": PRIVATE_ARTIFACTS / "source-report-parity-status.json",
         "review_decision_seed": PRIVATE_ARTIFACTS / "review-decision-seed-status.json",

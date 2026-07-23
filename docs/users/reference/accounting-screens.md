@@ -110,7 +110,7 @@ retrieve a rate immediately, inspect the latest status and open the native
 currency-rate rows. Imported source-traced historical rates are protected from
 provider updates. Accountant reviewers cannot open this configuration action.
 
-## Report Export Wizard
+## Accounting Report Workbench
 
 ```text
 Accounting > Review > Control > Issues > Report Export
@@ -119,6 +119,8 @@ Accounting > Review > Control > Issues > Report Export
 Also available through Accounting reporting launchers.
 
 Purpose: preview and export supported reports.
+
+Normal report launchers under `Accounting > Reporting` open this full-page workbench. It defaults to all native accounting and supports period presets, comparisons, journal/account/partner/analytic filters, grouping, search, expand/collapse, draft warnings, source drilldown and CSV/XLSX/PDF export. Imported-only scope is an advanced reconstruction-audit option.
 
 ## Priority Workflows
 

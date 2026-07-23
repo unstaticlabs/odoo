@@ -9,7 +9,7 @@ Use this guide when you need to understand how the rebuilt reports were compared
 Go to:
 
 ```text
-Accounting > Review > Rebuild Evidence > Source Report Catalogue
+Accounting > Review > Advanced Audit > Source Report Catalogue
 ```
 
 This screen lists active accounting reports discovered in the source system.
@@ -33,7 +33,7 @@ For each report, review:
 Open a report and click the source-lines action, or go directly to:
 
 ```text
-Accounting > Review > Rebuild Evidence > Source Report Lines
+Accounting > Review > Advanced Audit > Source Report Lines
 ```
 
 Use this screen to review the report hierarchy:
@@ -53,7 +53,7 @@ This is useful when checking whether a French annual statement line, balance-she
 Go to:
 
 ```text
-Accounting > Review > Rebuild Evidence > Source Report Expressions
+Accounting > Review > Advanced Audit > Source Report Expressions
 ```
 
 Expressions show how source report lines were configured. They are evidence for parity review, not copied Enterprise implementation code.
@@ -70,17 +70,13 @@ Review:
 
 ## Inspect Report Columns
 
-Go to:
-
-```text
-Accounting > Review > Rebuild Evidence > Source Report Columns
-```
+Open the source report from the catalogue and click `Source Columns`.
 
 Columns help explain whether a report expected current-period values, comparison values, gross amounts, depreciation amounts or net amounts.
 
 ## Compare with Target Reports
 
-After reviewing the source structure, open the target report export wizard:
+After reviewing the source structure, open the corresponding target report workbench:
 
 ```text
 Accounting > Reporting > Trial Balance

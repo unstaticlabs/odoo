@@ -1397,6 +1397,16 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertFalse(model.has_access("write"))
         self.assertFalse(model.has_access("create"))
         self.assertFalse(model.has_access("unlink"))
+        for model_name in (
+            "account.analytic.plan",
+            "account.analytic.account",
+            "account.analytic.line",
+        ):
+            analytic_model = self.env[model_name].with_user(reviewer)
+            self.assertTrue(analytic_model.has_access("read"))
+            self.assertFalse(analytic_model.has_access("write"))
+            self.assertFalse(analytic_model.has_access("create"))
+            self.assertFalse(analytic_model.has_access("unlink"))
 
     def test_accountant_reviewer_is_read_only_for_discrepancies(self):
         self.assertIn(self.readonly_group, self.reviewer_group.implied_ids)
@@ -1741,7 +1751,8 @@ class TestRebuildAccountMigration(TransactionCase):
 
         self.assertEqual(action["res_model"], "rebuild.account.report.export.wizard")
         self.assertEqual(action["res_id"], wizard.id)
-        self.assertEqual(action["name"], "Trial Balance Preview")
+        self.assertEqual(action["name"], "Trial Balance")
+        self.assertEqual(action["target"], "current")
         self.assertEqual(wizard.preview_row_count, 0)
         self.assertFalse(wizard.preview_truncated)
         self.assertEqual(len(wizard.preview_line_ids), 1)
@@ -1756,8 +1767,15 @@ class TestRebuildAccountMigration(TransactionCase):
         source_action = wizard.preview_line_ids.action_open_sources()
         self.assertEqual(source_action["type"], "ir.actions.act_window")
         self.assertEqual(source_action["res_model"], "account.move.line")
-        self.assertIn(("company_id", "=", self.company.id), source_action["domain"])
-        self.assertIn(("move_id.date", ">=", fields.Date.from_string("2099-01-01")), source_action["domain"])
+        self.assertIn(("company_id", "in", [self.company.id]), source_action["domain"])
+        self.assertNotIn(
+            ("move_id.date", ">=", fields.Date.from_string("2099-01-01")),
+            source_action["domain"],
+        )
+        self.assertIn(
+            ("move_id.date", "<=", fields.Date.from_string("2099-12-31")),
+            source_action["domain"],
+        )
         self.assertEqual(source_action["context"]["create"], False)
         self.assertEqual(source_action["context"]["delete"], False)
 
@@ -1780,6 +1798,191 @@ class TestRebuildAccountMigration(TransactionCase):
             for term in line_action["domain"]
             if term[0] == "account_id" and term[1] == "in"
         ])
+
+    def test_dynamic_report_workbench_period_comparison_and_native_scope(self):
+        expense_account = self._account(
+            "T625100",
+            "Dynamic report expense",
+            "expense",
+        )
+        payable_account = self._account(
+            "T401100",
+            "Dynamic report payable",
+            "liability_payable",
+        )
+        journal = self._journal()
+
+        def create_move(move_date, amount, *, posted):
+            move = self.env["account.move"].create({
+                "move_type": "entry",
+                "journal_id": journal.id,
+                "date": move_date,
+                "company_id": self.company.id,
+                "line_ids": [
+                    Command.create({
+                        "name": "Dynamic expense",
+                        "account_id": expense_account.id,
+                        "debit": amount,
+                    }),
+                    Command.create({
+                        "name": "Dynamic payable",
+                        "account_id": payable_account.id,
+                        "credit": amount,
+                    }),
+                ],
+            })
+            if posted:
+                move.action_post()
+            return move
+
+        create_move("2025-01-15", 80.0, posted=True)
+        create_move("2026-01-15", 100.0, posted=True)
+        create_move("2026-01-20", 50.0, posted=False)
+        wizard = self.env[
+            "rebuild.account.report.export.wizard"
+        ].create({
+            "company_id": self.company.id,
+            "company_ids": [Command.set([self.company.id])],
+            "report_type": "trial_balance",
+            "period_preset": "month",
+            "period_anchor_date": "2026-01-15",
+            "comparison_mode": "previous_year",
+            "target_move": "posted",
+            "data_scope": "native",
+            "group_by": "account",
+            "export_format": "xlsx",
+        })
+
+        action = wizard.action_apply_period()
+
+        self.assertEqual(action["target"], "current")
+        self.assertEqual(str(wizard.date_from), "2026-01-01")
+        self.assertEqual(str(wizard.date_to), "2026-01-31")
+        self.assertEqual(
+            str(wizard.comparison_date_from),
+            "2025-01-01",
+        )
+        self.assertEqual(
+            str(wizard.comparison_date_to),
+            "2025-01-31",
+        )
+        self.assertEqual(wizard.draft_entry_count, 1)
+        self.assertIn("excluded", wizard.preview_warning)
+        expense_group = wizard.preview_line_ids.filtered(
+            lambda line: line.is_group
+            and line.account_code == "T625100",
+        )
+        self.assertEqual(len(expense_group), 1)
+        self.assertAlmostEqual(expense_group.opening_balance, 80.0)
+        self.assertAlmostEqual(expense_group.debit, 100.0)
+        self.assertAlmostEqual(expense_group.credit, 0.0)
+        self.assertAlmostEqual(expense_group.movement, 100.0)
+        self.assertAlmostEqual(expense_group.closing_balance, 180.0)
+        self.assertAlmostEqual(expense_group.balance, 180.0)
+        self.assertAlmostEqual(
+            expense_group.comparison_value,
+            80.0,
+        )
+        self.assertAlmostEqual(expense_group.difference, 100.0)
+
+        wizard.write({"target_move": "all"})
+        wizard.action_preview_report()
+        expense_group = wizard.preview_line_ids.filtered(
+            lambda line: line.is_group
+            and line.account_code == "T625100",
+        )
+        self.assertAlmostEqual(expense_group.debit, 150.0)
+        self.assertAlmostEqual(expense_group.movement, 150.0)
+        self.assertAlmostEqual(expense_group.closing_balance, 230.0)
+        self.assertAlmostEqual(expense_group.balance, 230.0)
+        self.assertIn("included", wizard.preview_warning)
+
+        wizard.write({
+            "target_move": "posted",
+            "data_scope": "imported",
+        })
+        imported_rows = wizard._report_rows()
+        self.assertFalse([
+            row
+            for row in imported_rows
+            if row.get("account_code") == "T625100"
+        ])
+
+    def test_dynamic_report_workbench_multi_company_metadata(self):
+        second_company = self.env["res.company"].create({
+            "name": "Dynamic Report Second Company",
+            "currency_id": self.company.currency_id.id,
+        })
+        self.env.user.write({
+            "company_ids": [Command.link(second_company.id)],
+        })
+        wizard = self.env[
+            "rebuild.account.report.export.wizard"
+        ].create({
+            "company_id": self.company.id,
+            "company_ids": [
+                Command.set([self.company.id, second_company.id]),
+            ],
+            "report_type": "trial_balance",
+            "date_from": "2099-01-01",
+            "date_to": "2099-12-31",
+            "target_move": "posted",
+            "data_scope": "native",
+            "export_format": "csv",
+        })
+
+        wizard.action_preview_report()
+
+        metadata = json.loads(wizard.preview_metadata)
+        self.assertEqual(
+            {company["name"] for company in metadata["companies"]},
+            {self.company.name, second_company.name},
+        )
+
+    def test_accountant_reviewer_can_preview_and_export_dynamic_reports(self):
+        reviewer = self.env["res.users"].with_context(
+            no_reset_password=True,
+        ).create({
+            "name": "Dynamic Report Reviewer",
+            "login": "dynamic.report.reviewer@example.invalid",
+            "email": "dynamic.report.reviewer@example.invalid",
+            "company_id": self.company.id,
+            "company_ids": [Command.set([self.company.id])],
+            "group_ids": [Command.set([self.reviewer_group.id])],
+        })
+        Wizard = self.env[
+            "rebuild.account.report.export.wizard"
+        ].with_user(reviewer)
+        wizard = Wizard.create({
+            "company_id": self.company.id,
+            "report_type": "trial_balance",
+            "date_from": "2099-01-01",
+            "date_to": "2099-12-31",
+            "target_move": "posted",
+            "data_scope": "native",
+            "export_format": "xlsx",
+        })
+
+        wizard.action_preview_report()
+        wizard.action_preview_report()
+        wizard.action_generate_export()
+
+        self.assertEqual(wizard.preview_line_ids.label, "No rows for the selected report filters")
+        self.assertTrue(base64.b64decode(wizard.export_file).startswith(b"PK"))
+        analytic_wizard = Wizard.create({
+            "company_id": self.company.id,
+            "report_type": "analytic_report",
+            "date_from": "2099-01-01",
+            "date_to": "2099-12-31",
+            "target_move": "posted",
+            "data_scope": "native",
+            "export_format": "csv",
+        })
+        analytic_wizard.action_preview_report()
+        self.assertEqual(
+            analytic_wizard.preview_line_ids.label,
+            "No rows for the selected report filters",
+        )
 
     def test_report_launcher_actions_preselect_expected_report_types(self):
         expected_actions = {
@@ -1804,7 +2007,7 @@ class TestRebuildAccountMigration(TransactionCase):
             context = safe_eval(action.context or "{}")
             self.assertEqual(action.name, name)
             self.assertEqual(action.res_model, "rebuild.account.report.export.wizard")
-            self.assertEqual(action.target, "new")
+            self.assertEqual(action.target, "current")
             self.assertEqual(context["default_report_type"], report_type)
             self.assertEqual(context["default_export_format"], export_format)
 
@@ -1842,21 +2045,30 @@ class TestRebuildAccountMigration(TransactionCase):
             self.assertEqual(context["default_receivable_accounts_only"], receivable_only)
             self.assertEqual(context["default_payable_accounts_only"], payable_only)
 
-    def test_primary_report_menus_open_interactive_reports_where_available(self):
+    def test_primary_report_menus_open_canonical_dynamic_workbench(self):
         expected_menus = {
-            "menu_rebuild_account_report_trial_balance_launcher": "account_financial_report.action_trial_balance_wizard",
-            "menu_rebuild_account_report_general_ledger_launcher": "account_financial_report.action_general_ledger_wizard",
-            "menu_rebuild_account_report_journal_report_launcher": "account_financial_report.action_journal_ledger_wizard",
-            "menu_rebuild_account_report_open_items_launcher": "account_financial_report.action_open_items_wizard",
-            "menu_rebuild_account_report_aged_receivable_launcher": "rebuild_account_migration.action_rebuild_oca_aged_receivable_wizard",
-            "menu_rebuild_account_report_aged_payable_launcher": "rebuild_account_migration.action_rebuild_oca_aged_payable_wizard",
-            "menu_rebuild_account_report_tax_launcher": "account_financial_report.action_vat_report_wizard",
+            "menu_rebuild_account_report_trial_balance_launcher": "rebuild_account_migration.action_rebuild_account_report_export_trial_balance",
+            "menu_rebuild_account_report_general_ledger_launcher": "rebuild_account_migration.action_rebuild_account_report_export_general_ledger",
+            "menu_rebuild_account_report_journal_report_launcher": "rebuild_account_migration.action_rebuild_account_report_export_journal_report",
+            "menu_rebuild_account_report_open_items_launcher": "rebuild_account_migration.action_rebuild_account_report_export_open_items",
+            "menu_rebuild_account_report_aged_receivable_launcher": "rebuild_account_migration.action_rebuild_account_report_export_aged_receivable",
+            "menu_rebuild_account_report_aged_payable_launcher": "rebuild_account_migration.action_rebuild_account_report_export_aged_payable",
+            "menu_rebuild_account_report_tax_launcher": "rebuild_account_migration.action_rebuild_account_report_export_tax_report",
         }
         for menu_xmlid, action_xmlid in expected_menus.items():
             menu = self.env.ref(f"rebuild_account_migration.{menu_xmlid}")
 
             self.assertEqual(menu.action, self.env.ref(action_xmlid))
-            self.assertNotEqual(menu.action.res_model, "rebuild.account.report.export.wizard")
+            self.assertEqual(
+                menu.action.res_model,
+                "rebuild.account.report.export.wizard",
+            )
+            self.assertEqual(menu.action.target, "current")
+        self.assertFalse(
+            self.env.ref(
+                "account_financial_report.menu_oca_reports",
+            ).active,
+        )
 
     def test_interactive_mis_financial_statement_actions_open_previews(self):
         expected = {
@@ -1943,18 +2155,30 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertIn("625999", result)
         self.assertIn("Archived travel expense", result)
 
-    def test_legal_statement_menu_prefers_interactive_mis_reports(self):
+    def test_legal_statement_menu_uses_canonical_dynamic_workbench(self):
         balance_menu = self.env.ref("rebuild_account_migration.menu_rebuild_mis_balance_sheet")
         profit_menu = self.env.ref("rebuild_account_migration.menu_rebuild_mis_profit_loss")
         balance_export_menu = self.env.ref("rebuild_account_migration.menu_rebuild_account_report_balance_sheet_launcher")
         profit_export_menu = self.env.ref("rebuild_account_migration.menu_rebuild_account_report_profit_loss_launcher")
 
-        self.assertEqual(balance_menu.action, self.env.ref("rebuild_account_migration.action_rebuild_mis_balance_sheet"))
-        self.assertEqual(profit_menu.action, self.env.ref("rebuild_account_migration.action_rebuild_mis_profit_loss"))
-        self.assertEqual(balance_export_menu.name, "Balance Sheet Export Package")
-        self.assertEqual(profit_export_menu.name, "Profit and Loss Export Package")
-        self.assertGreater(balance_export_menu.sequence, balance_menu.sequence)
-        self.assertGreater(profit_export_menu.sequence, profit_menu.sequence)
+        self.assertFalse(balance_menu.active)
+        self.assertFalse(profit_menu.active)
+        self.assertEqual(balance_export_menu.name, "Balance Sheet")
+        self.assertEqual(profit_export_menu.name, "Profit and Loss")
+        self.assertEqual(
+            balance_export_menu.action,
+            self.env.ref(
+                "rebuild_account_migration.action_rebuild_account_report_export_balance_sheet",
+            ),
+        )
+        self.assertEqual(
+            profit_export_menu.action,
+            self.env.ref(
+                "rebuild_account_migration.action_rebuild_account_report_export_profit_loss",
+            ),
+        )
+        self.assertEqual(balance_export_menu.sequence, 4)
+        self.assertEqual(profit_export_menu.sequence, 5)
 
     def test_interactive_oca_report_wizards_default_to_benchmark_period(self):
         receivable = self._account("411900", "Unit receivable report default", "asset_receivable")

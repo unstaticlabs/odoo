@@ -51,7 +51,7 @@ The FEC must reconcile to the imported posted ledger. A structurally valid FEC i
 Go to:
 
 ```text
-Accounting > Review > Rebuild Evidence > Review Decisions
+Accounting > Review > Advanced Audit > Review Decisions
 ```
 
 Filter for gate `FEC Validation`.
@@ -75,4 +75,3 @@ An accountant should check:
 - reconciliation with Trial Balance, General Ledger, Balance Sheet and Profit and Loss.
 
 Only record acceptance after this review.
-

@@ -9,7 +9,7 @@ Use this guide to inspect fixed assets, depreciation evidence and deferred expen
 Go to:
 
 ```text
-Accounting > Review > Rebuild Evidence > Fixed Asset Register
+Accounting > Review > Advanced Audit > Fixed Asset Register
 ```
 
 Check:
@@ -47,7 +47,7 @@ Accounting > Reporting > Fixed Asset Register by Account
 Go to:
 
 ```text
-Accounting > Review > Rebuild Evidence > Imported Depreciation Schedule
+Accounting > Review > Advanced Audit > Imported Depreciation Schedule
 ```
 
 Check:
@@ -85,7 +85,7 @@ schedule is expected while future recognition dates remain.
 Go to:
 
 ```text
-Accounting > Review > Rebuild Evidence > Imported Deferred Schedule
+Accounting > Review > Advanced Audit > Imported Deferred Schedule
 ```
 
 Check:
