@@ -76,6 +76,11 @@ odoo --config=/etc/odoo/odoo.conf \
   --stop-after-init
 ```
 
+Stop any manually started Odoo process for this database before the update.
+The update runs in a separate process: it refreshes database records such as
+views, menus, ACLs and module data, but it cannot replace Python already loaded
+by another running server.
+
 Then run the server:
 
 ```bash
@@ -90,6 +95,49 @@ Open:
 ```text
 http://localhost:8069/web/login?db=odoo_rebuild_accounting_test
 ```
+
+## Module and browser refresh contract
+
+Module state is database-specific. Run the update against the database that
+will be reviewed. Use `odoo_rebuild_accounting_test` for the exact imported
+target or substitute `odoo_rebuild_accounting_replacement` when reviewing the
+hybrid candidate. Never update the restored source database.
+
+Two alternatives were considered for this loop:
+
+1. add a helper that always upgrades every accounting database;
+2. keep the explicit Odoo command and name the intended target database.
+
+The explicit command is retained because upgrading every disposable database
+would blur the separation between exact import, Track B and hybrid evidence.
+It also makes an accidental source-database update easier to detect.
+
+Use this refresh behavior:
+
+| Changed files | Required server action | Required browser action |
+| --- | --- | --- |
+| Python models, controllers or business logic | Stop the running process, update the module when fields/data are involved, then start Odoo again | Reload the page |
+| Backend XML views, menus, actions, security XML or access CSV | Stop the running process, update `rebuild_account_migration`, then start Odoo again | Reload; use a hard refresh if the old view remains open |
+| JavaScript or backend QWeb assets already listed in the manifest | Restart Odoo after the module update | Enable `debug=assets` in the URL during development and hard refresh |
+| Manifest dependencies, data files or asset declarations | Stop Odoo, update the module, then start it again | Hard refresh with `debug=assets` enabled |
+| Files under `docs/users/` | No module update; the development route reads the mounted Markdown on each request | Reload `/usl/user-docs` |
+| Other Markdown documentation | No Odoo action | Rebuild or reload the documentation site as applicable |
+
+`--dev=reload,xml,qweb` helps during development, but it is not a substitute
+for a module update when an XML record, ACL, menu, action, field or manifest
+declaration must be written to the database.
+
+If the UI still looks stale:
+
+1. confirm the URL has the expected `db=` value;
+2. confirm only the intended Odoo server owns the browser port;
+3. inspect the module-update output for errors;
+4. open a new tab with `debug=assets` in the query string and hard refresh;
+5. verify the behavior with the intended role before rebuilding accounting
+   data.
+
+Do not reset the target, clear asset attachments or rerun source
+restore/extraction merely to refresh a view or browser bundle.
 
 ## When to run the full pipeline
 

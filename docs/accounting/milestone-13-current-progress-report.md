@@ -151,6 +151,14 @@ Technical note: OCA MIS Builder's detail-label lookup was active-account-only. T
 
 Runtime caveat: the normal Compose `odoo` service requires the local `.env` value `ODOO_ADDONS_PATH=/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons`. An older local `.env` without `/mnt/oca-addons` caused installed OCA menus to exist while Odoo could not load OCA web assets. This was corrected locally during the current session.
 
+The developer guides now make refresh behavior explicit. Module updates are
+database-specific; a running server must be restarted for Python changes;
+backend views, menus, ACLs and manifest declarations require a module update;
+assets should be checked with `debug=assets` enabled and a hard refresh; mounted
+`docs/users/` Markdown needs only a page reload. The guide also forbids using
+source restore, extraction or target reset as a UI cache-refresh mechanism and
+names the exact-import and hybrid databases separately.
+
 ### Source extraction and reconstruction
 
 The current import status reports these production-derived records represented in the target:
@@ -516,7 +524,7 @@ Current outcome: the dynamic report screens, readable exports, declaration works
 ### Immediate
 
 - [x] Add a clear Accounting app/menu entry that opens the operational Accounting Home directly while retaining the native journal Dashboard.
-- [ ] Make module refresh/upgrade instructions and UI refresh behavior visible in the dev guide.
+- [x] Make module refresh/upgrade instructions and UI refresh behavior visible in the dev guide.
 - [x] Diagnose the bank journal transaction view and reconcile it with imported `account.bank.statement.line` records.
 - [x] Adopt the OCA workbench for operational bank/general reconciliation while retaining custom read-only historical evidence views under Advanced Audit.
 - [x] Integrate the proven Track B customer invoices, vendor bills, supplier refunds and source-derived expenses into a disposable hybrid replacement candidate; their checksum-verified source binaries and main selections pass, and the source period contains no customer credit-note case.

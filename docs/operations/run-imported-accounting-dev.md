@@ -170,6 +170,10 @@ Expected:
 
 Inside the Dev Container:
 
+Stop a manually started Odoo server for this database before updating it. The
+upgrade command is a separate process and cannot reload Python already held by
+the running server.
+
 ```bash
 odoo --config=/etc/odoo/odoo.conf \
   --addons-path=/workspace/odoo/addons,/workspace/odoo/odoo/addons,/workspace/odoo/custom-addons,/workspace/odoo/oca-addons \
@@ -179,6 +183,12 @@ odoo --config=/etc/odoo/odoo.conf \
 ```
 
 Expected: Odoo exits by itself without an error.
+
+The update applies only to the named database. Keep
+`odoo_rebuild_accounting_test` for exact imported-target work. When the hybrid
+candidate is intentionally under review, substitute
+`odoo_rebuild_accounting_replacement`. Never run this update against
+`odoo_online_source_saas_19_2`.
 
 ## Step 7 - Start the Dev Odoo Server
 
@@ -207,6 +217,26 @@ Login:
 ```text
 admin / admin
 ```
+
+### Refresh the UI after a change
+
+Use the smallest refresh that matches the change:
+
+| Change | Refresh |
+| --- | --- |
+| Python | Stop the server, run the module update when model/data state changed, restart, then reload |
+| XML view, menu, action or ACL | Stop the server, update the module, restart, then reload or hard refresh |
+| JavaScript, QWeb or manifest asset entry | Update the module, restart, enable `debug=assets` in the URL, then hard refresh |
+| `docs/users/` Markdown | Reload `/usl/user-docs`; no module update is needed in the mounted development checkout |
+
+The development flags `--dev=reload,xml,qweb` do not write backend XML
+records, ACLs or manifest changes into the database. A browser hard refresh
+also does not replace a required module update.
+
+If a change is still absent, first confirm the `db=` query parameter and the
+server using port `8069`. Do not rerun source restore, extraction or a target
+reset just to refresh the UI. The fuller decision matrix is in
+[Accounting development workflow](accounting-development-workflow.md#module-and-browser-refresh-contract).
 
 ## Step 9 - Open the Imported Accounting Features
 
