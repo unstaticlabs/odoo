@@ -12334,6 +12334,10 @@ def readiness(args: argparse.Namespace) -> dict[str, Any]:
         "track_b_reset": PRIVATE_ARTIFACTS / "track-b-reset-status.json",
         "track_b_expenses": PRIVATE_ARTIFACTS / "track-b-expenses-status.json",
         "track_b_documents": PRIVATE_ARTIFACTS / "track-b-documents-status.json",
+        "track_b_native_attachments_browser": (
+            PRIVATE_ARTIFACTS
+            / "track-b-native-attachments-browser-status.json"
+        ),
         "track_b_assets": PRIVATE_ARTIFACTS / "track-b-assets-status.json",
         "track_b_assets_browser": (
             PRIVATE_ARTIFACTS / "track-b-assets-browser-status.json"
@@ -12401,6 +12405,7 @@ def readiness(args: argparse.Namespace) -> dict[str, Any]:
         "track_b_reset": {"passed"},
         "track_b_expenses": {"passed"},
         "track_b_documents": {"passed"},
+        "track_b_native_attachments_browser": {"passed"},
         "track_b_assets": {"passed"},
         "track_b_assets_browser": {"passed"},
         "track_b_deferrals": {"passed"},
@@ -12557,6 +12562,10 @@ def evidence(args: argparse.Namespace) -> dict[str, Any]:
         "track_b_reset": PRIVATE_ARTIFACTS / "track-b-reset-status.json",
         "track_b_expenses": PRIVATE_ARTIFACTS / "track-b-expenses-status.json",
         "track_b_documents": PRIVATE_ARTIFACTS / "track-b-documents-status.json",
+        "track_b_native_attachments_browser": (
+            PRIVATE_ARTIFACTS
+            / "track-b-native-attachments-browser-status.json"
+        ),
         "track_b_assets": PRIVATE_ARTIFACTS / "track-b-assets-status.json",
         "track_b_assets_browser": (
             PRIVATE_ARTIFACTS / "track-b-assets-browser-status.json"
@@ -12628,6 +12637,7 @@ def evidence(args: argparse.Namespace) -> dict[str, Any]:
         },
         "public_docs": [
             "docs/accounting/accounting-compat-harness.md",
+            "docs/accounting/milestone-13-screenshot-parity-matrix.md",
             "docs/accounting/milestone-13-repository-assessment.md",
         ],
         "completion_note": "This evidence index is technical evidence only. It is not accountant acceptance and does not authorize production migration.",

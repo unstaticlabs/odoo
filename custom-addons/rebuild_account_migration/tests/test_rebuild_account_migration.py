@@ -1,5 +1,8 @@
 import base64
+import hashlib
 import json
+import tempfile
+from pathlib import Path
 from unittest.mock import patch
 
 from odoo import Command, fields
@@ -262,6 +265,90 @@ class TestRebuildAccountMigration(TransactionCase):
 
         for model_name in ("hr.employee", "hr.expense", "product.product"):
             self.assertTrue(trace_fields.issubset(self.env[model_name]._fields))
+
+    def test_native_document_attachment_preserves_binary_and_main_selection(self):
+        snapshot = "unit-native-document-attachment"
+        source_move_id = 990021
+        source_attachment_id = 990022
+        import_run = self.env["rebuild.account.import.run"].create({
+            "name": "Native document attachment replay",
+            "source_snapshot_id": snapshot,
+        })
+        move = self.env["account.move"].create({
+            "move_type": "entry",
+            "journal_id": self._journal().id,
+            "date": fields.Date.today(),
+            "company_id": self.company.id,
+            "rebuild_source_model": "account.move.native_engine_replay",
+            "rebuild_source_id": source_move_id,
+            "rebuild_source_snapshot": snapshot,
+        })
+        raw = b"%PDF-1.4 native document evidence"
+        checksum = hashlib.sha1(raw).hexdigest()
+
+        with tempfile.TemporaryDirectory() as directory:
+            source_path = Path(directory, "aa", "native-document.pdf")
+            source_path.parent.mkdir()
+            source_path.write_bytes(raw)
+            stats = import_run._import_attachments(
+                None,
+                {
+                    "source_database": "unit_source",
+                    "source_snapshot_id": snapshot,
+                    "source_filestore_path": directory,
+                    "date_from": "2025-10-01",
+                    "date_to": "2026-06-30",
+                    "attachment_target_trace_models": {
+                        "account.move": [
+                            "account.move.native_engine_replay",
+                        ],
+                    },
+                },
+                {990001: self.company},
+                rows=[{
+                    "id": source_attachment_id,
+                    "res_model": "account.move",
+                    "res_id": source_move_id,
+                    "company_id": 990001,
+                    "name": "native-document.pdf",
+                    "res_field": None,
+                    "type": "binary",
+                    "url": None,
+                    "store_fname": "aa/native-document.pdf",
+                    "checksum": checksum,
+                    "file_size": len(raw),
+                    "mimetype": "application/pdf",
+                    "description": "Source invoice evidence",
+                    "public": False,
+                    "is_main": True,
+                }],
+            )
+
+        attachment = self.env["ir.attachment"].search([
+            ("rebuild_source_model", "=", "ir.attachment"),
+            ("rebuild_source_id", "=", source_attachment_id),
+            ("rebuild_source_snapshot", "=", snapshot),
+        ])
+        self.assertEqual(stats["source_attachment_count"], 1)
+        self.assertEqual(stats["imported_attachment_count"], 1)
+        self.assertEqual(stats["source_main_attachment_count"], 1)
+        self.assertEqual(stats["imported_main_attachment_count"], 1)
+        self.assertEqual(import_run._attachment_issue_count(stats), 0)
+        self.assertEqual(attachment.raw, raw)
+        self.assertEqual(attachment.res_model, "account.move")
+        self.assertEqual(attachment.res_id, move.id)
+        self.assertEqual(move.message_main_attachment_id, attachment)
+        reviewer = self.env["res.users"].with_context(
+            no_reset_password=True,
+        ).create({
+            "name": "Native document evidence reviewer",
+            "login": "native.document.evidence.reviewer@example.invalid",
+            "email": "native.document.evidence.reviewer@example.invalid",
+            "company_id": self.company.id,
+            "company_ids": [Command.set([self.company.id])],
+            "group_ids": [Command.set([self.reviewer_group.id])],
+        })
+        self.assertEqual(attachment.with_user(reviewer).raw, raw)
 
     def test_company_import_preserves_source_legal_address(self):
         import_run = self.env["rebuild.account.import.run"].create({

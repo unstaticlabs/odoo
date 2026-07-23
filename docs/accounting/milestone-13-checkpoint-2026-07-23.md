@@ -10,7 +10,7 @@ The disposable `odoo_rebuild_accounting_test` target provides the broad Mileston
 
 - source-traced historical reconstruction and benchmark parity;
 - automatic future ECB reference rates kept separate from historical replay;
-- isolated Track B native document, expense, payment, bank, reconciliation, asset, deferral and multi-plan analytic replay;
+- isolated Track B native document, expense, payment, bank, reconciliation, asset, deferral and multi-plan analytic replay, including checksum-verified bill and expense evidence;
 - a company-scoped operational Accounting Home for cash/bank, daily queues, open balances, closing, declarations and prepared actions, with the native journal dashboard retained;
 - distinct Bank Matching and General Reconciliation workbenches;
 - canonical Community-compatible dynamic report navigation, drill-down and PDF/XLSX exports;
@@ -59,6 +59,20 @@ The third option is implemented. A minimal client action routes the Accounting
 launcher to the active company's queryable Home; it does not implement a second
 ledger or a parallel accounting engine.
 
+For native document evidence, three alternatives were compared:
+
+1. retain binaries only on exact-ledger evidence records, leaving operational
+   bills and expenses without their source documents;
+2. link native records to the separately operated private source filestore,
+   coupling day-to-day accounting to that service and its authorization model;
+3. replay checksum-verified binaries onto the source-traced native records and
+   preserve the source-designated main attachment.
+
+The third option is implemented in Track B. Missing files, unmapped native
+targets, checksum mismatches, duplicate traces and main-selection mismatches
+are blocking attachment defects. Standard Odoo record access governs the
+result; no unverified source link is exposed.
+
 For future exchange rates, the absent Enterprise live-currency module and the
 lack of a deployable updater in the checked OCA 19 dependency set were compared
 with a focused native-rate adapter. The selected ECB adapter does not regenerate
@@ -99,6 +113,22 @@ The following current-period technical gates are passed:
 - cross-stage multi-plan analytic reconciliation.
 
 The target retains deliberate draft/post-cutoff boundaries instead of forging reconciliations across the accepted posted-ledger scope.
+
+Native document evidence is also complete inside Track B:
+
+- business-document binaries: `215/215`;
+- business-document main selections: `202/202`;
+- expense binaries: `263/263`;
+- expense main selections: `245/245`;
+- missing files, unmapped targets, checksum mismatches, duplicate traces and
+  main-selection mismatches: `0`.
+
+The standard Community vendor-bill form exposes the original PDF through its
+attachment workbench, rendered thumbnail and PDF viewer rather than copying the
+Enterprise split-pane layout. The standard expense form exposes the source
+receipt filename, count and thumbnail. This is an equivalent native evidence
+path, not a pixel-parity claim. Integration of the Track B native records into
+the clean replacement target remains a deliberate open boundary.
 
 The native deferral replay represents all `5` source originals as operational
 schedules with `82` lines: `34` posted current-period entries and `48` future
@@ -268,6 +298,22 @@ Native analytic journey:
 - the read-only correction audit opened with all `29` records for manager and reviewer and no create action;
 - private proof: `artifacts/accounting-compat/private/track-b-analytics-browser-status.json`.
 
+Native document-evidence journey:
+
+- the manager opened a standard Track B vendor bill with its posted/paid state;
+- its source PDF was visible under the original filename with a rendered
+  thumbnail and a native PDF viewer route;
+- the manager opened a standard Track B expense with its approval/accounting
+  state and source JPEG receipt thumbnail;
+- the permanent add-on regression proves that the single-company accountant
+  reviewer can read the verified native accounting attachment binary;
+- private proof:
+  `artifacts/accounting-compat/private/track-b-native-attachments-browser-status.json`.
+
+The full screenshot mapping, user-journey scorecard and permission matrix are
+recorded in
+[Milestone 13 screenshot parity and user-journey scorecard](milestone-13-screenshot-parity-matrix.md).
+
 ## Commands and validation
 
 Passing validation includes:
@@ -281,6 +327,8 @@ make accounting-target-reset
 make accounting-target-import
 make accounting-target-validate
 make accounting-document-regeneration
+make accounting-track-b-expenses
+make accounting-track-b-documents
 make accounting-track-b-deferrals
 make accounting-track-b-analytics
 make accounting-target-reconciliation-probe
@@ -291,18 +339,34 @@ make accounting-fec-validate
 make accounting-compare
 make accounting-readiness
 make accounting-evidence
+make accounting-addon-tests ACCOUNTING_TEST_DB=odoo_m13_native_attachment_unit_20260723_2
+jq empty artifacts/accounting-compat/private/track-b-native-attachments-browser-status.json artifacts/accounting-compat/private/readiness-assessment.json artifacts/accounting-compat/private/evidence-index.json
 ```
 
 The scoped declaration/closing Odoo tests and the broader
 `TestRebuildAccountMigration` suite also pass. The latest fresh isolated run
-completed `69` post-tests across `73` test methods with `0` failures and `0`
-errors, including Accounting Home routing, operational aggregation and
-reviewer company isolation. The suite also includes the three ECB
-provider/idempotence/access tests. Targeted Ruff passed; module initialization
-emitted the existing docutils indentation warnings but no test failure or
-error.
+completed with `0` failures and `0` errors, including Accounting Home routing,
+operational aggregation, reviewer company isolation and checksum/main-selection
+preservation for a native document attachment. The suite also includes the
+three ECB provider/idempotence/access tests. Module initialization emitted the
+existing docutils indentation warnings but no test failure or error. Both
+disposable native-attachment unit databases were dropped after validation.
 
-`ruff` is not installed on the host or long-running Odoo container, so the repository's devcontainer was used. The changed tests pass targeted Ruff validation; a whole-file check of the historical `accounting_compat/cli.py` still reports its pre-existing baseline warnings.
+The first document replay after introducing the gate correctly returned
+`partial`: `74` attachments belonged to valid expense-generated receipt moves
+whose native trace class was not yet allowed. The target resolver was expanded
+to that explicit trace class and the repeat replay passed `215/215`. The first
+expense repeat after downstream settlement also returned `partial`: `95`
+own-account expenses and `97` company payments were already in the later
+`paid` state. Stage validation now accepts the expected intermediate state or
+that monotonic downstream state; the repeat replay passed `325/325` expenses and
+`263/263` attachments.
+
+`ruff` is not installed on the host or long-running Odoo container, so the
+repository's devcontainer was used. The changed test file passes targeted Ruff.
+A whole-file check of the historical importer still reports its eight existing
+`COM812` trailing-comma baseline findings outside this change; they were not
+silently reformatted as part of the accounting-evidence patch.
 
 ## Remaining P0/P1 decisions
 

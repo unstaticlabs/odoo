@@ -2573,7 +2573,11 @@ class RebuildAccountImportRun(models.Model):
             SELECT ia.id, ia.res_model, ia.res_id, ia.company_id, ia.name,
                    ia.res_field, ia.type, ia.url, ia.store_fname,
                    ia.checksum, ia.file_size, ia.mimetype,
-                   ia.description, ia.public
+                   ia.description, ia.public,
+                   (
+                       ia.res_model = 'account.move'
+                       AND ia.id = am.message_main_attachment_id
+                   ) AS is_main
             FROM ir_attachment ia
             LEFT JOIN account_move am
                    ON ia.res_model = 'account.move'
@@ -2601,13 +2605,29 @@ class RebuildAccountImportRun(models.Model):
         )
 
     def _target_for_attachment(self, row, options):
+        trace_models = options.get("attachment_target_trace_models") or {}
         if row["res_model"] == "account.move":
+            account_move_trace_models = trace_models.get(
+                "account.move",
+                ["account.move"],
+            )
             target = self.env["account.move"].with_context(active_test=False).search([
-                ("rebuild_source_model", "=", "account.move"),
+                ("rebuild_source_model", "in", account_move_trace_models),
                 ("rebuild_source_id", "=", row["res_id"]),
                 ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
             ], limit=1)
             return "account.move", target
+        if row["res_model"] == "hr.expense":
+            expense_trace_models = trace_models.get(
+                "hr.expense",
+                ["hr.expense"],
+            )
+            target = self.env["hr.expense"].with_context(active_test=False).search([
+                ("rebuild_source_model", "in", expense_trace_models),
+                ("rebuild_source_id", "=", row["res_id"]),
+                ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
+            ], limit=1)
+            return "hr.expense", target
         if row["res_model"] == "account.asset":
             target = self.env["rebuild.account.asset"].with_context(active_test=False).search([
                 ("rebuild_source_model", "=", "account_asset"),
@@ -2617,8 +2637,8 @@ class RebuildAccountImportRun(models.Model):
             return "rebuild.account.asset", target
         return None, self.env["ir.attachment"]
 
-    def _import_attachments(self, conn, options, companies):
-        rows = self._attachment_rows(conn, options)
+    def _import_attachments(self, conn, options, companies, rows=None):
+        rows = self._attachment_rows(conn, options) if rows is None else rows
         filestore_path = options.get("source_filestore_path") or "/mnt/accounting-source/filestore"
         Attachment = self.env["ir.attachment"].sudo().with_context(
             image_no_postprocess=True,
@@ -2630,6 +2650,8 @@ class RebuildAccountImportRun(models.Model):
         unmapped_targets = []
         checksum_mismatches = []
         duplicate_traces = []
+        main_attachment_mismatches = []
+        imported_main_attachment_count = 0
         for row in rows:
             target_model, target_record = self._target_for_attachment(row, options)
             if not target_model or not target_record:
@@ -2717,6 +2739,32 @@ class RebuildAccountImportRun(models.Model):
                     "target_size": attachment.file_size,
                 })
                 continue
+            if row.get("is_main"):
+                if not hasattr(target_record, "_message_set_main_attachment_id"):
+                    main_attachment_mismatches.append({
+                        **row,
+                        "target_model": target_model,
+                        "target_id": target_record.id,
+                        "missing_reason": "target model has no main-attachment support",
+                    })
+                    continue
+                target_record.sudo()._message_set_main_attachment_id(
+                    attachment,
+                    force=True,
+                    filter_xml=False,
+                )
+                if target_record.message_main_attachment_id != attachment:
+                    main_attachment_mismatches.append({
+                        **row,
+                        "target_model": target_model,
+                        "target_id": target_record.id,
+                        "target_main_attachment_id": (
+                            target_record.message_main_attachment_id.id
+                        ),
+                        "missing_reason": "source main attachment was not selected",
+                    })
+                    continue
+                imported_main_attachment_count += 1
             imported |= attachment
 
         if duplicate_traces:
@@ -2797,14 +2845,140 @@ class RebuildAccountImportRun(models.Model):
                 "accounting_impact": "The target evidence binary is not byte-equivalent to the verified source evidence.",
                 "recommendation": "Stop using the target evidence until the source file and import storage path have been verified.",
             })
+        if main_attachment_mismatches:
+            self.env["rebuild.account.discrepancy"].create({
+                "name": "Source main accounting attachments are not selected on target records",
+                "import_run_id": self.id,
+                "severity": "P0",
+                "classification": "attachment_difference",
+                "status": "open",
+                "period_key": f"{options['date_from']}:{options['date_to']}",
+                "evidence": json.dumps([
+                    {
+                        "source_attachment_id": row["id"],
+                        "res_model": row["res_model"],
+                        "res_id": row["res_id"],
+                        "target_model": row.get("target_model"),
+                        "target_id": row.get("target_id"),
+                        "target_main_attachment_id": row.get(
+                            "target_main_attachment_id",
+                        ),
+                        "missing_reason": row["missing_reason"],
+                    }
+                    for row in main_attachment_mismatches[:50]
+                ], ensure_ascii=False, sort_keys=True),
+                "accounting_impact": (
+                    "The evidence binary exists, but the native document preview "
+                    "does not open the same main evidence selected in the source."
+                ),
+                "recommendation": (
+                    "Repair main-attachment selection before accepting the native "
+                    "document and expense evidence journey."
+                ),
+            })
         return {
             "source_attachment_count": len(rows),
             "imported_attachment_count": len(imported),
+            "source_main_attachment_count": sum(
+                bool(row.get("is_main"))
+                for row in rows
+            ),
+            "imported_main_attachment_count": imported_main_attachment_count,
             "missing_file_count": len(missing_files),
             "unmapped_target_count": len(unmapped_targets),
             "checksum_mismatch_count": len(checksum_mismatches),
+            "duplicate_trace_count": len(duplicate_traces),
+            "main_attachment_mismatch_count": len(main_attachment_mismatches),
             "source_total_bytes": sum(int(row["file_size"] or 0) for row in rows),
         }
+
+    def _native_replay_document_attachment_rows(self, conn, options):
+        return self._fetchall(
+            conn,
+            """
+            SELECT attachment.id,
+                   attachment.res_model,
+                   attachment.res_id,
+                   attachment.company_id,
+                   attachment.name,
+                   attachment.res_field,
+                   attachment.type,
+                   attachment.url,
+                   attachment.store_fname,
+                   attachment.checksum,
+                   attachment.file_size,
+                   attachment.mimetype,
+                   attachment.description,
+                   attachment.public,
+                   (
+                       attachment.id = move.message_main_attachment_id
+                   ) AS is_main
+              FROM ir_attachment attachment
+              JOIN account_move move
+                ON attachment.res_model = 'account.move'
+               AND attachment.res_id = move.id
+             WHERE attachment.type = 'binary'
+               AND move.company_id = ANY(%(source_company_ids)s)
+               AND move.state = 'posted'
+               AND move.move_type IN (
+                   'out_invoice',
+                   'out_refund',
+                   'in_invoice',
+                   'in_refund',
+                   'out_receipt',
+                   'in_receipt'
+               )
+               AND move.date BETWEEN %(date_from)s AND %(date_to)s
+             ORDER BY attachment.id
+            """,
+            options,
+        )
+
+    def _native_replay_expense_attachment_rows(self, conn, options):
+        return self._fetchall(
+            conn,
+            """
+            SELECT attachment.id,
+                   attachment.res_model,
+                   attachment.res_id,
+                   attachment.company_id,
+                   attachment.name,
+                   attachment.res_field,
+                   attachment.type,
+                   attachment.url,
+                   attachment.store_fname,
+                   attachment.checksum,
+                   attachment.file_size,
+                   attachment.mimetype,
+                   attachment.description,
+                   attachment.public,
+                   (
+                       attachment.id = expense.message_main_attachment_id
+                   ) AS is_main
+              FROM ir_attachment attachment
+              JOIN hr_expense expense
+                ON attachment.res_model = 'hr.expense'
+               AND attachment.res_id = expense.id
+             WHERE attachment.type = 'binary'
+               AND expense.company_id = ANY(%(source_company_ids)s)
+               AND expense.date BETWEEN %(date_from)s AND %(date_to)s
+             ORDER BY attachment.id
+            """,
+            options,
+        )
+
+    @staticmethod
+    def _attachment_issue_count(stats):
+        return sum(
+            int(stats.get(field_name, 0))
+            for field_name in (
+                "missing_file_count",
+                "unmapped_target_count",
+                "checksum_mismatch_count",
+                "duplicate_trace_count",
+                "main_attachment_mismatch_count",
+            )
+        )
 
     def _import_move_reviews(self, conn, options, companies, partners, journals, currencies):
         rows = self._move_review_rows(conn, options)
@@ -5549,6 +5723,20 @@ class RebuildAccountImportRun(models.Model):
                     ("rebuild_source_id", "in", [row["id"] for row in expense_rows] or [0]),
                 ])
             }
+            expense_attachment_stats = self._import_attachments(
+                conn,
+                {
+                    **options,
+                    "attachment_target_trace_models": {
+                        "hr.expense": ["hr.expense"],
+                    },
+                },
+                companies,
+                rows=self._native_replay_expense_attachment_rows(conn, options),
+            )
+            expense_attachment_issue_count = self._attachment_issue_count(
+                expense_attachment_stats,
+            )
 
             created_company_payment_move_count = 0
             reused_company_payment_move_count = 0
@@ -5702,12 +5890,12 @@ class RebuildAccountImportRun(models.Model):
                 if not expense:
                     continue
                 company = companies[source_expense["company_id"]]
-                expected_state = source_expense["state"]
+                expected_states = {source_expense["state"]}
                 if (
                     source_expense["state"] == "paid"
                     and source_expense["payment_mode"] == "own_account"
                 ):
-                    expected_state = "posted"
+                    expected_states = {"posted", "paid"}
                     deferred_employee_reimbursement_count += 1
                 expected_distribution = self._native_replay_analytic_distribution(
                     source_expense["analytic_distribution"],
@@ -5716,7 +5904,7 @@ class RebuildAccountImportRun(models.Model):
                 checks = {
                     "name": expense.name == (source_expense["name"] or ""),
                     "date": expense.date == source_expense["date"],
-                    "state": expense.state == expected_state,
+                    "state": expense.state in expected_states,
                     "approval_state": (
                         (expense.approval_state or False)
                         == (source_expense["approval_state"] or False)
@@ -5763,7 +5951,7 @@ class RebuildAccountImportRun(models.Model):
                     "target_expense_id": expense.id,
                     "name": expense.name,
                     "source_state": source_expense["state"],
-                    "expected_stage_state": expected_state,
+                    "expected_stage_states": sorted(expected_states),
                     "target_state": expense.state,
                     "payment_mode": expense.payment_mode,
                     "checks": checks,
@@ -5822,7 +6010,7 @@ class RebuildAccountImportRun(models.Model):
                         "source_trace": (
                             payment.rebuild_source_id == source_move["payment_id"]
                         ),
-                        "state": payment.state == "in_process",
+                        "state": payment.state in {"in_process", "paid"},
                         "date": payment.date == source_move["payment_date"],
                         "journal": payment.journal_id == journals[source_move["payment_journal_id"]],
                         "company": payment.company_id == companies[source_move["payment_company_id"]],
@@ -5848,7 +6036,7 @@ class RebuildAccountImportRun(models.Model):
                         "source_payment_id": source_move["payment_id"],
                         "target_payment_id": payment.id,
                         "source_state": source_move["payment_state"],
-                        "expected_stage_state": "in_process",
+                        "expected_stage_states": ["in_process", "paid"],
                         "target_state": payment.state,
                         "destination_account_classification": (
                             "Source holds a legacy payable-account hint, while the current "
@@ -5887,7 +6075,12 @@ class RebuildAccountImportRun(models.Model):
 
             status = (
                 "passed"
-                if not blocked_cases and not mismatch_expenses and not mismatch_moves
+                if (
+                    not blocked_cases
+                    and not mismatch_expenses
+                    and not mismatch_moves
+                    and not expense_attachment_issue_count
+                )
                 else "partial"
             )
             stats = {
@@ -5928,6 +6121,7 @@ class RebuildAccountImportRun(models.Model):
                 "partner_accounting_properties": partner_property_stats,
                 "expense_accounts": expense_account_stats,
                 "expense_configuration": expense_configuration_stats,
+                "attachments": expense_attachment_stats,
                 "next_stage_classification": {
                     "company_payments": (
                         "Native payments and exact accounting effects exist; their source "
@@ -5951,7 +6145,10 @@ class RebuildAccountImportRun(models.Model):
                 "imported_move_count": len(passed_moves) + len(mismatch_moves),
                 "imported_payment_count": sum(bool(row["payment_id"]) for row in move_rows),
                 "warning_count": (
-                    len(blocked_cases) + len(mismatch_expenses) + len(mismatch_moves)
+                    len(blocked_cases)
+                    + len(mismatch_expenses)
+                    + len(mismatch_moves)
+                    + expense_attachment_issue_count
                 ),
                 "statistics_json": stats,
                 "notes": (
@@ -6269,7 +6466,32 @@ class RebuildAccountImportRun(models.Model):
             for source_account_id in account_ids_to_archive_after_post:
                 accounts[source_account_id].active = False
 
-            status = "passed" if not blocked_cases and not mismatch_cases else "partial"
+            document_attachment_stats = self._import_attachments(
+                conn,
+                {
+                    **options,
+                    "attachment_target_trace_models": {
+                        "account.move": [
+                            "account.move.native_engine_replay",
+                            "account.move.native_expense_replay",
+                        ],
+                    },
+                },
+                companies,
+                rows=self._native_replay_document_attachment_rows(conn, options),
+            )
+            document_attachment_issue_count = self._attachment_issue_count(
+                document_attachment_stats,
+            )
+            status = (
+                "passed"
+                if (
+                    not blocked_cases
+                    and not mismatch_cases
+                    and not document_attachment_issue_count
+                )
+                else "partial"
+            )
             stats = {
                 "classification": "TRACK_B_NATIVE_BUSINESS_DOCUMENT_REPLAY",
                 "date_from": options["date_from"],
@@ -6294,6 +6516,7 @@ class RebuildAccountImportRun(models.Model):
                 "payment_terms": payment_term_stats,
                 "fiscal_positions": fiscal_position_stats,
                 "partner_accounting_properties": partner_property_stats,
+                "attachments": document_attachment_stats,
             }
             self.write({
                 "status": status,
@@ -6305,7 +6528,11 @@ class RebuildAccountImportRun(models.Model):
                 "imported_journal_count": len(journals),
                 "imported_partner_count": len(partners),
                 "imported_move_count": len(passed_cases) + len(mismatch_cases),
-                "warning_count": len(blocked_cases) + len(mismatch_cases),
+                "warning_count": (
+                    len(blocked_cases)
+                    + len(mismatch_cases)
+                    + document_attachment_issue_count
+                ),
                 "statistics_json": stats,
                 "notes": (
                     "Dedicated Track B replay. Finalized source journal entries are not imported; "

@@ -1058,11 +1058,11 @@ Overall status: **technical rehearsal passed; professional acceptance pending**.
 - [ ] Implement readable templated XLSX exports.
 - [x] Implement declaration guidance views for CFS Pro and Portailpro manual filing.
 - [x] Implement declaration deadline/reminder workbench and expose its status on Accounting Home.
-- [ ] Reconstruct customer invoices as usable business documents where source data permits.
+- [ ] Integrate customer invoices as usable business documents into the clean replacement target. Isolated Track B already proves native creation/posting and checksum-verified source attachments.
 - [ ] Reconstruct customer credit notes as usable business documents where source data permits.
-- [ ] Reconstruct vendor bills as usable business documents where source data permits.
-- [ ] Reconstruct supplier refunds as usable business documents where source data permits.
-- [x] Reconstruct and classify current-period source expenses through native Odoo in isolated Track B; integrate them into the replacement target in the remaining payment/reconciliation increment.
+- [ ] Integrate vendor bills as usable business documents into the clean replacement target. Isolated Track B already proves native creation/posting, original PDF evidence and source-designated main attachments.
+- [ ] Integrate supplier refunds as usable business documents into the clean replacement target. Isolated Track B already proves the native replay.
+- [x] Reconstruct and classify current-period source expenses through native Odoo in isolated Track B, including checksum-verified receipts and source-designated main attachments; clean-target integration remains open.
 - [ ] Implement accountant-readable closing archive package.
 - [ ] Keep machine/detail exports available as advanced audit evidence.
 

@@ -128,8 +128,8 @@ Stage dependencies:
 | `make accounting-target-import` | Canonical snapshot; source database for source metadata; clean target database | Target Odoo records and source-trace metadata | It reconstructs accounting evidence through the target Odoo ORM. |
 | `make accounting-target-validate` | Imported target database | Target validation artifacts and discrepancy records | It proves the imported target is internally consistent before report checks run. |
 | `make accounting-track-b-reset` | Installed target/OCA add-ons | Fresh `odoo_rebuild_accounting_track_b` database | It creates a clean, neutralized proof environment without touching the exact replay target. |
-| `make accounting-track-b-expenses` | Read-only restored source expense/business fields and Track B configuration | Native employees, products, expenses, company payments and employee receipts in the Track B database; private proof artifact | It uses normal expense submission, approval/refusal, receipt preparation and payment posting APIs, then compares every expense and generated accounting effect to source. Run it before the document stage so expense-generated receipts can be reused. |
-| `make accounting-track-b-documents` | Read-only restored source business fields and Track B configuration | Native posted invoices, bills, supplier refunds and receipts in the Track B database; private proof artifact | It calls normal Odoo draft creation and `action_post`, then compares headers, due dates and per-account effects to source. |
+| `make accounting-track-b-expenses` | Read-only restored source expense/business fields, verified source filestore binaries and Track B configuration | Native employees, products, expenses, company payments, employee receipts and source-traced receipt attachments in the Track B database; private proof artifact | It uses normal expense submission, approval/refusal, receipt preparation and payment posting APIs, then compares every expense and generated accounting effect to source. It verifies every source receipt checksum/size and preserves the source-designated main attachment. Run it before the document stage so expense-generated receipts can be reused. |
+| `make accounting-track-b-documents` | Read-only restored source business fields, verified source filestore binaries and Track B configuration | Native posted invoices, bills, supplier refunds and receipts with source-traced document attachments in the Track B database; private proof artifact | It calls normal Odoo draft creation and `action_post`, compares headers, due dates and per-account effects to source, then verifies every business-document binary and source-designated main attachment. |
 | `make accounting-track-b-assets` | Read-only source asset master data, depreciation schedules and Track B configuration | OCA assets, profiles, depreciation-board lines and native posted depreciation entries; private proof artifact | It seeds the source business schedule into maintained OCA `account_asset_management`, lets OCA create and post every in-period entry, leaves future schedule lines unposted and compares date, amount and account effects exactly. |
 | `make accounting-track-b-deferrals` | Native Track B documents plus read-only source deferred relationships and schedule decisions | Operational deferred-expense records, posted recognition entries, future schedule lines and a traced opening boundary entry; private proof artifact | It creates a focused schedule workflow backed by standard `account.move` posting, validates every posted and future source relationship, and keeps the reviewer surface read-only. |
 | `make accounting-track-b-expense-settlement` | Native Track B expenses plus the read-only source bank/reconciliation graph | Native bank transactions, OCA-generated partial reconciliations, paid company payments and paid employee expenses; private proof artifact | It runs after expenses/documents, replays source operator allocations chronologically, and keeps mixed-transfer non-expense balances explicit for General Reconciliation. |
@@ -458,6 +458,26 @@ read-only-reviewer journeys, the active-company Home counts, direct report and
 journal-dashboard routes, refresh/back stability, company isolation and hidden
 configuration controls for the reviewer. Readiness requires this artifact to
 remain `passed`.
+
+The native business-document evidence artifact is
+`artifacts/accounting-compat/private/track-b-native-attachments-browser-status.json`.
+Three alternatives were compared: keep binaries only on exact-ledger evidence
+records, link the native records to the separately operated source filestore,
+or replay checksum-verified binaries onto their source-traced native records.
+The third option is implemented because it gives bills and expenses usable
+evidence through standard Odoo ACLs without coupling the replacement to the
+private source service.
+
+The current Track B document replay preserves `215/215` business-document
+binaries and `202/202` source-designated main attachments. The expense replay
+preserves `263/263` binaries and `245/245` main attachments. Both stages report
+zero missing files, unmapped targets, checksum mismatches, duplicate attachment
+traces or main-selection mismatches. The browser artifact records the manager
+vendor-bill/PDF and expense/receipt journeys and the permanent reviewer
+attachment-read regression. Community uses the standard chatter attachment
+workbench, thumbnail and PDF viewer instead of the Enterprise split-pane
+presentation; this is classified as an equivalent replacement, not pixel
+parity. Readiness requires the artifact to remain `passed`.
 
 The workbench generates CSV, XLSX and PDF files from the same filtered result shown on screen. Every format carries company, period, comparison, posted/draft scope, data scope, filters, grouping, search and row-count metadata. XLSX uses typed numeric cells and structured headers; PDF uses structured document tables and repeatable report headers. Fixed-asset reports accept account filters only, bank reconciliation accepts journal and partner filters, and the French tax-package mapping rejects ledger filters because it is a statutory benchmark review mapping. The harness validates report metadata, row counts, workbook structure, PDF structure and screen/export consistency. It also verifies a filtered General Ledger export by journal: the current control uses journal `MISC1`, produces `471` rows, and proves that exported rows and drill-down metadata carry the selected journal filter. The accountant-requested grouping reports retain their technical evidence: both tax grouping exports contain `6` rows with debit `9,168.27`, credit `5,726.27` and balance `3,442.00`; the fixed-asset account grouping contains `2` rows with gross value `10,430.49` and imported net value `8,754.44`.
 

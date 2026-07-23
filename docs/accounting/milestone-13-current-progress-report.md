@@ -13,6 +13,7 @@ Formal checkpoint:
 Related target document:
 
 - [Milestone 13 reporting and closing UX target](milestone-13-reporting-and-closing-ux-target.md)
+- [Milestone 13 screenshot parity and user-journey scorecard](milestone-13-screenshot-parity-matrix.md)
 
 ## Target
 
@@ -68,6 +69,7 @@ Observed current stage artifacts under `artifacts/accounting-compat/private/` sh
 - document-regeneration cases: `passed`
 - Track B native expenses: `passed`, classified as `TRACK_B_NATIVE_EXPENSE_REPLAY`
 - Track B native business documents: `passed`, classified as `TRACK_B_NATIVE_BUSINESS_DOCUMENT_REPLAY`
+- Track B native document evidence browser: `passed`, classified as `TRACK_B_NATIVE_DOCUMENT_EVIDENCE_BROWSER_GOLDEN_JOURNEY`
 - Track B native assets: `passed`, classified as `TRACK_B_NATIVE_ASSET_DEPRECIATION_REPLAY`
 - Track B native deferrals: `passed`, classified as `TRACK_B_NATIVE_DEFERRAL_AND_OPENING_REPLAY`
 - Track B native expense settlement: `passed`, classified as `TRACK_B_NATIVE_EXPENSE_SETTLEMENT`
@@ -162,6 +164,21 @@ The current import status reports these production-derived records represented i
 - 110 deferred schedule lines
 - 632 analytic lines
 - 38 imported source report definitions
+
+The isolated Track B native proof additionally preserves:
+
+- `215/215` current-period business-document binaries and `202/202`
+  source-designated main attachments;
+- `263/263` current-period expense binaries and `245/245`
+  source-designated main attachments;
+- zero missing files, unmapped targets, checksum mismatches, duplicate traces or
+  main-selection mismatches.
+
+Those bytes are replayed onto their traced native bills/expenses only after
+source checksum and size verification. The standard Community attachment
+workbench, thumbnail and PDF viewer provide the source-document review path.
+The clean replacement target still needs the Track B native records integrated;
+this evidence does not blur that boundary.
 
 The target validation artifact reports 29 comparison groups and no failed comparison group for the posted ledger slice. The currency-rate comparison is broad-snapshot rather than benchmark-only and passes with zero missing, extra or mismatched rows; the idempotence signature includes the full `res_currency_rate` table.
 
@@ -440,6 +457,7 @@ Current outcome: the dynamic report screens, readable exports, declaration works
 - FEC generation/validation harness artifact
 - accountant/review evidence models
 - Diataxis user docs and Odoo docs browser
+- Track B checksum-verified native bill/expense evidence and main-attachment selection
 
 ### Partial and not yet acceptable
 
@@ -449,6 +467,7 @@ Current outcome: the dynamic report screens, readable exports, declaration works
 - official non-test FEC access policy
 - broader accounting menu hierarchy and daily workflow naming
 - accountant validation of cash-basis VAT treatment
+- clean-target integration of the proven Track B bills, refunds, expenses and their native evidence
 
 ### Not yet complete
 
@@ -468,7 +487,7 @@ Current outcome: the dynamic report screens, readable exports, declaration works
 - [ ] Make module refresh/upgrade instructions and UI refresh behavior visible in the dev guide.
 - [x] Diagnose the bank journal transaction view and reconcile it with imported `account.bank.statement.line` records.
 - [x] Adopt the OCA workbench for operational bank/general reconciliation while retaining custom read-only historical evidence views under Advanced Audit.
-- [ ] Integrate the proven Track B customer invoices, vendor bills, supplier refunds and source-derived expenses into the user-facing replacement target; the source period contains no customer credit-note case.
+- [ ] Integrate the proven Track B customer invoices, vendor bills, supplier refunds and source-derived expenses into the user-facing replacement target; their checksum-verified source binaries and main selections now pass, and the source period contains no customer credit-note case.
 - [ ] Diagnose and fix the FEC permission path for accountant and finance operator roles.
 - [x] Diagnose and fix the Settings cash-basis tax error without changing tax meaning.
 - [x] Complete menu organization around CEO/accountant workflows. The seven-area navigation now includes top-level Closing and Declarations destinations plus the standard closing and tax/fiscal submenus.
@@ -509,7 +528,7 @@ Current outcome: the dynamic report screens, readable exports, declaration works
 - Validation question: does the OCA reconciliation workbench correctly perform operational matching, write-offs and partial reconciliations on imported statement lines without damaging historical source-traced reconciliation evidence?
 - Accounting question: which cash-basis VAT behavior in the source is legally required for USL, and which behavior is only a side effect of imported localization configuration? The technical Settings inconsistency is fixed, but the tax rule still requires accountant validation.
 - Accounting question: which generated statutory PDFs/XLSX require further visual alignment with the supplied accountant benchmark, and which technically validated workbench exports are acceptable as-is?
-- Access question: which exact source documents or attachments should be visible to the accountant as evidence versus restricted accounting evidence?
+- Access question: does the accountant accept native-record access as the final document-evidence scope? Current ACL tests allow source-replayed attachments only through an accessible accounting parent and continue to deny private technical attachments.
 - What exact accountant review workflow is required before Milestone 13 can close?
 
 ## Bottom line
