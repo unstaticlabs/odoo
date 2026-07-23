@@ -59,6 +59,18 @@ The third option is implemented. A minimal client action routes the Accounting
 launcher to the active company's queryable Home; it does not implement a second
 ledger or a parallel accounting engine.
 
+For Accounting Hygiene, three alternatives were compared:
+
+1. create a second hygiene issue model, duplicating states already held by
+   native records, closing controls and review decisions;
+2. expose only closing controls, omitting daily queues that remain relevant
+   between period reviews;
+3. extend the company-scoped review summary with live operational buckets and
+   direct actions while reusing the existing closing and review domains.
+
+The third option is implemented. It creates no issue copies or notification
+stream and keeps every count traceable to a native record or durable decision.
+
 For native document evidence, three alternatives were compared:
 
 1. retain binaries only on exact-ledger evidence records, leaving operational
@@ -236,9 +248,10 @@ Valentin/Accounting Manager journey:
   `12` cash journals and a bank/cash balance of EUR `91,477.07`;
 - daily/open-balance state showed `37` draft vendor documents and `74` open
   payables totalling EUR `31,749.82`;
-- the current 30 June 2026 close was blocked by `2` controls, the next visible
-  declaration deadline was 24 July 2024, `15` obligations were overdue and `1`
-  was within 45 days;
+- the earlier Home capture showed the current 30 June 2026 close blocked by
+  `2` controls; the later Hygiene refresh recomputed `4` blockers. The next
+  visible declaration deadline was 24 July 2024, `15` obligations were overdue
+  and `1` was within 45 days;
 - prepared-action counts were `2` for Valentin and `44` for Prosper;
 - the report route opened Trial Balance with native scope and fiscal
   year-to-date defaults;
@@ -267,6 +280,28 @@ Prosper/read-only journey used a disposable browser user assigned only to Unstat
 - write access to `account.bank.statement.line` and `account.move.line` raised `AccessError`;
 - Bank Matching retained the read-only `View move` route while hiding validate, reset and check-state mutation controls;
 - the disposable user was deleted after the walkthrough.
+
+Accounting Hygiene journey:
+
+- the manager opened the dedicated company-scoped workbench and refreshed the
+  current controls without an access error;
+- the final state showed `347` attention items: `207` bank transactions to
+  match, `37` supplier documents without main evidence, `37` stale drafts,
+  `15` overdue declarations, `4` current closing blockers and `6` warnings;
+- the workbench separated `2` decisions prepared for Valentin from `44`
+  prepared for Prosper and retained the open `1` P0 / `1` P1 evidence;
+- the current period control drilldown opened all `13` accounting, document,
+  bank, tax, payroll, asset, currency, analytic, issue, report, FEC and lock
+  controls;
+- the supplier-evidence drilldown opened exactly `37` draft bills;
+- the first reviewer pass exposed a misleading standard `Upload` control even
+  though create access was denied; the shared account-move frontend now gates
+  that control with `account.group_account_invoice`;
+- the repeat reviewer pass retained read access to the `37` records while
+  hiding refresh, Configuration, New and Upload controls;
+- the manager retained New and Upload, and the disposable reviewer was removed;
+- private proof:
+  `artifacts/accounting-compat/private/accounting-hygiene-browser-status.json`.
 
 Private Accounting Home proof:
 `artifacts/accounting-compat/private/accounting-home-browser-status.json`.
@@ -320,8 +355,10 @@ Passing validation includes:
 
 ```text
 python3 -m unittest accounting_compat.tests.test_report_evidence accounting_compat.tests.test_fec_preflight
-python3 -m py_compile accounting_compat/cli.py accounting_compat/tests/test_report_evidence.py custom-addons/rebuild_account_migration/tests/test_rebuild_account_migration.py
-docker compose --profile devcontainer run --rm devcontainer ruff check accounting_compat/tests/test_report_evidence.py custom-addons/rebuild_account_migration/tests/test_rebuild_account_migration.py
+python3 -m py_compile accounting_compat/cli.py custom-addons/rebuild_account_migration/models/review_summary.py custom-addons/rebuild_account_migration/tests/test_rebuild_account_migration.py
+docker compose --profile devcontainer run --rm devcontainer ruff check --ignore EM101 custom-addons/rebuild_account_migration/models/review_summary.py custom-addons/rebuild_account_migration/tests/test_rebuild_account_migration.py
+odoo --config=/etc/odoo/odoo.conf --addons-path=/workspace/odoo/addons,/workspace/odoo/odoo/addons,/workspace/odoo/custom-addons,/workspace/odoo/oca-addons --database=odoo_rebuild_accounting_test --update=rebuild_account_migration --stop-after-init
+/tmp/odoo-m13-docs-venv/bin/python -m mkdocs build --config-file mkdocs.yml
 git diff --check
 make accounting-target-reset
 make accounting-target-import
@@ -339,18 +376,20 @@ make accounting-fec-validate
 make accounting-compare
 make accounting-readiness
 make accounting-evidence
-make accounting-addon-tests ACCOUNTING_TEST_DB=odoo_m13_native_attachment_unit_20260723_2
-jq empty artifacts/accounting-compat/private/track-b-native-attachments-browser-status.json artifacts/accounting-compat/private/readiness-assessment.json artifacts/accounting-compat/private/evidence-index.json
+make accounting-addon-tests ACCOUNTING_TEST_DB=odoo_m13_accounting_hygiene_unit_20260723_3
+jq empty artifacts/accounting-compat/private/accounting-hygiene-browser-status.json artifacts/accounting-compat/private/readiness-assessment.json artifacts/accounting-compat/private/evidence-index.json
 ```
 
 The scoped declaration/closing Odoo tests and the broader
 `TestRebuildAccountMigration` suite also pass. The latest fresh isolated run
-completed with `0` failures and `0` errors, including Accounting Home routing,
-operational aggregation, reviewer company isolation and checksum/main-selection
-preservation for a native document attachment. The suite also includes the
-three ECB provider/idempotence/access tests. Module initialization emitted the
-existing docutils indentation warnings but no test failure or error. Both
-disposable native-attachment unit databases were dropped after validation.
+completed with `0` failures and `0` errors, including Accounting Home and
+Hygiene routing, operational aggregation, reviewer company isolation,
+manager-only refresh, frontend asset registration and
+checksum/main-selection preservation for a native document attachment. The
+suite also includes the three ECB provider/idempotence/access tests. Module
+initialization emitted the existing docutils indentation warnings but no test
+failure or error. The disposable Hygiene unit database was dropped after
+validation.
 
 The first document replay after introducing the gate correctly returned
 `partial`: `74` attachments belonged to valid expense-generated receipt moves
@@ -363,10 +402,18 @@ that monotonic downstream state; the repeat replay passed `325/325` expenses and
 `263/263` attachments.
 
 `ruff` is not installed on the host or long-running Odoo container, so the
-repository's devcontainer was used. The changed test file passes targeted Ruff.
-A whole-file check of the historical importer still reports its eight existing
-`COM812` trailing-comma baseline findings outside this change; they were not
-silently reformatted as part of the accounting-evidence patch.
+repository's devcontainer was used. The changed model and test pass targeted
+Ruff with `EM101` ignored. A non-ignored pass found three pre-existing `EM101`
+literal-message findings in `review_summary.py`; the two new occurrences were
+fixed, while the historical three remain outside this scoped patch.
+
+The host `make user-docs-build` command initially failed because MkDocs was not
+installed. A temporary virtual environment was populated from
+`requirements-docs.txt`; two direct MkDocs builds then passed. The first
+reviewer browser pass also revealed the standard supplier-list `Upload`
+control. Adding a QWeb group condition did not alter the rendered inherited
+controller, so the final implementation gates that controller state through
+the accountant group; the repeat manager and reviewer journeys passed.
 
 ## Remaining P0/P1 decisions
 

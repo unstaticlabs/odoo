@@ -213,7 +213,7 @@ admin / admin
 In Odoo, open:
 
 ```text
-Accounting > Review > Control > Issues
+Accounting > Review > Control > Accounting Hygiene
 ```
 
 Then try:
@@ -226,6 +226,7 @@ Accounting > Reporting > Interactive Reports > General Ledger
 Accounting > Reporting > Statement Reports > Balance Sheet
 Accounting > Reporting > Statement Reports > Profit and Loss
 Accounting > Reporting > Taxes & Fiscal > FEC
+Accounting > Review > Advanced Audit > Accounting Reconstruction Review
 Accounting > Review > Advanced Audit > User Guide
 Accounting > Review > Advanced Audit > Imported Report Export
 ```

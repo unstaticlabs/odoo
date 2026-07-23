@@ -70,6 +70,7 @@ Observed current stage artifacts under `artifacts/accounting-compat/private/` sh
 - Track B native expenses: `passed`, classified as `TRACK_B_NATIVE_EXPENSE_REPLAY`
 - Track B native business documents: `passed`, classified as `TRACK_B_NATIVE_BUSINESS_DOCUMENT_REPLAY`
 - Track B native document evidence browser: `passed`, classified as `TRACK_B_NATIVE_DOCUMENT_EVIDENCE_BROWSER_GOLDEN_JOURNEY`
+- Accounting Hygiene browser: `passed`, classified as `ACCOUNTING_HYGIENE_BROWSER_GOLDEN_JOURNEY`
 - Track B native assets: `passed`, classified as `TRACK_B_NATIVE_ASSET_DEPRECIATION_REPLAY`
 - Track B native deferrals: `passed`, classified as `TRACK_B_NATIVE_DEFERRAL_AND_OPENING_REPLAY`
 - Track B native expense settlement: `passed`, classified as `TRACK_B_NATIVE_EXPENSE_SETTLEMENT`
@@ -223,6 +224,8 @@ The add-on currently provides:
 - an export wizard for imported accounting reports
 - a dependency on native Odoo Expenses so the standard employee-expense workflow is installed and reachable from Accounting
 - a user-docs browser at `/usl/user-docs`
+- a company-scoped Accounting Hygiene workbench backed by live native records,
+  current closing controls and separated Valentin/Prosper decision queues
 
 This add-on is evidence and reconstruction infrastructure. It is not yet a full replacement for the Enterprise `account_reports` interactive reporting product.
 
@@ -364,7 +367,7 @@ Frequent reconciliation paths are deliberately distinct:
 - `Accounting > Transactions > Bank Matching` opens the cross-journal OCA bank workbench for unreconciled statement lines;
 - journal-card `Transactions` opens transaction history, while `Reconcile … Items` opens that journal's matching workbench;
 - `Accounting > Closing > General Reconciliation` opens OCA reconciliation grouped by account and partner;
-- `Review > Control > Issues` opens the accounting-hygiene/reconstruction summary;
+- `Review > Control > Accounting Hygiene` opens the company-scoped daily control workbench; reconstruction-only evidence remains under `Review > Advanced Audit`;
 - raw source/import evidence remains under `Review > Advanced Audit`.
 
 Native Odoo `Employee Expenses` remains available in the Vendors area.
@@ -458,6 +461,7 @@ Current outcome: the dynamic report screens, readable exports, declaration works
 - accountant/review evidence models
 - Diataxis user docs and Odoo docs browser
 - Track B checksum-verified native bill/expense evidence and main-attachment selection
+- Accounting Hygiene daily queues, direct evidence links and manager/reviewer browser controls
 
 ### Partial and not yet acceptable
 

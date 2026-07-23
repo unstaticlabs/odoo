@@ -59,7 +59,7 @@ read-only and the replay never falls back to an unverified link.
 
 | Journey | Valentin / Accounting Manager | Prosper / Accountant Reviewer | Current result |
 | --- | --- | --- | --- |
-| Start daily work | Operational Home, prepared actions, balances, close/declaration state and native Dashboard route. | Same company-scoped Home without settings or mutation controls. | Passed in browser. |
+| Start daily work | Operational Home, Accounting Hygiene, prepared actions, balances, close/declaration state and native Dashboard route. | Same company-scoped Home and Hygiene queues without settings, refresh or mutation controls. | Home and Hygiene manager/reviewer browser journeys passed; the reviewer drilldowns hide New and Upload. |
 | Review reports | Full dynamic filters, drilldown and exports. | Same review and export surfaces; no create/edit controls. | Passed in browser and add-on tests; professional acceptance pending. |
 | Review bank and general reconciliation | Operational OCA workbenches and source audit links. | Read-only views and move drilldown; validate/reset/reconcile mutations hidden and denied. | Passed in browser and ACL tests; cross-boundary policy pending. |
 | Review declarations and closing | Schedule, field guidance, close controls and package/FEC preparation. | Read-only evidence and test-file preparation within allowed company. | Technically passed; statutory and professional approvals pending. |
@@ -88,6 +88,7 @@ Private evidence:
 - `track-b-expenses-status.json`;
 - `track-b-native-attachments-browser-status.json`;
 - `accounting-home-browser-status.json`;
+- `accounting-hygiene-browser-status.json`;
 - `dynamic-report-browser-status.json`;
 - Track B asset, deferral and analytic browser artifacts.
 

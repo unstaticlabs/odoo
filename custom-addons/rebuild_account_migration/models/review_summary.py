@@ -1,5 +1,5 @@
 from odoo import api, fields, models, tools
-from odoo.exceptions import UserError
+from odoo.exceptions import AccessError, UserError
 from odoo.tools import date_utils
 
 
@@ -45,6 +45,22 @@ class RebuildAccountReviewSummary(models.Model):
         readonly=True,
     )
     incomplete_document_count = fields.Integer(readonly=True)
+    missing_vendor_attachment_count = fields.Integer(
+        string="Vendor Documents Missing Evidence",
+        readonly=True,
+    )
+    missing_expense_attachment_count = fields.Integer(
+        string="Expenses Missing Receipts",
+        readonly=True,
+    )
+    stale_draft_document_count = fields.Integer(
+        string="Stale Draft Documents",
+        readonly=True,
+    )
+    stale_draft_expense_count = fields.Integer(
+        string="Stale Expense Work",
+        readonly=True,
+    )
     open_receivable_count = fields.Integer(readonly=True)
     open_receivable_amount = fields.Monetary(
         currency_field="currency_id",
@@ -83,6 +99,7 @@ class RebuildAccountReviewSummary(models.Model):
         readonly=True,
     )
     latest_closing_blocking_count = fields.Integer(readonly=True)
+    latest_closing_warning_count = fields.Integer(readonly=True)
     next_declaration_id = fields.Many2one(
         "rebuild.account.declaration",
         readonly=True,
@@ -115,6 +132,18 @@ class RebuildAccountReviewSummary(models.Model):
     )
     accountant_action_count = fields.Integer(
         string="Prepared for Prosper",
+        readonly=True,
+    )
+    hygiene_attention_count = fields.Integer(
+        string="Items Requiring Attention",
+        readonly=True,
+    )
+    hygiene_status = fields.Selection(
+        [
+            ("ready", "Ready"),
+            ("attention", "Attention Required"),
+            ("blocked", "Blocked"),
+        ],
         readonly=True,
     )
     source_report_count = fields.Integer(readonly=True)
@@ -232,6 +261,98 @@ class RebuildAccountReviewSummary(models.Model):
             "hr_expense.hr_expense_actions_all",
             [],
         )
+
+    def action_open_missing_vendor_attachments(self):
+        return self._standard_company_action(
+            "account.action_move_in_invoice_type",
+            [
+                (
+                    "move_type",
+                    "in",
+                    ["in_invoice", "in_refund", "in_receipt"],
+                ),
+                ("state", "!=", "cancel"),
+                ("message_main_attachment_id", "=", False),
+            ],
+        )
+
+    def action_open_missing_expense_attachments(self):
+        return self._standard_company_action(
+            "hr_expense.hr_expense_actions_all",
+            [
+                ("state", "!=", "refused"),
+                ("message_main_attachment_id", "=", False),
+            ],
+        )
+
+    def action_open_stale_draft_documents(self):
+        cutoff = date_utils.subtract(fields.Date.context_today(self), days=30)
+        return self._standard_company_action(
+            "account.action_move_journal_line",
+            [
+                ("state", "=", "draft"),
+                (
+                    "move_type",
+                    "in",
+                    [
+                        "out_invoice",
+                        "out_refund",
+                        "out_receipt",
+                        "in_invoice",
+                        "in_refund",
+                        "in_receipt",
+                    ],
+                ),
+                ("date", "<", cutoff),
+            ],
+        )
+
+    def action_open_stale_expenses(self):
+        cutoff = date_utils.subtract(fields.Date.context_today(self), days=30)
+        return self._standard_company_action(
+            "hr_expense.hr_expense_actions_all",
+            [
+                ("state", "in", ["draft", "submitted", "approved"]),
+                ("date", "<", cutoff),
+            ],
+        )
+
+    def action_open_latest_closing_controls(self):
+        self.ensure_one()
+        if not self.latest_closing_period_id:
+            message = "No closing controls are available for this company."
+            raise UserError(message)
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Current Accounting Controls",
+            "res_model": "rebuild.account.closing.control",
+            "view_mode": "list,form",
+            "views": [(False, "list"), (False, "form")],
+            "domain": [
+                (
+                    "closing_period_id",
+                    "=",
+                    self.latest_closing_period_id.id,
+                ),
+            ],
+            "context": {
+                "create": False,
+                "delete": False,
+                "search_default_group_category": 1,
+            },
+        }
+
+    def action_refresh_hygiene(self):
+        self.ensure_one()
+        if not self.env.user.has_group("account.group_account_manager"):
+            message = "Only an Accounting Manager can refresh accounting controls."
+            raise AccessError(message)
+        if self.latest_closing_period_id:
+            self.latest_closing_period_id.action_refresh_controls()
+        return {
+            "type": "ir.actions.client",
+            "tag": "reload",
+        }
 
     def action_open_open_receivables(self):
         self.ensure_one()
@@ -550,6 +671,10 @@ class RebuildAccountReviewSummary(models.Model):
                        COALESCE(documents.draft_vendor_document_count, 0) AS draft_vendor_document_count,
                        COALESCE(expenses.draft_expense_count, 0) AS draft_expense_count,
                        COALESCE(documents.incomplete_document_count, 0) AS incomplete_document_count,
+                       COALESCE(documents.missing_vendor_attachment_count, 0) AS missing_vendor_attachment_count,
+                       COALESCE(expenses.missing_expense_attachment_count, 0) AS missing_expense_attachment_count,
+                       COALESCE(documents.stale_draft_document_count, 0) AS stale_draft_document_count,
+                       COALESCE(expenses.stale_draft_expense_count, 0) AS stale_draft_expense_count,
                        COALESCE(operational.open_receivable_count, 0) AS open_receivable_count,
                        COALESCE(operational.open_receivable_amount, 0.00) AS open_receivable_amount,
                        COALESCE(operational.open_payable_count, 0) AS open_payable_count,
@@ -559,6 +684,7 @@ class RebuildAccountReviewSummary(models.Model):
                        latest_closing.state AS latest_closing_state,
                        latest_closing.readiness_status AS latest_closing_readiness,
                        COALESCE(latest_closing.blocking_count, 0) AS latest_closing_blocking_count,
+                       COALESCE(latest_closing.warning_count, 0) AS latest_closing_warning_count,
                        next_declaration.id AS next_declaration_id,
                        next_declaration.deadline_date AS next_declaration_deadline,
                        next_declaration.status AS next_declaration_status,
@@ -566,6 +692,35 @@ class RebuildAccountReviewSummary(models.Model):
                        COALESCE(declaration_counts.upcoming_declaration_count, 0) AS upcoming_declaration_count,
                        COALESCE(decisions.valentin_action_count, 0) AS valentin_action_count,
                        COALESCE(decisions.accountant_action_count, 0) AS accountant_action_count,
+                       (
+                           COALESCE(bank_activity.unmatched_bank_transaction_count, 0)
+                         + COALESCE(documents.incomplete_document_count, 0)
+                         + COALESCE(documents.missing_vendor_attachment_count, 0)
+                         + COALESCE(expenses.missing_expense_attachment_count, 0)
+                         + COALESCE(documents.stale_draft_document_count, 0)
+                         + COALESCE(expenses.stale_draft_expense_count, 0)
+                         + COALESCE(latest_closing.warning_count, 0)
+                         + COALESCE(declaration_counts.overdue_declaration_count, 0)
+                         + COALESCE(discrepancies.open_p1_count, 0)
+                         + COALESCE(decisions.pending_review_decision_count, 0)
+                       )::integer AS hygiene_attention_count,
+                       CASE
+                           WHEN COALESCE(discrepancies.open_p0_count, 0) > 0
+                             OR COALESCE(latest_closing.blocking_count, 0) > 0
+                           THEN 'blocked'
+                           WHEN COALESCE(bank_activity.unmatched_bank_transaction_count, 0) > 0
+                             OR COALESCE(documents.incomplete_document_count, 0) > 0
+                             OR COALESCE(documents.missing_vendor_attachment_count, 0) > 0
+                             OR COALESCE(expenses.missing_expense_attachment_count, 0) > 0
+                             OR COALESCE(documents.stale_draft_document_count, 0) > 0
+                             OR COALESCE(expenses.stale_draft_expense_count, 0) > 0
+                             OR COALESCE(latest_closing.warning_count, 0) > 0
+                             OR COALESCE(declaration_counts.overdue_declaration_count, 0) > 0
+                             OR COALESCE(discrepancies.open_p1_count, 0) > 0
+                             OR COALESCE(decisions.pending_review_decision_count, 0) > 0
+                           THEN 'attention'
+                           ELSE 'ready'
+                       END AS hygiene_status,
                        COALESCE(reports.source_report_count, 0) AS source_report_count,
                        COALESCE(reports.mandatory_report_count, 0) AS mandatory_report_count,
                        COALESCE(reports.partial_report_equivalent_count, 0) AS partial_report_equivalent_count,
@@ -711,7 +866,28 @@ class RebuildAccountReviewSummary(models.Model):
                                               AND detail.display_type = 'product'
                                        )
                                    )
-                             )::integer AS incomplete_document_count
+                             )::integer AS incomplete_document_count,
+                             count(*) FILTER (
+                                 WHERE move.state != 'cancel'
+                                   AND move.move_type IN (
+                                       'in_invoice',
+                                       'in_refund',
+                                       'in_receipt'
+                                   )
+                                   AND move.message_main_attachment_id IS NULL
+                             )::integer AS missing_vendor_attachment_count,
+                             count(*) FILTER (
+                                 WHERE move.state = 'draft'
+                                   AND move.move_type IN (
+                                       'out_invoice',
+                                       'out_refund',
+                                       'out_receipt',
+                                       'in_invoice',
+                                       'in_refund',
+                                       'in_receipt'
+                                   )
+                                   AND move.date < CURRENT_DATE - INTERVAL '30 days'
+                             )::integer AS stale_draft_document_count
                         FROM account_move move
                        WHERE move.company_id = company.id
                   ) documents ON TRUE
@@ -722,7 +898,19 @@ class RebuildAccountReviewSummary(models.Model):
                                      'submitted',
                                      'approved'
                                  )
-                             )::integer AS draft_expense_count
+                             )::integer AS draft_expense_count,
+                             count(*) FILTER (
+                                 WHERE expense.state != 'refused'
+                                   AND expense.message_main_attachment_id IS NULL
+                             )::integer AS missing_expense_attachment_count,
+                             count(*) FILTER (
+                                 WHERE expense.state IN (
+                                     'draft',
+                                     'submitted',
+                                     'approved'
+                                 )
+                                   AND expense.date < CURRENT_DATE - INTERVAL '30 days'
+                             )::integer AS stale_draft_expense_count
                         FROM hr_expense expense
                        WHERE expense.company_id = company.id
                   ) expenses ON TRUE
@@ -733,7 +921,10 @@ class RebuildAccountReviewSummary(models.Model):
                              closing.readiness_status,
                              count(control.id) FILTER (
                                  WHERE control.status = 'block'
-                             )::integer AS blocking_count
+                             )::integer AS blocking_count,
+                             count(control.id) FILTER (
+                                 WHERE control.status = 'warning'
+                             )::integer AS warning_count
                         FROM rebuild_account_closing_period closing
                         LEFT JOIN rebuild_account_closing_control control
                           ON control.closing_period_id = closing.id

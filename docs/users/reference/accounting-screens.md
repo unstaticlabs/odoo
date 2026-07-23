@@ -20,18 +20,20 @@ transactions, Bank Matching, documents, expenses, balances, reports, closing,
 declarations and prepared decision queues. The standard Odoo `Dashboard` remains
 available as a child menu for journal cards and direct journal access.
 
-## Main Review Entry
+## Accounting Hygiene
 
 ```text
-Accounting > Review > Control > Issues
+Accounting > Review > Control > Accounting Hygiene
 ```
 
-Purpose: company-level reconstruction and audit control for import status,
-ledger totals, discrepancies, review decisions, external values and report
-evidence.
+Purpose: company-scoped daily review for unmatched bank transactions,
+incomplete or stale documents and expenses, missing supplier/receipt evidence,
+closing/declaration warnings and prepared decisions.
 
-Use it when validating reconstruction evidence, rather than as the daily
-Accounting landing page.
+Each count opens the native record or durable evidence behind it. Accounting
+Managers can refresh the current closing controls; the accountant reviewer has
+the same scoped read path without the refresh or accounting mutation control.
+The reconstruction-only summary remains under `Review > Advanced Audit`.
 
 ## Evidence and Control Screens
 
@@ -132,7 +134,7 @@ provider updates. Accountant reviewers cannot open this configuration action.
 ## Accounting Report Workbench
 
 ```text
-Accounting > Review > Control > Issues > Report Export
+Accounting > Review > Advanced Audit > Accounting Reconstruction Review > Generate Reports
 ```
 
 Also available through Accounting reporting launchers.

@@ -9,7 +9,7 @@ Use this guide when you need to know whether the reconstructed accounting databa
 Go to:
 
 ```text
-Accounting > Review > Control > Issues
+Accounting > Review > Advanced Audit > Accounting Reconstruction Review
 ```
 
 Open the company you want to review.
@@ -47,7 +47,7 @@ From the summary form, use:
 - `Document Regeneration Cases` to inspect non-posted source records.
 - `Imported Journal Items` to inspect posted ledger lines.
 - `Source Reports` to inspect source report parity evidence.
-- `Report Export` to generate reports.
+- `Generate Reports` to generate reports.
 
 ## What Good Looks Like
 

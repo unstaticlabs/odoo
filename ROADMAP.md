@@ -1760,22 +1760,22 @@ Scope note: payment-provider product support is not a Milestone 13 requirement. 
 
 ## Accounting Hygiene
 
-- [ ] Define recurring accounting-review periods.
-- [ ] Collect incomplete expenses.
-- [ ] Collect incomplete vendor bills.
-- [ ] Collect missing attachments.
-- [ ] Collect unreconciled bank transactions.
+- [x] Define recurring accounting-review periods through the monthly, quarterly and annual closing workspaces.
+- [x] Collect incomplete expenses in the company-scoped Accounting Hygiene workbench.
+- [x] Collect incomplete vendor bills and other draft business documents.
+- [x] Collect missing vendor-document and expense-receipt evidence.
+- [x] Collect unreconciled bank transactions with a direct Bank Matching route.
 - [ ] Collect platform payout issues.
-- [ ] Collect payroll issues.
-- [ ] Collect VAT issues.
+- [x] Collect payroll status through the current period controls, including the explicit external-payroll boundary when payroll is not installed.
+- [x] Collect VAT/declaration readiness through the current period and declaration workspaces.
 - [ ] Collect unusual balances.
-- [ ] Collect stale drafts.
-- [ ] Separate automatic fixes from approvals.
-- [ ] Separate accountant questions from Valentin decisions.
-- [ ] Produce a concise readiness summary.
-- [ ] Produce evidence links.
-- [ ] Track completion.
-- [ ] Avoid noisy chatter or duplicate activities.
+- [x] Collect draft document and expense work older than 30 days.
+- [x] Separate automatic checks and refreshes from named professional approvals.
+- [x] Separate questions and decisions prepared for Prosper from those prepared for Valentin.
+- [x] Produce a concise company-scoped hygiene and readiness summary.
+- [x] Produce direct links to native records, closing controls, discrepancies and import evidence.
+- [x] Track completion through native record state, period controls and durable review decisions.
+- [x] Avoid noisy chatter or duplicate activities; Hygiene is a queryable workbench and creates no notification stream.
 
 ## Intercompany and USL Media
 

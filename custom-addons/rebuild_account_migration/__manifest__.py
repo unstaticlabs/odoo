@@ -30,6 +30,7 @@
     ],
     "assets": {
         "web.assets_backend": [
+            "rebuild_account_migration/static/src/js/account_move_upload_controls.js",
             "rebuild_account_migration/static/src/js/accounting_home_action.js",
         ],
     },

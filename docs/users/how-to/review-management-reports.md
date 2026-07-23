@@ -20,10 +20,10 @@ Accounting > Reporting > Analytic Report
 If you start from the reconstruction summary, open:
 
 ```text
-Accounting > Review > Control > Issues
+Accounting > Review > Advanced Audit > Accounting Reconstruction Review
 ```
 
-Then click `Report Export` and select the report type.
+Then click `Generate Reports` and select the report type.
 
 ## Review SIG and CAF
 

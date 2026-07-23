@@ -12386,6 +12386,10 @@ def readiness(args: argparse.Namespace) -> dict[str, Any]:
             PRIVATE_ARTIFACTS
             / "accounting-home-browser-status.json"
         ),
+        "accounting_hygiene_browser": (
+            PRIVATE_ARTIFACTS
+            / "accounting-hygiene-browser-status.json"
+        ),
         "fec": PRIVATE_ARTIFACTS / "fec-status.json",
         "fec_validation": PRIVATE_ARTIFACTS / "fec-validation-status.json",
         "compare": PRIVATE_ARTIFACTS / "compare-status.json",
@@ -12423,6 +12427,7 @@ def readiness(args: argparse.Namespace) -> dict[str, Any]:
         "reports": {"passed", "partial"},
         "dynamic_report_browser": {"passed"},
         "accounting_home_browser": {"passed"},
+        "accounting_hygiene_browser": {"passed"},
         "fec": {"passed"},
         "fec_validation": {"passed"},
         "compare": {"passed"},
@@ -12613,6 +12618,10 @@ def evidence(args: argparse.Namespace) -> dict[str, Any]:
         "accounting_home_browser": (
             PRIVATE_ARTIFACTS
             / "accounting-home-browser-status.json"
+        ),
+        "accounting_hygiene_browser": (
+            PRIVATE_ARTIFACTS
+            / "accounting-hygiene-browser-status.json"
         ),
         "vat_benchmark_investigation": PRIVATE_ARTIFACTS / "vat-benchmark-investigation-2025-09-30.json",
         "source_report_parity": PRIVATE_ARTIFACTS / "source-report-parity-status.json",

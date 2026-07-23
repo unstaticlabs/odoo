@@ -25,6 +25,7 @@ Can read:
 - review-only workflow records;
 - external report values;
 - accounting attachments.
+- Accounting Hygiene queues and their allowed-company drilldowns.
 
 Cannot:
 
@@ -33,6 +34,8 @@ Cannot:
 - directly edit discrepancies;
 - access unrelated private technical attachments;
 - inspect companies not assigned to the user.
+- refresh current closing controls or use New/Upload in supplier-evidence
+  drilldowns.
 
 ## Accounting Manager
 
@@ -42,6 +45,8 @@ Can perform actions that a reviewer cannot, including:
 
 - gated native reconciliation application where all required acceptance conditions are satisfied;
 - ECB reference-rate configuration and immediate retrieval.
+- Accounting Hygiene control refresh and normal supplier-document New/Upload
+  actions.
 
 Use this role carefully. It can affect accounting presentation.
 

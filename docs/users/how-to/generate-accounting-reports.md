@@ -15,7 +15,7 @@ Accounting > Reporting > French Annual Statements
 Accounting > Reporting > FEC
 ```
 
-You can also open `Accounting > Review > Control > Issues`, select a company and use `Report Export`.
+You can also open `Accounting > Review > Advanced Audit > Accounting Reconstruction Review`, select a company and use `Generate Reports`.
 
 All supported launchers open the same full-page Accounting Report Workbench. The launcher preselects the report family; you do not need to learn a different wizard for every report.
 

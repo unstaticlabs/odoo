@@ -38,40 +38,38 @@ What to notice:
 The `Dashboard` button opens the standard journal-card dashboard. Accounting
 Home complements that native screen; it does not replace journal access.
 
-## 2. Open the Reconstruction Summary
+## 2. Open Accounting Hygiene
 
 1. From Accounting Home, go to:
 
 ```text
-Accounting > Review > Control > Issues
+Accounting > Review > Control > Accounting Hygiene
 ```
 
-2. You should see one row per imported company. For Unstatic Labs, check these columns:
+2. Open Unstatic Labs and check:
 
-- Company
-- Source Snapshot
-- Source Dump SHA-256
-- Latest Import Status
-- Posted Moves
-- Move Lines
-- Debit
-- Credit
-- Balance
-- Open P0
-- Open P1
-- Pending Review Decisions
+- Bank to Match
+- Incomplete Documents
+- Vendor Documents Missing Evidence
+- Expenses Missing Receipts
+- Stale Draft Documents
+- Stale Expense Work
+- Current Closing Controls
+- Open P0 and P1
+- Prepared for Valentin and Prosper
 
 What to notice:
 
-- Debit and Credit should match.
-- Balance should be zero.
-- Readiness may still be `Blocked` if accountant decisions are pending.
-- Open P0 and P1 counts show issues that must be reviewed before closure.
+- Open balances are review queues, not automatic errors.
+- `Attention Required` identifies daily work or review evidence.
+- `Blocked` identifies a P0 issue or blocking current closing control.
+- The accountant can review the queues but cannot refresh controls or mutate
+  accounting data.
 
 ## 3. Open the Latest Import Run
 
-1. Open the Unstatic Labs reconstruction summary row.
-2. Click `Latest Import Run`.
+1. From Accounting Hygiene, click `Latest Import Evidence`.
+2. Review the import run.
 3. Review the import metadata:
    - source database;
    - source snapshot;
@@ -84,8 +82,8 @@ You are not expected to edit this screen. It is an audit record.
 
 ## 4. Open the Imported Journal Items
 
-1. Return to the reconstruction summary.
-2. Click `Imported Journal Items`.
+1. Open `Accounting > Review > Advanced Audit > Accounting Reconstruction Review`.
+2. Open Unstatic Labs and click `Journal Items`.
 3. Use the list filters to inspect entries by:
    - date;
    - journal;
@@ -98,7 +96,7 @@ Open one journal item. Notice the source-trace fields where available. These fie
 ## 5. Preview the Trial Balance
 
 1. Go back to the reconstruction summary.
-2. Click `Report Export`.
+2. Click `Generate Reports`.
 3. In the wizard, set:
    - Report Type: `Trial Balance`
    - Company: `Unstatic Labs`

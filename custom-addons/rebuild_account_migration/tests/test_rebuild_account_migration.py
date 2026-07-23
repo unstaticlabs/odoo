@@ -187,6 +187,35 @@ class TestRebuildAccountMigration(TransactionCase):
             general_reconciliation_menu.parent_id,
             self.env.ref("account.account_closing_menu"),
         )
+        hygiene_menu = self.env.ref(
+            "rebuild_account_migration.menu_rebuild_account_review_issues_priority",
+        )
+        hygiene_action = self.env.ref(
+            "rebuild_account_migration.action_rebuild_account_hygiene",
+        )
+        self.assertEqual(hygiene_menu.name, "Accounting Hygiene")
+        self.assertEqual(hygiene_menu.action, hygiene_action)
+        self.assertEqual(
+            hygiene_menu.parent_id,
+            self.env.ref("account.account_audit_control_menu"),
+        )
+        self.assertEqual(
+            hygiene_action.views,
+            [
+                (
+                    self.env.ref(
+                        "rebuild_account_migration.view_rebuild_account_hygiene_list",
+                    ).id,
+                    "list",
+                ),
+                (
+                    self.env.ref(
+                        "rebuild_account_migration.view_rebuild_account_hygiene_form",
+                    ).id,
+                    "form",
+                ),
+            ],
+        )
         general_reconciliation_form = self.env.ref(
             "rebuild_account_migration.view_rebuild_account_general_reconciliation_form",
         )
@@ -195,6 +224,48 @@ class TestRebuildAccountMigration(TransactionCase):
             self.env["account.account.reconcile"]._description,
             "General Reconciliation",
         )
+
+    def test_accounting_hygiene_refresh_requires_manager_access(self):
+        reviewer = self.env["res.users"].with_context(
+            no_reset_password=True,
+        ).create({
+            "name": "Accounting Hygiene Reviewer",
+            "login": "accounting.hygiene.reviewer@example.invalid",
+            "email": "accounting.hygiene.reviewer@example.invalid",
+            "company_id": self.company.id,
+            "company_ids": [Command.set([self.company.id])],
+            "group_ids": [Command.set([self.reviewer_group.id])],
+        })
+        hygiene = self.env["rebuild.account.review.summary"].search([
+            ("company_id", "=", self.company.id),
+        ], limit=1)
+        hygiene_form = self.env.ref(
+            "rebuild_account_migration.view_rebuild_account_hygiene_form",
+        )
+        refresh_buttons = hygiene_form._get_combined_arch().xpath(
+            "//button[@name='action_refresh_hygiene']",
+        )
+
+        self.assertTrue(hygiene)
+        self.assertEqual(len(refresh_buttons), 1)
+        self.assertEqual(
+            refresh_buttons[0].get("groups"),
+            "account.group_account_manager",
+        )
+        backend_assets = self.env["ir.asset"]._get_asset_paths(
+            "web.assets_backend",
+            {},
+        )
+        self.assertTrue(
+            any(
+                path.endswith(
+                    "/static/src/js/account_move_upload_controls.js",
+                )
+                for path, *_metadata in backend_assets
+            ),
+        )
+        with self.assertRaises(AccessError):
+            hygiene.with_user(reviewer).action_refresh_hygiene()
 
     def test_bank_matching_mutation_controls_require_full_accounting_access(self):
         view = self.env.ref(
@@ -2617,11 +2688,13 @@ class TestRebuildAccountMigration(TransactionCase):
             "move_type": "out_invoice",
             "journal_id": sales_journal.id,
             "company_id": home_company.id,
+            "date": "2020-01-01",
         })
         self.env["account.move"].create({
             "move_type": "in_invoice",
             "journal_id": purchase_journal.id,
             "company_id": home_company.id,
+            "date": "2020-01-01",
         })
         self.env.flush_all()
 
@@ -2633,6 +2706,12 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(home.draft_customer_document_count, 1)
         self.assertEqual(home.draft_vendor_document_count, 1)
         self.assertEqual(home.incomplete_document_count, 2)
+        self.assertEqual(home.missing_vendor_attachment_count, 1)
+        self.assertEqual(home.missing_expense_attachment_count, 0)
+        self.assertEqual(home.stale_draft_document_count, 2)
+        self.assertEqual(home.stale_draft_expense_count, 0)
+        self.assertGreaterEqual(home.hygiene_attention_count, 5)
+        self.assertEqual(home.hygiene_status, "attention")
 
         customer_action = home.action_open_customer_documents()
         self.assertIn(("company_id", "=", home_company.id), customer_action["domain"])
@@ -2646,6 +2725,26 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertIn(("company_id", "=", home_company.id), closing_action["domain"])
         declaration_action = home.action_open_declarations()
         self.assertIn(("company_id", "=", home_company.id), declaration_action["domain"])
+        missing_vendor_action = home.action_open_missing_vendor_attachments()
+        self.assertIn(
+            ("company_id", "=", home_company.id),
+            missing_vendor_action["domain"],
+        )
+        self.assertIn(
+            ("message_main_attachment_id", "=", False),
+            missing_vendor_action["domain"],
+        )
+        stale_document_action = home.action_open_stale_draft_documents()
+        self.assertIn(
+            ("company_id", "=", home_company.id),
+            stale_document_action["domain"],
+        )
+        self.assertTrue(
+            any(
+                term[0] == "date" and term[1] == "<"
+                for term in stale_document_action["domain"]
+            ),
+        )
 
     def test_import_run_discrepancy_upsert_resolves_duplicates(self):
         import_run = self.env["rebuild.account.import.run"].create({

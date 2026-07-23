@@ -32,7 +32,7 @@ The implemented user-facing accounting features are centered on reconstructed ac
 - open Accounting directly from the application menu onto a company-scoped Accounting Home;
 - review bank and cash balances, unmatched transactions, daily document queues, open receivables and payables, closing readiness, declaration deadlines, and prepared actions from that Home;
 - use the seven accounting areas: Dashboard, Customers, Vendors, Accounting, Review, Reporting and Configuration;
-- open Review > Control > Issues to review reconstruction controls and unresolved discrepancies;
+- open Review > Control > Accounting Hygiene to review daily queues, missing evidence, current controls and assigned decisions;
 - open Accounting > Transactions > Bank Matching to review imported bank statement lines in the bank workbench;
 - open Accounting > Closing > General Reconciliation to reconcile open accounting items independently of bank matching;
 - open the native Expenses workspace from the supplier accounting area;
@@ -68,6 +68,7 @@ Use this if this is your first time opening the rebuilt accounting evidence in O
 ### How-To Guides
 
 - [Check the Reconstruction Status](how-to/check-reconstruction-status.md)
+- [Review Accounting Hygiene](how-to/review-accounting-hygiene.md)
 - [Generate, Preview and Export Accounting Reports](how-to/generate-accounting-reports.md)
 - [Review Customer and Supplier Accounting](how-to/review-customer-and-supplier-accounting.md)
 - [Drill Down from a Report to Accounting Sources](how-to/drill-down-to-sources.md)
@@ -113,10 +114,10 @@ shows the operational state before you choose a workflow.
 For reconstruction controls and technical evidence, open:
 
 ```text
-Accounting > Review > Control > Issues
+Accounting > Review > Control > Accounting Hygiene
 ```
 
-The Issues screen tells you which source backup was imported, how many records
-were reconstructed, which discrepancies remain open, and which review decisions
-are still pending. It is an audit control, not the normal Accounting landing
-page.
+Accounting Hygiene shows unmatched bank work, incomplete or stale documents and
+expenses, missing evidence, closing/declaration warnings and prepared decisions.
+For source-backup and import details, open
+`Review > Advanced Audit > Accounting Reconstruction Review`.

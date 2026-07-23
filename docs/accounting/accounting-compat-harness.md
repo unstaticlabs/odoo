@@ -459,6 +459,35 @@ journal-dashboard routes, refresh/back stability, company isolation and hidden
 configuration controls for the reviewer. Readiness requires this artifact to
 remain `passed`.
 
+The daily-control artifact is
+`artifacts/accounting-compat/private/accounting-hygiene-browser-status.json`.
+Three designs were compared: a second hygiene issue model, exposing only the
+period-closing control list, or extending the existing company-scoped review
+summary with operational buckets and native-record actions. The third option is
+implemented. It avoids duplicate state while covering both ongoing work and the
+current monthly/quarterly/annual controls.
+
+`Accounting > Review > Control > Accounting Hygiene` now exposes unmatched bank
+transactions, incomplete documents, supplier documents without main evidence,
+expenses without receipts, document/expense work older than 30 days, open
+balances, closing and declaration state, P0/P1 issues and the decision queues
+owned separately by Valentin and Prosper. The current target is correctly
+`blocked`; after the manager refreshed controls it showed `347` attention
+items, `207` bank transactions to match, `37` supplier documents without main
+evidence, `37` stale drafts, `15` overdue declarations, `4` blocking and `6`
+warning closing controls, `2` Valentin actions and `44` Prosper actions.
+
+The manager browser journey refreshed the current controls, opened the `13`
+control rows and drilled into all `37` supplier-evidence records. The
+single-company reviewer saw the same queues without Configuration, refresh,
+create or upload controls. During the first reviewer pass, the standard account
+move list still exposed an `Upload` button despite server-side create denial.
+The add-on now gates that shared frontend control with Odoo's standard
+`account.group_account_invoice`; the repeat browser pass proved it remains
+available for the manager and is absent for the reviewer. The disposable
+reviewer was removed. Readiness requires this browser artifact to remain
+`passed`.
+
 The native business-document evidence artifact is
 `artifacts/accounting-compat/private/track-b-native-attachments-browser-status.json`.
 Three alternatives were compared: keep binaries only on exact-ledger evidence
