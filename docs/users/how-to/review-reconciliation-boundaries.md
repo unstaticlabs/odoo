@@ -13,6 +13,9 @@ Accounting > Review > Advanced Audit > Source Reconciliation Boundary Review
 ```
 
 These rows represent source reconciliations that include at least one imported posted endpoint and at least one endpoint outside the selected posted replay scope.
+The default `Pending Policy Review` filter includes both `Review Required` and
+`Represented - Review Only` rows, so completed endpoint generation does not
+hide the cases awaiting an accounting policy decision.
 
 ## Read the Boundary
 
@@ -37,10 +40,17 @@ Use:
 - `Imported Journal Items` to open imported posted endpoints.
 - `Generated Draft Endpoint Items` to open generated draft endpoints.
 - `Preview Native Partial` to view the exact pair that would be used for native partial reconciliation.
+- `Preview Full Scope` to view every imported and generated journal item in a
+  source full-reconciliation boundary.
+
+The boundary list, form and preview actions are read-only. Use the explicit
+decision/application actions rather than editing source evidence fields.
 
 ## Record a Decision
 
-If accountant/product review supports native application:
+For a partial row, record whether native partial application is accepted. For
+a full row, record whether review-only treatment is accepted or whether a
+separately designed and authorized full-graph workflow is required.
 
 1. Click `Record Decision`.
 2. Review the prefilled evidence.
@@ -60,3 +70,7 @@ Before applying:
 Click `Apply Native Partial` only after those conditions are met.
 
 This action changes target reconciliation presentation. Do not use it as a routine cleanup tool.
+
+There is no `Apply` action for a full boundary. A full reconciliation can span
+several partials and generated draft endpoints; the review form must not
+silently construct or apply that graph.

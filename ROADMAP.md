@@ -29,6 +29,7 @@ Overall status: **technical rehearsal passed; professional acceptance pending**.
 - [x] FEC generation and download pass in the replacement browser for Accounting Manager, scoped Prosper reviewer and finance operator. Reviewer/operator mode is locked to a complete posted test FEC; only the manager can use the official lock-date path.
 - [x] A second focused clean hybrid reset/import/validate run after the final FEC/UI changes reproduces the prior candidate signature and classified differences without rerunning unchanged source or Track B stages.
 - [x] Historical move identity and sequence/chronology parity are blocking across all `2,046` benchmark moves. The replacement preserves the source's `2` sequence gaps and `3` date-order decreases rather than silently resequencing locked history.
+- [x] Full and partial reconciliation behavior has a user-facing evidence path: Track B proves native effects, while manager/reviewer browser journeys expose all `75` draft-boundary rows with balanced read-only partial/full previews and manager-only, decision-gated partial application.
 
 ### Professional gates still open
 

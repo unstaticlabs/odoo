@@ -644,6 +644,27 @@ The importer now represents `75` cross-boundary source reconciliation relationsh
 
 The reconciliation review form now exposes a controlled native-application workflow for partial boundary rows. `Preview Native Partial` opens the exact imported/generated endpoint journal items that would be reconciled. `Record Decision` creates a review decision linked to the specific `rebuild.account.reconciliation.review` row. `Apply Native Partial` remains blocked unless the user is an Accounting Manager, all missing endpoints have generated draft coverage, and a recorded review decision linked to that boundary row has conclusion `accepted` or `accepted_with_difference`. When those gates pass, the action creates or reuses one source-traced `account.partial.reconcile` and marks the review row `native_reconciliation_applied`; repeated application is idempotent. Permanent addon tests cover the unauthorized-user block, missing-decision block, endpoint preview, recorded-decision requirement and no-duplicate behaviour. The full harness still leaves these rows review-only by default.
 
+The user-facing queue now defaults to `Pending Policy Review`, which keeps all
+`75` represented rows visible after document generation instead of applying an
+empty `Review Required` filter. The evidence list and form disable direct
+create/edit/delete controls. `Preview Full Scope` resolves and opens every
+imported/generated source line for a full boundary in one read-only action.
+Full-row decision copy explicitly offers review-only acceptance or a separately
+authorized full-graph workflow; it does not claim that one partial application
+can recreate a full reconciliation. The `Apply Native Partial` button is
+visible only to Accounting Managers.
+
+The read-only manager/reviewer browser journey passed on
+`odoo_rebuild_accounting_test`: both roles saw `39` partial and `36` full rows
+under the default filter, opened the balanced EUR `47.72` imported/generated
+pair for source partial `3056` and full reconciliation `1391`, and reached the
+decision surface. The reviewer saw preview/decision controls but no apply,
+configuration or direct-edit control. The manager's unsaved full-row decision
+showed the review-only/separate-workflow choice and was discarded. Database
+counts remained `2,534` native partials, `0` linked decisions and `0` applied
+boundary rows. Private evidence is in
+`reconciliation-review-browser-status.json`.
+
 The importer now represents all `38` active source `account.report` records as `rebuild.account.source.report` catalogue records. These records preserve source report identity, English and French names, country, root report, custom handler model, source filter flags, line/column/expression/external-value counts, line-code samples, expression-engine summary, parity decision, target-equivalent status, target evidence key, parity level and trace metadata. The current rule set classifies `23` reports as `MANDATORY_PARITY`, `10` as `OPERATIONAL_PARITY`, `3` as `ACCOUNTANT_REQUESTED` and `2` as `REMOVED_AS_UNUSED` association reports. All `38` reports now have a partial target equivalent or explicit legal-form scope decision, and `0` active source reports are missing an assigned target treatment. The importer also preserves the source report structure as Odoo evidence records: `702` report lines, `1,227` expressions and `141` columns. Target validation and the source-target comparison artifact compare all source report catalogue, line, expression and column rows with no missing, extra or mismatched records. This is a review catalogue, not a copy of Enterprise report code.
 
 The reports stage now updates each source report with post-export evidence in Odoo and writes:

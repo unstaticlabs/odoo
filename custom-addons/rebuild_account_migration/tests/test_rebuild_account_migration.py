@@ -226,6 +226,39 @@ class TestRebuildAccountMigration(TransactionCase):
             self.env["account.account.reconcile"]._description,
             "General Reconciliation",
         )
+        boundary_action = self.env.ref(
+            "rebuild_account_migration.action_rebuild_account_reconciliation_review",
+        )
+        self.assertEqual(
+            safe_eval(boundary_action.context),
+            {"search_default_pending_policy_review": 1},
+        )
+        boundary_list_arch = etree.fromstring(
+            self.env.ref(
+                "rebuild_account_migration.view_rebuild_account_reconciliation_review_list",
+            ).arch_db,
+        )
+        boundary_form_arch = etree.fromstring(
+            self.env.ref(
+                "rebuild_account_migration.view_rebuild_account_reconciliation_review_form",
+            ).arch_db,
+        )
+        for arch in (boundary_list_arch, boundary_form_arch):
+            self.assertEqual(arch.get("create"), "0")
+            self.assertEqual(arch.get("edit"), "0")
+            self.assertEqual(arch.get("delete"), "0")
+        full_preview_buttons = boundary_form_arch.xpath(
+            ".//button[@name='action_preview_native_full_reconciliation_scope']",
+        )
+        self.assertEqual(len(full_preview_buttons), 1)
+        apply_buttons = boundary_form_arch.xpath(
+            ".//button[@name='action_apply_native_partial_reconciliation']",
+        )
+        self.assertEqual(len(apply_buttons), 1)
+        self.assertEqual(
+            apply_buttons[0].get("groups"),
+            "account.group_account_manager",
+        )
 
     def test_accounting_hygiene_refresh_requires_manager_access(self):
         reviewer = self.env["res.users"].with_context(
@@ -3500,6 +3533,28 @@ class TestRebuildAccountMigration(TransactionCase):
     def test_reconciliation_review_action_uses_only_source_traced_endpoints(self):
         expense_account = self._account("T600003", "Generated Endpoint Expense", "expense")
         payable_account = self._account("T401003", "Generated Endpoint Payable", "liability_payable")
+        imported_move = self.env["account.move"].create({
+            "move_type": "entry",
+            "journal_id": self._journal().id,
+            "date": fields.Date.from_string("2025-09-30"),
+            "company_id": self.company.id,
+            "line_ids": [
+                Command.create({
+                    "name": "Imported endpoint",
+                    "account_id": payable_account.id,
+                    "debit": 12.34,
+                    "rebuild_source_model": "account.move.line",
+                    "rebuild_source_id": 10,
+                    "rebuild_source_snapshot": "test-snapshot",
+                }),
+                Command.create({
+                    "name": "Imported counterpart",
+                    "account_id": expense_account.id,
+                    "credit": 12.34,
+                }),
+            ],
+        })
+        imported_move.action_post()
         generated_move = self.env["account.move"].create({
             "move_type": "entry",
             "journal_id": self._journal().id,
@@ -3566,6 +3621,66 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertIn(("rebuild_source_snapshot", "=", "test-snapshot"), generated_action["domain"])
         self.assertIn(("rebuild_source_id", "in", [11]), generated_action["domain"])
         self.assertEqual(generated_move.state, "draft")
+
+        full_review = self.env[
+            "rebuild.account.reconciliation.review"
+        ].create({
+            "name": "Full cross-boundary reconciliation",
+            "reconciliation_kind": "full",
+            "company_id": self.company.id,
+            "source_full_reconcile_id": 77,
+            "source_line_ids": "10,11",
+            "imported_source_line_ids": "10",
+            "missing_source_line_ids": "11",
+            "generated_missing_line_count": 1,
+            "generated_missing_source_line_ids": "11",
+            "missing_endpoint_coverage": "all_generated_draft",
+            "total_line_count": 2,
+            "imported_line_count": 1,
+            "missing_line_count": 1,
+            "max_date": "2025-10-31",
+            "rebuild_source_model": "account.full.reconcile",
+            "rebuild_source_id": 77,
+            "rebuild_source_snapshot": "test-snapshot",
+        })
+        full_preview = (
+            full_review.action_preview_native_full_reconciliation_scope()
+        )
+        imported_endpoint = imported_move.line_ids.filtered(
+            lambda line: line.rebuild_source_id == 10,
+        )
+        generated_endpoint = generated_move.line_ids.filtered(
+            lambda line: line.rebuild_source_id == 11,
+        )
+        self.assertEqual(full_preview["res_model"], "account.move.line")
+        self.assertEqual(full_preview["context"]["create"], False)
+        self.assertEqual(full_preview["context"]["edit"], False)
+        self.assertEqual(full_preview["context"]["delete"], False)
+        self.assertEqual(
+            full_preview["context"]["rebuild_source_full_reconcile_id"],
+            77,
+        )
+        self.assertIn(
+            (
+                "id",
+                "in",
+                sorted((imported_endpoint | generated_endpoint).ids),
+            ),
+            full_preview["domain"],
+        )
+        full_decision = full_review.action_record_review_decision()
+        self.assertEqual(
+            full_decision["context"]["default_evidence_key"],
+            "source_full_reconcile:77",
+        )
+        self.assertIn(
+            "review-only treatment",
+            full_decision["context"]["default_decision_summary"],
+        )
+        self.assertIn(
+            "separately authorized workflow",
+            full_decision["context"]["default_remaining_risk"],
+        )
 
     def test_reconciliation_review_native_partial_requires_recorded_decision(self):
         payable_account = self._account("T401004", "Native Boundary Payable", "liability_payable")

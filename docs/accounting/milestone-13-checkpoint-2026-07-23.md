@@ -106,6 +106,10 @@ The latest clean target rehearsal passed:
 - document regeneration: `189` candidates validated, `5` deliberately review-only;
 - cross-boundary reconciliation evidence: `75/75` rows have generated draft endpoint coverage;
 - rollback-only native partial-reconciliation probe: passed.
+- reconciliation review browser: manager and scoped reviewer saw all `39`
+  partial and `36` full policy rows, opened balanced imported/generated
+  endpoint previews, and left `2,534` native partials plus `0` linked decisions
+  unchanged.
 
 Clean rehearsal A ran reset, import, validation and idempotence before the declaration/closing checkpoint. Clean rehearsal B reran reset, import and validation after those changes. Both reproduced the same Track A counts and totals. The latest target idempotence artifact remains passed.
 
@@ -509,7 +513,8 @@ make accounting-addon-tests ACCOUNTING_TEST_DB=odoo_m13_unusual_balance_unit_202
 make accounting-addon-tests ACCOUNTING_TEST_DB=odoo_m13_replacement_unit_20260723_7
 make accounting-addon-tests ACCOUNTING_TEST_DB=odoo_m13_fec_roles_unit_20260723_11
 make accounting-addon-tests ACCOUNTING_TEST_DB=odoo_m13_sequence_unit_20260723_2
-jq empty artifacts/accounting-compat/private/accounting-hygiene-browser-status.json artifacts/accounting-compat/private/replacement-browser-status.json artifacts/accounting-compat/private/fec-role-browser-status.json artifacts/accounting-compat/private/readiness-assessment.json artifacts/accounting-compat/private/evidence-index.json
+make accounting-addon-tests ACCOUNTING_TEST_DB=odoo_m13_reconcile_ui_unit_20260723_3
+jq empty artifacts/accounting-compat/private/accounting-hygiene-browser-status.json artifacts/accounting-compat/private/replacement-browser-status.json artifacts/accounting-compat/private/fec-role-browser-status.json artifacts/accounting-compat/private/reconciliation-review-browser-status.json artifacts/accounting-compat/private/readiness-assessment.json artifacts/accounting-compat/private/evidence-index.json
 ```
 
 The scoped declaration/closing Odoo tests and the broader
@@ -574,7 +579,11 @@ All 38 technical packages await a recorded accountant/stakeholder decision. Requ
 
 ### P1 — cross-boundary reconciliation policy
 
-The `75` source reconciliation relationships crossing into draft or future endpoints remain review-only. A native partial probe proves the mechanism is available. Required action: accept review-only historical treatment, or authorize a separate draft-endpoint application workflow after accountant/product review.
+The `75` source reconciliation relationships crossing into draft or future
+endpoints remain review-only. Native Track B behavior, the rollback-only
+partial probe and manager/reviewer partial/full preview journeys now pass.
+Required action: accept review-only historical treatment, or authorize a
+separate draft-endpoint application workflow after accountant/product review.
 
 ## Closure rule
 

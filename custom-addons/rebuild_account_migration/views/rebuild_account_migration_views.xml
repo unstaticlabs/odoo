@@ -1815,7 +1815,7 @@
         <field name="name">rebuild.account.reconciliation.review.list</field>
         <field name="model">rebuild.account.reconciliation.review</field>
         <field name="arch" type="xml">
-            <list string="Source Reconciliation Boundary Review">
+            <list string="Source Reconciliation Boundary Review" create="0" edit="0" delete="0">
                 <field name="max_date"/>
                 <field name="company_id"/>
                 <field name="reconciliation_kind"/>
@@ -1844,15 +1844,16 @@
         <field name="name">rebuild.account.reconciliation.review.form</field>
         <field name="model">rebuild.account.reconciliation.review</field>
         <field name="arch" type="xml">
-            <form string="Source Reconciliation Boundary Review">
+            <form string="Source Reconciliation Boundary Review" create="0" edit="0" delete="0">
                 <sheet>
                     <header>
                         <button name="action_open_imported_journal_items" type="object" string="Open Imported Endpoint Items"/>
                         <button name="action_open_generated_missing_endpoint_items" type="object" string="Open Generated Draft Endpoints"/>
                         <button name="action_preview_native_partial_reconciliation" type="object" string="Preview Native Partial" invisible="reconciliation_kind != 'partial'"/>
+                        <button name="action_preview_native_full_reconciliation_scope" type="object" string="Preview Full Scope" invisible="reconciliation_kind != 'full'"/>
                         <button name="action_record_review_decision" type="object" string="Record Decision"/>
                         <button name="action_open_review_decisions" type="object" string="Decisions"/>
-                        <button name="action_apply_native_partial_reconciliation" type="object" string="Apply Native Partial" invisible="reconciliation_kind != 'partial'"/>
+                        <button name="action_apply_native_partial_reconciliation" type="object" string="Apply Native Partial" groups="account.group_account_manager" invisible="reconciliation_kind != 'partial'"/>
                     </header>
                     <group>
                         <group>
@@ -1949,6 +1950,7 @@
                 <field name="source_credit_line_id"/>
                 <filter name="partial" string="Partial Reconciliations" domain="[('reconciliation_kind','=','partial')]"/>
                 <filter name="full" string="Full Reconciliations" domain="[('reconciliation_kind','=','full')]"/>
+                <filter name="pending_policy_review" string="Pending Policy Review" domain="[('review_status','!=','native_reconciliation_applied')]"/>
                 <filter name="review_required" string="Review Required" domain="[('review_status','=','review_required')]"/>
                 <filter name="group_kind" string="Type" context="{'group_by': 'reconciliation_kind'}"/>
                 <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"/>
@@ -1961,7 +1963,7 @@
         <field name="name">Source Reconciliation Boundary Review</field>
         <field name="res_model">rebuild.account.reconciliation.review</field>
         <field name="view_mode">list,form,pivot</field>
-        <field name="context">{'search_default_review_required': 1}</field>
+        <field name="context">{'search_default_pending_policy_review': 1}</field>
     </record>
 
     <record id="view_rebuild_account_source_report_list" model="ir.ui.view">

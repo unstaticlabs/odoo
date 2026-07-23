@@ -171,7 +171,11 @@ class RebuildAccountReconciliationReview(models.Model):
             "res_model": "account.partial.reconcile",
             "view_mode": "list,form",
             "domain": [("id", "=", partial.id)],
-            "context": {"create": False, "delete": False},
+            "context": {
+                "create": False,
+                "edit": False,
+                "delete": False,
+            },
         }
 
     def action_open_imported_journal_items(self):
@@ -193,6 +197,7 @@ class RebuildAccountReconciliationReview(models.Model):
             ],
             "context": {
                 "create": False,
+                "edit": False,
                 "delete": False,
             },
         }
@@ -212,6 +217,7 @@ class RebuildAccountReconciliationReview(models.Model):
             ],
             "context": {
                 "create": False,
+                "edit": False,
                 "delete": False,
             },
         }
@@ -227,14 +233,98 @@ class RebuildAccountReconciliationReview(models.Model):
             "domain": [("id", "in", [debit_line.id, credit_line.id])],
             "context": {
                 "create": False,
+                "edit": False,
                 "delete": False,
                 "rebuild_native_partial_amount": float(self.amount or 0.0),
                 "rebuild_source_partial_reconcile_id": self.source_partial_reconcile_id,
             },
         }
 
+    def action_preview_native_full_reconciliation_scope(self):
+        self.ensure_one()
+        if self.reconciliation_kind != "full":
+            raise UserError(
+                "Full-scope preview is available only for full "
+                "reconciliation boundary reviews.",
+            )
+        source_ids = self._source_id_values(
+            self.imported_source_line_ids,
+            self.generated_missing_source_line_ids,
+        )
+        if not source_ids:
+            raise UserError(
+                "This full reconciliation review has no resolved source "
+                "journal-item scope.",
+            )
+        lines = self.env["account.move.line"].search([
+            ("rebuild_source_snapshot", "=", self.rebuild_source_snapshot),
+            ("rebuild_source_id", "in", source_ids),
+            (
+                "rebuild_source_model",
+                "in",
+                [
+                    "account.move.line",
+                    "account.move.line.document_regeneration",
+                ],
+            ),
+        ])
+        resolved_source_ids = set(lines.mapped("rebuild_source_id"))
+        unresolved_source_ids = sorted(set(source_ids) - resolved_source_ids)
+        if unresolved_source_ids:
+            raise UserError(
+                "Full reconciliation scope has unresolved target journal "
+                "items for source lines: %s."
+                % ", ".join(str(source_id) for source_id in unresolved_source_ids),
+            )
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Full Reconciliation Scope",
+            "res_model": "account.move.line",
+            "view_mode": "list,form,pivot",
+            "domain": [("id", "in", sorted(lines.ids))],
+            "context": {
+                "create": False,
+                "edit": False,
+                "delete": False,
+                "rebuild_source_full_reconcile_id": (
+                    self.source_full_reconcile_id
+                ),
+            },
+        }
+
     def action_record_review_decision(self):
         self.ensure_one()
+        if self.reconciliation_kind == "partial":
+            decision_summary = (
+                "Pending accountant decision for native application of this "
+                "cross-boundary partial reconciliation."
+            )
+            remaining_risk = (
+                "Native application changes target residual/reconciliation "
+                "presentation for a generated draft endpoint and must not be "
+                "done without an accepted review decision."
+            )
+            next_action = (
+                "Review the imported and generated endpoints, then record "
+                "whether native partial reconciliation application is "
+                "accepted, accepted with difference, rejected or requires "
+                "change."
+            )
+        else:
+            decision_summary = (
+                "Pending accountant decision for review-only treatment of "
+                "this cross-boundary full reconciliation."
+            )
+            remaining_risk = (
+                "Applying a source full-reconciliation graph would require "
+                "a separately authorized workflow over generated draft "
+                "endpoints; this review action does not apply that graph."
+            )
+            next_action = (
+                "Review the complete imported/generated scope, then accept "
+                "the review-only boundary or request a separately designed "
+                "and authorized full-reconciliation workflow."
+            )
         return {
             "type": "ir.actions.act_window",
             "name": "Record Reconciliation Boundary Decision",
@@ -247,23 +337,19 @@ class RebuildAccountReconciliationReview(models.Model):
                 "default_conclusion": "pending",
                 "default_required_authority": "accountant",
                 "default_company_id": self.company_id.id,
-                "default_period_key": self.max_date and self.max_date.isoformat() or "",
+                "default_period_key": (
+                    self.max_date and self.max_date.isoformat()
+                ) or "",
                 "default_reconciliation_review_id": self.id,
                 "default_import_run_id": self.rebuild_import_run_id.id,
                 "default_evidence_key": self._decision_evidence_key(),
                 "default_source_value": str(self.source_partial_reconcile_id or self.source_full_reconcile_id or ""),
                 "default_target_value": self.missing_endpoint_coverage,
                 "default_difference": self.accounting_effect,
-                "default_decision_summary": "Pending accountant decision for native application of this cross-boundary reconciliation.",
+                "default_decision_summary": decision_summary,
                 "default_evidence_summary": self.rebuild_import_note or self.note or "",
-                "default_remaining_risk": (
-                    "Native application changes target residual/reconciliation presentation for generated draft "
-                    "endpoints and must not be done without an accepted review decision."
-                ),
-                "default_next_action": (
-                    "Review imported and generated endpoints, then record whether native partial reconciliation "
-                    "application is accepted, accepted with difference, rejected or requires change."
-                ),
+                "default_remaining_risk": remaining_risk,
+                "default_next_action": next_action,
             },
         }
 
@@ -287,7 +373,8 @@ class RebuildAccountReconciliationReview(models.Model):
             raise UserError("Only an Accounting Manager can apply a native reconciliation boundary decision.")
         if not self._has_recorded_native_reconciliation_decision():
             raise UserError(
-                "Record an accepted review decision for this reconciliation boundary before applying it natively."
+                "Record an accepted review decision for this reconciliation "
+                "boundary before applying it natively.",
             )
         if self.missing_endpoint_coverage != "all_generated_draft":
             raise UserError("All missing reconciliation endpoints must be generated as target draft lines first.")
@@ -320,6 +407,6 @@ class RebuildAccountReconciliationReview(models.Model):
         self.write({"review_status": "native_reconciliation_applied"})
         self._append_note(
             f"Native partial reconciliation {partial.id} applied from source partial "
-            f"{self.source_partial_reconcile_id} after recorded review decision."
+            f"{self.source_partial_reconcile_id} after recorded review decision.",
         )
         return self._native_partial_action(partial)

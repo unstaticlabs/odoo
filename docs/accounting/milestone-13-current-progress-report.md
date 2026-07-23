@@ -396,9 +396,9 @@ Browser validation passed for an Accounting Manager and a disposable scoped
 read-only reviewer. Final named-user acceptance by Valentin and Prosper remains
 a professional/product gate, not a missing route.
 
-### Missing/equivalent reconciliation view
+### Reconciliation workbenches and boundary review
 
-Status: partially improved, not complete.
+Status: technically implemented; boundary-policy acceptance remains open.
 
 Evidence: imported bank statement lines and reconciliation records exist in the target import status, and custom review views exist for reconciliation evidence. Browser smoke testing on `odoo_rebuild_accounting_test` verified that `Accounting > Transactions > Bank Matching` opens the OCA reconciliation kanban workbench with unreconciled imported bank statement lines such as Shine, Revolut and Wise transactions. The Banque Shine dashboard card opened `63` unreconciled items against a `90,178.28 EUR` global balance. Selecting a line opened the split matching workbench with the bank line, suspense line, candidate journal items, manual operation, chatter, validate/reset controls and the `942.00 EUR` DGFiP refund candidate.
 
@@ -406,9 +406,20 @@ Evidence: imported bank statement lines and reconciliation records exist in the 
 
 Resolved implementation issue: the OCA `account_reconcile_oca` kanban workbench originally failed in Odoo 19 with a web-client `KanbanArchParser` error: `Cannot read properties of undefined (reading 'type')`. The custom add-on now overrides the OCA kanban card with an Odoo-19-compatible card that keeps required fields at the kanban root and renders card values without nested `<field>` tags.
 
-Impact: transaction history, bank matching and general reconciliation now have distinct names and navigation. The operational behavior is available, but accounting-effect acceptance is still pending.
+Track B validates native partial reconciliation, document netting, payment-state
+transitions and Odoo/OCA exchange-difference generation. For the historical
+draft boundary, the normal Advanced Audit action now opens all `75` policy
+rows (`39` partial and `36` full) by default. Manager and scoped-reviewer
+browser journeys opened balanced imported/generated partial and full scopes.
+The forms are read-only; the reviewer can preview and prepare a decision but
+cannot see `Apply Native Partial`. Full rows offer review-only acceptance or a
+separately authorized workflow and have no misleading apply action.
 
-Required work: validate the native operational reconciliation flow end to end, including matching invoices/bills/payments, write-offs, partial reconciliations, and interaction with imported historical reconciliation evidence. This remains a product/accounting UX blocker for Milestone 13 until behavior and accounting effects are verified.
+Impact: transaction history, Bank Matching, General Reconciliation and
+historical boundary evidence now have distinct, tested user journeys.
+Technical behavior is verified without changing the locked replay baseline.
+The remaining P1 item is the accountant/product decision to retain review-only
+treatment or authorize a separate application workflow.
 
 ### PDF and XLSX report readability
 
@@ -553,7 +564,7 @@ Current outcome: the dynamic report screens, readable exports, declaration works
 - [ ] Complete fixed-asset and depreciation reconciliation to statements and tax mappings.
 - [x] Validate programmatic lock-date behavior, reviewer gating and before/after evidence for the new closing workspace. Final named-user browser validation remains part of the acceptance walkthrough.
 - [x] Validate sequence and chronology behavior. Exact name/date/prefix/number parity is blocking; the target preserves the source's `2` gaps and `3` date-order decreases and exposes them for accountant review rather than resequencing locked history.
-- [ ] Validate full and partial reconciliation behavior through a user-facing review path.
+- [x] Validate full and partial reconciliation behavior through a user-facing review path. Track B proves native accounting effects; the exact-target manager/reviewer journey shows all `39` partial and `36` full boundary rows, balanced endpoint previews and decision controls without mutating the replay baseline.
 - [ ] Complete the accountant-reviewed FEC dossier. Official DGFiP structural validation already passes.
 - [x] Run a second clean reconstruction and compare deterministic outputs. The focused hybrid reset/import/validate sequence reproduced the prior clean candidate signature and every classified difference after the final FEC/UI changes.
 - [ ] Resolve or formally accept every P0/P1 discrepancy.
@@ -566,7 +577,7 @@ Current outcome: the dynamic report screens, readable exports, declaration works
 ## Remaining questions and doubts
 
 - Acceptance question: does the accountant accept the formulas, PCG variants, statutory interpretations and presentation exposed by the canonical Community-compatible workbench?
-- Validation question: does the OCA reconciliation workbench correctly perform operational matching, write-offs and partial reconciliations on imported statement lines without damaging historical source-traced reconciliation evidence?
+- Policy question: does the accountant accept review-only treatment for the `75` draft-boundary reconciliation rows, or request a separately authorized application workflow? Technical native and read-only review behavior now pass.
 - Accounting question: which cash-basis VAT behavior in the source is legally required for USL, and which behavior is only a side effect of imported localization configuration? The technical Settings inconsistency is fixed, but the tax rule still requires accountant validation.
 - Accounting question: which generated statutory PDFs/XLSX require further visual alignment with the supplied accountant benchmark, and which technically validated workbench exports are acceptable as-is?
 - Access question: does the accountant accept native-record access as the final document-evidence scope? Current ACL tests allow source-replayed attachments only through an accessible accounting parent and continue to deny private technical attachments.
