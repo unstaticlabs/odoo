@@ -7952,7 +7952,10 @@ def odoo_report_view_controls() -> dict[str, Any]:
             and by_key["customer_statement"]["balance"] == "0.00"
             and by_key["customer_statement"]["residual"] == "0.00"
         ),
-        "open_items_present": Decimal(by_key["open_items"]["residual"] or "0") != Decimal("0.00"),
+        "open_items_scope_valid": (
+            by_key["open_items"]["row_count"] == "0"
+            and Decimal(by_key["open_items"]["residual"] or "0") == Decimal("0.00")
+        ) or Decimal(by_key["open_items"]["residual"] or "0") != Decimal("0.00"),
         "assets_present": by_key["fixed_asset_register"]["row_count"] == "3",
         "fixed_asset_group_account_present": (
             by_key["fixed_asset_group_account"]["row_count"] == "2"
@@ -7984,6 +7987,8 @@ def odoo_report_view_controls() -> dict[str, Any]:
             and by_key["bank_reconciliation"]["debit"] == "56170.11"
         ),
         "currency_report_present": int(by_key["currency_report"]["row_count"]) > 0,
+        "cash_flow_present": by_key["cash_flow"]["row_count"] == "4",
+        "executive_summary_present": by_key["executive_summary"]["row_count"] == "15",
         "analytic_report_available": by_key["analytic_report"]["row_count"] == "0",
         "analytic_current_report_present": (
             by_key["analytic_report_current"]["row_count"] == "53"
@@ -8079,7 +8084,14 @@ def odoo_report_drilldown_controls() -> dict[str, Any]:
                 "        'source_model_count': env[model_name].search_count(domain),",
                 "    }",
                 "    if not record:",
-                "        item.update({'status': 'failed', 'reason': 'no report row matched sample domain'})",
+                "        if report_key in ('open_items', 'aged_receivable') and item['source_model_count'] == 0:",
+                "            item.update({",
+                "                'status': 'passed',",
+                "                'applicability': 'not_applicable_empty_scope',",
+                "                'reason': 'The report scope is valid and empty, so no row-level drill-down is applicable.',",
+                "            })",
+                "        else:",
+                "            item.update({'status': 'failed', 'reason': 'no report row matched sample domain'})",
                 "    else:",
                 "        action = record.action_open_journal_items()",
                 "        item.update({",
@@ -8434,11 +8446,14 @@ def source_report_parity_evidence_from_controls(
     odoo_drilldowns: dict[str, Any],
     odoo_exports: dict[str, Any],
 ) -> dict[str, dict[str, Any]]:
-    view_checks = odoo_views.get("checks", {}) if odoo_views.get("status") == "passed" else {}
-    french_statement_checks = odoo_views.get("french_statement_checks", {}) if odoo_views.get("status") == "passed" else {}
-    tax_package_checks = odoo_views.get("french_tax_package_checks", {}) if odoo_views.get("status") == "passed" else {}
-    drilldown_results = odoo_drilldowns.get("results", {}) if odoo_drilldowns.get("status") == "passed" else {}
-    export_results = odoo_exports.get("results", {}) if odoo_exports.get("status") == "passed" else {}
+    # Keep successful report-family evidence even when another family makes the
+    # aggregate probe partial. Otherwise one legitimately empty or broken
+    # report erases the passed exports and drill-downs for every other report.
+    view_checks = odoo_views.get("checks", {})
+    french_statement_checks = odoo_views.get("french_statement_checks", {})
+    tax_package_checks = odoo_views.get("french_tax_package_checks", {})
+    drilldown_results = odoo_drilldowns.get("results", {})
+    export_results = odoo_exports.get("results", {})
 
     export_type_by_key = {
         "trial_balance": "trial_balance",
@@ -8505,7 +8520,7 @@ def source_report_parity_evidence_from_controls(
         "general_ledger": "general_ledger_balanced",
         "journal_report": "journal_report_balanced",
         "customer_statement": "customer_statement_customer_scope_empty",
-        "open_items": "open_items_present",
+        "open_items": "open_items_scope_valid",
         "balance_sheet": "balance_sheet_balanced",
         "profit_and_loss": "profit_and_loss_result",
         "vat_tax_report": "vat_tax_report_present",
@@ -8530,7 +8545,7 @@ def source_report_parity_evidence_from_controls(
         drilldown_key = drilldown_key_by_key.get(evidence_key)
         drilldown_item = drilldown_results.get(drilldown_key, {}) if drilldown_key else {}
         view_check_key = view_check_by_key.get(evidence_key)
-        view_passed = bool(view_checks.get(view_check_key, True)) if view_check_key else True
+        view_passed = view_checks.get(view_check_key) is True if view_check_key else True
         if evidence_key.startswith("french_"):
             view_passed = view_passed and all(
                 french_statement_checks.get(key)

@@ -8,7 +8,7 @@ This report describes the current implementation state. It is not a closure repo
 
 Formal checkpoint:
 
-- [Milestone 13 checkpoint - 2026-07-22](milestone-13-checkpoint-2026-07-22.md)
+- [Milestone 13 checkpoint - 2026-07-23](milestone-13-checkpoint-2026-07-23.md)
 
 Related target document:
 

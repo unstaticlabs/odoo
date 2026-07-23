@@ -4,60 +4,43 @@
 
 > **Core constraint:** Extend and compose Odoo rather than creating an irreconcilable fork. Preserve upstream compatibility, standard business semantics, upgradeability and auditability.
 
-## Current Milestone 13 checkpoint - 2026-07-22
+## Current Milestone 13 checkpoint - 2026-07-23
 
-Authoritative checkpoint: `docs/accounting/milestone-13-checkpoint-2026-07-22.md`.
+Authoritative checkpoint: `docs/accounting/milestone-13-checkpoint-2026-07-23.md`.
 
-Overall status: **Substantially progressed, implementation continues**. The posted USL benchmark ledger slice is technically reconstructed and compared, and isolated Track B now proves native current-period documents, expenses, document/expense settlement, General Reconciliation and all `1,841/1,841` bank transactions. Milestone 13 is not complete because deliberate draft/post-cutoff reconciliation boundaries, dynamic report parity, declarations, final FEC acceptance and accountant workflow remain incomplete.
+Overall status: **technical rehearsal passed; professional acceptance pending**. Readiness reports zero technical failures. Milestone 13 remains open because named accountant/stakeholder approvals cannot be supplied by an implementation agent.
 
-### Verified complete enough to preserve
+### Technically verified
 
-- [x] Isolated source database restore stage for the Odoo Online accounting dump.
-- [x] Source dump checksum, manifest, source controls and private snapshot generation.
-- [x] Clean accounting target reset stage for `odoo_rebuild_accounting_test`.
-- [x] Source-traced posted ledger replay into the target validation database.
-- [x] Benchmark posted-ledger validation for USL from `2024-01-10` through `2025-09-30`: `2,046` posted moves, `4,809` move lines, debit and credit both `1,064,045.02`, zero source/target difference.
-- [x] Imported posted replay through source snapshot: `4,843` posted moves and `11,392` move lines.
-- [x] Full and partial reconciliation records imported and compared for the validated benchmark slice.
-- [x] Bank statement lines imported without inventing bank statement headers.
-- [x] Assets, depreciation schedule evidence, deferred schedules, analytic lines and scoped accounting attachments represented in the imported target.
-- [x] Imported source report catalogue, lines, columns and expressions preserved as evidence.
-- [x] OCA 19.0 accounting/reporting/reconciliation add-ons pinned and installable through `make oca-addons-sync`.
-- [x] OCA financial reporting, MIS Builder, reconciliation and bank statement import foundation installed successfully on `odoo_rebuild_accounting_test`.
-- [x] Accounting app entry opens the Accounting dashboard directly; accounting managers receive the full Accounting feature group and see `Dashboard`, `Customers`, `Vendors`, `Accounting`, `Review`, `Reporting`, and `Configuration`, with distinct Bank Matching and General Reconciliation paths.
-- [x] Browser-accessible user documentation from Odoo at `/usl/user-docs`.
-- [x] Local imported-accounting runtime disables cron threads by default for safer development inspection.
+- [x] Two clean reconstruction rehearsals reproduce Track A: `2,046` moves, `4,809` lines and debit/credit of `1,064,045.02`.
+- [x] Source traceability, target validation, failure guardrails and idempotence pass.
+- [x] Track B native documents, expenses, payments, bank categorization, external bank replay and General Reconciliation pass.
+- [x] The EUR 942 DGFiP refund is source-traced, reclassified and reconciled without retaining a duplicate VAT credit.
+- [x] Bank Matching and General Reconciliation are distinct user journeys.
+- [x] All `38` source reports have a mapped target treatment and Level 4 technical evidence; no target equivalent is missing.
+- [x] Empty Open Items/Aged Receivable scopes are explicitly classified and do not erase unrelated report evidence.
+- [x] French declaration rules, traceable fields, lifecycle states and official-source guidance are implemented for 2025/2026.
+- [x] Monthly, quarterly and annual closing workspaces, standard lock dates and review gates are implemented.
+- [x] The 13-page PDF and three-sheet XLSX closing package pass render and content checks.
+- [x] The `4,781`-row FEC reconciles and passes the DGFiP Test Compta Demat source validator with zero blocking logs.
+- [x] Browser walkthroughs pass for Accounting Manager and the scoped Prosper reviewer; reviewer writes are denied by ACLs and Bank Matching mutation controls are hidden.
 
-### Functionally complete but acceptance incomplete
+### Professional gates still open
 
-- [ ] FEC test-mode export is generated from Odoo, locally structurally preflighted, and has a private validation artifact; final accountant-reviewed FEC acceptance workflow remains incomplete.
-- [ ] Lock-date enforcement is technically validated for a protected benchmark write; full role/UI lock workflow acceptance remains incomplete.
-- [ ] Accountant reviewer access probes pass for scoped evidence and write blocking; a full accountant browser walkthrough and attachment classification policy remain incomplete.
-- [ ] OCA/MIS report screens and custom report artifacts generate benchmark outputs; Level 4 interactive report parity and accountant-ready templates remain incomplete.
+- [ ] Prosper/accountant acceptance or objections for the 38 report evidence packages.
+- [ ] Valentin acceptance of the two SASU report scope exclusions and final product presentation.
+- [ ] Accountant/product decision for the 75 draft/future cross-boundary reconciliation relationships: retain review-only treatment or authorize a separate application workflow.
+- [ ] Recorded FEC, declaration and final milestone acceptance by their named authorities.
 
-### Partial or evidence-only
+### Non-blocking polish
 
-- [x] Current-period source customer invoices, vendor bills, supplier refunds and purchase receipts are reconstructed in isolated Track B from commercial fields and posted through native Odoo (`284/284` exact accounting outcomes, `0` blocked/mismatched). The source period contains no customer credit note case.
-- [x] All `325` source `hr.expense` records dated `2025-10-01` through `2026-06-30` are source-traced and reconstructed through native Odoo approval/refusal/posting workflows in isolated Track B, including `97` company payments and `79` grouped employee receipts, with `0` blocked/mismatched cases and a passing no-duplication rerun. All `97` company payments and `95` employee reimbursements now complete through native bank settlement.
-- [x] All `1,841` current-period bank transactions are reconstructed through native Odoo/OCA workflows. The settlement stages preserve `67` exact outside-only counterpart lines for downstream reuse; the final external stage preserves `125` exact counterpart lines, posts `17` manual payroll/tax/clearing moves, applies `75` input partials and traces `12` native FX partials. Only `48` draft/post-cutoff relationships remain explicit boundaries rather than forged reconciliations.
-- [ ] Historical reconciliation evidence is imported and the OCA reconciliation workbench is reachable, but replacement-target integration and deliberate cutoff-boundary acceptance are not validated end to end.
-- [ ] French annual statements, SIG, CAF, tax package mappings and VAT evidence are generated as technical artifacts; declaration workflows and accountant acceptance remain incomplete.
-- [ ] Report PDFs/XLSX exist, but they are not yet accountant-ready templates matching the supplied annual-account/SIG/tax-report expectations.
-- [ ] External report values are represented, but their declaration lifecycle, reviewer state and evidence workflow are not final.
+- [x] Hide mutation-oriented OCA Bank Matching controls for the scoped read-only reviewer while retaining `View move` access.
+- [ ] Consolidate older progress narratives now superseded by the 2026-07-23 checkpoint.
 
-### Not started or still milestone-blocking
+### Deferred or outside Milestone 13
 
-- [ ] Complete native payment, bank-matching, employee-reimbursement and reconciliation workflows and integrate the proven Track B document/expense records into the replacement target.
-- [ ] Complete Level 4 parity for mandatory interactive reports: filters, drill-down, exports, benchmark reconciliation and accountant-readable presentation.
-- [ ] Complete French declaration preparation for CA12, 2065/2033, CERFA/DGFiP box mappings, deadlines, filing status and review evidence.
-- [ ] Complete final FEC acceptance dossier with official validation rerun, checksum, reconciliation to accepted statements and accountant approval.
-- [ ] Complete accountant-ready closing archive and review workflow.
-- [ ] Run two full clean reconstructions after the remaining accounting/report/declaration work lands.
-
-### Deferred or no longer Milestone 13 requirements
-
-- [ ] Payment providers are not a Milestone 13 target. They may remain available if provided by Community/Odoo modules, but they are not a required parity item.
-- [ ] Live bank synchronization is a future roadmap item. Historical and manually imported bank accounting remains in Milestone 13 scope.
+- [ ] Payment providers are not a Milestone 13 target.
+- [ ] Live bank synchronization remains a later roadmap item.
 
 # 0. Programme governance and invariants
 

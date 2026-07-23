@@ -73,6 +73,31 @@
             </form>
         </field>
     </record>
+    <record id="view_rebuild_bank_matching_readonly_controls" model="ir.ui.view">
+        <field name="name">account.bank.statement.line.reconcile.readonly.controls</field>
+        <field name="model">account.bank.statement.line</field>
+        <field name="inherit_id" ref="account_reconcile_oca.bank_statement_line_form_reconcile_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="(//button[@name='reconcile_bank_line'])[1]" position="attributes">
+                <attribute name="groups">account.group_account_user</attribute>
+            </xpath>
+            <xpath expr="(//button[@name='reconcile_bank_line'])[2]" position="attributes">
+                <attribute name="groups">account.group_account_user</attribute>
+            </xpath>
+            <xpath expr="//button[@name='unreconcile_bank_line']" position="attributes">
+                <attribute name="groups">account.group_account_user</attribute>
+            </xpath>
+            <xpath expr="//button[@name='clean_reconcile']" position="attributes">
+                <attribute name="groups">account.group_account_user</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_to_check']" position="attributes">
+                <attribute name="groups">account.group_account_user</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_checked']" position="attributes">
+                <attribute name="groups">account.group_account_user</attribute>
+            </xpath>
+        </field>
+    </record>
     <record id="account_financial_report.menu_oca_reports" model="ir.ui.menu">
         <field name="name">Interactive Reports</field>
         <field name="sequence">1</field>

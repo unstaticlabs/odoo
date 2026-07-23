@@ -111,6 +111,31 @@ class TestRebuildAccountMigration(TransactionCase):
             "General Reconciliation",
         )
 
+    def test_bank_matching_mutation_controls_require_full_accounting_access(self):
+        view = self.env.ref(
+            "account_reconcile_oca.bank_statement_line_form_reconcile_view",
+        )
+        mutation_button_names = {
+            "reconcile_bank_line",
+            "unreconcile_bank_line",
+            "clean_reconcile",
+            "action_to_check",
+            "action_checked",
+        }
+
+        mutation_buttons = [
+            button
+            for button in view._get_combined_arch().xpath("//button")
+            if button.get("name") in mutation_button_names
+        ]
+        self.assertEqual(
+            {button.get("name") for button in mutation_buttons},
+            mutation_button_names,
+        )
+        self.assertTrue(mutation_buttons)
+        for button in mutation_buttons:
+            self.assertEqual(button.get("groups"), "account.group_account_user")
+
     def test_native_expenses_are_available_from_accounting_payables(self):
         expenses_menu = self.env.ref("hr_expense.menu_hr_expense_account_employee_expenses")
 
