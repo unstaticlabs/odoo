@@ -142,6 +142,32 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(expenses_menu.parent_id, self.env.ref("account.menu_finance_payables"))
         self.assertEqual(expenses_menu.action, self.env.ref("hr_expense.action_hr_expense_account"))
 
+    def test_native_asset_mutation_controls_require_accounting_write_access(self):
+        view = self.env.ref(
+            "account_asset_management.account_asset_view_form",
+        )
+        mutation_button_names = {
+            "validate",
+            "compute_depreciation_board",
+            "create_move",
+        }
+        mutation_buttons = [
+            button
+            for button in view._get_combined_arch().xpath("//button")
+            if button.get("name") in mutation_button_names
+        ]
+
+        self.assertEqual(
+            {button.get("name") for button in mutation_buttons},
+            mutation_button_names,
+        )
+        self.assertTrue(mutation_buttons)
+        for button in mutation_buttons:
+            self.assertEqual(
+                button.get("groups"),
+                "account.group_account_invoice,account.group_account_user",
+            )
+
     def test_native_expense_records_have_source_trace_fields(self):
         trace_fields = {
             "rebuild_source_database",
@@ -922,6 +948,74 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(wizard.export_type, "official")
         with self.assertRaises(UserError):
             wizard.with_user(reviewer).write({"test_file": False})
+
+    def test_accountant_reviewer_can_read_native_assets_but_not_change_them(self):
+        reviewer = self.env["res.users"].with_context(
+            no_reset_password=True,
+        ).create({
+            "name": "Native Asset Reviewer",
+            "login": "native.asset.reviewer@example.invalid",
+            "email": "native.asset.reviewer@example.invalid",
+            "company_id": self.company.id,
+            "company_ids": [Command.set([self.company.id])],
+            "group_ids": [Command.set([self.reviewer_group.id])],
+        })
+        profile = self.env["account.asset.profile"].create({
+            "name": "Unit native asset profile",
+            "account_asset_id": self._account(
+                "T218301",
+                "Unit native asset account",
+                "asset_fixed",
+            ).id,
+            "account_depreciation_id": self._account(
+                "T281831",
+                "Unit native accumulated depreciation",
+                "asset_fixed",
+            ).id,
+            "account_expense_depreciation_id": self._account(
+                "T681131",
+                "Unit native depreciation expense",
+                "expense_depreciation",
+            ).id,
+            "journal_id": self._journal().id,
+            "company_id": self.company.id,
+            "method": "linear",
+            "method_time": "number",
+            "method_number": 36,
+            "method_period": "month",
+        })
+        asset = self.env["account.asset"].create({
+            "name": "Unit native asset",
+            "purchase_value": 1200.0,
+            "profile_id": profile.id,
+            "date_start": "2025-01-01",
+            "company_id": self.company.id,
+        })
+
+        self.assertEqual(
+            asset.with_user(reviewer).read(["name"])[0]["name"],
+            "Unit native asset",
+        )
+        self.assertEqual(
+            profile.with_user(reviewer).read(["name"])[0]["name"],
+            "Unit native asset profile",
+        )
+        self.assertEqual(
+            self.env.ref(
+                "account_asset_management.account_asset_action",
+            ).res_model,
+            "account.asset",
+        )
+        with self.assertRaises(AccessError):
+            asset.with_user(reviewer).write({"name": "Changed"})
+        with self.assertRaises(AccessError):
+            self.env["account.asset"].with_user(reviewer).create({
+                "name": "Forbidden asset",
+                "purchase_value": 100.0,
+                "profile_id": profile.id,
+                "date_start": "2025-01-01",
+                "company_id": self.company.id,
+            })
 
     def test_accountant_reviewer_is_read_only_for_discrepancies(self):
         self.assertIn(self.readonly_group, self.reviewer_group.implied_ids)

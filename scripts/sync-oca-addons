@@ -46,6 +46,7 @@ sync_repo "account-reconcile" "https://github.com/OCA/account-reconcile.git" "19
 sync_repo "bank-statement-import" "https://github.com/OCA/bank-statement-import.git" "19.0" "7c0f95587e3e18f76ad1e8334eb234a41a6c5d7c"
 sync_repo "server-ux" "https://github.com/OCA/server-ux.git" "19.0" "1372e6489daa3a639d7542f3dcd60af640fb294b"
 sync_repo "reporting-engine" "https://github.com/OCA/reporting-engine.git" "19.0" "6692523980cbc57d414935311d7f7bf1c834edc6"
+sync_repo "account-financial-tools" "https://github.com/OCA/account-financial-tools.git" "19.0" "3b3b3cf0974d5452734090e5a0421e762089de75"
 
 link_module "server-ux" "date_range"
 link_module "reporting-engine" "report_xlsx"
@@ -59,5 +60,6 @@ link_module "account-financial-reporting" "account_financial_report"
 link_module "account-financial-reporting" "account_tax_balance"
 link_module "account-financial-reporting" "partner_statement"
 link_module "mis-builder" "mis_builder"
+link_module "account-financial-tools" "account_asset_management"
 
 echo "OCA add-ons are available under ${ADDONS_DIR}"

@@ -17,6 +17,7 @@ from . import native_document_settlement
 from . import native_general_reconciliation
 from . import native_bank_categorization
 from . import native_bank_external_replay
+from . import native_asset_replay
 from . import discrepancy
 from . import review_decision
 from . import report_views

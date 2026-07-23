@@ -54,6 +54,7 @@ OCA_TARGET_MODULES = [
     "account_tax_balance",
     "partner_statement",
     "mis_builder",
+    "account_asset_management",
 ]
 TARGET_INIT_MODULES = [
     "account",
@@ -2238,6 +2239,103 @@ def track_b_documents(args: argparse.Namespace) -> dict[str, Any]:
     write_json(PRIVATE_ARTIFACTS / "track-b-documents-status.json", status)
     if status["status"] != "passed" and not getattr(args, "allow_errors", False):
         message = "Track B document replay has blocked or mismatched cases."
+        raise HarnessError(message)
+    return status
+
+
+def track_b_assets(args: argparse.Namespace) -> dict[str, Any]:
+    """Replay source depreciation schedules through native OCA assets."""
+    ensure_dirs()
+    validation = validate_source(args)
+    dump_sha = validation["dump"]["sha256"] or "unknown"
+    snapshot_id = f"source-{dump_sha[:12]}"
+    if not table_exists(TRACK_B_DB, "rebuild_account_import_run"):
+        message = "Run make accounting-track-b-reset before Track B asset replay."
+        raise HarnessError(message)
+
+    script_path = PRIVATE_ARTIFACTS / "track-b-native-assets.py"
+    script_path.write_text(
+        "\n".join([
+            "import json",
+            "run = env['rebuild.account.import.run'].create({",
+            "    'name': 'USL Track B native asset replay',",
+            "    'mode': 'native_engine_replay',",
+            "    'source_database': 'odoo_online_source_saas_19_2',",
+            f"    'source_dump_sha256': {dump_sha!r},",
+            f"    'source_snapshot_id': {snapshot_id!r},",
+            "    'source_version': 'Odoo Online Enterprise saas~19.2',",
+            f"    'target_database': {TRACK_B_DB!r},",
+            "})",
+            "stats = run.run_native_asset_replay_from_source({",
+            "    'source_database': 'odoo_online_source_saas_19_2',",
+            f"    'source_dump_sha256': {dump_sha!r},",
+            f"    'source_snapshot_id': {snapshot_id!r},",
+            "    'source_version': 'Odoo Online Enterprise saas~19.2',",
+            f"    'target_database': {TRACK_B_DB!r},",
+            f"    'date_from': {USL_CURRENT_START!r},",
+            "    'date_to': '2026-06-30',",
+            "    'source_company_ids': [1],",
+            "})",
+            "env.cr.commit()",
+            "print('REBUILD_TRACK_B_ASSET_RESULT=' + json.dumps({",
+            "    'run_id': run.id,",
+            "    'status': run.status,",
+            "    'stats': stats,",
+            "}, sort_keys=True, default=str))",
+            "",
+        ]),
+        encoding="utf-8",
+    )
+    result = run(
+        compose_args(
+            "--profile",
+            "init",
+            "run",
+            "--rm",
+            "-e",
+            f"ODOO_ADDONS_PATH={TARGET_ODOO_ADDONS_PATH}",
+            "init-db",
+            "odoo",
+            "shell",
+            "--config=/etc/odoo/odoo.conf",
+            f"--database={TRACK_B_DB}",
+        ),
+        input_file=script_path,
+        check=False,
+    )
+    marker = None
+    for line in (result.stdout + result.stderr).splitlines():
+        if line.startswith("REBUILD_TRACK_B_ASSET_RESULT="):
+            marker = line.removeprefix("REBUILD_TRACK_B_ASSET_RESULT=")
+    if result.returncode or not marker:
+        status = {
+            "generated_at": utc_now(),
+            "tool_version": TOOL_VERSION,
+            "stage": "track-b-assets",
+            "status": "failed",
+            "classification": "TRACK_B_EXECUTION_DEFECT",
+            "database": TRACK_B_DB,
+            "exit_code": result.returncode,
+            "output_tail": (result.stdout + result.stderr)[-12000:],
+        }
+        write_json(PRIVATE_ARTIFACTS / "track-b-assets-status.json", status)
+        if not getattr(args, "allow_errors", False):
+            message = "Track B asset replay failed. See the private status artifact."
+            raise HarnessError(message)
+        return status
+    payload = json.loads(marker)
+    status = {
+        "generated_at": utc_now(),
+        "tool_version": TOOL_VERSION,
+        "stage": "track-b-assets",
+        "database": TRACK_B_DB,
+        "run_id": payload["run_id"],
+        "status": payload["status"],
+        **payload["stats"],
+    }
+    write_json(PRIVATE_ARTIFACTS / "track-b-assets-status.json", status)
+    if status["status"] != "passed" and not getattr(args, "allow_errors", False):
+        message = "Track B asset replay has blocked or mismatched cases."
         raise HarnessError(message)
     return status
 
@@ -11737,6 +11835,10 @@ def readiness(args: argparse.Namespace) -> dict[str, Any]:
         "track_b_reset": PRIVATE_ARTIFACTS / "track-b-reset-status.json",
         "track_b_expenses": PRIVATE_ARTIFACTS / "track-b-expenses-status.json",
         "track_b_documents": PRIVATE_ARTIFACTS / "track-b-documents-status.json",
+        "track_b_assets": PRIVATE_ARTIFACTS / "track-b-assets-status.json",
+        "track_b_assets_browser": (
+            PRIVATE_ARTIFACTS / "track-b-assets-browser-status.json"
+        ),
         "track_b_expense_settlement": (
             PRIVATE_ARTIFACTS / "track-b-expense-settlement-status.json"
         ),
@@ -11773,6 +11875,8 @@ def readiness(args: argparse.Namespace) -> dict[str, Any]:
         "track_b_reset": {"passed"},
         "track_b_expenses": {"passed"},
         "track_b_documents": {"passed"},
+        "track_b_assets": {"passed"},
+        "track_b_assets_browser": {"passed"},
         "track_b_expense_settlement": {"passed"},
         "track_b_document_settlement": {"passed"},
         "track_b_general_reconciliation": {"passed"},
@@ -11919,6 +12023,10 @@ def evidence(args: argparse.Namespace) -> dict[str, Any]:
         "track_b_reset": PRIVATE_ARTIFACTS / "track-b-reset-status.json",
         "track_b_expenses": PRIVATE_ARTIFACTS / "track-b-expenses-status.json",
         "track_b_documents": PRIVATE_ARTIFACTS / "track-b-documents-status.json",
+        "track_b_assets": PRIVATE_ARTIFACTS / "track-b-assets-status.json",
+        "track_b_assets_browser": (
+            PRIVATE_ARTIFACTS / "track-b-assets-browser-status.json"
+        ),
         "track_b_expense_settlement": (
             PRIVATE_ARTIFACTS / "track-b-expense-settlement-status.json"
         ),
@@ -11989,6 +12097,7 @@ def run_all(args: argparse.Namespace) -> dict[str, Any]:
         "track_b_reset": track_b_reset(args),
         "track_b_expenses": track_b_expenses(args),
         "track_b_documents": track_b_documents(args),
+        "track_b_assets": track_b_assets(args),
         "track_b_expense_settlement": track_b_expense_settlement(args),
         "track_b_document_settlement": track_b_document_settlement(args),
         "track_b_general_reconciliation": track_b_general_reconciliation(args),
@@ -12024,6 +12133,7 @@ def build_parser() -> argparse.ArgumentParser:
         "track-b-reset",
         "track-b-expenses",
         "track-b-documents",
+        "track-b-assets",
         "track-b-expense-settlement",
         "track-b-document-settlement",
         "track-b-general-reconciliation",
@@ -12076,6 +12186,8 @@ def main(argv: list[str] | None = None) -> int:
             print_summary(args.stage, track_b_expenses(args))
         elif args.stage == "track-b-documents":
             print_summary(args.stage, track_b_documents(args))
+        elif args.stage == "track-b-assets":
+            print_summary(args.stage, track_b_assets(args))
         elif args.stage == "track-b-expense-settlement":
             print_summary(args.stage, track_b_expense_settlement(args))
         elif args.stage == "track-b-document-settlement":

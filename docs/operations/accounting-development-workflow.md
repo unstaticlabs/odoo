@@ -36,6 +36,7 @@ Use four separate states:
 | Importer mapping changes | `accounting-target-reset`, `accounting-target-import`, `accounting-target-validate` | source restore if snapshot unchanged |
 | Source extraction mapping changes | `accounting-extract`, target reset/import/validate | source restore if source DB still running and unchanged |
 | Track B expense/document mapping changes | `accounting-track-b-reset`, `accounting-track-b-expenses`, `accounting-track-b-documents` | source restore, exact-target reset/import |
+| Track B native asset changes | Track B reset, `accounting-track-b-assets`; repeat asset replay for idempotence and run the manager/reviewer browser journey | source restore, extraction, exact-target reset/import |
 | Track B expense settlement changes | Track B reset, expenses, documents, `accounting-track-b-expense-settlement`; repeat settlement for idempotence | source restore, exact-target reset/import |
 | Track B document settlement changes | Track B reset, expenses, documents, expense settlement, `accounting-track-b-document-settlement`; repeat document settlement for idempotence | source restore, exact-target reset/import |
 | Track B General Reconciliation changes | Track B reset, expenses, documents, expense settlement, document settlement, `accounting-track-b-general-reconciliation`; repeat General Reconciliation for idempotence | source restore, exact-target reset/import |

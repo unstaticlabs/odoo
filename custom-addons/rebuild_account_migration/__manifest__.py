@@ -7,6 +7,7 @@
     "license": "LGPL-3",
     "depends": [
         "account",
+        "account_asset_management",
         "account_payment",
         "account_financial_report",
         "account_reconcile_oca",

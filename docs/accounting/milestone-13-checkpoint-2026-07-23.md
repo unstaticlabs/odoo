@@ -1,15 +1,15 @@
 # Milestone 13 checkpoint - 2026-07-23
 
-Status: **technical rehearsal passed; professional acceptance pending**.
+Status: **technical rehearsal extended; Track B completion work and professional acceptance remain pending**.
 
 This checkpoint supersedes the 2026-07-22 checkpoint. It is not a milestone closure or a production-migration authorization. The remaining P0/P1 gates require Valentin and/or accountant decisions; they must not be accepted by an implementation agent.
 
 ## Outcome
 
-The disposable `odoo_rebuild_accounting_test` target now provides the complete technical Milestone 13 rehearsal:
+The disposable `odoo_rebuild_accounting_test` target provides the broad Milestone 13 rehearsal:
 
 - source-traced historical reconstruction and benchmark parity;
-- isolated Track B native document, expense, payment, bank and reconciliation replay;
+- isolated Track B native document, expense, payment, bank, reconciliation and asset replay;
 - distinct Bank Matching and General Reconciliation workbenches;
 - canonical report navigation, interactive OCA reports, drill-down and PDF/XLSX exports;
 - versioned French declaration preparation with traceable fields and filing/payment state;
@@ -20,13 +20,16 @@ The disposable `odoo_rebuild_accounting_test` target now provides the complete t
 - a polished 13-page PDF and three-sheet XLSX closing review package;
 - two clean reconstruction rehearsals.
 
-The current readiness classification is:
+The most recent pre-audit readiness classification was:
 
 ```text
 TECHNICAL_REHEARSAL_PASSED_PROFESSIONAL_ACCEPTANCE_PENDING
 ```
 
-The readiness artifact reports `0` technical failures.
+That artifact reported `0` technical failures against the gates then encoded.
+A full objective audit subsequently identified missing direct Track B proof for
+deferral schedules and cross-stage analytics. Those gates must be added and
+passed before the technical rehearsal can again be described as complete.
 
 ## Architecture decision
 
@@ -57,7 +60,7 @@ Clean rehearsal A ran reset, import, validation and idempotence before the decla
 
 ## Track B native engine
 
-All current-period technical gates are passed:
+The following current-period technical gates are passed:
 
 - native business documents;
 - native expenses;
@@ -66,8 +69,14 @@ All current-period technical gates are passed:
 - General Reconciliation;
 - direct bank categorization;
 - external bank replay.
+- native asset depreciation.
 
 The target retains deliberate draft/post-cutoff boundaries instead of forging reconciliations across the accepted posted-ledger scope.
+
+Track B is not yet complete. The objective audit found `34` posted source
+deferral relationships/moves across `5` originals and a corresponding
+`355.73` analytic-effect gap. The next technical chunk must implement a native
+deferral workflow and then run the direct analytic reconciliation.
 
 ## Report evidence
 
@@ -160,6 +169,15 @@ Prosper/read-only journey used a disposable browser user assigned only to Unstat
 - the disposable user was deleted after the walkthrough.
 
 The Bank Matching control restriction is enforced both by server ACLs and by the combined Odoo form architecture. The corresponding regression test verifies every OCA mutation button, including both reconcile variants.
+
+Native asset journey:
+
+- the Accounting > Assets list opened on the Track B target with all `3` source assets;
+- the manager opened the MBP 16 depreciation board, its `9` posted current-period move links and its future unposted schedule;
+- the reviewer opened the same list and board with `9` read-only move links;
+- the reviewer saw `0` create-move, recompute or reverse controls after the view hardening update;
+- the disposable asset-review user was deleted after the walkthrough;
+- private proof: `artifacts/accounting-compat/private/track-b-assets-browser-status.json`.
 
 ## Commands and validation
 

@@ -1439,6 +1439,22 @@ class RebuildAccountImportRun(models.Model):
             if has_imported_lines:
                 for structural_field in ("code", "account_type", "reconcile", "non_trade", "company_ids"):
                     vals.pop(structural_field, None)
+            elif account:
+                # Avoid needless structural recomputations on an idempotent
+                # pass.  In Odoo 19 ``code`` recomputes ``account_type``;
+                # flushing that unchanged value still runs the journal-default
+                # constraint and rejects legitimate payable/receivable
+                # defaults.
+                if account.with_company(company).code == code:
+                    vals.pop("code")
+                if account.account_type == account_type:
+                    vals.pop("account_type")
+                if account.reconcile == reconcile:
+                    vals.pop("reconcile")
+                if account.non_trade == bool(row["non_trade"]):
+                    vals.pop("non_trade")
+                if set(account.company_ids.ids) == set(target_company_ids):
+                    vals.pop("company_ids")
             if not has_imported_lines:
                 vals["currency_id"] = target_currency_id
             elif account.currency_id.id != target_currency_id:
