@@ -1017,6 +1017,237 @@ class TestRebuildAccountMigration(TransactionCase):
                 "company_id": self.company.id,
             })
 
+    def test_native_deferral_posts_balanced_entry_and_analytic_item(self):
+        journal = self._journal()
+        expense_account = self._account(
+            "T613210",
+            "Unit deferred expense recognition",
+            "expense",
+        )
+        deferral_account = self._account(
+            "T486010",
+            "Unit prepaid expenses",
+            "asset_current",
+        )
+        original_move = self.env["account.move"].create({
+            "move_type": "entry",
+            "date": "2026-04-30",
+            "journal_id": journal.id,
+            "company_id": self.company.id,
+            "ref": "Unit source bill",
+        })
+        plan = self.env["account.analytic.plan"].create({
+            "name": "Unit deferral plan",
+        })
+        analytic_account = self.env["account.analytic.account"].create({
+            "name": "Unit deferral analytic account",
+            "plan_id": plan.id,
+            "company_id": self.company.id,
+        })
+        deferral = self.env["rebuild.account.deferral"].create({
+            "name": "Unit deferred expense",
+            "schedule_type": "expense",
+            "company_id": self.company.id,
+            "original_move_id": original_move.id,
+            "journal_id": journal.id,
+            "deferral_account_id": deferral_account.id,
+            "start_date": "2026-04-30",
+            "end_date": "2026-05-31",
+        })
+        schedule_line = self.env["rebuild.account.deferral.line"].create({
+            "name": "Unit deferral opening",
+            "deferral_id": deferral.id,
+            "date": "2026-04-30",
+            "phase": "initial_deferral",
+            "recognition_account_id": expense_account.id,
+            "recognition_balance": -120.0,
+            "recognition_amount_currency": -120.0,
+            "deferral_balance": 120.0,
+            "deferral_amount_currency": 120.0,
+            "analytic_distribution": {
+                str(analytic_account.id): 100.0,
+            },
+        })
+        future_line = self.env["rebuild.account.deferral.line"].create({
+            "name": "Unit deferral recognition",
+            "deferral_id": deferral.id,
+            "date": "2026-05-31",
+            "phase": "recognition",
+            "recognition_account_id": expense_account.id,
+            "recognition_balance": 120.0,
+            "recognition_amount_currency": 120.0,
+            "deferral_balance": -120.0,
+            "deferral_amount_currency": -120.0,
+            "analytic_distribution": {
+                str(analytic_account.id): 100.0,
+            },
+        })
+
+        deferral.action_start()
+        schedule_line.action_post()
+
+        self.assertEqual(deferral.state, "running")
+        self.assertEqual(deferral.posted_line_count, 1)
+        self.assertEqual(deferral.remaining_line_count, 1)
+        self.assertEqual(schedule_line.state, "posted")
+        self.assertEqual(schedule_line.move_id.state, "posted")
+        self.assertEqual(
+            round(sum(schedule_line.move_id.line_ids.mapped("balance")), 2),
+            0.0,
+        )
+        recognition_line = schedule_line.move_id.line_ids.filtered(
+            lambda line: line.account_id == expense_account,
+        )
+        self.assertEqual(len(recognition_line), 1)
+        self.assertEqual(recognition_line.balance, -120.0)
+        self.assertEqual(
+            recognition_line.analytic_distribution,
+            {str(analytic_account.id): 100.0},
+        )
+        analytic_lines = self.env["account.analytic.line"].search([
+            ("move_line_id", "=", recognition_line.id),
+        ])
+        self.assertIn(
+            analytic_account,
+            analytic_lines._get_analytic_accounts(),
+        )
+        future_line.action_post()
+        self.assertEqual(deferral.state, "closed")
+        self.assertEqual(deferral.posted_line_count, 2)
+        self.assertEqual(deferral.remaining_line_count, 0)
+
+    def test_native_deferrals_are_read_only_for_accountant_reviewer(self):
+        reviewer = self.env["res.users"].with_context(
+            no_reset_password=True,
+        ).create({
+            "name": "Native Deferral Reviewer",
+            "login": "native.deferral.reviewer@example.invalid",
+            "email": "native.deferral.reviewer@example.invalid",
+            "company_id": self.company.id,
+            "company_ids": [Command.set([self.company.id])],
+            "group_ids": [Command.set([self.reviewer_group.id])],
+        })
+        journal = self._journal()
+        deferral = self.env["rebuild.account.deferral"].create({
+            "name": "Reviewer unit deferral",
+            "schedule_type": "expense",
+            "company_id": self.company.id,
+            "original_move_id": self.env["account.move"].create({
+                "move_type": "entry",
+                "date": "2026-05-01",
+                "journal_id": journal.id,
+                "company_id": self.company.id,
+            }).id,
+            "journal_id": journal.id,
+            "deferral_account_id": self._account(
+                "T486011",
+                "Reviewer unit prepaid expenses",
+                "asset_current",
+            ).id,
+            "start_date": "2026-05-01",
+            "end_date": "2026-06-30",
+        })
+        schedule_line = self.env["rebuild.account.deferral.line"].create({
+            "name": "Reviewer unit schedule",
+            "deferral_id": deferral.id,
+            "date": "2026-05-31",
+            "recognition_account_id": self._account(
+                "T613211",
+                "Reviewer unit recognition",
+                "expense",
+            ).id,
+            "recognition_balance": 50.0,
+            "recognition_amount_currency": 50.0,
+            "deferral_balance": -50.0,
+            "deferral_amount_currency": -50.0,
+        })
+
+        self.assertEqual(
+            deferral.with_user(reviewer).read(["name"])[0]["name"],
+            "Reviewer unit deferral",
+        )
+        self.assertEqual(
+            schedule_line.with_user(reviewer).read(["name"])[0]["name"],
+            "Reviewer unit schedule",
+        )
+        with self.assertRaises(AccessError):
+            deferral.with_user(reviewer).action_start()
+        with self.assertRaises(AccessError):
+            schedule_line.with_user(reviewer).action_post()
+        with self.assertRaises(AccessError):
+            deferral.with_user(reviewer).write({"name": "Changed"})
+
+    def test_native_deferral_navigation_and_mutation_controls(self):
+        menu = self.env.ref(
+            "rebuild_account_migration.menu_rebuild_account_deferral",
+        )
+        self.assertEqual(
+            menu.parent_id,
+            self.env.ref("account.account_closing_menu"),
+        )
+        self.assertEqual(menu.name, "Deferrals")
+        self.assertEqual(
+            menu.action,
+            self.env.ref(
+                "rebuild_account_migration.action_rebuild_account_deferral",
+            ),
+        )
+
+        view = self.env.ref(
+            "rebuild_account_migration.view_rebuild_account_deferral_form",
+        )
+        mutation_button_names = {
+            "action_start",
+            "action_post_due",
+            "action_post",
+        }
+        mutation_buttons = [
+            button
+            for button in view._get_combined_arch().xpath("//button")
+            if button.get("name") in mutation_button_names
+        ]
+        self.assertEqual(
+            {button.get("name") for button in mutation_buttons},
+            mutation_button_names,
+        )
+        for button in mutation_buttons:
+            self.assertEqual(
+                button.get("groups"),
+                "account.group_account_manager",
+            )
+
+    def test_native_analytic_corrections_are_a_read_only_audit_surface(self):
+        menu = self.env.ref(
+            "rebuild_account_migration.menu_rebuild_account_analytic_override",
+        )
+        self.assertEqual(
+            menu.parent_id,
+            self.env.ref(
+                "rebuild_account_migration.menu_rebuild_account_migration",
+            ),
+        )
+        self.assertEqual(
+            menu.action.res_model,
+            "rebuild.account.analytic.override",
+        )
+        reviewer = self.env["res.users"].with_context(
+            no_reset_password=True,
+        ).create({
+            "name": "Native Analytic Reviewer",
+            "login": "native.analytic.reviewer@example.invalid",
+            "email": "native.analytic.reviewer@example.invalid",
+            "company_id": self.company.id,
+            "company_ids": [Command.set([self.company.id])],
+            "group_ids": [Command.set([self.reviewer_group.id])],
+        })
+        model = self.env[
+            "rebuild.account.analytic.override"
+        ].with_user(reviewer)
+        self.assertTrue(model.has_access("read"))
+        self.assertFalse(model.has_access("write"))
+        self.assertFalse(model.has_access("create"))
+        self.assertFalse(model.has_access("unlink"))
+
     def test_accountant_reviewer_is_read_only_for_discrepancies(self):
         self.assertIn(self.readonly_group, self.reviewer_group.implied_ids)
         reviewer = self.env["res.users"].with_context(no_reset_password=True).create({

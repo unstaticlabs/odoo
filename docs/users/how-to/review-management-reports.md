@@ -98,6 +98,26 @@ When reviewing analytic lines, check:
 - date;
 - activity or project context.
 
+For the native current-period view, use:
+
+```text
+Accounting > Accounting > Analytic Items
+```
+
+The list exposes each configured analytic-plan column, including `Projet` and
+`Epic`. Use the Pivot and Graph view buttons to aggregate the same underlying
+analytic lines; the Pivot toolbar also downloads XLSX.
+
+Source post-posting classification changes are visible as a read-only audit
+under:
+
+```text
+Accounting > Review > Advanced Audit > Native Analytic Corrections
+```
+
+That audit explains why a finalized journal-item distribution can differ from
+the original expense business input. It is not a second analytic ledger.
+
 ## Drill Down
 
 Click `Preview`, then use the external-link icon or `Open Journal Items`.

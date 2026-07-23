@@ -1,6 +1,6 @@
 # Milestone 13 checkpoint - 2026-07-23
 
-Status: **technical rehearsal extended; Track B completion work and professional acceptance remain pending**.
+Status: **technical rehearsal extended; professional acceptance remains pending**.
 
 This checkpoint supersedes the 2026-07-22 checkpoint. It is not a milestone closure or a production-migration authorization. The remaining P0/P1 gates require Valentin and/or accountant decisions; they must not be accepted by an implementation agent.
 
@@ -9,7 +9,7 @@ This checkpoint supersedes the 2026-07-22 checkpoint. It is not a milestone clos
 The disposable `odoo_rebuild_accounting_test` target provides the broad Milestone 13 rehearsal:
 
 - source-traced historical reconstruction and benchmark parity;
-- isolated Track B native document, expense, payment, bank, reconciliation and asset replay;
+- isolated Track B native document, expense, payment, bank, reconciliation, asset, deferral and multi-plan analytic replay;
 - distinct Bank Matching and General Reconciliation workbenches;
 - canonical report navigation, interactive OCA reports, drill-down and PDF/XLSX exports;
 - versioned French declaration preparation with traceable fields and filing/payment state;
@@ -28,8 +28,9 @@ TECHNICAL_REHEARSAL_PASSED_PROFESSIONAL_ACCEPTANCE_PENDING
 
 That artifact reported `0` technical failures against the gates then encoded.
 A full objective audit subsequently identified missing direct Track B proof for
-deferral schedules and cross-stage analytics. Those gates must be added and
-passed before the technical rehearsal can again be described as complete.
+deferral schedules and cross-stage analytics. Those gates are now implemented,
+passed and included in readiness/evidence generation. This does not convert the
+remaining professional decisions into technical acceptances.
 
 ## Architecture decision
 
@@ -68,15 +69,24 @@ The following current-period technical gates are passed:
 - document settlement;
 - General Reconciliation;
 - direct bank categorization;
-- external bank replay.
-- native asset depreciation.
+- external bank replay;
+- native asset depreciation;
+- native deferred-expense scheduling and posting;
+- cross-stage multi-plan analytic reconciliation.
 
 The target retains deliberate draft/post-cutoff boundaries instead of forging reconciliations across the accepted posted-ledger scope.
 
-Track B is not yet complete. The objective audit found `34` posted source
-deferral relationships/moves across `5` originals and a corresponding
-`355.73` analytic-effect gap. The next technical chunk must implement a native
-deferral workflow and then run the direct analytic reconciliation.
+The native deferral replay represents all `5` source originals as operational
+schedules with `82` lines: `34` posted current-period entries and `48` future
+lines, plus one traced opening-boundary reversal. All five schedules remain
+running because future dates remain, and a repeat replay creates nothing.
+
+The analytic replay represents `29` explicit source post-posting corrections.
+Source and target allocation totals match across `13` analytic accounts;
+source and target actual analytic-line totals also match, all `324` directly
+traced analytic lines match, and no line is unmapped. Odoo's per-line rounding
+creates only a theoretical `+0.01/-0.01` pair, within company-currency
+precision; actual analytic-line totals reconcile exactly to source.
 
 ## Report evidence
 
@@ -179,6 +189,22 @@ Native asset journey:
 - the disposable asset-review user was deleted after the walkthrough;
 - private proof: `artifacts/accounting-compat/private/track-b-assets-browser-status.json`.
 
+Native deferral journey:
+
+- the manager opened all `5` running deferrals, the linked original/posted entries and the full posted/future schedule;
+- manager-only `New`, `Post Due Entries` and individual `Post` controls were visible;
+- the reviewer opened the same records with `0` create or post controls;
+- the disposable reviewer was deleted after the walkthrough;
+- private proof: `artifacts/accounting-compat/private/track-b-deferrals-browser-status.json`.
+
+Native analytic journey:
+
+- the native Analytic Items list opened with `621` lines and both `Projet` and `Epic` plan columns;
+- current examples showed source-replayed Canada, Australia and Pride classifications;
+- native pivot view, XLSX download and graph view rendered;
+- the read-only correction audit opened with all `29` records for manager and reviewer and no create action;
+- private proof: `artifacts/accounting-compat/private/track-b-analytics-browser-status.json`.
+
 ## Commands and validation
 
 Passing validation includes:
@@ -192,6 +218,8 @@ make accounting-target-reset
 make accounting-target-import
 make accounting-target-validate
 make accounting-document-regeneration
+make accounting-track-b-deferrals
+make accounting-track-b-analytics
 make accounting-target-reconciliation-probe
 make accounting-reports
 make accounting-fec
@@ -201,7 +229,7 @@ make accounting-readiness
 make accounting-evidence
 ```
 
-The scoped declaration/closing Odoo tests and the broader `TestRebuildAccountMigration` suite also pass. The final isolated run executed `55` post-test methods (`59` tests in Odoo statistics) with no failure or error.
+The scoped declaration/closing Odoo tests and the broader `TestRebuildAccountMigration` suite also pass. The final isolated run contains `57` post-test methods (`60` tests in Odoo statistics) and completed with exit code `0`; targeted Ruff also passed. Module initialization emitted the existing docutils indentation warnings but no test failure or error.
 
 `ruff` is not installed on the host or long-running Odoo container, so the repository's devcontainer was used. The changed tests pass targeted Ruff validation; a whole-file check of the historical `accounting_compat/cli.py` still reports its pre-existing baseline warnings.
 

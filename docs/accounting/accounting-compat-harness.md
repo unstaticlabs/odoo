@@ -22,10 +22,14 @@ make accounting-document-regeneration
 make accounting-track-b-reset
 make accounting-track-b-expenses
 make accounting-track-b-documents
+make accounting-track-b-assets
+make accounting-track-b-deferrals
 make accounting-track-b-expense-settlement
 make accounting-track-b-document-settlement
 make accounting-track-b-general-reconciliation
 make accounting-track-b-bank-categorization
+make accounting-track-b-bank-external
+make accounting-track-b-analytics
 make accounting-target-reconciliation-probe
 make accounting-reports
 make accounting-fec
@@ -59,8 +63,11 @@ source package validation
 → dedicated Track B database reset
 → native expense approval, refusal and posting reconstruction for 2025-10-01 through 2026-06-30
 → native business-document reconstruction and posting for 2025-10-01 through 2026-06-30
+→ native asset depreciation and deferred-expense schedules
 → native bank matching and employee-expense settlement for the current-period expense slice
 → native bank matching for current-period commercial documents
+→ native General Reconciliation and full bank categorization
+→ cross-stage multi-plan analytic reconciliation
 → rollback-only native reconciliation probe for generated draft endpoints
 → Odoo-facing report view, drill-down and export-wizard checks
 → FEC test-mode export
@@ -122,11 +129,13 @@ Stage dependencies:
 | `make accounting-track-b-expenses` | Read-only restored source expense/business fields and Track B configuration | Native employees, products, expenses, company payments and employee receipts in the Track B database; private proof artifact | It uses normal expense submission, approval/refusal, receipt preparation and payment posting APIs, then compares every expense and generated accounting effect to source. Run it before the document stage so expense-generated receipts can be reused. |
 | `make accounting-track-b-documents` | Read-only restored source business fields and Track B configuration | Native posted invoices, bills, supplier refunds and receipts in the Track B database; private proof artifact | It calls normal Odoo draft creation and `action_post`, then compares headers, due dates and per-account effects to source. |
 | `make accounting-track-b-assets` | Read-only source asset master data, depreciation schedules and Track B configuration | OCA assets, profiles, depreciation-board lines and native posted depreciation entries; private proof artifact | It seeds the source business schedule into maintained OCA `account_asset_management`, lets OCA create and post every in-period entry, leaves future schedule lines unposted and compares date, amount and account effects exactly. |
+| `make accounting-track-b-deferrals` | Native Track B documents plus read-only source deferred relationships and schedule decisions | Operational deferred-expense records, posted recognition entries, future schedule lines and a traced opening boundary entry; private proof artifact | It creates a focused schedule workflow backed by standard `account.move` posting, validates every posted and future source relationship, and keeps the reviewer surface read-only. |
 | `make accounting-track-b-expense-settlement` | Native Track B expenses plus the read-only source bank/reconciliation graph | Native bank transactions, OCA-generated partial reconciliations, paid company payments and paid employee expenses; private proof artifact | It runs after expenses/documents, replays source operator allocations chronologically, and keeps mixed-transfer non-expense balances explicit for General Reconciliation. |
 | `make accounting-track-b-document-settlement` | Native Track B documents, expense settlement and the read-only source bank/reconciliation graph | Native commercial-document bank transactions, exact OCA-generated partial reconciliations and bounded residuals for General Reconciliation; private proof artifact | It reuses overlapping expense bank lines, creates the remaining bank transactions, applies every direct document/bank edge and validates company/transaction-currency partials plus due-line residuals. |
 | `make accounting-track-b-general-reconciliation` | Native Track B documents and direct bank settlement plus the read-only source non-bank reconciliation graph | Native posted manual entries, document netting, General Reconciliation partials and traced Odoo/OCA exchange-difference moves; private proof artifact | It posts shareholder-current-account and clearing entries through standard journal APIs, reconciles them with documents, and classifies native timing and one-cent exchange differences without copying finalized source journal rows. |
 | `make accounting-track-b-bank-categorization` | Track B through General Reconciliation plus source bank transactions without external partial endpoints | Native OCA-categorized interest, fees, transfers and account allocations plus source-open transactions retained for review; private proof artifact | It replays the operator's account, partner, analytic and currency inputs for direct categorizations and deliberately leaves source-unreconciled transactions open. |
 | `make accounting-track-b-bank-external` | Track B through direct categorization plus the remaining source bank/external-reconciliation graph | Exact multi-line OCA bank categorizations, posted payroll/tax/clearing entries, native General Reconciliation and explicit cutoff boundaries; private proof artifact | It completes all current-period bank transactions while keeping draft/post-cutoff documents as prepayments and identifying five aggregates from earlier bounded settlement stages that still need refinement. |
+| `make accounting-track-b-analytics` | Completed Track B native stages plus source expense decisions, finalized analytic distributions and analytic lines | Explicit analytic-correction audit records and direct source/target reconciliation across both analytic plans; private proof artifact | It runs last, after every posting stage. Native business objects remain the accounting input; the stage applies only source post-posting analytic classifications through Odoo's supported distribution write, then compares both theoretical allocations and actual analytic lines. |
 | `make accounting-reports` | Imported and validated target database | Report preview/export/drill-down evidence artifacts | It proves the user-facing report surfaces can generate and trace values. |
 
 Do not stop `accounting-source-db` after `accounting-source-restore`. Later stages still query it for source metadata, snapshot dates, controls and comparisons. If a later stage fails with `service "accounting-source-db" is not running`, restart it:
@@ -324,7 +333,23 @@ The remaining `48` source relationships are boundaries, not missing bank transac
 
 Option 1 is selected. It preserves the operator-facing OCA asset lifecycle and the source business decisions without copying finalized journal rows. The clean run creates `3` native assets, `2` account-specific profiles and `91` depreciation-board lines. OCA posts the `28` source-period depreciation entries; every date, amount and account total matches. The `63` future source schedule rows remain unposted native lines. A rerun creates nothing and reuses all `3` assets, `91` schedule lines and `28` moves. The manager browser journey opens the three assets and their posted/future board actions. The reviewer journey sees the same assets and posted move links but no create, recompute, confirm or reverse controls; server ACLs and a combined-view regression test enforce the boundary.
 
-This proves current-period native expense approval/refusal/posting, invoice/bill/refund/receipt posting, expense-related bank matching, partial reimbursement allocation, direct commercial-document bank matching, non-bank document netting/manual-entry reconciliation, exchange-difference generation, all `1,841` bank transactions, native asset depreciation and final current-document/payment state. The selected design improves the earlier stages rather than creating duplicate manual moves; copying finalized source rows and direct journal-line surgery remain rejected because they would not prove the operational workflow. Remaining Track B work is deliberate draft/post-cutoff acceptance, undo behavior, deferral schedules, cross-stage analytic reconciliation and closing.
+`make accounting-track-b-deferrals` proves the operational deferred-expense workflow. Three credible approaches were compared:
+
+1. add a focused schedule model whose due lines post standard balanced `account.move` entries through `action_post`;
+2. adopt or port OCA `account_spread_cost_revenue`;
+3. retain only the existing imported schedule evidence or copy finalized source journal rows.
+
+Option 1 is selected because no maintained OCA 19.0 deferral module is available in the pinned add-on set; the spread module is available only on older OCA branches and a milestone-time port would be migration-sensitive. The evidence-only alternative cannot support daily scheduling or controlled posting. The clean replay creates `5` deferred-expense records with `82` schedule lines, reuses/posts `34` current-period moves, retains `48` future lines, and represents one opening-boundary reversal. Every date, amount, account and analytic distribution matches, and a rerun reuses all records without duplication. The manager can create schedules and post due or individual lines. The reviewer can inspect schedules and linked entries but has no create or post control.
+
+`make accounting-track-b-analytics` then runs after all Track B posting stages. Two materially different source values exist for `29` expense lines: the business-time expense distribution and a later finalized journal-item classification. Three treatments were compared:
+
+1. replay the expense workflow from its business inputs, then apply only the source's explicit post-posting analytic correction through Odoo's supported analytic-distribution write and retain a read-only audit record;
+2. pass the finalized journal-item distribution into expense creation, which would erase the distinction between business input and later classification;
+3. copy analytic lines directly, which would bypass Odoo's allocation engine.
+
+Option 1 is selected. The audit represents all `29` corrections and is idempotent. Across `13` source analytic accounts, source and target move-line allocation totals match exactly, source and target actual analytic-line totals match exactly, `324` directly traced analytic lines have no mismatch, and no analytic line is unmapped. Odoo's per-line currency rounding leaves a theoretical `+0.01/-0.01` pair between two analytic accounts; this is within company-currency precision and the actual analytic-line totals reconcile exactly to source. The browser journey verifies all `621` target analytic lines in the native list, multi-plan `Projet` and `Epic` values, pivot/XLSX and graph views, plus a read-only correction audit for manager and reviewer.
+
+This proves current-period native expense approval/refusal/posting, invoice/bill/refund/receipt posting, expense-related bank matching, partial reimbursement allocation, direct commercial-document bank matching, non-bank document netting/manual-entry reconciliation, exchange-difference generation, all `1,841` bank transactions, native asset depreciation, operational deferrals, multi-plan analytics and final current-document/payment state. The selected design improves the earlier stages rather than creating duplicate manual moves; copying finalized source rows and direct journal-line surgery remain rejected because they would not prove the operational workflow. Remaining Track B work is deliberate draft/post-cutoff acceptance, undo behavior and closing acceptance.
 
 `make accounting-target-validate` also proves:
 

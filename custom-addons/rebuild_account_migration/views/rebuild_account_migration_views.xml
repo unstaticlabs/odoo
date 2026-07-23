@@ -3440,6 +3440,326 @@
         <field name="context">{'default_report_type': 'oss_imports', 'default_date_from': '2025-10-01', 'default_export_format': 'xlsx'}</field>
     </record>
 
+    <record id="view_rebuild_account_deferral_list" model="ir.ui.view">
+        <field name="name">rebuild.account.deferral.list</field>
+        <field name="model">rebuild.account.deferral</field>
+        <field name="arch" type="xml">
+            <list decoration-success="state == 'closed'" decoration-muted="state == 'draft'">
+                <field name="name"/>
+                <field name="schedule_type"/>
+                <field name="original_move_id"/>
+                <field name="start_date"/>
+                <field name="end_date"/>
+                <field name="deferral_account_id"/>
+                <field name="posted_line_count"/>
+                <field name="remaining_line_count"/>
+                <field name="state" widget="badge"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_rebuild_account_deferral_search" model="ir.ui.view">
+        <field name="name">rebuild.account.deferral.search</field>
+        <field name="model">rebuild.account.deferral</field>
+        <field name="arch" type="xml">
+            <search string="Deferred Expenses and Revenue">
+                <field name="name"/>
+                <field name="original_move_id"/>
+                <field name="deferral_account_id"/>
+                <field name="company_id"/>
+                <filter name="running" string="Running" domain="[('state', '=', 'running')]"/>
+                <filter name="deferred_expenses" string="Deferred Expenses" domain="[('schedule_type', '=', 'expense')]"/>
+                <filter name="deferred_revenue" string="Deferred Revenue" domain="[('schedule_type', '=', 'revenue')]"/>
+                <filter name="group_type" string="Type" context="{'group_by': 'schedule_type'}"/>
+                <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_rebuild_account_deferral_form" model="ir.ui.view">
+        <field name="name">rebuild.account.deferral.form</field>
+        <field name="model">rebuild.account.deferral</field>
+        <field name="arch" type="xml">
+            <form string="Deferral">
+                <header>
+                    <button
+                        name="action_start"
+                        type="object"
+                        string="Start Schedule"
+                        class="btn-primary"
+                        groups="account.group_account_manager"
+                        invisible="state != 'draft'"/>
+                    <button
+                        name="action_post_due"
+                        type="object"
+                        string="Post Due Entries"
+                        class="btn-primary"
+                        groups="account.group_account_manager"
+                        invisible="state != 'running'"/>
+                    <button
+                        name="action_open_original_move"
+                        type="object"
+                        string="Original Entry"
+                        groups="account.group_account_readonly"/>
+                    <button
+                        name="action_open_posted_entries"
+                        type="object"
+                        string="Posted Entries"
+                        groups="account.group_account_readonly"
+                        invisible="posted_line_count == 0"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,running,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button
+                            name="action_open_posted_entries"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-book"
+                            invisible="posted_line_count == 0">
+                            <field name="posted_line_count" widget="statinfo" string="Posted Entries"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Closed" bg_color="text-bg-success" invisible="state != 'closed'"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" readonly="state != 'draft'"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="schedule_type" readonly="state != 'draft'"/>
+                            <field name="original_move_id" readonly="state != 'draft'"/>
+                            <field name="journal_id" readonly="state != 'draft'"/>
+                            <field name="deferral_account_id" readonly="state != 'draft'"/>
+                        </group>
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company" readonly="state != 'draft'"/>
+                            <field name="currency_id"/>
+                            <field name="start_date" readonly="state != 'draft'"/>
+                            <field name="end_date" readonly="state != 'draft'"/>
+                        </group>
+                    </group>
+                    <group string="Progress">
+                        <field name="scheduled_line_count"/>
+                        <field name="posted_line_count"/>
+                        <field name="remaining_line_count"/>
+                        <field name="scheduled_amount"/>
+                    </group>
+                    <notebook>
+                        <page string="Schedule">
+                            <field name="line_ids" readonly="state == 'closed'">
+                                <list editable="bottom" decoration-success="state == 'posted'">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="date"/>
+                                    <field name="phase"/>
+                                    <field name="recognition_account_id"/>
+                                    <field name="partner_id" optional="hide"/>
+                                    <field name="recognition_balance" sum="Recognition"/>
+                                    <field name="analytic_distribution" widget="analytic_distribution" optional="show"/>
+                                    <field name="state" widget="badge"/>
+                                    <field name="move_id"/>
+                                    <button
+                                        name="action_post"
+                                        type="object"
+                                        string="Post"
+                                        icon="fa-check"
+                                        groups="account.group_account_manager"
+                                        invisible="state != 'scheduled'"/>
+                                    <button
+                                        name="action_open_move"
+                                        type="object"
+                                        string="Entry"
+                                        icon="fa-external-link"
+                                        invisible="not move_id"/>
+                                </list>
+                                <form string="Deferral Schedule Line">
+                                    <header>
+                                        <button
+                                            name="action_post"
+                                            type="object"
+                                            string="Post Entry"
+                                            class="btn-primary"
+                                            groups="account.group_account_manager"
+                                            invisible="state != 'scheduled'"/>
+                                        <button
+                                            name="action_open_move"
+                                            type="object"
+                                            string="Open Entry"
+                                            invisible="not move_id"/>
+                                        <field name="state" widget="statusbar" statusbar_visible="scheduled,posted"/>
+                                    </header>
+                                    <sheet>
+                                        <group>
+                                            <group>
+                                                <field name="name" readonly="state == 'posted'"/>
+                                                <field name="date" readonly="state == 'posted'"/>
+                                                <field name="phase" readonly="state == 'posted'"/>
+                                                <field name="recognition_account_id" readonly="state == 'posted'"/>
+                                                <field name="partner_id" readonly="state == 'posted'"/>
+                                            </group>
+                                            <group>
+                                                <field name="recognition_balance" readonly="state == 'posted'"/>
+                                                <field name="recognition_amount_currency" readonly="state == 'posted'"/>
+                                                <field name="deferral_balance" readonly="state == 'posted'"/>
+                                                <field name="deferral_amount_currency" readonly="state == 'posted'"/>
+                                                <field name="move_id"/>
+                                            </group>
+                                        </group>
+                                        <field name="analytic_distribution" widget="analytic_distribution" readonly="state == 'posted'"/>
+                                        <notebook>
+                                            <page string="Source Trace">
+                                                <group>
+                                                    <field name="source_move_name"/>
+                                                    <field name="source_move_ref"/>
+                                                    <field name="source_move_state"/>
+                                                    <field name="source_recognition_line_id"/>
+                                                    <field name="source_deferral_line_id"/>
+                                                    <field name="rebuild_source_database"/>
+                                                    <field name="rebuild_source_model"/>
+                                                    <field name="rebuild_source_id"/>
+                                                    <field name="rebuild_source_snapshot"/>
+                                                    <field name="rebuild_import_run_id"/>
+                                                    <field name="rebuild_import_status"/>
+                                                </group>
+                                            </page>
+                                        </notebook>
+                                    </sheet>
+                                </form>
+                            </field>
+                        </page>
+                        <page string="Notes">
+                            <field name="note"/>
+                        </page>
+                        <page string="Source Trace">
+                            <group>
+                                <field name="source_original_move_id"/>
+                                <field name="source_original_move_name"/>
+                                <field name="rebuild_source_database"/>
+                                <field name="rebuild_source_model"/>
+                                <field name="rebuild_source_id"/>
+                                <field name="rebuild_source_snapshot"/>
+                                <field name="rebuild_import_run_id"/>
+                                <field name="rebuild_import_status"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_rebuild_account_deferral" model="ir.actions.act_window">
+        <field name="name">Deferrals</field>
+        <field name="res_model">rebuild.account.deferral</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_running': 1}</field>
+    </record>
+
+    <record id="view_rebuild_account_analytic_override_list" model="ir.ui.view">
+        <field name="name">rebuild.account.analytic.override.list</field>
+        <field name="model">rebuild.account.analytic.override</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0" decoration-success="status in ['applied', 'represented']" decoration-danger="status == 'mismatch'">
+                <field name="name"/>
+                <field name="expense_id"/>
+                <field name="target_move_line_id"/>
+                <field name="source_business_distribution"/>
+                <field name="source_final_distribution"/>
+                <field name="target_after_distribution"/>
+                <field name="status" widget="badge"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <button name="action_open_expense" type="object" string="Expense" icon="fa-external-link"/>
+                <button name="action_open_journal_item" type="object" string="Journal Item" icon="fa-external-link"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_rebuild_account_analytic_override_form" model="ir.ui.view">
+        <field name="name">rebuild.account.analytic.override.form</field>
+        <field name="model">rebuild.account.analytic.override</field>
+        <field name="arch" type="xml">
+            <form string="Native Analytic Correction" create="0" edit="0" delete="0">
+                <header>
+                    <button name="action_open_expense" type="object" string="Open Expense"/>
+                    <button name="action_open_journal_item" type="object" string="Open Journal Item"/>
+                    <field name="status" widget="statusbar" statusbar_visible="applied,represented,mismatch"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="expense_id"/>
+                            <field name="target_move_line_id"/>
+                        </group>
+                        <group>
+                            <field name="source_expense_id"/>
+                            <field name="source_move_id"/>
+                            <field name="source_move_line_id"/>
+                        </group>
+                    </group>
+                    <group string="Analytic Distributions">
+                        <field name="source_business_distribution"/>
+                        <field name="source_final_distribution"/>
+                        <field name="target_before_distribution"/>
+                        <field name="target_after_distribution"/>
+                    </group>
+                    <field name="note"/>
+                    <notebook>
+                        <page string="Source Trace">
+                            <group>
+                                <field name="rebuild_source_database"/>
+                                <field name="rebuild_source_model"/>
+                                <field name="rebuild_source_id"/>
+                                <field name="rebuild_source_snapshot"/>
+                                <field name="rebuild_import_run_id"/>
+                                <field name="rebuild_import_status"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_rebuild_account_analytic_override_search" model="ir.ui.view">
+        <field name="name">rebuild.account.analytic.override.search</field>
+        <field name="model">rebuild.account.analytic.override</field>
+        <field name="arch" type="xml">
+            <search string="Native Analytic Corrections">
+                <field name="name"/>
+                <field name="expense_id"/>
+                <field name="source_move_id"/>
+                <field name="source_move_line_id"/>
+                <field name="company_id"/>
+                <filter name="group_status" string="Status" context="{'group_by': 'status'}"/>
+                <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_rebuild_account_analytic_override" model="ir.actions.act_window">
+        <field name="name">Native Analytic Corrections</field>
+        <field name="res_model">rebuild.account.analytic.override</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem
+        id="menu_rebuild_account_deferral"
+        name="Deferrals"
+        parent="account.account_closing_menu"
+        action="action_rebuild_account_deferral"
+        sequence="10"
+        groups="account.group_account_readonly"/>
+
     <menuitem
         id="menu_rebuild_account_migration"
         name="Advanced Audit"
@@ -3529,6 +3849,13 @@
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_deferred_schedule_line"
         sequence="28"
+        groups="account.group_account_readonly"/>
+    <menuitem
+        id="menu_rebuild_account_analytic_override"
+        name="Native Analytic Corrections"
+        parent="menu_rebuild_account_migration"
+        action="action_rebuild_account_analytic_override"
+        sequence="29"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_asset"

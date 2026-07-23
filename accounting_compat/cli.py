@@ -2340,6 +2340,201 @@ def track_b_assets(args: argparse.Namespace) -> dict[str, Any]:
     return status
 
 
+def track_b_deferrals(args: argparse.Namespace) -> dict[str, Any]:
+    """Replay source deferred schedules through native journal entries."""
+    ensure_dirs()
+    validation = validate_source(args)
+    dump_sha = validation["dump"]["sha256"] or "unknown"
+    snapshot_id = f"source-{dump_sha[:12]}"
+    if not table_exists(TRACK_B_DB, "rebuild_account_import_run"):
+        message = "Run make accounting-track-b-reset before Track B deferral replay."
+        raise HarnessError(message)
+
+    script_path = PRIVATE_ARTIFACTS / "track-b-native-deferrals.py"
+    script_path.write_text(
+        "\n".join([
+            "import json",
+            "run = env['rebuild.account.import.run'].create({",
+            "    'name': 'USL Track B native deferral replay',",
+            "    'mode': 'native_engine_replay',",
+            "    'source_database': 'odoo_online_source_saas_19_2',",
+            f"    'source_dump_sha256': {dump_sha!r},",
+            f"    'source_snapshot_id': {snapshot_id!r},",
+            "    'source_version': 'Odoo Online Enterprise saas~19.2',",
+            f"    'target_database': {TRACK_B_DB!r},",
+            "})",
+            "stats = run.run_native_deferral_replay_from_source({",
+            "    'source_database': 'odoo_online_source_saas_19_2',",
+            f"    'source_dump_sha256': {dump_sha!r},",
+            f"    'source_snapshot_id': {snapshot_id!r},",
+            "    'source_version': 'Odoo Online Enterprise saas~19.2',",
+            f"    'target_database': {TRACK_B_DB!r},",
+            f"    'date_from': {USL_CURRENT_START!r},",
+            "    'date_to': '2026-06-30',",
+            "    'source_company_ids': [1],",
+            "    'opening_boundary_source_move_ids': [8871],",
+            "})",
+            "env.cr.commit()",
+            "print('REBUILD_TRACK_B_DEFERRAL_RESULT=' + json.dumps({",
+            "    'run_id': run.id,",
+            "    'status': run.status,",
+            "    'stats': stats,",
+            "}, sort_keys=True, default=str))",
+            "",
+        ]),
+        encoding="utf-8",
+    )
+    result = run(
+        compose_args(
+            "--profile",
+            "init",
+            "run",
+            "--rm",
+            "-e",
+            f"ODOO_ADDONS_PATH={TARGET_ODOO_ADDONS_PATH}",
+            "init-db",
+            "odoo",
+            "shell",
+            "--config=/etc/odoo/odoo.conf",
+            f"--database={TRACK_B_DB}",
+        ),
+        input_file=script_path,
+        check=False,
+    )
+    marker = None
+    for line in (result.stdout + result.stderr).splitlines():
+        if line.startswith("REBUILD_TRACK_B_DEFERRAL_RESULT="):
+            marker = line.removeprefix("REBUILD_TRACK_B_DEFERRAL_RESULT=")
+    if result.returncode or not marker:
+        status = {
+            "generated_at": utc_now(),
+            "tool_version": TOOL_VERSION,
+            "stage": "track-b-deferrals",
+            "status": "failed",
+            "classification": "TRACK_B_EXECUTION_DEFECT",
+            "database": TRACK_B_DB,
+            "exit_code": result.returncode,
+            "output_tail": (result.stdout + result.stderr)[-12000:],
+        }
+        write_json(PRIVATE_ARTIFACTS / "track-b-deferrals-status.json", status)
+        if not getattr(args, "allow_errors", False):
+            message = "Track B deferral replay failed. See the private status artifact."
+            raise HarnessError(message)
+        return status
+    payload = json.loads(marker)
+    status = {
+        "generated_at": utc_now(),
+        "tool_version": TOOL_VERSION,
+        "stage": "track-b-deferrals",
+        "database": TRACK_B_DB,
+        "run_id": payload["run_id"],
+        "status": payload["status"],
+        **payload["stats"],
+    }
+    write_json(PRIVATE_ARTIFACTS / "track-b-deferrals-status.json", status)
+    if status["status"] != "passed" and not getattr(args, "allow_errors", False):
+        message = "Track B deferral replay has blocked or mismatched cases."
+        raise HarnessError(message)
+    return status
+
+
+def track_b_analytics(args: argparse.Namespace) -> dict[str, Any]:
+    """Apply classified analytic corrections and validate multi-plan parity."""
+    ensure_dirs()
+    validation = validate_source(args)
+    dump_sha = validation["dump"]["sha256"] or "unknown"
+    snapshot_id = f"source-{dump_sha[:12]}"
+    if not table_exists(TRACK_B_DB, "rebuild_account_import_run"):
+        message = "Run make accounting-track-b-reset before Track B analytic replay."
+        raise HarnessError(message)
+
+    script_path = PRIVATE_ARTIFACTS / "track-b-native-analytics.py"
+    script_path.write_text(
+        "\n".join([
+            "import json",
+            "run = env['rebuild.account.import.run'].create({",
+            "    'name': 'USL Track B native multi-plan analytic replay',",
+            "    'mode': 'native_engine_replay',",
+            "    'source_database': 'odoo_online_source_saas_19_2',",
+            f"    'source_dump_sha256': {dump_sha!r},",
+            f"    'source_snapshot_id': {snapshot_id!r},",
+            "    'source_version': 'Odoo Online Enterprise saas~19.2',",
+            f"    'target_database': {TRACK_B_DB!r},",
+            "})",
+            "stats = run.run_native_analytic_replay_from_source({",
+            "    'source_database': 'odoo_online_source_saas_19_2',",
+            f"    'source_dump_sha256': {dump_sha!r},",
+            f"    'source_snapshot_id': {snapshot_id!r},",
+            "    'source_version': 'Odoo Online Enterprise saas~19.2',",
+            f"    'target_database': {TRACK_B_DB!r},",
+            f"    'date_from': {USL_CURRENT_START!r},",
+            "    'date_to': '2026-06-30',",
+            "    'source_company_ids': [1],",
+            "})",
+            "env.cr.commit()",
+            "print('REBUILD_TRACK_B_ANALYTIC_RESULT=' + json.dumps({",
+            "    'run_id': run.id,",
+            "    'status': run.status,",
+            "    'stats': stats,",
+            "}, sort_keys=True, default=str))",
+            "",
+        ]),
+        encoding="utf-8",
+    )
+    result = run(
+        compose_args(
+            "--profile",
+            "init",
+            "run",
+            "--rm",
+            "-e",
+            f"ODOO_ADDONS_PATH={TARGET_ODOO_ADDONS_PATH}",
+            "init-db",
+            "odoo",
+            "shell",
+            "--config=/etc/odoo/odoo.conf",
+            f"--database={TRACK_B_DB}",
+        ),
+        input_file=script_path,
+        check=False,
+    )
+    marker = None
+    for line in (result.stdout + result.stderr).splitlines():
+        if line.startswith("REBUILD_TRACK_B_ANALYTIC_RESULT="):
+            marker = line.removeprefix("REBUILD_TRACK_B_ANALYTIC_RESULT=")
+    if result.returncode or not marker:
+        status = {
+            "generated_at": utc_now(),
+            "tool_version": TOOL_VERSION,
+            "stage": "track-b-analytics",
+            "status": "failed",
+            "classification": "TRACK_B_EXECUTION_DEFECT",
+            "database": TRACK_B_DB,
+            "exit_code": result.returncode,
+            "output_tail": (result.stdout + result.stderr)[-12000:],
+        }
+        write_json(PRIVATE_ARTIFACTS / "track-b-analytics-status.json", status)
+        if not getattr(args, "allow_errors", False):
+            message = "Track B analytic replay failed. See the private status artifact."
+            raise HarnessError(message)
+        return status
+    payload = json.loads(marker)
+    status = {
+        "generated_at": utc_now(),
+        "tool_version": TOOL_VERSION,
+        "stage": "track-b-analytics",
+        "database": TRACK_B_DB,
+        "run_id": payload["run_id"],
+        "status": payload["status"],
+        **payload["stats"],
+    }
+    write_json(PRIVATE_ARTIFACTS / "track-b-analytics-status.json", status)
+    if status["status"] != "passed" and not getattr(args, "allow_errors", False):
+        message = "Track B analytic replay has blocked or mismatched cases."
+        raise HarnessError(message)
+    return status
+
+
 def track_b_expenses(args: argparse.Namespace) -> dict[str, Any]:
     """Rebuild source expenses through native approval and posting workflows."""
     ensure_dirs()
@@ -11839,6 +12034,18 @@ def readiness(args: argparse.Namespace) -> dict[str, Any]:
         "track_b_assets_browser": (
             PRIVATE_ARTIFACTS / "track-b-assets-browser-status.json"
         ),
+        "track_b_deferrals": (
+            PRIVATE_ARTIFACTS / "track-b-deferrals-status.json"
+        ),
+        "track_b_deferrals_browser": (
+            PRIVATE_ARTIFACTS / "track-b-deferrals-browser-status.json"
+        ),
+        "track_b_analytics": (
+            PRIVATE_ARTIFACTS / "track-b-analytics-status.json"
+        ),
+        "track_b_analytics_browser": (
+            PRIVATE_ARTIFACTS / "track-b-analytics-browser-status.json"
+        ),
         "track_b_expense_settlement": (
             PRIVATE_ARTIFACTS / "track-b-expense-settlement-status.json"
         ),
@@ -11877,6 +12084,10 @@ def readiness(args: argparse.Namespace) -> dict[str, Any]:
         "track_b_documents": {"passed"},
         "track_b_assets": {"passed"},
         "track_b_assets_browser": {"passed"},
+        "track_b_deferrals": {"passed"},
+        "track_b_deferrals_browser": {"passed"},
+        "track_b_analytics": {"passed"},
+        "track_b_analytics_browser": {"passed"},
         "track_b_expense_settlement": {"passed"},
         "track_b_document_settlement": {"passed"},
         "track_b_general_reconciliation": {"passed"},
@@ -12027,6 +12238,18 @@ def evidence(args: argparse.Namespace) -> dict[str, Any]:
         "track_b_assets_browser": (
             PRIVATE_ARTIFACTS / "track-b-assets-browser-status.json"
         ),
+        "track_b_deferrals": (
+            PRIVATE_ARTIFACTS / "track-b-deferrals-status.json"
+        ),
+        "track_b_deferrals_browser": (
+            PRIVATE_ARTIFACTS / "track-b-deferrals-browser-status.json"
+        ),
+        "track_b_analytics": (
+            PRIVATE_ARTIFACTS / "track-b-analytics-status.json"
+        ),
+        "track_b_analytics_browser": (
+            PRIVATE_ARTIFACTS / "track-b-analytics-browser-status.json"
+        ),
         "track_b_expense_settlement": (
             PRIVATE_ARTIFACTS / "track-b-expense-settlement-status.json"
         ),
@@ -12098,11 +12321,13 @@ def run_all(args: argparse.Namespace) -> dict[str, Any]:
         "track_b_expenses": track_b_expenses(args),
         "track_b_documents": track_b_documents(args),
         "track_b_assets": track_b_assets(args),
+        "track_b_deferrals": track_b_deferrals(args),
         "track_b_expense_settlement": track_b_expense_settlement(args),
         "track_b_document_settlement": track_b_document_settlement(args),
         "track_b_general_reconciliation": track_b_general_reconciliation(args),
         "track_b_bank_categorization": track_b_bank_categorization(args),
         "track_b_bank_external": track_b_bank_external(args),
+        "track_b_analytics": track_b_analytics(args),
         "target_reconciliation_probe": target_reconciliation_probe(args),
         "reports": reports(args),
         "fec": fec(args),
@@ -12134,6 +12359,8 @@ def build_parser() -> argparse.ArgumentParser:
         "track-b-expenses",
         "track-b-documents",
         "track-b-assets",
+        "track-b-deferrals",
+        "track-b-analytics",
         "track-b-expense-settlement",
         "track-b-document-settlement",
         "track-b-general-reconciliation",
@@ -12188,6 +12415,10 @@ def main(argv: list[str] | None = None) -> int:
             print_summary(args.stage, track_b_documents(args))
         elif args.stage == "track-b-assets":
             print_summary(args.stage, track_b_assets(args))
+        elif args.stage == "track-b-deferrals":
+            print_summary(args.stage, track_b_deferrals(args))
+        elif args.stage == "track-b-analytics":
+            print_summary(args.stage, track_b_analytics(args))
         elif args.stage == "track-b-expense-settlement":
             print_summary(args.stage, track_b_expense_settlement(args))
         elif args.stage == "track-b-document-settlement":

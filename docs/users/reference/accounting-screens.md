@@ -91,8 +91,13 @@ Screens include:
 - Fixed Asset Register
 - Imported Depreciation Schedule
 - Imported Deferred Schedule
+- Native Analytic Corrections
 
 Use these to inspect asset, depreciation and deferred evidence.
+
+Operational deferred schedules live under `Accounting > Closing > Deferrals`.
+Native analytic lines, pivot and graph views live under
+`Accounting > Accounting > Analytic Items`.
 
 ## Report Export Wizard
 
