@@ -7,6 +7,57 @@ from odoo import api, fields, models
 from odoo.exceptions import AccessError, UserError
 from odoo.tools import date_utils
 
+PROFIT_AND_LOSS_ACCOUNT_TYPES = (
+    "income",
+    "income_other",
+    "expense",
+    "expense_other",
+    "expense_depreciation",
+    "expense_direct_cost",
+)
+
+
+class AccountAccount(models.Model):
+    _inherit = "account.account"
+
+    rebuild_hygiene_balance_policy = fields.Selection(
+        [
+            ("auto", "Automatic from Account Type"),
+            ("debit", "Debit Balance Expected"),
+            ("credit", "Credit Balance Expected"),
+            ("either", "Debit or Credit Is Expected"),
+        ],
+        string="Hygiene Balance Policy",
+        required=True,
+        default="auto",
+        help=(
+            "Controls whether Accounting Hygiene flags a wrong-way aggregate "
+            "balance. Automatic mode uses the account type and common French "
+            "contra-account prefixes. This is a review signal, not an "
+            "automatic accounting correction."
+        ),
+    )
+
+    def _rebuild_hygiene_expected_balance_side(self):
+        self.ensure_one()
+        if self.rebuild_hygiene_balance_policy != "auto":
+            return self.rebuild_hygiene_balance_policy
+
+        code = self.code or ""
+        if self.account_type in {"off_balance", "equity_unaffected"}:
+            return "either"
+        if code.startswith(("603", "71", "72")):
+            return "either"
+        if code.startswith(("28", "29", "39", "49", "59", "609", "619", "629")):
+            return "credit"
+        if code.startswith("709"):
+            return "debit"
+        if self.account_type.startswith(("asset", "expense")):
+            return "debit"
+        if self.account_type.startswith(("liability", "income")) or self.account_type == "equity":
+            return "credit"
+        return "either"
+
 
 class RebuildAccountClosingPeriod(models.Model):
     _name = "rebuild.account.closing.period"
@@ -173,6 +224,7 @@ class RebuildAccountClosingPeriod(models.Model):
             self._control_document_completeness(),
             self._control_bank_reconciliation(),
             self._control_partner_open_items(),
+            self._control_unusual_balances(),
             self._control_tax_declarations(),
             self._control_payroll(),
             self._control_assets_deferrals(),
@@ -287,6 +339,74 @@ class RebuildAccountClosingPeriod(models.Model):
             "warning" if lines else "pass", len(lines), amount,
             f"{len(lines)} open receivable/payable item(s), absolute residual {amount:.2f} {self.currency_id.name}.",
             "Review ageing and document legitimate open customer and supplier balances.", owner="operator",
+        )
+
+    def _unusual_balance_rows(self):
+        self.ensure_one()
+        MoveLine = self.env["account.move.line"].with_company(self.company_id)
+        common_domain = [
+            ("company_id", "=", self.company_id.id),
+            ("move_id.state", "=", "posted"),
+            ("date", "<=", self.date_to),
+        ]
+        balance_sheet_rows = MoveLine._read_group(
+            [
+                *common_domain,
+                ("account_id.account_type", "not in", PROFIT_AND_LOSS_ACCOUNT_TYPES),
+            ],
+            ["account_id"],
+            ["balance:sum", "__count"],
+        )
+        profit_and_loss_rows = MoveLine._read_group(
+            [
+                *common_domain,
+                ("date", ">=", self.fiscalyear_start),
+                ("account_id.account_type", "in", PROFIT_AND_LOSS_ACCOUNT_TYPES),
+            ],
+            ["account_id"],
+            ["balance:sum", "__count"],
+        )
+        unusual = []
+        for account, balance, line_count in balance_sheet_rows + profit_and_loss_rows:
+            if self.currency_id.is_zero(balance):
+                continue
+            expected_side = account.with_company(
+                self.company_id,
+            )._rebuild_hygiene_expected_balance_side()
+            if (
+                (expected_side == "debit" and balance < 0)
+                or (expected_side == "credit" and balance > 0)
+            ):
+                unusual.append((account, balance, line_count, expected_side))
+        return sorted(unusual, key=lambda row: abs(row[1]), reverse=True)
+
+    def _control_unusual_balances(self):
+        unusual = self._unusual_balance_rows()
+        amount = sum(abs(balance) for _account, balance, _line_count, _side in unusual)
+        preview = ", ".join(
+            account.with_company(self.company_id).code
+            for account, _balance, _line_count, _side in unusual[:5]
+        )
+        summary = (
+            f"{len(unusual)} account(s) have an aggregate balance opposite "
+            f"their configured natural side; absolute review amount "
+            f"{amount:.2f} {self.currency_id.name}."
+        )
+        if preview:
+            summary = f"{summary} Largest signals: {preview}."
+        return self._control_values(
+            "unusual_balances",
+            "accounting",
+            "Unusual account balances",
+            "warning" if unusual else "pass",
+            len(unusual),
+            amount,
+            summary,
+            (
+                "Review the account-grouped journal items and document a "
+                "legitimate overdraft, advance, contra balance or correction."
+            ),
+            owner="operator",
         )
 
     def _control_tax_declarations(self):
@@ -616,6 +736,27 @@ class RebuildAccountClosingControl(models.Model):
                 ("company_id", "=", self.company_id.id), ("date", ">=", closing.date_from),
                 ("date", "<=", closing.date_to), ("is_reconciled", "=", False),
             ], "kanban,list,form")
+        if self.code == "unusual_balances":
+            account_ids = [
+                account.id
+                for account, _balance, _line_count, _side
+                in closing._unusual_balance_rows()
+            ]
+            action = self._action("Unusual Balance Journal Items", "account.move.line", [
+                ("company_id", "=", self.company_id.id),
+                ("move_id.state", "=", "posted"),
+                ("date", "<=", closing.date_to),
+                ("account_id", "in", account_ids),
+                "|",
+                (
+                    "account_id.account_type",
+                    "not in",
+                    PROFIT_AND_LOSS_ACCOUNT_TYPES,
+                ),
+                ("date", ">=", closing.fiscalyear_start),
+            ], "list,form,pivot")
+            action["context"]["search_default_group_by_account"] = 1
+            return action
         if self.code == "tax_declarations":
             return closing.action_open_declarations()
         if self.code == "issues":

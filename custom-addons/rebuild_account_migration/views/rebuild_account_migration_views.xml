@@ -259,6 +259,33 @@
         </field>
     </record>
 
+    <record id="view_account_form_hygiene_balance_policy" model="ir.ui.view">
+        <field name="name">account.account.form.hygiene.balance.policy</field>
+        <field name="model">account.account</field>
+        <field name="inherit_id" ref="account.view_account_form"/>
+        <field name="arch" type="xml">
+            <field name="account_type" position="after">
+                <field
+                    name="rebuild_hygiene_balance_policy"
+                    groups="account.group_account_manager"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_account_list_hygiene_balance_policy" model="ir.ui.view">
+        <field name="name">account.account.list.hygiene.balance.policy</field>
+        <field name="model">account.account</field>
+        <field name="inherit_id" ref="account.view_account_list"/>
+        <field name="arch" type="xml">
+            <field name="account_type" position="after">
+                <field
+                    name="rebuild_hygiene_balance_policy"
+                    optional="hide"
+                    groups="account.group_account_manager"/>
+            </field>
+        </field>
+    </record>
+
     <record id="view_rebuild_account_review_summary_list" model="ir.ui.view">
         <field name="name">rebuild.account.review.summary.list</field>
         <field name="model">rebuild.account.review.summary</field>
@@ -545,6 +572,7 @@
                 <field name="missing_expense_attachment_count"/>
                 <field name="stale_draft_document_count"/>
                 <field name="stale_draft_expense_count"/>
+                <field name="unusual_balance_count"/>
                 <field name="overdue_declaration_count"/>
                 <field name="latest_closing_blocking_count"/>
                 <field name="latest_closing_warning_count"/>
@@ -575,6 +603,7 @@
                     <button name="action_open_user_guide" type="object" string="User Guide"/>
                 </header>
                 <sheet>
+                    <field name="currency_id" invisible="1"/>
                     <field name="latest_closing_period_id" invisible="1"/>
                     <div class="oe_title">
                         <h1>Accounting Hygiene</h1>
@@ -609,6 +638,9 @@
                         </button>
                         <button name="action_open_missing_expense_attachments" type="object" class="oe_stat_button" icon="fa-camera">
                             <field name="missing_expense_attachment_count" widget="statinfo" string="Expense Receipts"/>
+                        </button>
+                        <button name="action_open_unusual_balances" type="object" class="oe_stat_button" icon="fa-balance-scale">
+                            <field name="unusual_balance_count" widget="statinfo" string="Unusual Balances"/>
                         </button>
                         <button name="action_open_open_discrepancies" type="object" class="oe_stat_button" icon="fa-exclamation-triangle">
                             <field name="open_discrepancy_count" widget="statinfo" string="Open Issues"/>
@@ -645,6 +677,9 @@
                     <group string="Bank, Closing and Declarations">
                         <group>
                             <field name="unmatched_bank_transaction_count"/>
+                            <field name="unusual_balance_count"/>
+                            <field name="unusual_balance_amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            <button name="action_open_unusual_balances" type="object" string="Review Unusual Balances" class="btn-link"/>
                             <field name="open_receivable_count"/>
                             <field name="open_payable_count"/>
                             <button name="action_open_open_receivables" type="object" string="Review Open Receivables" class="btn-link"/>

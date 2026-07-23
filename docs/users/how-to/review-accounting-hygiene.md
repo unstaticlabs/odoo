@@ -35,13 +35,27 @@ Work through the sections in this order:
    required explanation.
 5. `Stale Draft Documents` and `Stale Expense Work`: review items more than 30
    days old.
-6. `Current Closing Controls`: inspect bank, tax, payroll, asset, currency,
+6. `Unusual Account Balances`: review accounts whose aggregate debit/credit
+   direction is opposite their configured natural side.
+7. `Current Closing Controls`: inspect bank, tax, payroll, asset, currency,
    analytic, report, FEC and lock-date controls for the active period.
-7. `Open Issues` and prepared decisions: resolve technical defects or route
+8. `Open Issues` and prepared decisions: resolve technical defects or route
    accounting judgments to the named authority.
 
 Open receivable and payable balances are review queues, not automatic errors.
 Confirm legitimate balances instead of clearing them merely to reduce a count.
+
+An unusual balance is also a review signal, not proof of an error. The control
+uses all posted history through the close date for balance-sheet accounts and
+the configured fiscal year for income and expense accounts. It recognizes
+common French contra-account families such as accumulated depreciation and
+purchase/sales rebates. Legitimate examples can include a bank overdraft,
+supplier advance, customer credit or two-sided clearing account.
+
+Accounting Managers can change `Hygiene Balance Policy` on an account in the
+Chart of Accounts when its documented natural side differs from the automatic
+rule. Choose `Debit or Credit Is Expected` only when either direction is
+genuinely normal; retain the accounting evidence behind that choice.
 
 ## Refresh Period Controls
 

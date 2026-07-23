@@ -100,6 +100,15 @@ class RebuildAccountReviewSummary(models.Model):
     )
     latest_closing_blocking_count = fields.Integer(readonly=True)
     latest_closing_warning_count = fields.Integer(readonly=True)
+    unusual_balance_count = fields.Integer(
+        string="Unusual Account Balances",
+        readonly=True,
+    )
+    unusual_balance_amount = fields.Monetary(
+        string="Unusual Balance Review Amount",
+        currency_field="currency_id",
+        readonly=True,
+    )
     next_declaration_id = fields.Many2one(
         "rebuild.account.declaration",
         readonly=True,
@@ -341,6 +350,19 @@ class RebuildAccountReviewSummary(models.Model):
                 "search_default_group_category": 1,
             },
         }
+
+    def action_open_unusual_balances(self):
+        self.ensure_one()
+        control = self.latest_closing_period_id.control_line_ids.filtered(
+            lambda line: line.code == "unusual_balances",
+        )[:1]
+        if not control:
+            message = (
+                "No unusual-balance control is available. Ask an Accounting "
+                "Manager to refresh the current controls."
+            )
+            raise UserError(message)
+        return control.action_open_records()
 
     def action_refresh_hygiene(self):
         self.ensure_one()
@@ -685,6 +707,8 @@ class RebuildAccountReviewSummary(models.Model):
                        latest_closing.readiness_status AS latest_closing_readiness,
                        COALESCE(latest_closing.blocking_count, 0) AS latest_closing_blocking_count,
                        COALESCE(latest_closing.warning_count, 0) AS latest_closing_warning_count,
+                       COALESCE(latest_closing.unusual_balance_count, 0) AS unusual_balance_count,
+                       COALESCE(latest_closing.unusual_balance_amount, 0.00) AS unusual_balance_amount,
                        next_declaration.id AS next_declaration_id,
                        next_declaration.deadline_date AS next_declaration_deadline,
                        next_declaration.status AS next_declaration_status,
@@ -699,7 +723,19 @@ class RebuildAccountReviewSummary(models.Model):
                          + COALESCE(expenses.missing_expense_attachment_count, 0)
                          + COALESCE(documents.stale_draft_document_count, 0)
                          + COALESCE(expenses.stale_draft_expense_count, 0)
-                         + COALESCE(latest_closing.warning_count, 0)
+                         + GREATEST(
+                               COALESCE(latest_closing.warning_count, 0)
+                             - CASE
+                                   WHEN COALESCE(
+                                       latest_closing.unusual_balance_count,
+                                       0
+                                   ) > 0
+                                   THEN 1
+                                   ELSE 0
+                               END,
+                               0
+                           )
+                         + COALESCE(latest_closing.unusual_balance_count, 0)
                          + COALESCE(declaration_counts.overdue_declaration_count, 0)
                          + COALESCE(discrepancies.open_p1_count, 0)
                          + COALESCE(decisions.pending_review_decision_count, 0)
@@ -715,6 +751,7 @@ class RebuildAccountReviewSummary(models.Model):
                              OR COALESCE(documents.stale_draft_document_count, 0) > 0
                              OR COALESCE(expenses.stale_draft_expense_count, 0) > 0
                              OR COALESCE(latest_closing.warning_count, 0) > 0
+                             OR COALESCE(latest_closing.unusual_balance_count, 0) > 0
                              OR COALESCE(declaration_counts.overdue_declaration_count, 0) > 0
                              OR COALESCE(discrepancies.open_p1_count, 0) > 0
                              OR COALESCE(decisions.pending_review_decision_count, 0) > 0
@@ -924,7 +961,19 @@ class RebuildAccountReviewSummary(models.Model):
                              )::integer AS blocking_count,
                              count(control.id) FILTER (
                                  WHERE control.status = 'warning'
-                             )::integer AS warning_count
+                             )::integer AS warning_count,
+                             COALESCE(
+                                 max(control.record_count) FILTER (
+                                     WHERE control.code = 'unusual_balances'
+                                 ),
+                                 0
+                             )::integer AS unusual_balance_count,
+                             COALESCE(
+                                 max(control.amount) FILTER (
+                                     WHERE control.code = 'unusual_balances'
+                                 ),
+                                 0.00
+                             ) AS unusual_balance_amount
                         FROM rebuild_account_closing_period closing
                         LEFT JOIN rebuild_account_closing_control control
                           ON control.closing_period_id = closing.id

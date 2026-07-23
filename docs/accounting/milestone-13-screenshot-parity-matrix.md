@@ -59,7 +59,7 @@ read-only and the replay never falls back to an unverified link.
 
 | Journey | Valentin / Accounting Manager | Prosper / Accountant Reviewer | Current result |
 | --- | --- | --- | --- |
-| Start daily work | Operational Home, Accounting Hygiene, prepared actions, balances, close/declaration state and native Dashboard route. | Same company-scoped Home and Hygiene queues without settings, refresh or mutation controls. | Home and Hygiene manager/reviewer browser journeys passed; the reviewer drilldowns hide New and Upload. |
+| Start daily work | Operational Home, Accounting Hygiene, configurable unusual-balance review, prepared actions, balances, close/declaration state and native Dashboard route. | Same company-scoped Home and Hygiene queues without settings, refresh or mutation controls. | Home and Hygiene manager/reviewer browser journeys passed; the reviewer can inspect the seven-account unusual-balance drilldown while balance-policy configuration, New and Upload remain unavailable. |
 | Review reports | Full dynamic filters, drilldown and exports. | Same review and export surfaces; no create/edit controls. | Passed in browser and add-on tests; professional acceptance pending. |
 | Review bank and general reconciliation | Operational OCA workbenches and source audit links. | Read-only views and move drilldown; validate/reset/reconcile mutations hidden and denied. | Passed in browser and ACL tests; cross-boundary policy pending. |
 | Review declarations and closing | Schedule, field guidance, close controls and package/FEC preparation. | Read-only evidence and test-file preparation within allowed company. | Technically passed; statutory and professional approvals pending. |

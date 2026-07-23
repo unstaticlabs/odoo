@@ -36,6 +36,8 @@ Cannot:
 - inspect companies not assigned to the user.
 - refresh current closing controls or use New/Upload in supplier-evidence
   drilldowns.
+- change the Chart of Accounts natural-balance policy used by Accounting
+  Hygiene.
 
 ## Accounting Manager
 
@@ -47,6 +49,8 @@ Can perform actions that a reviewer cannot, including:
 - ECB reference-rate configuration and immediate retrieval.
 - Accounting Hygiene control refresh and normal supplier-document New/Upload
   actions.
+- configure a documented account-specific debit, credit or two-sided Hygiene
+  balance policy.
 
 Use this role carefully. It can affect accounting presentation.
 

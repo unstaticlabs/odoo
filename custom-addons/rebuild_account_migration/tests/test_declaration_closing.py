@@ -279,6 +279,158 @@ class TestDeclarationAndClosing(TransactionCase):
         self.assertGreater(len(pdf_payload), 10_000)
         self.assertIn(b"ReportLab PDF Library", pdf_payload)
 
+    def test_unusual_balance_control_uses_natural_sides_and_account_policy(self):
+        company = self._company("Unusual Balance Company", profile=False)
+        liability = self._account(
+            company,
+            "401991",
+            "Supplier advances to review",
+            "liability_payable",
+            reconcile=True,
+        )
+        cash = self._account(
+            company,
+            "512991",
+            "Cash overdraft to review",
+            "asset_cash",
+        )
+        contra_asset = self._account(
+            company,
+            "281991",
+            "Accumulated depreciation",
+            "asset_fixed",
+        )
+        expense = self._account(
+            company,
+            "606991",
+            "Operating expense",
+            "expense",
+        )
+        ignored_asset = self._account(
+            company,
+            "471991",
+            "Documented two-sided clearing",
+            "asset_current",
+        )
+        ignored_asset.rebuild_hygiene_balance_policy = "either"
+        income = self._account(
+            company,
+            "766991",
+            "Foreign exchange income",
+            "income",
+        )
+        equity = self._account(
+            company,
+            "101991",
+            "Unit balancing equity",
+            "equity",
+        )
+        journal = self.env["account.journal"].with_company(company).create({
+            "name": "Unusual balance tests",
+            "code": "UBAL",
+            "type": "general",
+            "company_id": company.id,
+        })
+
+        def post_move(move_date, reference, lines):
+            move = self.env["account.move"].with_company(company).create({
+                "move_type": "entry",
+                "company_id": company.id,
+                "journal_id": journal.id,
+                "date": move_date,
+                "ref": reference,
+                "line_ids": [
+                    Command.create({
+                        "name": reference,
+                        "account_id": account.id,
+                        "debit": debit,
+                        "credit": credit,
+                    })
+                    for account, debit, credit in lines
+                ],
+            })
+            move.action_post()
+
+        post_move(
+            "2026-01-15",
+            "Wrong-way supplier and cash balances",
+            [(liability, 100.0, 0.0), (cash, 0.0, 100.0)],
+        )
+        post_move(
+            "2026-01-16",
+            "Expected contra-asset balance",
+            [(expense, 50.0, 0.0), (contra_asset, 0.0, 50.0)],
+        )
+        post_move(
+            "2026-01-17",
+            "Configured two-sided account",
+            [(expense, 30.0, 0.0), (ignored_asset, 0.0, 30.0)],
+        )
+        post_move(
+            "2026-01-18",
+            "Current-year wrong-way income",
+            [(income, 20.0, 0.0), (equity, 0.0, 20.0)],
+        )
+        post_move(
+            "2025-09-15",
+            "Prior-year income excluded from current close",
+            [(income, 40.0, 0.0), (equity, 0.0, 40.0)],
+        )
+        closing = self.env["rebuild.account.closing.period"].with_company(
+            company,
+        ).create({
+            "name": "January 2026 unusual balance review",
+            "company_id": company.id,
+            "period_type": "month",
+            "date_from": "2026-01-01",
+            "date_to": "2026-01-31",
+            "fiscalyear_start": "2025-10-01",
+            "fiscalyear_end": "2026-09-30",
+        })
+
+        unusual = closing._unusual_balance_rows()
+        self.assertEqual(
+            {account.id for account, _balance, _count, _side in unusual},
+            {liability.id, cash.id, income.id},
+        )
+        control_values = closing._control_unusual_balances()
+        self.assertEqual(control_values["status"], "warning")
+        self.assertEqual(control_values["record_count"], 3)
+        self.assertEqual(control_values["amount"], 220.0)
+        self.assertEqual(control_values["owner"], "operator")
+        self.assertEqual(
+            contra_asset._rebuild_hygiene_expected_balance_side(),
+            "credit",
+        )
+        self.assertEqual(
+            ignored_asset._rebuild_hygiene_expected_balance_side(),
+            "either",
+        )
+
+        closing.action_refresh_controls()
+        control = closing.control_line_ids.filtered(
+            lambda line: line.code == "unusual_balances",
+        )
+        self.assertEqual(len(control), 1)
+        action = control.action_open_records()
+        self.assertEqual(action["res_model"], "account.move.line")
+        account_domain = next(
+            term
+            for term in action["domain"]
+            if isinstance(term, tuple) and term[0] == "account_id"
+        )
+        self.assertEqual(set(account_domain[2]), {liability.id, cash.id, income.id})
+        self.assertEqual(action["context"]["search_default_group_by_account"], 1)
+        self.env.flush_all()
+        hygiene = self.env["rebuild.account.review.summary"].search([
+            ("company_id", "=", company.id),
+        ], limit=1)
+        self.assertEqual(hygiene.unusual_balance_count, 3)
+        self.assertEqual(hygiene.unusual_balance_amount, 220.0)
+        self.assertGreaterEqual(hygiene.hygiene_attention_count, 3)
+        hygiene_action = hygiene.action_open_unusual_balances()
+        self.assertEqual(hygiene_action["res_model"], "account.move.line")
+
     def test_confirmed_vat_refund_reclassification_is_balanced_and_idempotent(self):
         company = self._company("VAT Reclassification Company")
         bank_account = self._account(company, "512TEST", "Test bank", "asset_cash")

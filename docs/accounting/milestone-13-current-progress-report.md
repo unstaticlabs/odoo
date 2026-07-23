@@ -225,7 +225,8 @@ The add-on currently provides:
 - a dependency on native Odoo Expenses so the standard employee-expense workflow is installed and reachable from Accounting
 - a user-docs browser at `/usl/user-docs`
 - a company-scoped Accounting Hygiene workbench backed by live native records,
-  current closing controls and separated Valentin/Prosper decision queues
+  current closing controls, configurable unusual-balance detection and
+  separated Valentin/Prosper decision queues
 
 This add-on is evidence and reconstruction infrastructure. It is not yet a full replacement for the Enterprise `account_reports` interactive reporting product.
 
@@ -462,6 +463,7 @@ Current outcome: the dynamic report screens, readable exports, declaration works
 - Diataxis user docs and Odoo docs browser
 - Track B checksum-verified native bill/expense evidence and main-attachment selection
 - Accounting Hygiene daily queues, direct evidence links and manager/reviewer browser controls
+- configurable natural-balance policies and a live seven-account unusual-balance review queue
 
 ### Partial and not yet acceptable
 

@@ -1768,7 +1768,7 @@ Scope note: payment-provider product support is not a Milestone 13 requirement. 
 - [ ] Collect platform payout issues.
 - [x] Collect payroll status through the current period controls, including the explicit external-payroll boundary when payroll is not installed.
 - [x] Collect VAT/declaration readiness through the current period and declaration workspaces.
-- [ ] Collect unusual balances.
+- [x] Collect unusual aggregate account balances from the current close with direct journal-item drilldown and configurable natural-balance policies.
 - [x] Collect draft document and expense work older than 30 days.
 - [x] Separate automatic checks and refreshes from named professional approvals.
 - [x] Separate questions and decisions prepared for Prosper from those prepared for Valentin.

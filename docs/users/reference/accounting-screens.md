@@ -28,7 +28,8 @@ Accounting > Review > Control > Accounting Hygiene
 
 Purpose: company-scoped daily review for unmatched bank transactions,
 incomplete or stale documents and expenses, missing supplier/receipt evidence,
-closing/declaration warnings and prepared decisions.
+unusual aggregate account balances, closing/declaration warnings and prepared
+decisions.
 
 Each count opens the native record or durable evidence behind it. Accounting
 Managers can refresh the current closing controls; the accountant reviewer has

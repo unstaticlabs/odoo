@@ -285,20 +285,32 @@ Accounting Hygiene journey:
 
 - the manager opened the dedicated company-scoped workbench and refreshed the
   current controls without an access error;
-- the final state showed `347` attention items: `207` bank transactions to
+- the final state showed `354` attention items: `207` bank transactions to
   match, `37` supplier documents without main evidence, `37` stale drafts,
-  `15` overdue declarations, `4` current closing blockers and `6` warnings;
+  `7` unusual account balances, `15` overdue declarations, `4` current closing
+  blockers and `7` warnings;
+- the unusual-balance queue represented EUR `50,860.26` across supplier
+  advances, customer credits, shareholder/tax debit balances, two small
+  foreign-currency cash overdrafts and a wrong-way exchange-income balance;
+- the live control used posted history through 30 June 2026 for balance-sheet
+  accounts and the configured 1 October 2025 fiscal-year start for profit and
+  loss accounts. French contra accounts and documented two-sided policies were
+  not treated as errors;
 - the workbench separated `2` decisions prepared for Valentin from `44`
   prepared for Prosper and retained the open `1` P0 / `1` P1 evidence;
-- the current period control drilldown opened all `13` accounting, document,
+- the current period control set contained all `14` accounting, document,
   bank, tax, payroll, asset, currency, analytic, issue, report, FEC and lock
   controls;
+- the manager opened the account-grouped seven-account journal-item drilldown
+  and saw the configurable `Hygiene Balance Policy` on the Chart of Accounts;
 - the supplier-evidence drilldown opened exactly `37` draft bills;
 - the first reviewer pass exposed a misleading standard `Upload` control even
   though create access was denied; the shared account-move frontend now gates
   that control with `account.group_account_invoice`;
 - the repeat reviewer pass retained read access to the `37` records while
   hiding refresh, Configuration, New and Upload controls;
+- the reviewer opened the same seven-account unusual-balance drilldown without
+  refresh or balance-policy configuration;
 - the manager retained New and Upload, and the disposable reviewer was removed;
 - private proof:
   `artifacts/accounting-compat/private/accounting-hygiene-browser-status.json`.
@@ -355,8 +367,8 @@ Passing validation includes:
 
 ```text
 python3 -m unittest accounting_compat.tests.test_report_evidence accounting_compat.tests.test_fec_preflight
-python3 -m py_compile accounting_compat/cli.py custom-addons/rebuild_account_migration/models/review_summary.py custom-addons/rebuild_account_migration/tests/test_rebuild_account_migration.py
-docker compose --profile devcontainer run --rm devcontainer ruff check --ignore EM101 custom-addons/rebuild_account_migration/models/review_summary.py custom-addons/rebuild_account_migration/tests/test_rebuild_account_migration.py
+python3 -m py_compile accounting_compat/cli.py custom-addons/rebuild_account_migration/models/closing.py custom-addons/rebuild_account_migration/models/review_summary.py custom-addons/rebuild_account_migration/tests/test_declaration_closing.py custom-addons/rebuild_account_migration/tests/test_rebuild_account_migration.py
+docker compose --profile devcontainer run --rm devcontainer ruff check --ignore EM101 custom-addons/rebuild_account_migration/models/closing.py custom-addons/rebuild_account_migration/models/review_summary.py custom-addons/rebuild_account_migration/tests/test_declaration_closing.py custom-addons/rebuild_account_migration/tests/test_rebuild_account_migration.py
 odoo --config=/etc/odoo/odoo.conf --addons-path=/workspace/odoo/addons,/workspace/odoo/odoo/addons,/workspace/odoo/custom-addons,/workspace/odoo/oca-addons --database=odoo_rebuild_accounting_test --update=rebuild_account_migration --stop-after-init
 /tmp/odoo-m13-docs-venv/bin/python -m mkdocs build --config-file mkdocs.yml
 git diff --check
@@ -376,7 +388,7 @@ make accounting-fec-validate
 make accounting-compare
 make accounting-readiness
 make accounting-evidence
-make accounting-addon-tests ACCOUNTING_TEST_DB=odoo_m13_accounting_hygiene_unit_20260723_3
+make accounting-addon-tests ACCOUNTING_TEST_DB=odoo_m13_unusual_balance_unit_20260723_2
 jq empty artifacts/accounting-compat/private/accounting-hygiene-browser-status.json artifacts/accounting-compat/private/readiness-assessment.json artifacts/accounting-compat/private/evidence-index.json
 ```
 
@@ -384,7 +396,8 @@ The scoped declaration/closing Odoo tests and the broader
 `TestRebuildAccountMigration` suite also pass. The latest fresh isolated run
 completed with `0` failures and `0` errors, including Accounting Home and
 Hygiene routing, operational aggregation, reviewer company isolation,
-manager-only refresh, frontend asset registration and
+manager-only refresh, configurable natural-balance rules, current-fiscal-year
+scope, unusual-balance drilldown, frontend asset registration and
 checksum/main-selection preservation for a native document attachment. The
 suite also includes the three ECB provider/idempotence/access tests. Module
 initialization emitted the existing docutils indentation warnings but no test

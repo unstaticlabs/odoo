@@ -245,11 +245,21 @@ class TestRebuildAccountMigration(TransactionCase):
         refresh_buttons = hygiene_form._get_combined_arch().xpath(
             "//button[@name='action_refresh_hygiene']",
         )
+        account_policy_fields = self.env.ref(
+            "rebuild_account_migration.view_account_form_hygiene_balance_policy",
+        )._get_combined_arch().xpath(
+            "//field[@name='rebuild_hygiene_balance_policy']",
+        )
 
         self.assertTrue(hygiene)
         self.assertEqual(len(refresh_buttons), 1)
         self.assertEqual(
             refresh_buttons[0].get("groups"),
+            "account.group_account_manager",
+        )
+        self.assertEqual(len(account_policy_fields), 1)
+        self.assertEqual(
+            account_policy_fields[0].get("groups"),
             "account.group_account_manager",
         )
         backend_assets = self.env["ir.asset"]._get_asset_paths(

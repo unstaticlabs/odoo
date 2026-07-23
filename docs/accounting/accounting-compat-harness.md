@@ -472,13 +472,15 @@ transactions, incomplete documents, supplier documents without main evidence,
 expenses without receipts, document/expense work older than 30 days, open
 balances, closing and declaration state, P0/P1 issues and the decision queues
 owned separately by Valentin and Prosper. The current target is correctly
-`blocked`; after the manager refreshed controls it showed `347` attention
+`blocked`; after the manager refreshed controls it showed `354` attention
 items, `207` bank transactions to match, `37` supplier documents without main
-evidence, `37` stale drafts, `15` overdue declarations, `4` blocking and `6`
-warning closing controls, `2` Valentin actions and `44` Prosper actions.
+evidence, `37` stale drafts, `7` unusual account balances totalling EUR
+`50,860.26`, `15` overdue declarations, `4` blocking and `7` warning closing
+controls, `2` Valentin actions and `44` Prosper actions.
 
-The manager browser journey refreshed the current controls, opened the `13`
-control rows and drilled into all `37` supplier-evidence records. The
+The manager browser journey refreshed the current controls and drilled into all
+`37` supplier-evidence records plus the seven-account unusual-balance queue.
+The refreshed current control set contains `14` rows. The
 single-company reviewer saw the same queues without Configuration, refresh,
 create or upload controls. During the first reviewer pass, the standard account
 move list still exposed an `Upload` button despite server-side create denial.
@@ -487,6 +489,25 @@ The add-on now gates that shared frontend control with Odoo's standard
 available for the manager and is absent for the reviewer. The disposable
 reviewer was removed. Readiness requires this browser artifact to remain
 `passed`.
+
+For unusual balances, three implementations were compared:
+
+1. rely on Trial Balance/manual review, which provides no continuous Hygiene
+   signal;
+2. create durable issue copies for each account, which would duplicate and
+   eventually drift from the native ledger;
+3. add a live period-closing control that aggregates posted native journal
+   items, applies a configurable natural-balance policy and drills directly
+   back to those items.
+
+The third option is implemented. Balance-sheet accounts use posted history
+through the selected close date; income and expense accounts use the company
+fiscal-year start through that close date. Automatic policy follows native
+account types and common French contra-account families (`28`, `29`, `39`,
+`49`, `59`, `609`, `619`, `629`, `709`) while treating variable inventory
+families and current-year earnings as two-sided. Accounting Managers can
+override a documented account to debit, credit or either-side expectations.
+The control is a warning/review queue and never posts an automatic correction.
 
 The native business-document evidence artifact is
 `artifacts/accounting-compat/private/track-b-native-attachments-browser-status.json`.

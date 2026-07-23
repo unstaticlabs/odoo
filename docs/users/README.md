@@ -118,6 +118,7 @@ Accounting > Review > Control > Accounting Hygiene
 ```
 
 Accounting Hygiene shows unmatched bank work, incomplete or stale documents and
-expenses, missing evidence, closing/declaration warnings and prepared decisions.
+expenses, missing evidence, unusual account balances, closing/declaration
+warnings and prepared decisions.
 For source-backup and import details, open
 `Review > Advanced Audit > Accounting Reconstruction Review`.
