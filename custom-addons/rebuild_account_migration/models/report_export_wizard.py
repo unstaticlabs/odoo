@@ -145,6 +145,9 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         default="csv",
     )
     fec_test_mode = fields.Boolean(string="FEC Test Mode", default=True)
+    can_generate_official_fec = fields.Boolean(
+        compute="_compute_can_generate_official_fec",
+    )
     journal_ids = fields.Many2many("account.journal", string="Journals")
     account_ids = fields.Many2many("account.account", string="Accounts")
     partner_ids = fields.Many2many("res.partner", string="Partners")
@@ -193,6 +196,45 @@ class RebuildAccountReportExportWizard(models.TransientModel):
     preview_metadata = fields.Text(readonly=True)
     draft_entry_count = fields.Integer(readonly=True)
     preview_warning = fields.Text(readonly=True)
+
+    def _can_generate_official_fec(self):
+        return self.env.user.has_group("account.group_account_manager")
+
+    @api.depends_context("uid")
+    def _compute_can_generate_official_fec(self):
+        allowed = self._can_generate_official_fec()
+        for wizard in self:
+            wizard.can_generate_official_fec = allowed
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        if not self._can_generate_official_fec():
+            for values in vals_list:
+                report_type = (
+                    values.get("report_type")
+                    or self.env.context.get("default_report_type")
+                    or "trial_balance"
+                )
+                if report_type == "fec":
+                    values["fec_test_mode"] = True
+        return super().create(vals_list)
+
+    def write(self, values):
+        if (
+            not self._can_generate_official_fec()
+            and values.get("fec_test_mode") is False
+            and any(
+                values.get("report_type", wizard.report_type) == "fec"
+                for wizard in self
+            )
+        ):
+            raise UserError(
+                self.env._(
+                    "Only an Accounting Manager can generate an official "
+                    "non-test FEC because it may update lock dates.",
+                ),
+            )
+        return super().write(values)
 
     def action_apply_period(self):
         self.ensure_one()
@@ -2289,7 +2331,13 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         })
         result = fec_wizard.with_context(
             allowed_company_ids=self.company_id.ids,
-            fec_test_mode=self.fec_test_mode,
+            # The native generator otherwise opens a second cursor while
+            # lazily streaming the file. This wrapper creates the transient
+            # and consumes that stream in one request, so the second cursor
+            # cannot see the uncommitted wizard. Official/test behavior is
+            # governed by test_file; this context only keeps stream reads on
+            # the current transaction cursor.
+            fec_test_mode=True,
         ).generate_fec()
         content = b"".join(result["file_content"])
         stats = self._fec_file_stats(content)

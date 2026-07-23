@@ -24,11 +24,24 @@ Export Format: FEC TXT
 FEC Test Mode: enabled
 ```
 
+## Understand the Role Boundary
+
+- Prosper's `USL Accountant Review` role and a normal finance operator receive
+  a complete posted-entries FEC in test mode. Test mode is enabled and the
+  checkbox is locked, so generating the file cannot change fiscal lock dates.
+- An Accounting Manager can clear `FEC Test Mode` to generate the official
+  path. This is manager-only because native Odoo may advance the fiscal-year
+  lock date to the selected end date.
+- Test mode changes the lock-date side effect, not the ledger contents. The
+  benchmark export still contains the full posted scope and must reconcile.
+
 ## Generate the File
 
 Click `Generate Export`.
 
-Odoo creates a `.txt` FEC file and shows export metadata.
+Odoo creates a `.txt` FEC file and opens the `Download` tab. Click the filename
+to retrieve it. The download surface does not require a report preview because
+FEC preview is deliberately disabled.
 
 ## Review the Metadata
 

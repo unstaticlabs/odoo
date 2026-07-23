@@ -3510,6 +3510,28 @@
         <field name="context">{'search_default_usl_benchmark': 1, 'search_default_group_form': 1}</field>
     </record>
 
+    <record id="view_l10n_fr_fec_export_rebuild_role_safety" model="ir.ui.view">
+        <field name="name">l10n.fr.fec.export.rebuild.role.safety</field>
+        <field name="model">l10n_fr.fec.export.wizard</field>
+        <field name="inherit_id" ref="l10n_fr_account.fec_export_wizard_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='test_file']" position="before">
+                <field name="rebuild_can_generate_official_fec" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='test_file']" position="attributes">
+                <attribute name="readonly">not rebuild_can_generate_official_fec</attribute>
+            </xpath>
+            <xpath expr="//field[@name='export_type']" position="attributes">
+                <attribute name="readonly">not rebuild_can_generate_official_fec</attribute>
+            </xpath>
+            <xpath expr="//field[@name='excluded_journal_ids']" position="attributes">
+                <attribute
+                    name="readonly"
+                >not rebuild_can_generate_official_fec or not test_file</attribute>
+            </xpath>
+        </field>
+    </record>
+
     <record id="view_rebuild_account_report_export_wizard_form" model="ir.ui.view">
         <field name="name">rebuild.account.report.export.wizard.form</field>
         <field name="model">rebuild.account.report.export.wizard</field>
@@ -3569,7 +3591,12 @@
                     </group>
                     <group string="Export">
                         <field name="export_format"/>
-                        <field name="fec_test_mode" invisible="report_type != 'fec'"/>
+                        <field name="can_generate_official_fec" invisible="1"/>
+                        <field
+                            name="fec_test_mode"
+                            invisible="report_type != 'fec'"
+                            readonly="not can_generate_official_fec"
+                        />
                     </group>
                     <group string="Current Result" invisible="not preview_generated_at">
                         <field name="preview_row_count" readonly="1"/>
@@ -3614,6 +3641,8 @@
                         <page string="Filters and Evidence">
                             <field name="preview_metadata" nolabel="1" readonly="1"/>
                         </page>
+                    </notebook>
+                    <notebook invisible="not export_file">
                         <page string="Download" invisible="not export_file">
                             <group>
                                 <field name="export_filename" readonly="1"/>

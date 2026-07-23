@@ -78,6 +78,8 @@ read-only and the replay never falls back to an unverified link.
 | Validate/reset Bank Matching or General Reconciliation | Allowed where the native workflow permits | Denied | Server ACLs plus combined-view regression tests. |
 | Read source-replayed bill/expense evidence | Allowed | Allowed on an accessible parent accounting record | Native attachment regression and accounting-evidence ACL tests. |
 | Read private technical attachments outside accounting | System-only | Denied | Rollback-only `AccessError` regression. |
+| Generate and download a complete posted test FEC | Allowed | Allowed; test mode locked | Reviewer and finance-operator browser journeys each produced the `4,781`-row benchmark and a visible download link. |
+| Generate an official non-test FEC or advance the fiscal lock date | Allowed | Denied | Native/custom server gates and view state; ordinary finance operators are also denied. |
 | Record a professional acceptance decision | Product/accounting authority only when acting in that named role | May prepare/record accountant decisions assigned to the reviewer | Durable review-decision workflow; no acceptance is self-recorded by the implementation agent. |
 
 ## Evidence and closure boundary
@@ -91,6 +93,7 @@ Private evidence:
 - `accounting-hygiene-browser-status.json`;
 - `dynamic-report-browser-status.json`;
 - `replacement-browser-status.json`;
+- `fec-role-browser-status.json`;
 - Track B asset, deferral and analytic browser artifacts.
 
 Readiness requires those technical browser and replay artifacts to remain

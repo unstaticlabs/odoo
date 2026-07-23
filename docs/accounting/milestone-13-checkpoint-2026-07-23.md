@@ -422,6 +422,33 @@ Hybrid replacement journey:
 - private proof:
   `artifacts/accounting-compat/private/replacement-browser-status.json`.
 
+FEC role journey:
+
+- the scoped accountant reviewer and a normal full-accounting finance operator
+  each opened `Accounting > Reporting > FEC`; the benchmark dates, posted
+  scope and TXT format were prefilled, while test mode was checked and
+  disabled;
+- each role generated the complete `4,781`-row file, saw debit and credit
+  `1,064,045.02`, opened the independent Download tab and clicked
+  `983982950FEC20250930.txt`;
+- the Accounting Manager saw an editable test-mode control, cleared it,
+  generated the official path and downloaded the same ledger scope. The
+  fiscal-year lock date was `2025-09-30` before and after;
+- allowing every full-accounting operator to use the official path was
+  rejected. Only the manager may invoke the lock-date side effect; reviewer
+  and operator exports are complete posted test files in both native and
+  custom wizard server paths;
+- the first browser pass created the file but could not display it because
+  Download was incorrectly nested under preview state while FEC preview is
+  forbidden. The final view gives downloads independent state;
+- the first manager official pass exposed the native lazy generator opening a
+  second cursor that could not see the wrapper's uncommitted transient. The
+  wrapper now consumes the stream on its request cursor without changing the
+  `test_file` official/test semantics;
+- both temporary role users and shell scripts were removed;
+- private proof:
+  `artifacts/accounting-compat/private/fec-role-browser-status.json`.
+
 The full screenshot mapping, user-journey scorecard and permission matrix are
 recorded in
 [Milestone 13 screenshot parity and user-journey scorecard](milestone-13-screenshot-parity-matrix.md).
@@ -458,7 +485,8 @@ make accounting-readiness
 make accounting-evidence
 make accounting-addon-tests ACCOUNTING_TEST_DB=odoo_m13_unusual_balance_unit_20260723_2
 make accounting-addon-tests ACCOUNTING_TEST_DB=odoo_m13_replacement_unit_20260723_7
-jq empty artifacts/accounting-compat/private/accounting-hygiene-browser-status.json artifacts/accounting-compat/private/replacement-browser-status.json artifacts/accounting-compat/private/readiness-assessment.json artifacts/accounting-compat/private/evidence-index.json
+make accounting-addon-tests ACCOUNTING_TEST_DB=odoo_m13_fec_roles_unit_20260723_11
+jq empty artifacts/accounting-compat/private/accounting-hygiene-browser-status.json artifacts/accounting-compat/private/replacement-browser-status.json artifacts/accounting-compat/private/fec-role-browser-status.json artifacts/accounting-compat/private/readiness-assessment.json artifacts/accounting-compat/private/evidence-index.json
 ```
 
 The scoped declaration/closing Odoo tests and the broader
@@ -472,9 +500,12 @@ latest replacement-focused run also covers reviewer access to all
 company-scoped expenses, employee provenance privacy, disabled create/edit/
 delete architecture, hidden header mutation controls, server-side create/
 write/unlink denial and backend asset registration. The suite also includes
-the three ECB provider/idempotence/access tests. Module initialization emitted
-the existing docutils indentation warnings but no test failure or error. The
-disposable unit databases were dropped after validation.
+manager/reviewer/operator FEC normalization, official-mode gates, complete
+journal scope, visible download topology, manager lock-date behavior and the
+native/custom generation routes, plus the three ECB provider/idempotence/access
+tests. Module initialization emitted the existing docutils indentation
+warnings but no test failure or error. The disposable unit databases were
+dropped after validation.
 
 The first document replay after introducing the gate correctly returned
 `partial`: `74` attachments belonged to valid expense-generated receipt moves
@@ -504,6 +535,12 @@ repository devcontainer and passed. The final replacement-role change was
 validated with Python compilation, focused Ruff, XML parsing,
 `git diff --check`, a fresh full tagged Odoo suite, a module-only update on the
 replacement candidate and the repeated manager/reviewer browser journey.
+The first FEC-role test run failed because its compromised-state guard tried
+to bypass the role gate with `sudo()`, which retains the original user identity
+in this API. The test now corrupts only its transient row directly inside the
+rollback transaction and proves the generate-time guard catches it. Fresh
+runs `odoo_m13_fec_roles_unit_20260723_9`, `_10` and final `_11` passed; only
+the final run covers the completed download and official-cursor fixes.
 
 ## Remaining P0/P1 decisions
 

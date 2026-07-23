@@ -80,6 +80,7 @@ Observed current stage artifacts under `artifacts/accounting-compat/private/` sh
 - hybrid historical import: `passed`, classified as `HYBRID_HISTORICAL_EXACT_NATIVE_CURRENT_IMPORT`
 - hybrid replacement validation: `partial`, classified as `HYBRID_REPLACEMENT_TARGET_EXPLAINED_NATIVE_DIFFERENCES`
 - hybrid replacement browser: `passed`, classified as `HYBRID_REPLACEMENT_MANAGER_REVIEWER_BROWSER_GOLDEN_JOURNEY`
+- FEC role browser: `passed`, classified as `FEC_MANAGER_REVIEWER_OPERATOR_BROWSER_GOLDEN_JOURNEY`
 - FEC validation artifact: `passed`, classified as `OFFICIAL_DGFIP_SOURCE_VALIDATION_PASSED`
 - readiness: `blocked`, classified as `TECHNICAL_REHEARSAL_PASSED_PROFESSIONAL_ACCEPTANCE_PENDING`
 
@@ -235,7 +236,12 @@ The add-on currently provides:
 
 This add-on is evidence and reconstruction infrastructure. It is not yet a full replacement for the Enterprise `account_reports` interactive reporting product.
 
-Current FEC access behavior: accounting review users can now open/create the standard French FEC wizard in forced test mode. They cannot turn that wizard into a final FEC generation path that may update lock dates unless they also have Odoo's full accounting feature group. This addresses the observed access error without granting system-administrator-style accounting powers.
+Current FEC access behavior: accounting review users and normal finance
+operators can open the canonical FEC wizard, generate the complete posted
+benchmark in forced test mode and retrieve the file from a dedicated Download
+tab. Only an Accounting Manager can clear test mode and use the official path
+that may update lock dates. This is enforced in the native and custom wizard
+server paths and their combined views.
 
 ### User documentation
 
@@ -288,7 +294,6 @@ Validated by artifacts or code inspection:
 Not yet professionally accepted as finished product behavior:
 
 - deliberate acceptance of draft/post-cutoff prepayment boundaries, write-offs and undo behavior
-- accountant access for official non-test FEC export
 - accountant acceptance of dynamic report formulas, French variants, drilldowns and export presentation
 - accountant validation of the source cash-basis VAT treatment
 - accountant review of FEC and statutory/tax outputs
@@ -419,13 +424,29 @@ Required work: continue polishing once the OCA report screens, business document
 
 ### FEC access error
 
-Status: fixed for accountant-review test exports through the custom USL export wizard; official non-test export remains manager-only.
+Status: fixed for Accounting Manager, accountant reviewer and finance operator;
+official non-test export remains manager-only.
 
-Evidence: the native `l10n_fr.fec.export.wizard` creation ACL remains limited to `account.group_account_user`. The custom FEC export now checks company access, blocks non-test official FEC generation for non-managers, and uses the custom wizard as the reviewed export boundary for accountant-review users.
+Evidence: base Odoo limits `l10n_fr.fec.export.wizard` creation to full
+accounting users. The add-on grants transient-only access through the
+read-only accounting group, forces reviewer/operator exports to complete
+posted test files, blocks their journal exclusions and official mode, and
+keeps both native and custom official paths manager-only. Fresh add-on tests
+cover all three roles.
 
-Impact: accountant-review users can generate review/test FEC files through the USL Accounting report export screen without gaining full accounting write access. They still cannot generate official non-test FEC files because that path may update fiscal lock dates.
+Impact: the reviewer and finance operator each generated and downloaded the
+`4,781`-row benchmark FEC with debit/credit `1,064,045.02`; their test-mode
+checkbox was locked. The manager generated the official path and downloaded
+the same ledger scope while the existing `2025-09-30` lock date remained
+unchanged.
 
-Remaining work: browser-smoke the FEC menu action with the intended accountant user and define whether any non-manager role should ever be allowed to generate official non-test FEC files.
+The first browser pass exposed a hidden download: FEC preview is forbidden but
+the Download tab was nested below preview state. Moving download to its own
+state fixed retrieval. The first manager official pass then exposed Odoo's
+lazy second-cursor behavior: the new cursor could not see the wrapper's
+uncommitted native transient. The wrapper now consumes the native stream on
+its request cursor; official/test semantics remain controlled by `test_file`.
+Professional FEC review remains open.
 
 ### Settings cash-basis error
 
@@ -476,7 +497,6 @@ Current outcome: the dynamic report screens, readable exports, declaration works
 - professional acceptance of report formulas, variants and presentation
 - reconciliation user experience
 - tax-return workflow UX
-- official non-test FEC access policy
 - broader accounting menu hierarchy and daily workflow naming
 - accountant validation of cash-basis VAT treatment
 - professional acceptance of the hybrid candidate's classified EUR `2.64` exchange profit-and-loss difference and explicit promotion of that disposable candidate
@@ -502,7 +522,7 @@ Current outcome: the dynamic report screens, readable exports, declaration works
 - [x] Integrate the proven Track B customer invoices, vendor bills, supplier refunds and source-derived expenses into a disposable hybrid replacement candidate; their checksum-verified source binaries and main selections pass, and the source period contains no customer credit-note case.
 - [x] Validate reports, manager/reviewer permissions and browser journeys on the hybrid candidate.
 - [ ] Obtain professional acceptance of the classified native differences and explicitly promote or reject the hybrid candidate.
-- [ ] Diagnose and fix the FEC permission path for accountant and finance operator roles.
+- [x] Diagnose and fix the FEC permission path for Accounting Manager, accountant reviewer and finance operator roles; all three generated and downloaded the benchmark in the replacement browser.
 - [x] Diagnose and fix the Settings cash-basis tax error without changing tax meaning.
 - [x] Complete menu organization around CEO/accountant workflows. The seven-area navigation now includes top-level Closing and Declarations destinations plus the standard closing and tax/fiscal submenus.
 

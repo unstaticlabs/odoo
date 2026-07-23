@@ -1677,7 +1677,7 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(included_move.amount_tax, 1.93)
         self.assertEqual(included_move.amount_total, 37.00)
 
-    def test_accountant_reviewer_can_prepare_test_fec_only(self):
+    def test_non_manager_fec_roles_are_limited_to_complete_test_files(self):
         reviewer = self.env["res.users"].with_context(no_reset_password=True).create({
             "name": "FEC Reviewer",
             "login": "fec.reviewer@example.invalid",
@@ -1686,24 +1686,104 @@ class TestRebuildAccountMigration(TransactionCase):
             "company_ids": [Command.set([self.company.id])],
             "group_ids": [Command.set([self.reviewer_group.id])],
         })
+        operator = self.env["res.users"].with_context(no_reset_password=True).create({
+            "name": "FEC Finance Operator",
+            "login": "fec.operator@example.invalid",
+            "email": "fec.operator@example.invalid",
+            "company_id": self.company.id,
+            "company_ids": [Command.set([self.company.id])],
+            "group_ids": [Command.set([
+                self.env.ref("account.group_account_user").id,
+            ])],
+        })
+        journal = self._journal()
 
-        defaults = self.env["l10n_fr.fec.export.wizard"].with_user(reviewer).default_get([
+        for user in (reviewer, operator):
+            Wizard = self.env["l10n_fr.fec.export.wizard"].with_user(user)
+            defaults = Wizard.default_get([
+                "test_file",
+                "export_type",
+            ])
+            wizard = Wizard.create({
+                "date_from": "2024-01-10",
+                "date_to": "2025-09-30",
+                "test_file": False,
+                "export_type": "nonofficial",
+                "excluded_journal_ids": [Command.set([journal.id])],
+            })
+
+            self.assertTrue(defaults["test_file"])
+            self.assertEqual(defaults["export_type"], "official")
+            self.assertTrue(wizard.test_file)
+            self.assertEqual(wizard.export_type, "official")
+            self.assertFalse(wizard.excluded_journal_ids)
+            self.assertFalse(wizard.rebuild_can_generate_official_fec)
+            with self.assertRaisesRegex(
+                UserError,
+                "Only Accounting Managers",
+            ):
+                wizard.write({"test_file": False})
+
+            self.env.cr.execute(
+                """
+                UPDATE l10n_fr_fec_export_wizard
+                   SET test_file = false
+                 WHERE id = %s
+                """,
+                [wizard.id],
+            )
+            wizard.invalidate_recordset(["test_file"])
+            with self.assertRaisesRegex(
+                UserError,
+                "complete posted-entries FEC in test mode",
+            ):
+                wizard.with_user(user).generate_fec()
+
+        fec_view = self.env.ref(
+            "l10n_fr_account.fec_export_wizard_view",
+        )._get_combined_arch()
+        for field_name in (
             "test_file",
             "export_type",
-        ])
-        wizard = self.env["l10n_fr.fec.export.wizard"].with_user(reviewer).create({
+        ):
+            self.assertEqual(
+                fec_view.xpath(f"//field[@name='{field_name}']")[0].get(
+                    "readonly",
+                ),
+                "not rebuild_can_generate_official_fec",
+            )
+        self.assertEqual(
+            fec_view.xpath("//field[@name='excluded_journal_ids']")[0].get(
+                "readonly",
+            ),
+            "not rebuild_can_generate_official_fec or not test_file",
+        )
+
+        manager = self.env["res.users"].with_context(
+            no_reset_password=True,
+        ).create({
+            "name": "FEC Accounting Manager",
+            "login": "fec.manager@example.invalid",
+            "email": "fec.manager@example.invalid",
+            "company_id": self.company.id,
+            "company_ids": [Command.set([self.company.id])],
+            "group_ids": [Command.set([
+                self.env.ref("account.group_account_manager").id,
+            ])],
+        })
+        manager_wizard = self.env[
+            "l10n_fr.fec.export.wizard"
+        ].with_user(manager).create({
             "date_from": "2024-01-10",
             "date_to": "2025-09-30",
             "test_file": False,
             "export_type": "nonofficial",
+            "excluded_journal_ids": [Command.set([journal.id])],
         })
-
-        self.assertTrue(defaults["test_file"])
-        self.assertEqual(defaults["export_type"], "official")
-        self.assertTrue(wizard.test_file)
-        self.assertEqual(wizard.export_type, "official")
-        with self.assertRaises(UserError):
-            wizard.with_user(reviewer).write({"test_file": False})
+        self.assertFalse(manager_wizard.test_file)
+        self.assertEqual(manager_wizard.export_type, "official")
+        self.assertFalse(manager_wizard.excluded_journal_ids)
+        self.assertTrue(manager_wizard.rebuild_can_generate_official_fec)
 
     def test_accountant_reviewer_can_read_native_assets_but_not_change_them(self):
         reviewer = self.env["res.users"].with_context(
@@ -3240,39 +3320,126 @@ class TestRebuildAccountMigration(TransactionCase):
             "company_ids": [Command.set([self.company.id])],
             "group_ids": [Command.set([self.reviewer_group.id])],
         })
-
-        standard_wizard = self.env["l10n_fr.fec.export.wizard"].with_user(reviewer).create({
-            "date_from": "2099-01-01",
-            "date_to": "2099-12-31",
-            "test_file": False,
-            "export_type": "nonofficial",
+        operator = self.env["res.users"].with_context(no_reset_password=True).create({
+            "name": "FEC Finance Operator",
+            "login": "fec.operator@example.invalid",
+            "email": "fec.operator@example.invalid",
+            "company_id": self.company.id,
+            "company_ids": [Command.set([self.company.id])],
+            "group_ids": [Command.set([
+                self.env.ref("account.group_account_user").id,
+            ])],
         })
-        self.assertTrue(standard_wizard.test_file)
-        self.assertEqual(standard_wizard.export_type, "official")
 
-        fec_wizard = self.env["rebuild.account.report.export.wizard"].with_user(reviewer).create({
+        for user in (reviewer, operator):
+            standard_wizard = self.env[
+                "l10n_fr.fec.export.wizard"
+            ].with_user(user).create({
+                "date_from": "2099-01-01",
+                "date_to": "2099-12-31",
+                "test_file": False,
+                "export_type": "nonofficial",
+            })
+            self.assertTrue(standard_wizard.test_file)
+            self.assertEqual(standard_wizard.export_type, "official")
+
+            fec_wizard = self.env[
+                "rebuild.account.report.export.wizard"
+            ].with_user(user).create({
+                "company_id": self.company.id,
+                "report_type": "fec",
+                "date_from": "2099-01-01",
+                "date_to": "2099-12-31",
+                "target_move": "posted",
+                "export_format": "txt",
+                "fec_test_mode": False,
+            })
+            action = fec_wizard.action_generate_export()
+
+            self.assertEqual(
+                action["res_model"],
+                "rebuild.account.report.export.wizard",
+            )
+            self.assertEqual(action["res_id"], fec_wizard.id)
+            self.assertTrue(fec_wizard.fec_test_mode)
+            self.assertFalse(fec_wizard.can_generate_official_fec)
+            self.assertTrue(fec_wizard.export_file)
+            self.assertTrue(fec_wizard.export_filename.endswith(".txt"))
+            metadata = json.loads(fec_wizard.export_metadata)
+            self.assertEqual(metadata["report_type"], "fec")
+            self.assertEqual(metadata["format"], "txt")
+            self.assertEqual(
+                metadata["validation"],
+                "not_official_dgfip_validation",
+            )
+
+            with self.assertRaisesRegex(
+                UserError,
+                "Only an Accounting Manager",
+            ):
+                fec_wizard.write({"fec_test_mode": False})
+
+        report_view = self.env.ref(
+            "rebuild_account_migration."
+            "view_rebuild_account_report_export_wizard_form",
+        )._get_combined_arch()
+        self.assertEqual(
+            report_view.xpath("//field[@name='fec_test_mode']")[0].get(
+                "readonly",
+            ),
+            "not can_generate_official_fec",
+        )
+        self.assertEqual(
+            len(
+                report_view.xpath(
+                    "//notebook[@invisible='not export_file']"
+                    "/page[@string='Download']",
+                ),
+            ),
+            1,
+        )
+        self.assertFalse(
+            report_view.xpath(
+                "//notebook[@invisible='not preview_generated_at']"
+                "/page[@string='Download']",
+            ),
+        )
+
+        manager = self.env["res.users"].with_context(
+            no_reset_password=True,
+        ).create({
+            "name": "FEC Export Manager",
+            "login": "fec.export.manager@example.invalid",
+            "email": "fec.export.manager@example.invalid",
+            "company_id": self.company.id,
+            "company_ids": [Command.set([self.company.id])],
+            "group_ids": [Command.set([
+                self.env.ref("account.group_account_manager").id,
+            ])],
+        })
+        manager_wizard = self.env[
+            "rebuild.account.report.export.wizard"
+        ].with_user(manager).create({
             "company_id": self.company.id,
             "report_type": "fec",
             "date_from": "2099-01-01",
             "date_to": "2099-12-31",
             "target_move": "posted",
             "export_format": "txt",
-            "fec_test_mode": True,
+            "fec_test_mode": False,
         })
-        action = fec_wizard.action_generate_export()
-
-        self.assertEqual(action["res_model"], "rebuild.account.report.export.wizard")
-        self.assertEqual(action["res_id"], fec_wizard.id)
-        self.assertTrue(fec_wizard.export_file)
-        self.assertTrue(fec_wizard.export_filename.endswith(".txt"))
-        metadata = json.loads(fec_wizard.export_metadata)
-        self.assertEqual(metadata["report_type"], "fec")
-        self.assertEqual(metadata["format"], "txt")
-        self.assertEqual(metadata["validation"], "not_official_dgfip_validation")
-
-        fec_wizard.write({"fec_test_mode": False})
-        with self.assertRaisesRegex(UserError, "Only an Accounting Manager"):
-            fec_wizard.action_generate_export()
+        manager_action = manager_wizard.action_generate_export()
+        self.assertEqual(
+            manager_action["res_model"],
+            "rebuild.account.report.export.wizard",
+        )
+        self.assertFalse(manager_wizard.fec_test_mode)
+        self.assertTrue(manager_wizard.can_generate_official_fec)
+        self.assertTrue(manager_wizard.export_file)
+        self.assertEqual(
+            self.company.fiscalyear_lock_date,
+            fields.Date.from_string("2099-12-31"),
+        )
 
     def test_reconciliation_review_action_uses_only_source_traced_endpoints(self):
         expense_account = self._account("T600003", "Generated Endpoint Expense", "expense")
