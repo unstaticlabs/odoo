@@ -274,6 +274,7 @@ class RebuildAccountImportRun(models.Model):
             "Track B source accounting line selected as an OCA bank-matching "
             "candidate for native expense settlement."
         ),
+        write_input_trace=True,
     ):
         Move = self.env["account.move"].sudo()
         target_move_models = target_move_models or [
@@ -351,7 +352,7 @@ class RebuildAccountImportRun(models.Model):
         edge_source_line_ids = {row["source_line_id"] for row in edge_rows}
         for source_line_id in sorted(edge_source_line_ids):
             target_line = source_to_target.get(source_line_id)
-            if not target_line:
+            if not target_line or not write_input_trace:
                 continue
             target_line.write({
                 "rebuild_import_note": input_trace_note,

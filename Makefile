@@ -5,7 +5,7 @@ ACCOUNTING_TEST_LOG_LEVEL ?= warn
 USER_DOCS_HOST ?= 127.0.0.1
 USER_DOCS_PORT ?= 8079
 
-.PHONY: oca-addons-sync accounting-compat accounting-source-package-validate accounting-source-validate accounting-source-restore accounting-source-inspect accounting-extract accounting-source-validate-ledger accounting-failure-tests accounting-target-reset accounting-target-import accounting-target-validate accounting-target-idempotence accounting-target-failure-tests accounting-document-regeneration accounting-track-b-reset accounting-track-b-expenses accounting-track-b-documents accounting-track-b-expense-settlement accounting-track-b-document-settlement accounting-target-reconciliation-probe accounting-reports accounting-fec accounting-fec-preflight accounting-fec-validate accounting-compare accounting-readiness accounting-evidence accounting-addon-tests user-docs-serve user-docs-build
+.PHONY: oca-addons-sync accounting-compat accounting-source-package-validate accounting-source-validate accounting-source-restore accounting-source-inspect accounting-extract accounting-source-validate-ledger accounting-failure-tests accounting-target-reset accounting-target-import accounting-target-validate accounting-target-idempotence accounting-target-failure-tests accounting-document-regeneration accounting-track-b-reset accounting-track-b-expenses accounting-track-b-documents accounting-track-b-expense-settlement accounting-track-b-document-settlement accounting-track-b-general-reconciliation accounting-target-reconciliation-probe accounting-reports accounting-fec accounting-fec-preflight accounting-fec-validate accounting-compare accounting-readiness accounting-evidence accounting-addon-tests user-docs-serve user-docs-build
 
 oca-addons-sync:
 	scripts/sync-oca-addons
@@ -66,6 +66,9 @@ accounting-track-b-expense-settlement:
 
 accounting-track-b-document-settlement:
 	$(ACCOUNTING_COMPAT) track-b-document-settlement
+
+accounting-track-b-general-reconciliation:
+	$(ACCOUNTING_COMPAT) track-b-general-reconciliation
 
 accounting-target-reconciliation-probe:
 	$(ACCOUNTING_COMPAT) target-reconciliation-probe

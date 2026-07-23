@@ -314,6 +314,28 @@ class TestRebuildAccountMigration(TransactionCase):
         with self.assertRaisesRegex(ValueError, "only part"):
             import_run._native_expense_settlement_auto_matched([[1], []])
 
+    def test_native_general_reconciliation_requires_one_new_partial(self):
+        import_run = self.env["rebuild.account.import.run"]
+        created = [object()]
+
+        self.assertIs(
+            import_run._native_general_reconciliation_single_created_partial(
+                created,
+                990042,
+            ),
+            created,
+        )
+        with self.assertRaisesRegex(ValueError, "source 990042, got 0"):
+            import_run._native_general_reconciliation_single_created_partial(
+                [],
+                990042,
+            )
+        with self.assertRaisesRegex(ValueError, "source 990042, got 2"):
+            import_run._native_general_reconciliation_single_created_partial(
+                [object(), object()],
+                990042,
+            )
+
     def test_reconcile_shortcut_uses_compatible_kanban_workbench(self):
         action = self.env.ref("rebuild_account_migration.action_rebuild_account_reconcile_bank_transactions")
         reconcile_view = self.env.ref("account_reconcile_oca.bank_statement_line_reconcile_view")
