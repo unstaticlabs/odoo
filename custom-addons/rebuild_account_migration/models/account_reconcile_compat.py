@@ -30,7 +30,7 @@ class AccountMoveLine(models.Model):
                     statement_line.company_id,
                     statement_line.date,
                 )
-        return abs(abs(candidate_amount) - abs(target_amount))
+        return abs(candidate_amount - target_amount)
 
     @api.model
     def _reconcile_closest_date_key(self, statement_line, move_line):

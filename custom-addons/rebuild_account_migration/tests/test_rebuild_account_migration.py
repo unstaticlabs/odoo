@@ -694,7 +694,10 @@ class TestRebuildAccountMigration(TransactionCase):
             (99.0, fields.Date.subtract(today, days=10)),
             (99.0, fields.Date.subtract(today, days=2)),
             (130.0, today),
+            (-100.0, today),
         ):
+            debit = max(amount, 0.0)
+            credit = max(-amount, 0.0)
             move = self.env["account.move"].create({
                 "journal_id": journal.id,
                 "date": date,
@@ -703,12 +706,14 @@ class TestRebuildAccountMigration(TransactionCase):
                         "name": f"Open item {amount}",
                         "account_id": receivable.id,
                         "partner_id": partner.id,
-                        "debit": amount,
+                        "debit": debit,
+                        "credit": credit,
                     }),
                     Command.create({
                         "name": f"Open item {amount}",
                         "account_id": revenue.id,
-                        "credit": amount,
+                        "debit": credit,
+                        "credit": debit,
                     }),
                 ],
             })
@@ -739,7 +744,7 @@ class TestRebuildAccountMigration(TransactionCase):
             record["amount_residual"]
             for record in result["records"]
         ]
-        self.assertEqual(residuals, [99.0, 99.0, 130.0, 70.0])
+        self.assertEqual(residuals, [99.0, 99.0, 130.0, 70.0, -100.0])
         self.assertEqual(
             [record["date"] for record in result["records"]],
             [
@@ -747,9 +752,10 @@ class TestRebuildAccountMigration(TransactionCase):
                 fields.Date.subtract(today, days=10),
                 today,
                 fields.Date.subtract(today, days=1),
+                today,
             ],
         )
-        self.assertEqual(result["length"], 4)
+        self.assertEqual(result["length"], 5)
 
         bank_view = self.env.ref(
             "account_reconcile_oca.bank_statement_line_form_reconcile_view",
