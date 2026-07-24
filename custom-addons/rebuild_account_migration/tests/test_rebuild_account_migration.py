@@ -672,6 +672,95 @@ class TestRebuildAccountMigration(TransactionCase):
         for button in mutation_buttons:
             self.assertEqual(button.get("groups"), "account.group_account_user")
 
+    def test_bank_matching_candidates_default_to_closest_amount_ranking(self):
+        receivable = self._account(
+            "T411230",
+            "Closest amount receivable",
+            "asset_receivable",
+        )
+        revenue = self._account(
+            "T706230",
+            "Closest amount revenue",
+            "income",
+        )
+        partner = self.env["res.partner"].create({
+            "name": "Closest amount customer",
+        })
+        journal = self._journal()
+        candidate_lines = self.env["account.move.line"]
+        for amount in (70.0, 99.0, 130.0):
+            move = self.env["account.move"].create({
+                "journal_id": journal.id,
+                "date": fields.Date.today(),
+                "line_ids": [
+                    Command.create({
+                        "name": f"Open item {amount}",
+                        "account_id": receivable.id,
+                        "partner_id": partner.id,
+                        "debit": amount,
+                    }),
+                    Command.create({
+                        "name": f"Open item {amount}",
+                        "account_id": revenue.id,
+                        "credit": amount,
+                    }),
+                ],
+            })
+            move.action_post()
+            candidate_lines |= move.line_ids.filtered(
+                lambda line: line.account_id == receivable,
+            )
+
+        bank_line = self.env["account.bank.statement.line"].with_context(
+            _test_account_reconcile_oca=True,
+        ).create({
+            "journal_id": self._journal("bank").id,
+            "date": fields.Date.today(),
+            "partner_id": partner.id,
+            "payment_ref": "Closest amount ranking",
+            "amount": 100.0,
+        })
+        result = candidate_lines.with_context(
+            reconcile_closest_amount=True,
+            reconcile_statement_line_id=bank_line.id,
+        ).web_search_read(
+            [("id", "in", candidate_lines.ids)],
+            {"amount_residual": {}},
+        )
+
+        residuals = [
+            record["amount_residual"]
+            for record in result["records"]
+        ]
+        self.assertEqual(residuals, [99.0, 130.0, 70.0])
+        self.assertEqual(result["length"], 3)
+
+        bank_view = self.env.ref(
+            "account_reconcile_oca.bank_statement_line_form_reconcile_view",
+        )._get_combined_arch()
+        candidate_field = bank_view.xpath(
+            "//page[@name='reconcile_line']"
+            "/field[@name='add_account_move_line_id']",
+        )
+        self.assertEqual(len(candidate_field), 1)
+        self.assertIn(
+            "'search_default_reconcile_closest_amount': 1",
+            candidate_field[0].get("context"),
+        )
+        self.assertIn(
+            "'reconcile_statement_line_id': id",
+            candidate_field[0].get("context"),
+        )
+
+        search_view = self.env.ref(
+            "account_reconcile_oca.account_move_line_search_reconcile_view",
+        )._get_combined_arch()
+        closest_filter = search_view.xpath(
+            "//filter[@name='reconcile_closest_amount']",
+        )
+        self.assertEqual(len(closest_filter), 1)
+        self.assertEqual(closest_filter[0].get("string"), "Closest amount")
+
     def test_native_expenses_are_available_from_accounting_payables(self):
         expenses_menu = self.env.ref("hr_expense.menu_hr_expense_account_employee_expenses")
 

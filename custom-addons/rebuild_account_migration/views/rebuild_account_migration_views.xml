@@ -231,6 +231,31 @@
             <xpath expr="//button[@name='action_checked']" position="attributes">
                 <attribute name="groups">account.group_account_user</attribute>
             </xpath>
+            <xpath expr="//page[@name='reconcile_line']/field[@name='add_account_move_line_id']" position="attributes">
+                <attribute name="context">{'search_default_partner_id': partner_id, 'search_default_reconcile_closest_amount': 1, 'reconcile_statement_line_id': id, 'list_view_ref': 'account_reconcile_oca.account_move_line_tree_reconcile_view', 'search_view_ref': 'account_reconcile_oca.account_move_line_search_reconcile_view'}</attribute>
+            </xpath>
+            <xpath expr="//page[@name='manual']//label[@for='manual_move_id']" position="attributes">
+                <attribute name="invisible">manual_move_type not in ['in_invoice', 'in_refund', 'out_invoice', 'out_refund'] or manual_original_amount == 0 or is_reconciled</attribute>
+            </xpath>
+            <xpath expr="//page[@name='manual']//div[button[@name='button_manual_reference_full_paid']]" position="attributes">
+                <attribute name="invisible">manual_move_type not in ['in_invoice', 'in_refund', 'out_invoice', 'out_refund'] or manual_original_amount == 0 or is_reconciled</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_rebuild_account_move_line_search_reconcile_closest_amount" model="ir.ui.view">
+        <field name="name">account.move.line.search.reconcile.closest.amount</field>
+        <field name="model">account.move.line</field>
+        <field name="inherit_id" ref="account_reconcile_oca.account_move_line_search_reconcile_view"/>
+        <field name="arch" type="xml">
+            <search position="inside">
+                <filter
+                    name="reconcile_closest_amount"
+                    string="Closest amount"
+                    domain="[]"
+                    context="{'reconcile_closest_amount': True}"
+                    help="Show open items with the closest amount first."
+                />
+            </search>
         </field>
     </record>
     <record id="account_financial_report.menu_oca_reports" model="ir.ui.menu">
