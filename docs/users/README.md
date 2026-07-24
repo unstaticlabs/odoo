@@ -57,7 +57,7 @@ The implemented user-facing accounting features are centered on reconstructed ac
 
 The system deliberately distinguishes technical evidence from professional acceptance. A report can have technical evidence and still require accountant approval before Milestone 13 can close.
 
-Expense reconstruction status: a separate, disposable Track B proof reconstructs all `325` source expenses from `2025-10-01` through `2026-06-30` as source-traced native `hr.expense` records and validates their approval/refusal states and accounting effects without mismatches. This includes `97` company payments and `79` grouped receipts for `95` employee-paid expenses. Its settlement stages replay `106` expense-related bank transactions and `181` source allocations plus all `233` bank transactions directly linked to current commercial documents and their `339` source reconciliation edges. A third disposable hybrid candidate now combines those native current workflows with the exact historical ledger. It is not the promoted replacement: its classified EUR `2.64` current-period exchange profit-and-loss difference still needs professional acceptance, and its report, role and browser journeys still need validation. Continue to use the normal imported target as the historical audit baseline until that explicit promotion decision.
+Expense reconstruction status: a separate, disposable Track B proof reconstructs all `325` source expenses from `2025-10-01` through `2026-06-30` as source-traced native `hr.expense` records and validates their approval/refusal states and accounting effects without mismatches. This includes `97` company payments and `79` grouped receipts for `95` employee-paid expenses. Its settlement stages replay `106` expense-related bank transactions and `181` source allocations plus all `233` bank transactions directly linked to current commercial documents and their `339` source reconciliation edges. A third disposable hybrid candidate now combines those native current workflows with the exact historical ledger. Automated report, role and browser journeys pass, but it is not the promoted replacement: its classified EUR `2.64` current-period exchange profit-and-loss difference and the candidate itself still need professional acceptance. Continue to use the normal imported target as the historical audit baseline until that explicit promotion decision.
 
 ## Documentation Structure
 
@@ -66,6 +66,7 @@ These docs use the Diataxis framework: tutorials for learning, how-to guides for
 ### Start Here
 
 - [Tutorial: First Accounting Review](tutorials/first-accounting-review.md)
+- [Run and Test the Accounting Delivery](tutorials/test-accounting-delivery.md)
 
 Use this if this is your first time opening the rebuilt accounting evidence in Odoo.
 
