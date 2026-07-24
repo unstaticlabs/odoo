@@ -31,10 +31,10 @@ bf16ce18965e4ce1b23d7b79930b6e43ca7f510339ac6d2db280231f91d1449f
 The main validation target database used by the harness is:
 
 ```text
-odoo_rebuild_accounting_test
+odoo_validation_exact
 ```
 
-The older `odoo19` database must be treated as development or synthetic state unless it has been explicitly rebuilt from the import pipeline.
+The older `odoo_dev` database must be treated as development or synthetic state unless it has been explicitly rebuilt from the import pipeline.
 
 The clarified product target now explicitly includes:
 
@@ -53,9 +53,9 @@ Implemented:
 
 - `make accounting-source-restore`
 - `make accounting-extract`
-- `make accounting-target-reset`
-- `make accounting-target-import`
-- `make accounting-target-validate`
+- `make accounting-validation-exact-reset`
+- `make accounting-validation-exact-import`
+- `make accounting-validation-exact-validate`
 - `make accounting-reports`
 - additional comparison, idempotence, failure-test, document-regeneration and FEC-validation stages
 
@@ -70,19 +70,19 @@ Observed current stage artifacts under `artifacts/accounting-compat/private/` sh
 - idempotence guardrail: `passed`
 - target failure guardrails: `passed`
 - document-regeneration cases: `passed`
-- Track B native expenses: `passed`, classified as `TRACK_B_NATIVE_EXPENSE_REPLAY`
-- Track B native business documents: `passed`, classified as `TRACK_B_NATIVE_BUSINESS_DOCUMENT_REPLAY`
-- Track B native document evidence browser: `passed`, classified as `TRACK_B_NATIVE_DOCUMENT_EVIDENCE_BROWSER_GOLDEN_JOURNEY`
+- Track B native expenses: `passed`, classified as `NATIVE_VALIDATION_NATIVE_EXPENSE_REPLAY`
+- Track B native business documents: `passed`, classified as `NATIVE_VALIDATION_NATIVE_BUSINESS_DOCUMENT_REPLAY`
+- Track B native document evidence browser: `passed`, classified as `NATIVE_VALIDATION_NATIVE_DOCUMENT_EVIDENCE_BROWSER_GOLDEN_JOURNEY`
 - Accounting Hygiene browser: `passed`, classified as `ACCOUNTING_HYGIENE_BROWSER_GOLDEN_JOURNEY`
-- Track B native assets: `passed`, classified as `TRACK_B_NATIVE_ASSET_DEPRECIATION_REPLAY`
-- Track B native deferrals: `passed`, classified as `TRACK_B_NATIVE_DEFERRAL_AND_OPENING_REPLAY`
-- Track B native expense settlement: `passed`, classified as `TRACK_B_NATIVE_EXPENSE_SETTLEMENT`
-- Track B native document bank settlement: `passed`, classified as `TRACK_B_NATIVE_DOCUMENT_BANK_SETTLEMENT`
-- Track B native multi-plan analytics: `passed`, classified as `TRACK_B_NATIVE_MULTI_PLAN_ANALYTIC_REPLAY`
-- hybrid replacement reset: `passed`, classified as `TRACK_B_NATIVE_STATE_CLONED_FOR_REPLACEMENT`
+- Track B native assets: `passed`, classified as `NATIVE_VALIDATION_NATIVE_ASSET_DEPRECIATION_REPLAY`
+- Track B native deferrals: `passed`, classified as `NATIVE_VALIDATION_NATIVE_DEFERRAL_AND_OPENING_REPLAY`
+- Track B native expense settlement: `passed`, classified as `NATIVE_VALIDATION_NATIVE_EXPENSE_SETTLEMENT`
+- Track B native document bank settlement: `passed`, classified as `NATIVE_VALIDATION_NATIVE_DOCUMENT_BANK_SETTLEMENT`
+- Track B native multi-plan analytics: `passed`, classified as `NATIVE_VALIDATION_NATIVE_MULTI_PLAN_ANALYTIC_REPLAY`
+- hybrid replacement reset: `passed`, classified as `NATIVE_VALIDATION_STATE_CLONED_FOR_DEV`
 - hybrid historical import: `passed`, classified as `HYBRID_HISTORICAL_EXACT_NATIVE_CURRENT_IMPORT`
-- hybrid replacement validation: `partial`, classified as `HYBRID_REPLACEMENT_TARGET_EXPLAINED_NATIVE_DIFFERENCES`
-- hybrid replacement browser: `passed`, classified as `HYBRID_REPLACEMENT_MANAGER_REVIEWER_BROWSER_GOLDEN_JOURNEY`
+- hybrid replacement validation: `partial`, classified as `DEV_QA_TARGET_EXPLAINED_NATIVE_DIFFERENCES`
+- hybrid replacement browser: `passed`, classified as `DEV_QA_MANAGER_REVIEWER_BROWSER_GOLDEN_JOURNEY`
 - reconciliation review browser: `passed`, classified as `RECONCILIATION_BOUNDARY_MANAGER_REVIEWER_BROWSER_GOLDEN_JOURNEY`
 - FEC role browser: `passed`, classified as `FEC_MANAGER_REVIEWER_OPERATOR_BROWSER_GOLDEN_JOURNEY`
 - FEC validation artifact: `passed`, classified as `OFFICIAL_DGFIP_SOURCE_VALIDATION_PASSED`
@@ -111,7 +111,7 @@ Implemented after the product decision memo:
 - Docker Compose now mounts both `oca-src/` and `oca-addons/` into the normal Odoo and init containers so symlinked OCA modules resolve at runtime.
 - target reset/import harness containers force the OCA add-ons path so old `.env` files do not hide installed OCA modules.
 
-The following OCA modules installed successfully on the disposable imported target database `odoo_rebuild_accounting_test`:
+The following OCA modules installed successfully on the disposable imported target database `odoo_validation_exact`:
 
 - `date_range` `19.0.1.0.0`
 - `report_xlsx` `19.0.1.0.2`
@@ -305,14 +305,14 @@ Validated by artifacts or code inspection:
 
 - The source restore uses a dedicated `accounting-source-db` service and is designed not to recreate the target `db` service.
 - The source database is restored as `odoo_online_source_saas_19_2`.
-- The target reconstruction database is reset and initialized as `odoo_rebuild_accounting_test`.
+- The target reconstruction database is reset and initialized as `odoo_validation_exact`.
 - The import pipeline creates source-traced target accounting records.
 - Posted imported moves balance in the validated ledger slice.
 - Source and target control comparisons pass for the validated posted ledger slice.
 - Source currency-rate reconstruction now passes exact broad-snapshot parity: all `1,877` native EUR, USD and GBP rates from `2024-01-01` through `2026-07-20` match by source ID, company, date, technical rate, ECB provider and retained source retrieval timestamp. The importer is idempotent and uses Odoo's native rate semantics rather than inventing or inverting rates. Browser smoke testing verified the USD rate history and visible `Source Provider = ecb` provenance in the native currency form, including the `2026-06-30` rate of `1.1394` USD per EUR.
 - Future reference-rate automation now passes the live provider and browser gates. The official ECB feed supplied reference date `2026-07-22`; the target stored native GBP `0.8534` and USD `1.1408` per EUR rows with provider and retrieval timestamps. A second retrieval created `0` rows and updated the same `2`, the historical source-traced count stayed `1,877`, the daily cron is active, the manager workspace opened successfully, and the reviewer persona was denied configuration access.
-- Track B now has a separate disposable `odoo_rebuild_accounting_track_b` database and clean native expense, business-document, settlement, General Reconciliation, bank, asset, deferral and multi-plan analytic replay for `2025-10-01` through `2026-06-30`. All `325` source expenses pass native submission, approval/refusal, receipt and company-payment workflows with `0` blocked/mismatched records; the replay creates `97` company payments and `79` grouped receipts for `95` employee-paid expenses, while preserving `125` approved, `3` draft and `5` refused records. All `284` source documents (`36` customer invoices, `161` vendor bills, `3` supplier refunds and `84` purchase receipts) are then created or reused from commercial fields and posted through normal Odoo APIs; `284/284` match source header amounts, due dates and per-account debit/credit/balance/amount-currency effects, with `0` blocked cases and `0` mismatches across `170` EUR and `114` USD documents. Expense settlement creates `106` native bank transactions and replays `181` source allocations through OCA against `176` expense settlement lines; all `97` company payments and `95` employee-paid expenses finish paid. Expense and document settlement preserve `19` and `48` exact outside-only counterpart lines respectively. Document settlement covers all `233` directly linked bank transactions and `339` source document/bank edges. General Reconciliation covers all `111` non-bank document partials and `114` document endpoints by posting `21` manual entries with `72` lines, creating `71` input partials and tracing `40` native exchange partials. Direct categorization adds `1,415` transactions: `1,229` exact OCA categorizations and the source's `186` intentionally open lines. The external stage completes the final `95` transactions with `125` exact counterpart lines, `17` manual payroll/tax/clearing moves, `75` native input partials and `12` native exchange partials. Native bank coverage is now `1,841/1,841`. OCA asset replay creates `3` assets and `91` depreciation lines, with `28` posted and `63` future. The native deferral workflow represents `5` schedules and `82` lines, with `34` posted, `48` future and one opening-boundary reversal. The final analytic stage represents `29` post-posting corrections and reconciles source/target allocations and actual analytic lines across `13` accounts, with `324` direct traces, no mismatch and only a currency-precision theoretical `+0.01/-0.01` pair. The remaining `48` source relationships are deliberate draft/post-cutoff boundaries (`37` draft documents, `2` draft entries and `9` post-cutoff documents); no draft document is posted to manufacture parity. Final current-document payment states exactly match source, all stage reruns create nothing, and no finalized source journal line is passed into document or expense creation.
-- A third disposable database, `odoo_rebuild_accounting_replacement`, now combines the completed Track B state with exact benchmark history. Historical parity is exact at `2,046` moves, `4,809` lines and debit/credit `1,064,045.02`; exactly four validated native move aliases prevent duplicate representations. The combined candidate has `4,541` posted moves and `10,727` posted lines, with no unbalanced move or duplicate source identity. Every current-period journal and account-balance difference is classified as native cash-basis timing/aggregation, native exchange timing/aggregation or OCA bank-allocation segmentation. The `12` account differences net to zero, while the EUR `2.64` profit-and-loss difference still requires professional acceptance. Manager/reviewer browser journeys now pass on the combined candidate: both opened Accounting Home, the `105`-row native Trial Balance, `245` vendor documents and `325` expenses; the reviewer had no Configuration, settings or operational mutation controls. The employee link remains on standard `hr.employee.public`, while migration-only employee trace fields are restricted to HR users. The candidate is not promoted because professional and named-user acceptance remain open.
+- Track B now has a separate disposable `odoo_validation_native` database and clean native expense, business-document, settlement, General Reconciliation, bank, asset, deferral and multi-plan analytic replay for `2025-10-01` through `2026-06-30`. All `325` source expenses pass native submission, approval/refusal, receipt and company-payment workflows with `0` blocked/mismatched records; the replay creates `97` company payments and `79` grouped receipts for `95` employee-paid expenses, while preserving `125` approved, `3` draft and `5` refused records. All `284` source documents (`36` customer invoices, `161` vendor bills, `3` supplier refunds and `84` purchase receipts) are then created or reused from commercial fields and posted through normal Odoo APIs; `284/284` match source header amounts, due dates and per-account debit/credit/balance/amount-currency effects, with `0` blocked cases and `0` mismatches across `170` EUR and `114` USD documents. Expense settlement creates `106` native bank transactions and replays `181` source allocations through OCA against `176` expense settlement lines; all `97` company payments and `95` employee-paid expenses finish paid. Expense and document settlement preserve `19` and `48` exact outside-only counterpart lines respectively. Document settlement covers all `233` directly linked bank transactions and `339` source document/bank edges. General Reconciliation covers all `111` non-bank document partials and `114` document endpoints by posting `21` manual entries with `72` lines, creating `71` input partials and tracing `40` native exchange partials. Direct categorization adds `1,415` transactions: `1,229` exact OCA categorizations and the source's `186` intentionally open lines. The external stage completes the final `95` transactions with `125` exact counterpart lines, `17` manual payroll/tax/clearing moves, `75` native input partials and `12` native exchange partials. Native bank coverage is now `1,841/1,841`. OCA asset replay creates `3` assets and `91` depreciation lines, with `28` posted and `63` future. The native deferral workflow represents `5` schedules and `82` lines, with `34` posted, `48` future and one opening-boundary reversal. The final analytic stage represents `29` post-posting corrections and reconciles source/target allocations and actual analytic lines across `13` accounts, with `324` direct traces, no mismatch and only a currency-precision theoretical `+0.01/-0.01` pair. The remaining `48` source relationships are deliberate draft/post-cutoff boundaries (`37` draft documents, `2` draft entries and `9` post-cutoff documents); no draft document is posted to manufacture parity. Final current-document payment states exactly match source, all stage reruns create nothing, and no finalized source journal line is passed into document or expense creation.
+- A third disposable database, `odoo_dev`, now combines the completed Track B state with exact benchmark history. Historical parity is exact at `2,046` moves, `4,809` lines and debit/credit `1,064,045.02`; exactly four validated native move aliases prevent duplicate representations. The combined candidate has `4,541` posted moves and `10,727` posted lines, with no unbalanced move or duplicate source identity. Every current-period journal and account-balance difference is classified as native cash-basis timing/aggregation, native exchange timing/aggregation or OCA bank-allocation segmentation. The `12` account differences net to zero, while the EUR `2.64` profit-and-loss difference still requires professional acceptance. Manager/reviewer browser journeys now pass on the combined candidate: both opened Accounting Home, the `105`-row native Trial Balance, `245` vendor documents and `325` expenses; the reviewer had no Configuration, settings or operational mutation controls. The employee link remains on standard `hr.employee.public`, while migration-only employee trace fields are restricted to HR users. The candidate is not promoted because professional and named-user acceptance remain open.
 - Historical move identity is now a blocking comparison across all `2,046` benchmark moves, including entry reference, date, journal, sequence prefix and sequence number. The four reused aliases preserve their exact `OD` references through Odoo's ORM instead of being silently renumbered or duplicated. Source and replacement profiles both have no blank or duplicate references, no duplicate sequence number, `2` sequence gaps and `3` date-order decreases. The five exceptions are preserved source anomalies and appear as an investigating P2 accountant-owned discrepancy; technical parity passes, but their business explanation and professional acceptance remain open.
 - Reconciliation records are imported and compared as data.
 - Attachment metadata and selected binaries are imported and checked.
@@ -388,7 +388,7 @@ The USL workbench now reproduces the required normal-user behavior for filters, 
 
 ### Manual navigation to `/odoo/accounting`
 
-Status: implemented and browser-smoke-tested on `odoo_rebuild_accounting_test`.
+Status: implemented and browser-smoke-tested on `odoo_validation_exact`.
 
 Evidence: the upstream Community menu root is named `Invoicing` in
 `addons/account/views/account_menuitem.xml`, while the journal dashboard action
@@ -421,7 +421,7 @@ a professional/product gate, not a missing route.
 
 Status: technically implemented; boundary-policy acceptance remains open.
 
-Evidence: imported bank statement lines and reconciliation records exist in the target import status, and custom review views exist for reconciliation evidence. Browser smoke testing on `odoo_rebuild_accounting_test` verified that `Accounting > Transactions > Bank Matching` opens the OCA reconciliation kanban workbench with unreconciled imported bank statement lines such as Shine, Revolut and Wise transactions. The Banque Shine dashboard card opened `63` unreconciled items against a `90,178.28 EUR` global balance. Selecting a line opened the split matching workbench with the bank line, suspense line, candidate journal items, manual operation, chatter, validate/reset controls and the `942.00 EUR` DGFiP refund candidate.
+Evidence: imported bank statement lines and reconciliation records exist in the target import status, and custom review views exist for reconciliation evidence. Browser smoke testing on `odoo_validation_exact` verified that `Accounting > Transactions > Bank Matching` opens the OCA reconciliation kanban workbench with unreconciled imported bank statement lines such as Shine, Revolut and Wise transactions. The Banque Shine dashboard card opened `63` unreconciled items against a `90,178.28 EUR` global balance. Selecting a line opened the split matching workbench with the bank line, suspense line, candidate journal items, manual operation, chatter, validate/reset controls and the `942.00 EUR` DGFiP refund candidate.
 
 `Accounting > Closing > General Reconciliation` now opens the separate OCA account/partner reconciliation workbench. The browser showed eight account/partner reconciliation groups and candidate journal items for suspense, VAT credit, supplier, social, shareholder-current-account and deferred-expense accounts.
 

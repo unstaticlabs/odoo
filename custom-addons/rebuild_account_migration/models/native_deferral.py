@@ -1220,7 +1220,7 @@ class RebuildAccountImportRun(models.Model):
             )
             stats = {
                 "classification": (
-                    "TRACK_B_NATIVE_DEFERRAL_AND_OPENING_REPLAY"
+                    "NATIVE_VALIDATION_NATIVE_DEFERRAL_AND_OPENING_REPLAY"
                 ),
                 "status": status,
                 "date_from": options["date_from"],

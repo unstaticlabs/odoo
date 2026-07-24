@@ -27,9 +27,9 @@ if TYPE_CHECKING:
 
 TOOL_VERSION = "0.1.0"
 SOURCE_DB = "odoo_online_source_saas_19_2"
-TARGET_DB = "odoo_rebuild_accounting_test"
-TRACK_B_DB = "odoo_rebuild_accounting_track_b"
-REPLACEMENT_DB = "odoo_rebuild_accounting_replacement"
+EXACT_VALIDATION_DB = "odoo_validation_exact"
+NATIVE_VALIDATION_DB = "odoo_validation_native"
+DEV_QA_DB = "odoo_dev"
 READONLY_ROLE = "accounting_source_ro"
 DEFAULT_SOURCE_DIR = "usl-online-dump"
 DEFAULT_POSTGRES_IMAGE = "pgvector/pgvector:pg16-bookworm"
@@ -71,7 +71,7 @@ USL_BENCHMARK_END = "2025-09-30"
 USL_CURRENT_START = "2025-10-01"
 USL_BENCHMARK_PERIOD_KEY = "USL_BENCHMARK_2024_01_10_TO_2025_09_30"
 USL_CURRENT_PERIOD_KEY = "CURRENT_FROM_2025_10_01"
-REPLACEMENT_SOURCE_TRACE_ALIASES = {
+DEV_SOURCE_TRACE_ALIASES = {
     "account.move": [
         "account.move.asset_native_replay",
         "account.move.native_engine_replay",
@@ -761,7 +761,7 @@ def restore_source(args: argparse.Namespace) -> dict[str, Any]:
         ],
         "neutralization": {
             "source_database_name": SOURCE_DB,
-            "target_database_name": TARGET_DB,
+            "target_database_name": EXACT_VALIDATION_DB,
             "target_database_service_recreated": False,
             "odoo_server_started_against_source": False,
             "business_rows_modified": False,
@@ -1418,7 +1418,7 @@ def final_capability_matrix_controls(
             remaining_gap="Accountant/product policy decision: retain review-only treatment or authorize the separate controlled application workflow.",
             acceptance_status="accountant_product_decision_pending",
             artifact_filenames=(
-                "track-b-general-reconciliation-status.json",
+                "validation-native-general-reconciliation-status.json",
                 "reconciliation-review-browser-status.json",
             ),
         ),
@@ -1466,9 +1466,9 @@ def final_capability_matrix_controls(
             remaining_gap="No technical implementation gap; professional promotion of the hybrid candidate remains open.",
             acceptance_status="candidate_promotion_pending",
             artifact_filenames=(
-                "target-validate-status.json",
-                "track-b-documents-status.json",
-                "track-b-expenses-status.json",
+                "validation-exact-validate-status.json",
+                "validation-native-documents-status.json",
+                "validation-native-expenses-status.json",
             ),
         ),
         "Accounting > Transactions > Analytic items": capability_control(
@@ -1477,8 +1477,8 @@ def final_capability_matrix_controls(
             target_community_baseline="Native multi-plan analytic records with list, pivot, chart, export and source-traced correction audit.",
             remaining_gap="No technical implementation gap.",
             artifact_filenames=(
-                "track-b-analytics-status.json",
-                "track-b-analytics-browser-status.json",
+                "validation-native-analytics-status.json",
+                "validation-native-analytics-browser-status.json",
             ),
         ),
         "Accounting > Assets": capability_control(
@@ -1488,8 +1488,8 @@ def final_capability_matrix_controls(
             remaining_gap="Statement and tax presentation remains part of the professional report review.",
             acceptance_status="accountant_acceptance_pending",
             artifact_filenames=(
-                "track-b-assets-status.json",
-                "track-b-assets-browser-status.json",
+                "validation-native-assets-status.json",
+                "validation-native-assets-browser-status.json",
             ),
         ),
         "Review > Control > Journal items": capability_control(
@@ -1497,7 +1497,7 @@ def final_capability_matrix_controls(
             source_behaviour="Source journal items, workflow-only lines and display lines are inventoried and traced.",
             target_community_baseline="Native journal-item navigation plus read-only source review records.",
             remaining_gap="No technical implementation gap.",
-            artifact_filenames=("target-validate-status.json",),
+            artifact_filenames=("validation-exact-validate-status.json",),
             include_reports_gate=True,
         ),
         "Review > Control > Journal audit": capability_control(
@@ -1507,9 +1507,9 @@ def final_capability_matrix_controls(
             remaining_gap="Preserved source sequence exceptions require accountant explanation or acceptance.",
             acceptance_status="accountant_source_anomaly_review_pending",
             artifact_filenames=(
-                "target-idempotence-status.json",
-                "target-failure-tests-status.json",
-                "target-validate-status.json",
+                "validation-exact-idempotence-status.json",
+                "validation-exact-failure-tests-status.json",
+                "validation-exact-validate-status.json",
             ),
         ),
         "Review > Inventory > Depreciation schedule": capability_control(
@@ -1519,8 +1519,8 @@ def final_capability_matrix_controls(
             remaining_gap="Final statement/tax mapping acceptance remains professional review.",
             acceptance_status="accountant_acceptance_pending",
             artifact_filenames=(
-                "target-validate-status.json",
-                "track-b-assets-status.json",
+                "validation-exact-validate-status.json",
+                "validation-native-assets-status.json",
             ),
             include_reports_gate=True,
         ),
@@ -1536,8 +1536,8 @@ def final_capability_matrix_controls(
             target_community_baseline="Native OCA deferral schedules with opening-boundary handling and read-only reviewer access.",
             remaining_gap="No technical implementation gap.",
             artifact_filenames=(
-                "track-b-deferrals-status.json",
-                "track-b-deferrals-browser-status.json",
+                "validation-native-deferrals-status.json",
+                "validation-native-deferrals-browser-status.json",
             ),
             include_reports_gate=True,
         ),
@@ -1554,7 +1554,7 @@ def final_capability_matrix_controls(
             remaining_gap="No technical implementation gap.",
             artifact_filenames=(
                 "currency-rate-provider-status.json",
-                "track-b-bank-external-status.json",
+                "validation-native-bank-external-status.json",
             ),
             include_reports_gate=True,
         ),
@@ -2217,13 +2217,13 @@ TARGET_IDEMPOTENCE_TABLES = [
 def target_idempotence_signature() -> dict[str, Any]:
     traced_counts = {}
     for table in TARGET_IDEMPOTENCE_TABLES:
-        if not table_exists(TARGET_DB, table):
+        if not table_exists(EXACT_VALIDATION_DB, table):
             traced_counts[table] = {"exists": False, "count": "0"}
             continue
-        columns = column_names(TARGET_DB, table)
+        columns = column_names(EXACT_VALIDATION_DB, table)
         if {"rebuild_source_model", "rebuild_source_id"}.issubset(columns):
             count = scalar(
-                TARGET_DB,
+                EXACT_VALIDATION_DB,
                 f"""
                 SELECT count(*)::text
                 FROM {table}
@@ -2234,11 +2234,11 @@ def target_idempotence_signature() -> dict[str, Any]:
             )
             traced_counts[table] = {"exists": True, "count": count or "0", "scope": "source_traced"}
         else:
-            count = scalar(TARGET_DB, f"SELECT count(*)::text FROM {table}", set_readonly_role=False)
+            count = scalar(EXACT_VALIDATION_DB, f"SELECT count(*)::text FROM {table}", set_readonly_role=False)
             traced_counts[table] = {"exists": True, "count": count or "0", "scope": "all_rows"}
 
     posted_ledger_summary = query_json(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT jsonb_build_object(
             'posted_source_move_count', count(DISTINCT am.id)::text,
@@ -2258,7 +2258,7 @@ def target_idempotence_signature() -> dict[str, Any]:
         set_readonly_role=False,
     )
     generated_draft_summary = query_json(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT jsonb_build_object(
             'generated_draft_move_count', count(DISTINCT am.id)::text,
@@ -2275,7 +2275,7 @@ def target_idempotence_signature() -> dict[str, Any]:
         set_readonly_role=False,
     )
     discrepancy_summary = query_json(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT COALESCE(jsonb_object_agg(summary_key, row_count), '{}'::jsonb)
         FROM (
@@ -2287,7 +2287,7 @@ def target_idempotence_signature() -> dict[str, Any]:
         ) grouped
         """,
         set_readonly_role=False,
-    ) if table_exists(TARGET_DB, "rebuild_account_discrepancy") else {}
+    ) if table_exists(EXACT_VALIDATION_DB, "rebuild_account_discrepancy") else {}
     return {
         "source_traced_counts": traced_counts,
         "posted_ledger_summary": posted_ledger_summary,
@@ -2322,8 +2322,8 @@ def target_reset(args: argparse.Namespace) -> dict[str, Any]:
     ensure_oca_addons_available()
     wait_for_postgres_service(TARGET_DB_SERVICE)
     db_user = database_user(TARGET_DB_SERVICE)
-    run(compose_args("exec", "-T", TARGET_DB_SERVICE, "dropdb", "-U", db_user, "--if-exists", "--force", TARGET_DB))
-    run(compose_args("exec", "-T", TARGET_DB_SERVICE, "createdb", "-U", db_user, "-E", "UTF8", "-T", "template0", TARGET_DB))
+    run(compose_args("exec", "-T", TARGET_DB_SERVICE, "dropdb", "-U", db_user, "--if-exists", "--force", EXACT_VALIDATION_DB))
+    run(compose_args("exec", "-T", TARGET_DB_SERVICE, "createdb", "-U", db_user, "-E", "UTF8", "-T", "template0", EXACT_VALIDATION_DB))
     run(
         compose_args(
             "--profile",
@@ -2337,27 +2337,27 @@ def target_reset(args: argparse.Namespace) -> dict[str, Any]:
             "init-db",
             "odoo",
             "--config=/etc/odoo/odoo.conf",
-            f"--database={TARGET_DB}",
+            f"--database={EXACT_VALIDATION_DB}",
             f"--init={','.join(TARGET_INIT_MODULES)}",
             "--without-demo=true",
             "--stop-after-init",
         ),
     )
-    if not table_exists(TARGET_DB, "ir_module_module"):
+    if not table_exists(EXACT_VALIDATION_DB, "ir_module_module"):
         status = {
             "generated_at": utc_now(),
             "tool_version": TOOL_VERSION,
-            "stage": "target-reset",
+            "stage": "validation-exact-reset",
             "status": "failed",
-            "database": TARGET_DB,
+            "database": EXACT_VALIDATION_DB,
             "target_database_service": TARGET_DB_SERVICE,
             "reason": "Odoo initialization completed without creating ir_module_module in the target database.",
             "recommended_action": "Inspect the one-off init container output and Odoo database creation behaviour.",
         }
-        write_json(PRIVATE_ARTIFACTS / "target-reset-status.json", status)
+        write_json(PRIVATE_ARTIFACTS / "validation-exact-reset-status.json", status)
         raise HarnessError(status["reason"])
     psql_exec(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         DO $$
         BEGIN
@@ -2377,24 +2377,24 @@ def target_reset(args: argparse.Namespace) -> dict[str, Any]:
     status = {
         "generated_at": utc_now(),
         "tool_version": TOOL_VERSION,
-        "stage": "target-reset",
+        "stage": "validation-exact-reset",
         "status": "passed",
-        "database": TARGET_DB,
+        "database": EXACT_VALIDATION_DB,
         "target_database_service": TARGET_DB_SERVICE,
         "init_modules": TARGET_INIT_MODULES,
         "neutralization": {
-            "ir_cron_active_count": active_row_count(TARGET_DB, "ir_cron"),
-            "mail_server_active_count": active_row_count(TARGET_DB, "ir_mail_server"),
-            "fetchmail_server_active_count": active_row_count(TARGET_DB, "fetchmail_server"),
+            "ir_cron_active_count": active_row_count(EXACT_VALIDATION_DB, "ir_cron"),
+            "mail_server_active_count": active_row_count(EXACT_VALIDATION_DB, "ir_mail_server"),
+            "fetchmail_server_active_count": active_row_count(EXACT_VALIDATION_DB, "fetchmail_server"),
         },
-        "installed_modules": target_installed_modules(TARGET_DB),
-        "record_counts": target_table_counts(TARGET_DB),
+        "installed_modules": target_installed_modules(EXACT_VALIDATION_DB),
+        "record_counts": target_table_counts(EXACT_VALIDATION_DB),
     }
-    write_json(PRIVATE_ARTIFACTS / "target-reset-status.json", status)
+    write_json(PRIVATE_ARTIFACTS / "validation-exact-reset-status.json", status)
     return status
 
 
-def track_b_reset(args: argparse.Namespace) -> dict[str, Any]:
+def native_validation_reset(args: argparse.Namespace) -> dict[str, Any]:
     """Create the isolated database used for native Track B recomputation."""
     ensure_dirs()
     ensure_oca_addons_available()
@@ -2402,11 +2402,11 @@ def track_b_reset(args: argparse.Namespace) -> dict[str, Any]:
     db_user = database_user(TARGET_DB_SERVICE)
     run(compose_args(
         "exec", "-T", TARGET_DB_SERVICE,
-        "dropdb", "-U", db_user, "--if-exists", "--force", TRACK_B_DB,
+        "dropdb", "-U", db_user, "--if-exists", "--force", NATIVE_VALIDATION_DB,
     ))
     run(compose_args(
         "exec", "-T", TARGET_DB_SERVICE,
-        "createdb", "-U", db_user, "-E", "UTF8", "-T", "template0", TRACK_B_DB,
+        "createdb", "-U", db_user, "-E", "UTF8", "-T", "template0", NATIVE_VALIDATION_DB,
     ))
     run(
         compose_args(
@@ -2421,25 +2421,25 @@ def track_b_reset(args: argparse.Namespace) -> dict[str, Any]:
             "init-db",
             "odoo",
             "--config=/etc/odoo/odoo.conf",
-            f"--database={TRACK_B_DB}",
+            f"--database={NATIVE_VALIDATION_DB}",
             f"--init={','.join(TARGET_INIT_MODULES)}",
             "--without-demo=true",
             "--stop-after-init",
         ),
     )
-    if not table_exists(TRACK_B_DB, "rebuild_account_import_run"):
+    if not table_exists(NATIVE_VALIDATION_DB, "rebuild_account_import_run"):
         status = {
             "generated_at": utc_now(),
             "tool_version": TOOL_VERSION,
-            "stage": "track-b-reset",
+            "stage": "validation-native-reset",
             "status": "failed",
-            "database": TRACK_B_DB,
+            "database": NATIVE_VALIDATION_DB,
             "reason": "Track B database initialization did not install rebuild_account_migration.",
         }
-        write_json(PRIVATE_ARTIFACTS / "track-b-reset-status.json", status)
+        write_json(PRIVATE_ARTIFACTS / "validation-native-reset-status.json", status)
         raise HarnessError(status["reason"])
     psql_exec(
-        TRACK_B_DB,
+        NATIVE_VALIDATION_DB,
         """
         DO $$
         BEGIN
@@ -2459,24 +2459,24 @@ def track_b_reset(args: argparse.Namespace) -> dict[str, Any]:
     status = {
         "generated_at": utc_now(),
         "tool_version": TOOL_VERSION,
-        "stage": "track-b-reset",
+        "stage": "validation-native-reset",
         "status": "passed",
-        "database": TRACK_B_DB,
+        "database": NATIVE_VALIDATION_DB,
         "purpose": "Isolated 2025-10-01 through 2026-06-30 native accounting-engine replay",
         "init_modules": TARGET_INIT_MODULES,
         "neutralization": {
-            "ir_cron_active_count": active_row_count(TRACK_B_DB, "ir_cron"),
-            "mail_server_active_count": active_row_count(TRACK_B_DB, "ir_mail_server"),
-            "fetchmail_server_active_count": active_row_count(TRACK_B_DB, "fetchmail_server"),
+            "ir_cron_active_count": active_row_count(NATIVE_VALIDATION_DB, "ir_cron"),
+            "mail_server_active_count": active_row_count(NATIVE_VALIDATION_DB, "ir_mail_server"),
+            "fetchmail_server_active_count": active_row_count(NATIVE_VALIDATION_DB, "fetchmail_server"),
         },
-        "installed_modules": target_installed_modules(TRACK_B_DB),
-        "record_counts": target_table_counts(TRACK_B_DB),
+        "installed_modules": target_installed_modules(NATIVE_VALIDATION_DB),
+        "record_counts": target_table_counts(NATIVE_VALIDATION_DB),
     }
-    write_json(PRIVATE_ARTIFACTS / "track-b-reset-status.json", status)
+    write_json(PRIVATE_ARTIFACTS / "validation-native-reset-status.json", status)
     return status
 
 
-def replacement_runtime_signature(db: str) -> dict[str, Any]:
+def dev_runtime_signature(db: str) -> dict[str, Any]:
     required_tables = {
         "account_move",
         "account_move_line",
@@ -2577,31 +2577,31 @@ def replacement_runtime_signature(db: str) -> dict[str, Any]:
     )
 
 
-def replacement_reset(args: argparse.Namespace) -> dict[str, Any]:
+def dev_reset(args: argparse.Namespace) -> dict[str, Any]:
     """Clone the completed Track B engine proof into a replacement candidate."""
     ensure_dirs()
     wait_for_postgres_service(TARGET_DB_SERVICE)
     required_artifacts = {
-        "track_b_expenses": PRIVATE_ARTIFACTS / "track-b-expenses-status.json",
-        "track_b_documents": PRIVATE_ARTIFACTS / "track-b-documents-status.json",
-        "track_b_assets": PRIVATE_ARTIFACTS / "track-b-assets-status.json",
-        "track_b_deferrals": PRIVATE_ARTIFACTS / "track-b-deferrals-status.json",
-        "track_b_expense_settlement": (
-            PRIVATE_ARTIFACTS / "track-b-expense-settlement-status.json"
+        "native_validation_expenses": PRIVATE_ARTIFACTS / "validation-native-expenses-status.json",
+        "native_validation_documents": PRIVATE_ARTIFACTS / "validation-native-documents-status.json",
+        "native_validation_assets": PRIVATE_ARTIFACTS / "validation-native-assets-status.json",
+        "native_validation_deferrals": PRIVATE_ARTIFACTS / "validation-native-deferrals-status.json",
+        "native_validation_expense_settlement": (
+            PRIVATE_ARTIFACTS / "validation-native-expense-settlement-status.json"
         ),
-        "track_b_document_settlement": (
-            PRIVATE_ARTIFACTS / "track-b-document-settlement-status.json"
+        "native_validation_document_settlement": (
+            PRIVATE_ARTIFACTS / "validation-native-document-settlement-status.json"
         ),
-        "track_b_general_reconciliation": (
-            PRIVATE_ARTIFACTS / "track-b-general-reconciliation-status.json"
+        "native_validation_general_reconciliation": (
+            PRIVATE_ARTIFACTS / "validation-native-general-reconciliation-status.json"
         ),
-        "track_b_bank_categorization": (
-            PRIVATE_ARTIFACTS / "track-b-bank-categorization-status.json"
+        "native_validation_bank_categorization": (
+            PRIVATE_ARTIFACTS / "validation-native-bank-categorization-status.json"
         ),
-        "track_b_bank_external": (
-            PRIVATE_ARTIFACTS / "track-b-bank-external-status.json"
+        "native_validation_bank_external": (
+            PRIVATE_ARTIFACTS / "validation-native-bank-external-status.json"
         ),
-        "track_b_analytics": PRIVATE_ARTIFACTS / "track-b-analytics-status.json",
+        "native_validation_analytics": PRIVATE_ARTIFACTS / "validation-native-analytics-status.json",
     }
     artifact_checks = {}
     for name, path in required_artifacts.items():
@@ -2612,10 +2612,10 @@ def replacement_reset(args: argparse.Namespace) -> dict[str, Any]:
             "database": payload.get("database"),
             "passed": (
                 payload.get("status") == "passed"
-                and payload.get("database") == TRACK_B_DB
+                and payload.get("database") == NATIVE_VALIDATION_DB
             ),
         }
-    source_signature = replacement_runtime_signature(TRACK_B_DB)
+    source_signature = dev_runtime_signature(NATIVE_VALIDATION_DB)
     expected_signature = {
         "native_business_document_count": "284",
         "native_expense_count": "325",
@@ -2636,30 +2636,50 @@ def replacement_reset(args: argparse.Namespace) -> dict[str, Any]:
         status = {
             "generated_at": utc_now(),
             "tool_version": TOOL_VERSION,
-            "stage": "replacement-reset",
+            "stage": "dev-reset",
             "status": "failed",
-            "classification": "INCOMPLETE_TRACK_B_CLONE_SOURCE",
-            "source_database": TRACK_B_DB,
-            "target_database": REPLACEMENT_DB,
+            "classification": "INCOMPLETE_NATIVE_VALIDATION_SOURCE",
+            "source_database": NATIVE_VALIDATION_DB,
+            "target_database": DEV_QA_DB,
             "artifact_checks": artifact_checks,
             "failed_artifacts": failed_artifacts,
             "expected_signature": expected_signature,
             "source_signature": source_signature,
         }
-        write_json(PRIVATE_ARTIFACTS / "replacement-reset-status.json", status)
-        message = "Replacement reset requires the complete, current Track B proof."
+        write_json(PRIVATE_ARTIFACTS / "dev-reset-status.json", status)
+        message = "Development reset requires the complete, current native validation proof."
         raise HarnessError(message)
 
     db_user = database_user(TARGET_DB_SERVICE)
     run(compose_args(
         "exec", "-T", TARGET_DB_SERVICE,
-        "dropdb", "-U", db_user, "--if-exists", "--force", REPLACEMENT_DB,
+        "dropdb", "-U", db_user, "--if-exists", "--force", DEV_QA_DB,
     ))
     run(compose_args(
         "exec", "-T", TARGET_DB_SERVICE,
         "createdb", "-U", db_user, "-E", "UTF8",
-        "-T", TRACK_B_DB, REPLACEMENT_DB,
+        "-T", NATIVE_VALIDATION_DB, DEV_QA_DB,
     ))
+    run(
+        compose_args(
+            "--profile",
+            "init",
+            "run",
+            "--rm",
+            "--no-deps",
+            "--entrypoint",
+            "sh",
+            "init-db",
+            "-lc",
+            (
+                f"set -eu; test -d /var/lib/odoo/filestore/{NATIVE_VALIDATION_DB}; "
+                f"rm -rf /var/lib/odoo/filestore/{DEV_QA_DB} && "
+                f"mkdir -p /var/lib/odoo/filestore/{DEV_QA_DB} && "
+                f"cp -a /var/lib/odoo/filestore/{NATIVE_VALIDATION_DB}/. "
+                f"/var/lib/odoo/filestore/{DEV_QA_DB}/"
+            ),
+        ),
+    )
     run(
         compose_args(
             "--profile",
@@ -2671,12 +2691,12 @@ def replacement_reset(args: argparse.Namespace) -> dict[str, Any]:
             "init-db",
             "odoo",
             "--config=/etc/odoo/odoo.conf",
-            f"--database={REPLACEMENT_DB}",
+            f"--database={DEV_QA_DB}",
             "--update=rebuild_account_migration",
             "--stop-after-init",
         ),
     )
-    target_signature = replacement_runtime_signature(REPLACEMENT_DB)
+    target_signature = dev_runtime_signature(DEV_QA_DB)
     comparable_signature_keys = (
         set(source_signature)
         | set(target_signature)
@@ -2688,37 +2708,37 @@ def replacement_reset(args: argparse.Namespace) -> dict[str, Any]:
     status = {
         "generated_at": utc_now(),
         "tool_version": TOOL_VERSION,
-        "stage": "replacement-reset",
+        "stage": "dev-reset",
         "status": "passed" if clone_matches else "failed",
-        "classification": "TRACK_B_NATIVE_STATE_CLONED_FOR_REPLACEMENT",
-        "source_database": TRACK_B_DB,
-        "target_database": REPLACEMENT_DB,
+        "classification": "NATIVE_VALIDATION_STATE_CLONED_FOR_DEV",
+        "source_database": NATIVE_VALIDATION_DB,
+        "target_database": DEV_QA_DB,
         "artifact_checks": artifact_checks,
         "expected_signature": expected_signature,
         "source_signature": source_signature,
         "target_signature": target_signature,
     }
-    write_json(PRIVATE_ARTIFACTS / "replacement-reset-status.json", status)
+    write_json(PRIVATE_ARTIFACTS / "dev-reset-status.json", status)
     if status["status"] != "passed":
         message = (
-            "Replacement database clone does not match the Track B source signature."
+            "Development database clone does not match the native validation source signature."
         )
         raise HarnessError(message)
     return status
 
 
-def replacement_import(args: argparse.Namespace) -> dict[str, Any]:
+def dev_import(args: argparse.Namespace) -> dict[str, Any]:
     """Add the exact pre-cutoff ledger to the native replacement candidate."""
     ensure_dirs()
     validation = validate_source(args)
     dump_sha = validation["dump"]["sha256"] or "unknown"
     snapshot_id = f"source-{dump_sha[:12]}"
-    if not table_exists(REPLACEMENT_DB, "rebuild_account_import_run"):
+    if not table_exists(DEV_QA_DB, "rebuild_account_import_run"):
         message = (
-            "Run make accounting-replacement-reset before replacement import."
+            "Run make accounting-dev-reset before replacement import."
         )
         raise HarnessError(message)
-    import_script = PRIVATE_ARTIFACTS / "replacement-import-historical.py"
+    import_script = PRIVATE_ARTIFACTS / "dev-import-historical.py"
     import_script.write_text(
         "\n".join([
             "import json",
@@ -2729,18 +2749,18 @@ def replacement_import(args: argparse.Namespace) -> dict[str, Any]:
             f"    'source_dump_sha256': {dump_sha!r},",
             f"    'source_snapshot_id': {snapshot_id!r},",
             "    'source_version': 'Odoo Online Enterprise saas~19.2',",
-            f"    'target_database': {REPLACEMENT_DB!r},",
+            f"    'target_database': {DEV_QA_DB!r},",
             "})",
             "stats = run.run_exact_ledger_replay_from_source({",
             "    'source_database': 'odoo_online_source_saas_19_2',",
             f"    'source_dump_sha256': {dump_sha!r},",
             f"    'source_snapshot_id': {snapshot_id!r},",
             "    'source_version': 'Odoo Online Enterprise saas~19.2',",
-            f"    'target_database': {REPLACEMENT_DB!r},",
+            f"    'target_database': {DEV_QA_DB!r},",
             f"    'date_from': {USL_BENCHMARK_START!r},",
             f"    'date_to': {USL_BENCHMARK_END!r},",
             "    'source_company_ids': [1, 8],",
-            f"    'source_trace_aliases': {REPLACEMENT_SOURCE_TRACE_ALIASES!r},",
+            f"    'source_trace_aliases': {DEV_SOURCE_TRACE_ALIASES!r},",
             "    'classify_confirmed_vat_refund': False,",
             "})",
             "env.cr.commit()",
@@ -2765,7 +2785,7 @@ def replacement_import(args: argparse.Namespace) -> dict[str, Any]:
             "odoo",
             "shell",
             "--config=/etc/odoo/odoo.conf",
-            f"--database={REPLACEMENT_DB}",
+            f"--database={DEV_QA_DB}",
         ),
         input_file=import_script,
         check=False,
@@ -2780,15 +2800,15 @@ def replacement_import(args: argparse.Namespace) -> dict[str, Any]:
         status = {
             "generated_at": utc_now(),
             "tool_version": TOOL_VERSION,
-            "stage": "replacement-import",
+            "stage": "dev-import",
             "status": "failed",
             "classification": "REPLACEMENT_HISTORICAL_IMPORT_DEFECT",
-            "database": REPLACEMENT_DB,
+            "database": DEV_QA_DB,
             "exit_code": result.returncode,
             "output_tail": (result.stdout + result.stderr)[-12000:],
         }
         write_json(
-            PRIVATE_ARTIFACTS / "replacement-import-status.json",
+            PRIVATE_ARTIFACTS / "dev-import-status.json",
             status,
         )
         message = (
@@ -2815,17 +2835,17 @@ def replacement_import(args: argparse.Namespace) -> dict[str, Any]:
     status = {
         "generated_at": utc_now(),
         "tool_version": TOOL_VERSION,
-        "stage": "replacement-import",
+        "stage": "dev-import",
         "status": "passed" if all(checks.values()) else "failed",
         "classification": "HYBRID_HISTORICAL_EXACT_NATIVE_CURRENT_IMPORT",
-        "database": REPLACEMENT_DB,
+        "database": DEV_QA_DB,
         "run_id": payload["run_id"],
         "run_status": payload["run_status"],
         "expected": expected,
         "checks": checks,
         "statistics": stats,
     }
-    write_json(PRIVATE_ARTIFACTS / "replacement-import-status.json", status)
+    write_json(PRIVATE_ARTIFACTS / "dev-import-status.json", status)
     if status["status"] != "passed":
         message = (
             "Replacement historical import counts or native alias reuse differ."
@@ -2834,10 +2854,10 @@ def replacement_import(args: argparse.Namespace) -> dict[str, Any]:
     return status
 
 
-def replacement_validate(args: argparse.Namespace) -> dict[str, Any]:
+def dev_validate(args: argparse.Namespace) -> dict[str, Any]:
     """Validate the combined historical/native replacement candidate."""
     ensure_dirs()
-    if not table_exists(REPLACEMENT_DB, "rebuild_account_import_run"):
+    if not table_exists(DEV_QA_DB, "rebuild_account_import_run"):
         message = (
             "Run replacement reset and import before replacement validation."
         )
@@ -2861,7 +2881,7 @@ def replacement_validate(args: argparse.Namespace) -> dict[str, Any]:
         """,
     )
     target_historical = query_rows(
-        REPLACEMENT_DB,
+        DEV_QA_DB,
         """
         SELECT company.rebuild_source_id::text AS source_company_id,
                count(DISTINCT move.id)::text AS posted_move_count,
@@ -2881,7 +2901,7 @@ def replacement_validate(args: argparse.Namespace) -> dict[str, Any]:
     )
     source_historical_moves = source_move_comparison_rows()
     target_historical_moves = target_move_comparison_rows(
-        REPLACEMENT_DB,
+        DEV_QA_DB,
     )
     historical_move_identity = compare_rows(
         source_historical_moves,
@@ -2926,7 +2946,7 @@ def replacement_validate(args: argparse.Namespace) -> dict[str, Any]:
         """,
     )
     target_current = query_json(
-        REPLACEMENT_DB,
+        DEV_QA_DB,
         """
         SELECT jsonb_build_object(
             'posted_move_count', count(DISTINCT move.id)::text,
@@ -2965,7 +2985,7 @@ def replacement_validate(args: argparse.Namespace) -> dict[str, Any]:
         """,
     )
     target_journal_rows = query_rows(
-        REPLACEMENT_DB,
+        DEV_QA_DB,
         """
         SELECT journal.id::text AS target_journal_id,
                journal.rebuild_source_id::text AS source_journal_id,
@@ -3011,7 +3031,7 @@ def replacement_validate(args: argparse.Namespace) -> dict[str, Any]:
         """,
     )
     target_balance_rows = query_rows(
-        REPLACEMENT_DB,
+        DEV_QA_DB,
         """
         SELECT account.id::text AS target_account_id,
                account.rebuild_source_id::text AS source_account_id,
@@ -3055,7 +3075,7 @@ def replacement_validate(args: argparse.Namespace) -> dict[str, Any]:
         """,
     )
     target_account_journal_rows = query_rows(
-        REPLACEMENT_DB,
+        DEV_QA_DB,
         """
         SELECT account.id::text AS target_account_id,
                account.rebuild_source_id::text AS source_account_id,
@@ -3308,7 +3328,7 @@ def replacement_validate(args: argparse.Namespace) -> dict[str, Any]:
                 "journal_effects": journal_effects,
             })
 
-    runtime_signature = replacement_runtime_signature(REPLACEMENT_DB)
+    runtime_signature = dev_runtime_signature(DEV_QA_DB)
     historical_matches = source_historical == target_historical
     product_counts_match = {
         "native_business_document_count": (
@@ -3394,21 +3414,21 @@ def replacement_validate(args: argparse.Namespace) -> dict[str, Any]:
     status = {
         "generated_at": utc_now(),
         "tool_version": TOOL_VERSION,
-        "stage": "replacement-validate",
+        "stage": "dev-validate",
         "status": status_value,
         "classification": (
-            "HYBRID_REPLACEMENT_TARGET_PARITY"
+            "DEV_QA_TARGET_PARITY"
             if status_value == "passed"
             else (
-                "HYBRID_REPLACEMENT_TARGET_EXPLAINED_NATIVE_DIFFERENCES"
+                "DEV_QA_TARGET_EXPLAINED_NATIVE_DIFFERENCES"
                 if status_value == "partial"
                 and current_differences_explained
-                else "HYBRID_REPLACEMENT_TARGET_CURRENT_PERIOD_REVIEW_REQUIRED"
+                else "DEV_QA_TARGET_CURRENT_PERIOD_REVIEW_REQUIRED"
                 if status_value == "partial"
-                else "HYBRID_REPLACEMENT_TARGET_DEFECT"
+                else "DEV_QA_TARGET_DEFECT"
             )
         ),
-        "database": REPLACEMENT_DB,
+        "database": DEV_QA_DB,
         "critical_checks": critical_checks,
         "product_count_checks": product_counts_match,
         "runtime_signature": runtime_signature,
@@ -3489,7 +3509,7 @@ def replacement_validate(args: argparse.Namespace) -> dict[str, Any]:
             ),
         },
     }
-    write_json(PRIVATE_ARTIFACTS / "replacement-validate-status.json", status)
+    write_json(PRIVATE_ARTIFACTS / "dev-validate-status.json", status)
     if status_value == "failed":
         message = (
             "Replacement validation failed a historical, balance, uniqueness, "
@@ -3499,17 +3519,17 @@ def replacement_validate(args: argparse.Namespace) -> dict[str, Any]:
     return status
 
 
-def track_b_documents(args: argparse.Namespace) -> dict[str, Any]:
+def native_validation_documents(args: argparse.Namespace) -> dict[str, Any]:
     """Rebuild and post source business documents through native Odoo logic."""
     ensure_dirs()
     validation = validate_source(args)
     dump_sha = validation["dump"]["sha256"] or "unknown"
     snapshot_id = f"source-{dump_sha[:12]}"
-    if not table_exists(TRACK_B_DB, "rebuild_account_import_run"):
-        message = "Run make accounting-track-b-reset before Track B document replay."
+    if not table_exists(NATIVE_VALIDATION_DB, "rebuild_account_import_run"):
+        message = "Run make accounting-validation-native-reset before Track B document replay."
         raise HarnessError(message)
 
-    script_path = PRIVATE_ARTIFACTS / "track-b-native-documents.py"
+    script_path = PRIVATE_ARTIFACTS / "validation-native-native-documents.py"
     script_path.write_text(
         "\n".join([
             "import json",
@@ -3520,20 +3540,20 @@ def track_b_documents(args: argparse.Namespace) -> dict[str, Any]:
             f"    'source_dump_sha256': {dump_sha!r},",
             f"    'source_snapshot_id': {snapshot_id!r},",
             "    'source_version': 'Odoo Online Enterprise saas~19.2',",
-            f"    'target_database': {TRACK_B_DB!r},",
+            f"    'target_database': {NATIVE_VALIDATION_DB!r},",
             "})",
             "stats = run.run_native_engine_replay_from_source({",
             "    'source_database': 'odoo_online_source_saas_19_2',",
             f"    'source_dump_sha256': {dump_sha!r},",
             f"    'source_snapshot_id': {snapshot_id!r},",
             "    'source_version': 'Odoo Online Enterprise saas~19.2',",
-            f"    'target_database': {TRACK_B_DB!r},",
+            f"    'target_database': {NATIVE_VALIDATION_DB!r},",
             f"    'date_from': {USL_CURRENT_START!r},",
             "    'date_to': '2026-06-30',",
             "    'source_company_ids': [1],",
             "})",
             "env.cr.commit()",
-            "print('REBUILD_TRACK_B_RESULT=' + json.dumps({",
+            "print('REBUILD_NATIVE_VALIDATION_RESULT=' + json.dumps({",
             "    'run_id': run.id,",
             "    'status': run.status,",
             "    'stats': stats,",
@@ -3554,27 +3574,27 @@ def track_b_documents(args: argparse.Namespace) -> dict[str, Any]:
             "odoo",
             "shell",
             "--config=/etc/odoo/odoo.conf",
-            f"--database={TRACK_B_DB}",
+            f"--database={NATIVE_VALIDATION_DB}",
         ),
         input_file=script_path,
         check=False,
     )
     marker = None
     for line in (result.stdout + result.stderr).splitlines():
-        if line.startswith("REBUILD_TRACK_B_RESULT="):
-            marker = line.removeprefix("REBUILD_TRACK_B_RESULT=")
+        if line.startswith("REBUILD_NATIVE_VALIDATION_RESULT="):
+            marker = line.removeprefix("REBUILD_NATIVE_VALIDATION_RESULT=")
     if result.returncode or not marker:
         status = {
             "generated_at": utc_now(),
             "tool_version": TOOL_VERSION,
-            "stage": "track-b-documents",
+            "stage": "validation-native-documents",
             "status": "failed",
-            "classification": "TRACK_B_EXECUTION_DEFECT",
-            "database": TRACK_B_DB,
+            "classification": "NATIVE_VALIDATION_EXECUTION_DEFECT",
+            "database": NATIVE_VALIDATION_DB,
             "exit_code": result.returncode,
             "output_tail": (result.stdout + result.stderr)[-12000:],
         }
-        write_json(PRIVATE_ARTIFACTS / "track-b-documents-status.json", status)
+        write_json(PRIVATE_ARTIFACTS / "validation-native-documents-status.json", status)
         if not getattr(args, "allow_errors", False):
             message = "Track B document replay failed. See the private status artifact."
             raise HarnessError(message)
@@ -3583,30 +3603,30 @@ def track_b_documents(args: argparse.Namespace) -> dict[str, Any]:
     status = {
         "generated_at": utc_now(),
         "tool_version": TOOL_VERSION,
-        "stage": "track-b-documents",
-        "database": TRACK_B_DB,
+        "stage": "validation-native-documents",
+        "database": NATIVE_VALIDATION_DB,
         "run_id": payload["run_id"],
         "status": payload["status"],
         **payload["stats"],
     }
-    write_json(PRIVATE_ARTIFACTS / "track-b-documents-status.json", status)
+    write_json(PRIVATE_ARTIFACTS / "validation-native-documents-status.json", status)
     if status["status"] != "passed" and not getattr(args, "allow_errors", False):
         message = "Track B document replay has blocked or mismatched cases."
         raise HarnessError(message)
     return status
 
 
-def track_b_assets(args: argparse.Namespace) -> dict[str, Any]:
+def native_validation_assets(args: argparse.Namespace) -> dict[str, Any]:
     """Replay source depreciation schedules through native OCA assets."""
     ensure_dirs()
     validation = validate_source(args)
     dump_sha = validation["dump"]["sha256"] or "unknown"
     snapshot_id = f"source-{dump_sha[:12]}"
-    if not table_exists(TRACK_B_DB, "rebuild_account_import_run"):
-        message = "Run make accounting-track-b-reset before Track B asset replay."
+    if not table_exists(NATIVE_VALIDATION_DB, "rebuild_account_import_run"):
+        message = "Run make accounting-validation-native-reset before Track B asset replay."
         raise HarnessError(message)
 
-    script_path = PRIVATE_ARTIFACTS / "track-b-native-assets.py"
+    script_path = PRIVATE_ARTIFACTS / "validation-native-native-assets.py"
     script_path.write_text(
         "\n".join([
             "import json",
@@ -3617,20 +3637,20 @@ def track_b_assets(args: argparse.Namespace) -> dict[str, Any]:
             f"    'source_dump_sha256': {dump_sha!r},",
             f"    'source_snapshot_id': {snapshot_id!r},",
             "    'source_version': 'Odoo Online Enterprise saas~19.2',",
-            f"    'target_database': {TRACK_B_DB!r},",
+            f"    'target_database': {NATIVE_VALIDATION_DB!r},",
             "})",
             "stats = run.run_native_asset_replay_from_source({",
             "    'source_database': 'odoo_online_source_saas_19_2',",
             f"    'source_dump_sha256': {dump_sha!r},",
             f"    'source_snapshot_id': {snapshot_id!r},",
             "    'source_version': 'Odoo Online Enterprise saas~19.2',",
-            f"    'target_database': {TRACK_B_DB!r},",
+            f"    'target_database': {NATIVE_VALIDATION_DB!r},",
             f"    'date_from': {USL_CURRENT_START!r},",
             "    'date_to': '2026-06-30',",
             "    'source_company_ids': [1],",
             "})",
             "env.cr.commit()",
-            "print('REBUILD_TRACK_B_ASSET_RESULT=' + json.dumps({",
+            "print('REBUILD_NATIVE_VALIDATION_ASSET_RESULT=' + json.dumps({",
             "    'run_id': run.id,",
             "    'status': run.status,",
             "    'stats': stats,",
@@ -3651,27 +3671,27 @@ def track_b_assets(args: argparse.Namespace) -> dict[str, Any]:
             "odoo",
             "shell",
             "--config=/etc/odoo/odoo.conf",
-            f"--database={TRACK_B_DB}",
+            f"--database={NATIVE_VALIDATION_DB}",
         ),
         input_file=script_path,
         check=False,
     )
     marker = None
     for line in (result.stdout + result.stderr).splitlines():
-        if line.startswith("REBUILD_TRACK_B_ASSET_RESULT="):
-            marker = line.removeprefix("REBUILD_TRACK_B_ASSET_RESULT=")
+        if line.startswith("REBUILD_NATIVE_VALIDATION_ASSET_RESULT="):
+            marker = line.removeprefix("REBUILD_NATIVE_VALIDATION_ASSET_RESULT=")
     if result.returncode or not marker:
         status = {
             "generated_at": utc_now(),
             "tool_version": TOOL_VERSION,
-            "stage": "track-b-assets",
+            "stage": "validation-native-assets",
             "status": "failed",
-            "classification": "TRACK_B_EXECUTION_DEFECT",
-            "database": TRACK_B_DB,
+            "classification": "NATIVE_VALIDATION_EXECUTION_DEFECT",
+            "database": NATIVE_VALIDATION_DB,
             "exit_code": result.returncode,
             "output_tail": (result.stdout + result.stderr)[-12000:],
         }
-        write_json(PRIVATE_ARTIFACTS / "track-b-assets-status.json", status)
+        write_json(PRIVATE_ARTIFACTS / "validation-native-assets-status.json", status)
         if not getattr(args, "allow_errors", False):
             message = "Track B asset replay failed. See the private status artifact."
             raise HarnessError(message)
@@ -3680,30 +3700,30 @@ def track_b_assets(args: argparse.Namespace) -> dict[str, Any]:
     status = {
         "generated_at": utc_now(),
         "tool_version": TOOL_VERSION,
-        "stage": "track-b-assets",
-        "database": TRACK_B_DB,
+        "stage": "validation-native-assets",
+        "database": NATIVE_VALIDATION_DB,
         "run_id": payload["run_id"],
         "status": payload["status"],
         **payload["stats"],
     }
-    write_json(PRIVATE_ARTIFACTS / "track-b-assets-status.json", status)
+    write_json(PRIVATE_ARTIFACTS / "validation-native-assets-status.json", status)
     if status["status"] != "passed" and not getattr(args, "allow_errors", False):
         message = "Track B asset replay has blocked or mismatched cases."
         raise HarnessError(message)
     return status
 
 
-def track_b_deferrals(args: argparse.Namespace) -> dict[str, Any]:
+def native_validation_deferrals(args: argparse.Namespace) -> dict[str, Any]:
     """Replay source deferred schedules through native journal entries."""
     ensure_dirs()
     validation = validate_source(args)
     dump_sha = validation["dump"]["sha256"] or "unknown"
     snapshot_id = f"source-{dump_sha[:12]}"
-    if not table_exists(TRACK_B_DB, "rebuild_account_import_run"):
-        message = "Run make accounting-track-b-reset before Track B deferral replay."
+    if not table_exists(NATIVE_VALIDATION_DB, "rebuild_account_import_run"):
+        message = "Run make accounting-validation-native-reset before Track B deferral replay."
         raise HarnessError(message)
 
-    script_path = PRIVATE_ARTIFACTS / "track-b-native-deferrals.py"
+    script_path = PRIVATE_ARTIFACTS / "validation-native-native-deferrals.py"
     script_path.write_text(
         "\n".join([
             "import json",
@@ -3714,21 +3734,21 @@ def track_b_deferrals(args: argparse.Namespace) -> dict[str, Any]:
             f"    'source_dump_sha256': {dump_sha!r},",
             f"    'source_snapshot_id': {snapshot_id!r},",
             "    'source_version': 'Odoo Online Enterprise saas~19.2',",
-            f"    'target_database': {TRACK_B_DB!r},",
+            f"    'target_database': {NATIVE_VALIDATION_DB!r},",
             "})",
             "stats = run.run_native_deferral_replay_from_source({",
             "    'source_database': 'odoo_online_source_saas_19_2',",
             f"    'source_dump_sha256': {dump_sha!r},",
             f"    'source_snapshot_id': {snapshot_id!r},",
             "    'source_version': 'Odoo Online Enterprise saas~19.2',",
-            f"    'target_database': {TRACK_B_DB!r},",
+            f"    'target_database': {NATIVE_VALIDATION_DB!r},",
             f"    'date_from': {USL_CURRENT_START!r},",
             "    'date_to': '2026-06-30',",
             "    'source_company_ids': [1],",
             "    'opening_boundary_source_move_ids': [8871],",
             "})",
             "env.cr.commit()",
-            "print('REBUILD_TRACK_B_DEFERRAL_RESULT=' + json.dumps({",
+            "print('REBUILD_NATIVE_VALIDATION_DEFERRAL_RESULT=' + json.dumps({",
             "    'run_id': run.id,",
             "    'status': run.status,",
             "    'stats': stats,",
@@ -3749,27 +3769,27 @@ def track_b_deferrals(args: argparse.Namespace) -> dict[str, Any]:
             "odoo",
             "shell",
             "--config=/etc/odoo/odoo.conf",
-            f"--database={TRACK_B_DB}",
+            f"--database={NATIVE_VALIDATION_DB}",
         ),
         input_file=script_path,
         check=False,
     )
     marker = None
     for line in (result.stdout + result.stderr).splitlines():
-        if line.startswith("REBUILD_TRACK_B_DEFERRAL_RESULT="):
-            marker = line.removeprefix("REBUILD_TRACK_B_DEFERRAL_RESULT=")
+        if line.startswith("REBUILD_NATIVE_VALIDATION_DEFERRAL_RESULT="):
+            marker = line.removeprefix("REBUILD_NATIVE_VALIDATION_DEFERRAL_RESULT=")
     if result.returncode or not marker:
         status = {
             "generated_at": utc_now(),
             "tool_version": TOOL_VERSION,
-            "stage": "track-b-deferrals",
+            "stage": "validation-native-deferrals",
             "status": "failed",
-            "classification": "TRACK_B_EXECUTION_DEFECT",
-            "database": TRACK_B_DB,
+            "classification": "NATIVE_VALIDATION_EXECUTION_DEFECT",
+            "database": NATIVE_VALIDATION_DB,
             "exit_code": result.returncode,
             "output_tail": (result.stdout + result.stderr)[-12000:],
         }
-        write_json(PRIVATE_ARTIFACTS / "track-b-deferrals-status.json", status)
+        write_json(PRIVATE_ARTIFACTS / "validation-native-deferrals-status.json", status)
         if not getattr(args, "allow_errors", False):
             message = "Track B deferral replay failed. See the private status artifact."
             raise HarnessError(message)
@@ -3778,30 +3798,30 @@ def track_b_deferrals(args: argparse.Namespace) -> dict[str, Any]:
     status = {
         "generated_at": utc_now(),
         "tool_version": TOOL_VERSION,
-        "stage": "track-b-deferrals",
-        "database": TRACK_B_DB,
+        "stage": "validation-native-deferrals",
+        "database": NATIVE_VALIDATION_DB,
         "run_id": payload["run_id"],
         "status": payload["status"],
         **payload["stats"],
     }
-    write_json(PRIVATE_ARTIFACTS / "track-b-deferrals-status.json", status)
+    write_json(PRIVATE_ARTIFACTS / "validation-native-deferrals-status.json", status)
     if status["status"] != "passed" and not getattr(args, "allow_errors", False):
         message = "Track B deferral replay has blocked or mismatched cases."
         raise HarnessError(message)
     return status
 
 
-def track_b_analytics(args: argparse.Namespace) -> dict[str, Any]:
+def native_validation_analytics(args: argparse.Namespace) -> dict[str, Any]:
     """Apply classified analytic corrections and validate multi-plan parity."""
     ensure_dirs()
     validation = validate_source(args)
     dump_sha = validation["dump"]["sha256"] or "unknown"
     snapshot_id = f"source-{dump_sha[:12]}"
-    if not table_exists(TRACK_B_DB, "rebuild_account_import_run"):
-        message = "Run make accounting-track-b-reset before Track B analytic replay."
+    if not table_exists(NATIVE_VALIDATION_DB, "rebuild_account_import_run"):
+        message = "Run make accounting-validation-native-reset before Track B analytic replay."
         raise HarnessError(message)
 
-    script_path = PRIVATE_ARTIFACTS / "track-b-native-analytics.py"
+    script_path = PRIVATE_ARTIFACTS / "validation-native-native-analytics.py"
     script_path.write_text(
         "\n".join([
             "import json",
@@ -3812,20 +3832,20 @@ def track_b_analytics(args: argparse.Namespace) -> dict[str, Any]:
             f"    'source_dump_sha256': {dump_sha!r},",
             f"    'source_snapshot_id': {snapshot_id!r},",
             "    'source_version': 'Odoo Online Enterprise saas~19.2',",
-            f"    'target_database': {TRACK_B_DB!r},",
+            f"    'target_database': {NATIVE_VALIDATION_DB!r},",
             "})",
             "stats = run.run_native_analytic_replay_from_source({",
             "    'source_database': 'odoo_online_source_saas_19_2',",
             f"    'source_dump_sha256': {dump_sha!r},",
             f"    'source_snapshot_id': {snapshot_id!r},",
             "    'source_version': 'Odoo Online Enterprise saas~19.2',",
-            f"    'target_database': {TRACK_B_DB!r},",
+            f"    'target_database': {NATIVE_VALIDATION_DB!r},",
             f"    'date_from': {USL_CURRENT_START!r},",
             "    'date_to': '2026-06-30',",
             "    'source_company_ids': [1],",
             "})",
             "env.cr.commit()",
-            "print('REBUILD_TRACK_B_ANALYTIC_RESULT=' + json.dumps({",
+            "print('REBUILD_NATIVE_VALIDATION_ANALYTIC_RESULT=' + json.dumps({",
             "    'run_id': run.id,",
             "    'status': run.status,",
             "    'stats': stats,",
@@ -3846,27 +3866,27 @@ def track_b_analytics(args: argparse.Namespace) -> dict[str, Any]:
             "odoo",
             "shell",
             "--config=/etc/odoo/odoo.conf",
-            f"--database={TRACK_B_DB}",
+            f"--database={NATIVE_VALIDATION_DB}",
         ),
         input_file=script_path,
         check=False,
     )
     marker = None
     for line in (result.stdout + result.stderr).splitlines():
-        if line.startswith("REBUILD_TRACK_B_ANALYTIC_RESULT="):
-            marker = line.removeprefix("REBUILD_TRACK_B_ANALYTIC_RESULT=")
+        if line.startswith("REBUILD_NATIVE_VALIDATION_ANALYTIC_RESULT="):
+            marker = line.removeprefix("REBUILD_NATIVE_VALIDATION_ANALYTIC_RESULT=")
     if result.returncode or not marker:
         status = {
             "generated_at": utc_now(),
             "tool_version": TOOL_VERSION,
-            "stage": "track-b-analytics",
+            "stage": "validation-native-analytics",
             "status": "failed",
-            "classification": "TRACK_B_EXECUTION_DEFECT",
-            "database": TRACK_B_DB,
+            "classification": "NATIVE_VALIDATION_EXECUTION_DEFECT",
+            "database": NATIVE_VALIDATION_DB,
             "exit_code": result.returncode,
             "output_tail": (result.stdout + result.stderr)[-12000:],
         }
-        write_json(PRIVATE_ARTIFACTS / "track-b-analytics-status.json", status)
+        write_json(PRIVATE_ARTIFACTS / "validation-native-analytics-status.json", status)
         if not getattr(args, "allow_errors", False):
             message = "Track B analytic replay failed. See the private status artifact."
             raise HarnessError(message)
@@ -3875,30 +3895,30 @@ def track_b_analytics(args: argparse.Namespace) -> dict[str, Any]:
     status = {
         "generated_at": utc_now(),
         "tool_version": TOOL_VERSION,
-        "stage": "track-b-analytics",
-        "database": TRACK_B_DB,
+        "stage": "validation-native-analytics",
+        "database": NATIVE_VALIDATION_DB,
         "run_id": payload["run_id"],
         "status": payload["status"],
         **payload["stats"],
     }
-    write_json(PRIVATE_ARTIFACTS / "track-b-analytics-status.json", status)
+    write_json(PRIVATE_ARTIFACTS / "validation-native-analytics-status.json", status)
     if status["status"] != "passed" and not getattr(args, "allow_errors", False):
         message = "Track B analytic replay has blocked or mismatched cases."
         raise HarnessError(message)
     return status
 
 
-def track_b_expenses(args: argparse.Namespace) -> dict[str, Any]:
+def native_validation_expenses(args: argparse.Namespace) -> dict[str, Any]:
     """Rebuild source expenses through native approval and posting workflows."""
     ensure_dirs()
     validation = validate_source(args)
     dump_sha = validation["dump"]["sha256"] or "unknown"
     snapshot_id = f"source-{dump_sha[:12]}"
-    if not table_exists(TRACK_B_DB, "rebuild_account_import_run"):
-        message = "Run make accounting-track-b-reset before Track B expense replay."
+    if not table_exists(NATIVE_VALIDATION_DB, "rebuild_account_import_run"):
+        message = "Run make accounting-validation-native-reset before Track B expense replay."
         raise HarnessError(message)
 
-    script_path = PRIVATE_ARTIFACTS / "track-b-native-expenses.py"
+    script_path = PRIVATE_ARTIFACTS / "validation-native-native-expenses.py"
     script_path.write_text(
         "\n".join([
             "import json",
@@ -3909,20 +3929,20 @@ def track_b_expenses(args: argparse.Namespace) -> dict[str, Any]:
             f"    'source_dump_sha256': {dump_sha!r},",
             f"    'source_snapshot_id': {snapshot_id!r},",
             "    'source_version': 'Odoo Online Enterprise saas~19.2',",
-            f"    'target_database': {TRACK_B_DB!r},",
+            f"    'target_database': {NATIVE_VALIDATION_DB!r},",
             "})",
             "stats = run.run_native_expense_replay_from_source({",
             "    'source_database': 'odoo_online_source_saas_19_2',",
             f"    'source_dump_sha256': {dump_sha!r},",
             f"    'source_snapshot_id': {snapshot_id!r},",
             "    'source_version': 'Odoo Online Enterprise saas~19.2',",
-            f"    'target_database': {TRACK_B_DB!r},",
+            f"    'target_database': {NATIVE_VALIDATION_DB!r},",
             f"    'date_from': {USL_CURRENT_START!r},",
             "    'date_to': '2026-06-30',",
             "    'source_company_ids': [1],",
             "})",
             "env.cr.commit()",
-            "print('REBUILD_TRACK_B_EXPENSE_RESULT=' + json.dumps({",
+            "print('REBUILD_NATIVE_VALIDATION_EXPENSE_RESULT=' + json.dumps({",
             "    'run_id': run.id,",
             "    'status': run.status,",
             "    'stats': stats,",
@@ -3943,27 +3963,27 @@ def track_b_expenses(args: argparse.Namespace) -> dict[str, Any]:
             "odoo",
             "shell",
             "--config=/etc/odoo/odoo.conf",
-            f"--database={TRACK_B_DB}",
+            f"--database={NATIVE_VALIDATION_DB}",
         ),
         input_file=script_path,
         check=False,
     )
     marker = None
     for line in (result.stdout + result.stderr).splitlines():
-        if line.startswith("REBUILD_TRACK_B_EXPENSE_RESULT="):
-            marker = line.removeprefix("REBUILD_TRACK_B_EXPENSE_RESULT=")
+        if line.startswith("REBUILD_NATIVE_VALIDATION_EXPENSE_RESULT="):
+            marker = line.removeprefix("REBUILD_NATIVE_VALIDATION_EXPENSE_RESULT=")
     if result.returncode or not marker:
         status = {
             "generated_at": utc_now(),
             "tool_version": TOOL_VERSION,
-            "stage": "track-b-expenses",
+            "stage": "validation-native-expenses",
             "status": "failed",
-            "classification": "TRACK_B_EXPENSE_EXECUTION_DEFECT",
-            "database": TRACK_B_DB,
+            "classification": "NATIVE_VALIDATION_EXPENSE_EXECUTION_DEFECT",
+            "database": NATIVE_VALIDATION_DB,
             "exit_code": result.returncode,
             "output_tail": (result.stdout + result.stderr)[-12000:],
         }
-        write_json(PRIVATE_ARTIFACTS / "track-b-expenses-status.json", status)
+        write_json(PRIVATE_ARTIFACTS / "validation-native-expenses-status.json", status)
         if not getattr(args, "allow_errors", False):
             message = "Track B expense replay failed. See the private status artifact."
             raise HarnessError(message)
@@ -3972,30 +3992,30 @@ def track_b_expenses(args: argparse.Namespace) -> dict[str, Any]:
     status = {
         "generated_at": utc_now(),
         "tool_version": TOOL_VERSION,
-        "stage": "track-b-expenses",
-        "database": TRACK_B_DB,
+        "stage": "validation-native-expenses",
+        "database": NATIVE_VALIDATION_DB,
         "run_id": payload["run_id"],
         "status": payload["status"],
         **payload["stats"],
     }
-    write_json(PRIVATE_ARTIFACTS / "track-b-expenses-status.json", status)
+    write_json(PRIVATE_ARTIFACTS / "validation-native-expenses-status.json", status)
     if status["status"] != "passed" and not getattr(args, "allow_errors", False):
         message = "Track B expense replay has blocked or mismatched cases."
         raise HarnessError(message)
     return status
 
 
-def track_b_expense_settlement(args: argparse.Namespace) -> dict[str, Any]:
+def native_validation_expense_settlement(args: argparse.Namespace) -> dict[str, Any]:
     """Replay expense-related bank matching through OCA reconciliation."""
     ensure_dirs()
     validation = validate_source(args)
     dump_sha = validation["dump"]["sha256"] or "unknown"
     snapshot_id = f"source-{dump_sha[:12]}"
-    if not table_exists(TRACK_B_DB, "rebuild_account_import_run"):
-        message = "Run make accounting-track-b-reset before Track B expense settlement."
+    if not table_exists(NATIVE_VALIDATION_DB, "rebuild_account_import_run"):
+        message = "Run make accounting-validation-native-reset before Track B expense settlement."
         raise HarnessError(message)
 
-    script_path = PRIVATE_ARTIFACTS / "track-b-native-expense-settlement.py"
+    script_path = PRIVATE_ARTIFACTS / "validation-native-native-expense-settlement.py"
     script_path.write_text(
         "\n".join([
             "import json",
@@ -4006,20 +4026,20 @@ def track_b_expense_settlement(args: argparse.Namespace) -> dict[str, Any]:
             f"    'source_dump_sha256': {dump_sha!r},",
             f"    'source_snapshot_id': {snapshot_id!r},",
             "    'source_version': 'Odoo Online Enterprise saas~19.2',",
-            f"    'target_database': {TRACK_B_DB!r},",
+            f"    'target_database': {NATIVE_VALIDATION_DB!r},",
             "})",
             "stats = run.run_native_expense_settlement_from_source({",
             "    'source_database': 'odoo_online_source_saas_19_2',",
             f"    'source_dump_sha256': {dump_sha!r},",
             f"    'source_snapshot_id': {snapshot_id!r},",
             "    'source_version': 'Odoo Online Enterprise saas~19.2',",
-            f"    'target_database': {TRACK_B_DB!r},",
+            f"    'target_database': {NATIVE_VALIDATION_DB!r},",
             f"    'date_from': {USL_CURRENT_START!r},",
             "    'date_to': '2026-06-30',",
             "    'source_company_ids': [1],",
             "})",
             "env.cr.commit()",
-            "print('REBUILD_TRACK_B_EXPENSE_SETTLEMENT_RESULT=' + json.dumps({",
+            "print('REBUILD_NATIVE_VALIDATION_EXPENSE_SETTLEMENT_RESULT=' + json.dumps({",
             "    'run_id': run.id,",
             "    'status': run.status,",
             "    'stats': stats,",
@@ -4040,27 +4060,27 @@ def track_b_expense_settlement(args: argparse.Namespace) -> dict[str, Any]:
             "odoo",
             "shell",
             "--config=/etc/odoo/odoo.conf",
-            f"--database={TRACK_B_DB}",
+            f"--database={NATIVE_VALIDATION_DB}",
         ),
         input_file=script_path,
         check=False,
     )
     marker = None
     for line in (result.stdout + result.stderr).splitlines():
-        if line.startswith("REBUILD_TRACK_B_EXPENSE_SETTLEMENT_RESULT="):
-            marker = line.removeprefix("REBUILD_TRACK_B_EXPENSE_SETTLEMENT_RESULT=")
+        if line.startswith("REBUILD_NATIVE_VALIDATION_EXPENSE_SETTLEMENT_RESULT="):
+            marker = line.removeprefix("REBUILD_NATIVE_VALIDATION_EXPENSE_SETTLEMENT_RESULT=")
     if result.returncode or not marker:
         status = {
             "generated_at": utc_now(),
             "tool_version": TOOL_VERSION,
-            "stage": "track-b-expense-settlement",
+            "stage": "validation-native-expense-settlement",
             "status": "failed",
-            "classification": "TRACK_B_EXPENSE_SETTLEMENT_EXECUTION_DEFECT",
-            "database": TRACK_B_DB,
+            "classification": "NATIVE_VALIDATION_EXPENSE_SETTLEMENT_EXECUTION_DEFECT",
+            "database": NATIVE_VALIDATION_DB,
             "exit_code": result.returncode,
             "output_tail": (result.stdout + result.stderr)[-12000:],
         }
-        write_json(PRIVATE_ARTIFACTS / "track-b-expense-settlement-status.json", status)
+        write_json(PRIVATE_ARTIFACTS / "validation-native-expense-settlement-status.json", status)
         if not getattr(args, "allow_errors", False):
             message = "Track B expense settlement failed. See the private status artifact."
             raise HarnessError(message)
@@ -4069,30 +4089,30 @@ def track_b_expense_settlement(args: argparse.Namespace) -> dict[str, Any]:
     status = {
         "generated_at": utc_now(),
         "tool_version": TOOL_VERSION,
-        "stage": "track-b-expense-settlement",
-        "database": TRACK_B_DB,
+        "stage": "validation-native-expense-settlement",
+        "database": NATIVE_VALIDATION_DB,
         "run_id": payload["run_id"],
         "status": payload["status"],
         **payload["stats"],
     }
-    write_json(PRIVATE_ARTIFACTS / "track-b-expense-settlement-status.json", status)
+    write_json(PRIVATE_ARTIFACTS / "validation-native-expense-settlement-status.json", status)
     if status["status"] != "passed" and not getattr(args, "allow_errors", False):
         message = "Track B expense settlement has blocked or mismatched cases."
         raise HarnessError(message)
     return status
 
 
-def track_b_document_settlement(args: argparse.Namespace) -> dict[str, Any]:
+def native_validation_document_settlement(args: argparse.Namespace) -> dict[str, Any]:
     """Replay commercial-document bank matching through OCA reconciliation."""
     ensure_dirs()
     validation = validate_source(args)
     dump_sha = validation["dump"]["sha256"] or "unknown"
     snapshot_id = f"source-{dump_sha[:12]}"
-    if not table_exists(TRACK_B_DB, "rebuild_account_import_run"):
-        message = "Run make accounting-track-b-reset before document settlement."
+    if not table_exists(NATIVE_VALIDATION_DB, "rebuild_account_import_run"):
+        message = "Run make accounting-validation-native-reset before document settlement."
         raise HarnessError(message)
 
-    script_path = PRIVATE_ARTIFACTS / "track-b-native-document-settlement.py"
+    script_path = PRIVATE_ARTIFACTS / "validation-native-native-document-settlement.py"
     script_path.write_text(
         "\n".join([
             "import json",
@@ -4103,20 +4123,20 @@ def track_b_document_settlement(args: argparse.Namespace) -> dict[str, Any]:
             f"    'source_dump_sha256': {dump_sha!r},",
             f"    'source_snapshot_id': {snapshot_id!r},",
             "    'source_version': 'Odoo Online Enterprise saas~19.2',",
-            f"    'target_database': {TRACK_B_DB!r},",
+            f"    'target_database': {NATIVE_VALIDATION_DB!r},",
             "})",
             "stats = run.run_native_document_settlement_from_source({",
             "    'source_database': 'odoo_online_source_saas_19_2',",
             f"    'source_dump_sha256': {dump_sha!r},",
             f"    'source_snapshot_id': {snapshot_id!r},",
             "    'source_version': 'Odoo Online Enterprise saas~19.2',",
-            f"    'target_database': {TRACK_B_DB!r},",
+            f"    'target_database': {NATIVE_VALIDATION_DB!r},",
             f"    'date_from': {USL_CURRENT_START!r},",
             "    'date_to': '2026-06-30',",
             "    'source_company_ids': [1],",
             "})",
             "env.cr.commit()",
-            "print('REBUILD_TRACK_B_DOCUMENT_SETTLEMENT_RESULT=' + json.dumps({",
+            "print('REBUILD_NATIVE_VALIDATION_DOCUMENT_SETTLEMENT_RESULT=' + json.dumps({",
             "    'run_id': run.id,",
             "    'status': run.status,",
             "    'stats': stats,",
@@ -4137,26 +4157,26 @@ def track_b_document_settlement(args: argparse.Namespace) -> dict[str, Any]:
             "odoo",
             "shell",
             "--config=/etc/odoo/odoo.conf",
-            f"--database={TRACK_B_DB}",
+            f"--database={NATIVE_VALIDATION_DB}",
         ),
         input_file=script_path,
         check=False,
     )
     marker = None
     for line in (result.stdout + result.stderr).splitlines():
-        if line.startswith("REBUILD_TRACK_B_DOCUMENT_SETTLEMENT_RESULT="):
+        if line.startswith("REBUILD_NATIVE_VALIDATION_DOCUMENT_SETTLEMENT_RESULT="):
             marker = line.removeprefix(
-                "REBUILD_TRACK_B_DOCUMENT_SETTLEMENT_RESULT=",
+                "REBUILD_NATIVE_VALIDATION_DOCUMENT_SETTLEMENT_RESULT=",
             )
-    artifact_path = PRIVATE_ARTIFACTS / "track-b-document-settlement-status.json"
+    artifact_path = PRIVATE_ARTIFACTS / "validation-native-document-settlement-status.json"
     if result.returncode or not marker:
         status = {
             "generated_at": utc_now(),
             "tool_version": TOOL_VERSION,
-            "stage": "track-b-document-settlement",
+            "stage": "validation-native-document-settlement",
             "status": "failed",
-            "classification": "TRACK_B_DOCUMENT_SETTLEMENT_EXECUTION_DEFECT",
-            "database": TRACK_B_DB,
+            "classification": "NATIVE_VALIDATION_DOCUMENT_SETTLEMENT_EXECUTION_DEFECT",
+            "database": NATIVE_VALIDATION_DB,
             "exit_code": result.returncode,
             "output_tail": (result.stdout + result.stderr)[-12000:],
         }
@@ -4169,8 +4189,8 @@ def track_b_document_settlement(args: argparse.Namespace) -> dict[str, Any]:
     status = {
         "generated_at": utc_now(),
         "tool_version": TOOL_VERSION,
-        "stage": "track-b-document-settlement",
-        "database": TRACK_B_DB,
+        "stage": "validation-native-document-settlement",
+        "database": NATIVE_VALIDATION_DB,
         "run_id": payload["run_id"],
         "status": payload["status"],
         **payload["stats"],
@@ -4182,17 +4202,17 @@ def track_b_document_settlement(args: argparse.Namespace) -> dict[str, Any]:
     return status
 
 
-def track_b_general_reconciliation(args: argparse.Namespace) -> dict[str, Any]:
+def native_validation_general_reconciliation(args: argparse.Namespace) -> dict[str, Any]:
     """Replay non-bank document settlement through native reconciliation."""
     ensure_dirs()
     validation = validate_source(args)
     dump_sha = validation["dump"]["sha256"] or "unknown"
     snapshot_id = f"source-{dump_sha[:12]}"
-    if not table_exists(TRACK_B_DB, "rebuild_account_import_run"):
-        message = "Run make accounting-track-b-reset before General Reconciliation."
+    if not table_exists(NATIVE_VALIDATION_DB, "rebuild_account_import_run"):
+        message = "Run make accounting-validation-native-reset before General Reconciliation."
         raise HarnessError(message)
 
-    script_path = PRIVATE_ARTIFACTS / "track-b-native-general-reconciliation.py"
+    script_path = PRIVATE_ARTIFACTS / "validation-native-native-general-reconciliation.py"
     script_path.write_text(
         "\n".join([
             "import json",
@@ -4203,20 +4223,20 @@ def track_b_general_reconciliation(args: argparse.Namespace) -> dict[str, Any]:
             f"    'source_dump_sha256': {dump_sha!r},",
             f"    'source_snapshot_id': {snapshot_id!r},",
             "    'source_version': 'Odoo Online Enterprise saas~19.2',",
-            f"    'target_database': {TRACK_B_DB!r},",
+            f"    'target_database': {NATIVE_VALIDATION_DB!r},",
             "})",
             "stats = run.run_native_general_reconciliation_from_source({",
             "    'source_database': 'odoo_online_source_saas_19_2',",
             f"    'source_dump_sha256': {dump_sha!r},",
             f"    'source_snapshot_id': {snapshot_id!r},",
             "    'source_version': 'Odoo Online Enterprise saas~19.2',",
-            f"    'target_database': {TRACK_B_DB!r},",
+            f"    'target_database': {NATIVE_VALIDATION_DB!r},",
             f"    'date_from': {USL_CURRENT_START!r},",
             "    'date_to': '2026-06-30',",
             "    'source_company_ids': [1],",
             "})",
             "env.cr.commit()",
-            "print('REBUILD_TRACK_B_GENERAL_RECONCILIATION_RESULT=' + json.dumps({",
+            "print('REBUILD_NATIVE_VALIDATION_GENERAL_RECONCILIATION_RESULT=' + json.dumps({",
             "    'run_id': run.id,",
             "    'status': run.status,",
             "    'stats': stats,",
@@ -4237,26 +4257,26 @@ def track_b_general_reconciliation(args: argparse.Namespace) -> dict[str, Any]:
             "odoo",
             "shell",
             "--config=/etc/odoo/odoo.conf",
-            f"--database={TRACK_B_DB}",
+            f"--database={NATIVE_VALIDATION_DB}",
         ),
         input_file=script_path,
         check=False,
     )
     marker = None
     for line in (result.stdout + result.stderr).splitlines():
-        if line.startswith("REBUILD_TRACK_B_GENERAL_RECONCILIATION_RESULT="):
+        if line.startswith("REBUILD_NATIVE_VALIDATION_GENERAL_RECONCILIATION_RESULT="):
             marker = line.removeprefix(
-                "REBUILD_TRACK_B_GENERAL_RECONCILIATION_RESULT=",
+                "REBUILD_NATIVE_VALIDATION_GENERAL_RECONCILIATION_RESULT=",
             )
-    artifact_path = PRIVATE_ARTIFACTS / "track-b-general-reconciliation-status.json"
+    artifact_path = PRIVATE_ARTIFACTS / "validation-native-general-reconciliation-status.json"
     if result.returncode or not marker:
         status = {
             "generated_at": utc_now(),
             "tool_version": TOOL_VERSION,
-            "stage": "track-b-general-reconciliation",
+            "stage": "validation-native-general-reconciliation",
             "status": "failed",
-            "classification": "TRACK_B_GENERAL_RECONCILIATION_EXECUTION_DEFECT",
-            "database": TRACK_B_DB,
+            "classification": "NATIVE_VALIDATION_GENERAL_RECONCILIATION_EXECUTION_DEFECT",
+            "database": NATIVE_VALIDATION_DB,
             "exit_code": result.returncode,
             "output_tail": (result.stdout + result.stderr)[-12000:],
         }
@@ -4272,8 +4292,8 @@ def track_b_general_reconciliation(args: argparse.Namespace) -> dict[str, Any]:
     status = {
         "generated_at": utc_now(),
         "tool_version": TOOL_VERSION,
-        "stage": "track-b-general-reconciliation",
-        "database": TRACK_B_DB,
+        "stage": "validation-native-general-reconciliation",
+        "database": NATIVE_VALIDATION_DB,
         "run_id": payload["run_id"],
         "status": payload["status"],
         **payload["stats"],
@@ -4285,17 +4305,17 @@ def track_b_general_reconciliation(args: argparse.Namespace) -> dict[str, Any]:
     return status
 
 
-def track_b_bank_categorization(args: argparse.Namespace) -> dict[str, Any]:
+def native_validation_bank_categorization(args: argparse.Namespace) -> dict[str, Any]:
     """Replay direct bank categorization and source-open transactions."""
     ensure_dirs()
     validation = validate_source(args)
     dump_sha = validation["dump"]["sha256"] or "unknown"
     snapshot_id = f"source-{dump_sha[:12]}"
-    if not table_exists(TRACK_B_DB, "rebuild_account_import_run"):
-        message = "Run make accounting-track-b-reset before bank categorization."
+    if not table_exists(NATIVE_VALIDATION_DB, "rebuild_account_import_run"):
+        message = "Run make accounting-validation-native-reset before bank categorization."
         raise HarnessError(message)
 
-    script_path = PRIVATE_ARTIFACTS / "track-b-native-bank-categorization.py"
+    script_path = PRIVATE_ARTIFACTS / "validation-native-native-bank-categorization.py"
     script_path.write_text(
         "\n".join([
             "import json",
@@ -4306,20 +4326,20 @@ def track_b_bank_categorization(args: argparse.Namespace) -> dict[str, Any]:
             f"    'source_dump_sha256': {dump_sha!r},",
             f"    'source_snapshot_id': {snapshot_id!r},",
             "    'source_version': 'Odoo Online Enterprise saas~19.2',",
-            f"    'target_database': {TRACK_B_DB!r},",
+            f"    'target_database': {NATIVE_VALIDATION_DB!r},",
             "})",
             "stats = run.run_native_bank_categorization_from_source({",
             "    'source_database': 'odoo_online_source_saas_19_2',",
             f"    'source_dump_sha256': {dump_sha!r},",
             f"    'source_snapshot_id': {snapshot_id!r},",
             "    'source_version': 'Odoo Online Enterprise saas~19.2',",
-            f"    'target_database': {TRACK_B_DB!r},",
+            f"    'target_database': {NATIVE_VALIDATION_DB!r},",
             f"    'date_from': {USL_CURRENT_START!r},",
             "    'date_to': '2026-06-30',",
             "    'source_company_ids': [1],",
             "})",
             "env.cr.commit()",
-            "print('REBUILD_TRACK_B_BANK_CATEGORIZATION_RESULT=' + json.dumps({",
+            "print('REBUILD_NATIVE_VALIDATION_BANK_CATEGORIZATION_RESULT=' + json.dumps({",
             "    'run_id': run.id,",
             "    'status': run.status,",
             "    'stats': stats,",
@@ -4340,26 +4360,26 @@ def track_b_bank_categorization(args: argparse.Namespace) -> dict[str, Any]:
             "odoo",
             "shell",
             "--config=/etc/odoo/odoo.conf",
-            f"--database={TRACK_B_DB}",
+            f"--database={NATIVE_VALIDATION_DB}",
         ),
         input_file=script_path,
         check=False,
     )
     marker = None
     for line in (result.stdout + result.stderr).splitlines():
-        if line.startswith("REBUILD_TRACK_B_BANK_CATEGORIZATION_RESULT="):
+        if line.startswith("REBUILD_NATIVE_VALIDATION_BANK_CATEGORIZATION_RESULT="):
             marker = line.removeprefix(
-                "REBUILD_TRACK_B_BANK_CATEGORIZATION_RESULT=",
+                "REBUILD_NATIVE_VALIDATION_BANK_CATEGORIZATION_RESULT=",
             )
-    artifact_path = PRIVATE_ARTIFACTS / "track-b-bank-categorization-status.json"
+    artifact_path = PRIVATE_ARTIFACTS / "validation-native-bank-categorization-status.json"
     if result.returncode or not marker:
         status = {
             "generated_at": utc_now(),
             "tool_version": TOOL_VERSION,
-            "stage": "track-b-bank-categorization",
+            "stage": "validation-native-bank-categorization",
             "status": "failed",
-            "classification": "TRACK_B_BANK_CATEGORIZATION_EXECUTION_DEFECT",
-            "database": TRACK_B_DB,
+            "classification": "NATIVE_VALIDATION_BANK_CATEGORIZATION_EXECUTION_DEFECT",
+            "database": NATIVE_VALIDATION_DB,
             "exit_code": result.returncode,
             "output_tail": (result.stdout + result.stderr)[-12000:],
         }
@@ -4375,8 +4395,8 @@ def track_b_bank_categorization(args: argparse.Namespace) -> dict[str, Any]:
     status = {
         "generated_at": utc_now(),
         "tool_version": TOOL_VERSION,
-        "stage": "track-b-bank-categorization",
-        "database": TRACK_B_DB,
+        "stage": "validation-native-bank-categorization",
+        "database": NATIVE_VALIDATION_DB,
         "run_id": payload["run_id"],
         "status": payload["status"],
         **payload["stats"],
@@ -4388,17 +4408,17 @@ def track_b_bank_categorization(args: argparse.Namespace) -> dict[str, Any]:
     return status
 
 
-def track_b_bank_external(args: argparse.Namespace) -> dict[str, Any]:
+def native_validation_bank_external(args: argparse.Namespace) -> dict[str, Any]:
     """Replay the final current-period external-endpoint bank perimeter."""
     ensure_dirs()
     validation = validate_source(args)
     dump_sha = validation["dump"]["sha256"] or "unknown"
     snapshot_id = f"source-{dump_sha[:12]}"
-    if not table_exists(TRACK_B_DB, "rebuild_account_import_run"):
-        message = "Run make accounting-track-b-reset before external bank replay."
+    if not table_exists(NATIVE_VALIDATION_DB, "rebuild_account_import_run"):
+        message = "Run make accounting-validation-native-reset before external bank replay."
         raise HarnessError(message)
 
-    script_path = PRIVATE_ARTIFACTS / "track-b-native-bank-external.py"
+    script_path = PRIVATE_ARTIFACTS / "validation-native-native-bank-external.py"
     script_path.write_text(
         "\n".join([
             "import json",
@@ -4409,20 +4429,20 @@ def track_b_bank_external(args: argparse.Namespace) -> dict[str, Any]:
             f"    'source_dump_sha256': {dump_sha!r},",
             f"    'source_snapshot_id': {snapshot_id!r},",
             "    'source_version': 'Odoo Online Enterprise saas~19.2',",
-            f"    'target_database': {TRACK_B_DB!r},",
+            f"    'target_database': {NATIVE_VALIDATION_DB!r},",
             "})",
             "stats = run.run_native_bank_external_replay_from_source({",
             "    'source_database': 'odoo_online_source_saas_19_2',",
             f"    'source_dump_sha256': {dump_sha!r},",
             f"    'source_snapshot_id': {snapshot_id!r},",
             "    'source_version': 'Odoo Online Enterprise saas~19.2',",
-            f"    'target_database': {TRACK_B_DB!r},",
+            f"    'target_database': {NATIVE_VALIDATION_DB!r},",
             f"    'date_from': {USL_CURRENT_START!r},",
             "    'date_to': '2026-06-30',",
             "    'source_company_ids': [1],",
             "})",
             "env.cr.commit()",
-            "print('REBUILD_TRACK_B_BANK_EXTERNAL_RESULT=' + json.dumps({",
+            "print('REBUILD_NATIVE_VALIDATION_BANK_EXTERNAL_RESULT=' + json.dumps({",
             "    'run_id': run.id,",
             "    'status': run.status,",
             "    'stats': stats,",
@@ -4443,24 +4463,24 @@ def track_b_bank_external(args: argparse.Namespace) -> dict[str, Any]:
             "odoo",
             "shell",
             "--config=/etc/odoo/odoo.conf",
-            f"--database={TRACK_B_DB}",
+            f"--database={NATIVE_VALIDATION_DB}",
         ),
         input_file=script_path,
         check=False,
     )
     marker = None
     for line in (result.stdout + result.stderr).splitlines():
-        if line.startswith("REBUILD_TRACK_B_BANK_EXTERNAL_RESULT="):
-            marker = line.removeprefix("REBUILD_TRACK_B_BANK_EXTERNAL_RESULT=")
-    artifact_path = PRIVATE_ARTIFACTS / "track-b-bank-external-status.json"
+        if line.startswith("REBUILD_NATIVE_VALIDATION_BANK_EXTERNAL_RESULT="):
+            marker = line.removeprefix("REBUILD_NATIVE_VALIDATION_BANK_EXTERNAL_RESULT=")
+    artifact_path = PRIVATE_ARTIFACTS / "validation-native-bank-external-status.json"
     if result.returncode or not marker:
         status = {
             "generated_at": utc_now(),
             "tool_version": TOOL_VERSION,
-            "stage": "track-b-bank-external",
+            "stage": "validation-native-bank-external",
             "status": "failed",
-            "classification": "TRACK_B_BANK_EXTERNAL_EXECUTION_DEFECT",
-            "database": TRACK_B_DB,
+            "classification": "NATIVE_VALIDATION_BANK_EXTERNAL_EXECUTION_DEFECT",
+            "database": NATIVE_VALIDATION_DB,
             "exit_code": result.returncode,
             "output_tail": (result.stdout + result.stderr)[-12000:],
         }
@@ -4473,8 +4493,8 @@ def track_b_bank_external(args: argparse.Namespace) -> dict[str, Any]:
     status = {
         "generated_at": utc_now(),
         "tool_version": TOOL_VERSION,
-        "stage": "track-b-bank-external",
-        "database": TRACK_B_DB,
+        "stage": "validation-native-bank-external",
+        "database": NATIVE_VALIDATION_DB,
         "run_id": payload["run_id"],
         "status": payload["status"],
         **payload["stats"],
@@ -4492,20 +4512,20 @@ def target_import(args: argparse.Namespace) -> dict[str, Any]:
     dump_sha = validation["dump"]["sha256"] or "unknown"
     snapshot_id = f"source-{dump_sha[:12]}"
     import_date_to = source_snapshot_date() or USL_BENCHMARK_END
-    if not table_exists(TARGET_DB, "rebuild_account_import_run"):
+    if not table_exists(EXACT_VALIDATION_DB, "rebuild_account_import_run"):
         status = {
             "generated_at": utc_now(),
             "tool_version": TOOL_VERSION,
-            "stage": "target-import",
+            "stage": "validation-exact-import",
             "status": "failed",
             "classification": "MISSING_TARGET_MODEL",
-            "reason": f"{TARGET_DB} does not have rebuild_account_migration installed.",
-            "next_action": "Run make accounting-target-reset before target import.",
+            "reason": f"{EXACT_VALIDATION_DB} does not have rebuild_account_migration installed.",
+            "next_action": "Run make accounting-validation-exact-reset before target import.",
         }
-        write_json(PRIVATE_ARTIFACTS / "target-import-status.json", status)
+        write_json(PRIVATE_ARTIFACTS / "validation-exact-import-status.json", status)
         raise HarnessError(status["reason"])
 
-    import_script = PRIVATE_ARTIFACTS / "target-import-exact-ledger.py"
+    import_script = PRIVATE_ARTIFACTS / "validation-exact-import-exact-ledger.py"
     import_script.write_text(
         "\n".join(
             [
@@ -4517,14 +4537,14 @@ def target_import(args: argparse.Namespace) -> dict[str, Any]:
                 f"    'source_dump_sha256': {dump_sha!r},",
                 f"    'source_snapshot_id': {snapshot_id!r},",
                 "    'source_version': 'Odoo Online Enterprise saas~19.2',",
-                f"    'target_database': {TARGET_DB!r},",
+                f"    'target_database': {EXACT_VALIDATION_DB!r},",
                 "})",
                 "stats = run.run_exact_ledger_replay_from_source({",
                 "    'source_database': 'odoo_online_source_saas_19_2',",
                 f"    'source_dump_sha256': {dump_sha!r},",
                 f"    'source_snapshot_id': {snapshot_id!r},",
                 "    'source_version': 'Odoo Online Enterprise saas~19.2',",
-                f"    'target_database': {TARGET_DB!r},",
+                f"    'target_database': {EXACT_VALIDATION_DB!r},",
                 f"    'date_from': {USL_BENCHMARK_START!r},",
                 f"    'date_to': {import_date_to!r},",
                 "    'source_company_ids': [1, 8],",
@@ -4548,7 +4568,7 @@ def target_import(args: argparse.Namespace) -> dict[str, Any]:
             "odoo",
             "shell",
             "--config=/etc/odoo/odoo.conf",
-            f"--database={TARGET_DB}",
+            f"--database={EXACT_VALIDATION_DB}",
         ),
         input_file=import_script,
         check=False,
@@ -4557,7 +4577,7 @@ def target_import(args: argparse.Namespace) -> dict[str, Any]:
         status = {
             "generated_at": utc_now(),
             "tool_version": TOOL_VERSION,
-            "stage": "target-import",
+            "stage": "validation-exact-import",
             "status": "failed",
             "classification": "IMPORT_DEFECT",
             "script": str(import_script.relative_to(ROOT)),
@@ -4565,11 +4585,11 @@ def target_import(args: argparse.Namespace) -> dict[str, Any]:
             "output_tail": (result.stdout + result.stderr)[-8000:],
             "next_action": "Inspect the target import output and source/target field mapping that failed.",
         }
-        write_json(PRIVATE_ARTIFACTS / "target-import-status.json", status)
-        raise HarnessError("Target import failed. See artifacts/accounting-compat/private/target-import-status.json")
+        write_json(PRIVATE_ARTIFACTS / "validation-exact-import-status.json", status)
+        raise HarnessError("Target import failed. See artifacts/accounting-compat/private/validation-exact-import-status.json")
 
     run_row = query_json(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT to_jsonb(r)
         FROM (
@@ -4600,41 +4620,41 @@ def target_import(args: argparse.Namespace) -> dict[str, Any]:
     status = {
         "generated_at": utc_now(),
         "tool_version": TOOL_VERSION,
-        "stage": "target-import",
+        "stage": "validation-exact-import",
         "status": "partial" if run_row and run_row.get("status") == "partial" else "passed",
         "classification": "POSTED_SOURCE_REPLAY_THROUGH_SNAPSHOT",
         "script": str(import_script.relative_to(ROOT)),
         "import_run": run_row,
-        "record_counts": target_table_counts(TARGET_DB),
+        "record_counts": target_table_counts(EXACT_VALIDATION_DB),
     }
-    write_json(PRIVATE_ARTIFACTS / "target-import-status.json", status)
+    write_json(PRIVATE_ARTIFACTS / "validation-exact-import-status.json", status)
     return status
 
 
 def target_idempotence(args: argparse.Namespace) -> dict[str, Any]:
     ensure_dirs()
-    if not table_exists(TARGET_DB, "rebuild_account_import_run"):
+    if not table_exists(EXACT_VALIDATION_DB, "rebuild_account_import_run"):
         status = {
             "generated_at": utc_now(),
             "tool_version": TOOL_VERSION,
-            "stage": "target-idempotence",
+            "stage": "validation-exact-idempotence",
             "status": "failed",
             "classification": "MISSING_TARGET_MODEL",
-            "reason": f"{TARGET_DB} does not have rebuild_account_migration installed.",
-            "next_action": "Run make accounting-target-reset and make accounting-target-import first.",
+            "reason": f"{EXACT_VALIDATION_DB} does not have rebuild_account_migration installed.",
+            "next_action": "Run make accounting-validation-exact-reset and make accounting-validation-exact-import first.",
         }
-        write_json(PRIVATE_ARTIFACTS / "target-idempotence-status.json", status)
+        write_json(PRIVATE_ARTIFACTS / "validation-exact-idempotence-status.json", status)
         raise HarnessError(status["reason"])
 
     before_import_run_count = scalar(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         "SELECT count(*)::text FROM rebuild_account_import_run",
         set_readonly_role=False,
     ) or "0"
     before_signature = target_idempotence_signature()
     rerun_import = target_import(args)
     after_import_run_count = scalar(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         "SELECT count(*)::text FROM rebuild_account_import_run",
         set_readonly_role=False,
     ) or "0"
@@ -4651,7 +4671,7 @@ def target_idempotence(args: argparse.Namespace) -> dict[str, Any]:
     status = {
         "generated_at": utc_now(),
         "tool_version": TOOL_VERSION,
-        "stage": "target-idempotence",
+        "stage": "validation-exact-idempotence",
         "status": "passed" if signature_matches and import_run_delta == 1 and validation.get("status") == "passed" and not duplicate_failures else "failed",
         "classification": "TARGET_IMPORT_IDEMPOTENCE_GUARDRAIL",
         "before_import_run_count": before_import_run_count,
@@ -4668,10 +4688,10 @@ def target_idempotence(args: argparse.Namespace) -> dict[str, Any]:
         "limitations": [
             "This stage verifies that a repeated exact-ledger import does not duplicate accounting consequences.",
             "The import-run audit row is expected to increase by one.",
-            "Rollback-only duplicate-trace, missing-account, missing-tax and incomplete-reconciliation probes are covered by make accounting-target-failure-tests.",
+            "Rollback-only duplicate-trace, missing-account, missing-tax and incomplete-reconciliation probes are covered by make accounting-validation-exact-failure-tests.",
         ],
     }
-    write_json(PRIVATE_ARTIFACTS / "target-idempotence-status.json", status)
+    write_json(PRIVATE_ARTIFACTS / "validation-exact-idempotence-status.json", status)
     if status["status"] != "passed" and not getattr(args, "allow_errors", False):
         raise HarnessError("Target import idempotence guardrail failed")
     return status
@@ -4679,26 +4699,26 @@ def target_idempotence(args: argparse.Namespace) -> dict[str, Any]:
 
 def target_failure_tests(args: argparse.Namespace) -> dict[str, Any]:
     ensure_dirs()
-    if not table_exists(TARGET_DB, "rebuild_account_move_review"):
+    if not table_exists(EXACT_VALIDATION_DB, "rebuild_account_move_review"):
         status = {
             "generated_at": utc_now(),
             "tool_version": TOOL_VERSION,
-            "stage": "target-failure-tests",
+            "stage": "validation-exact-failure-tests",
             "status": "failed",
             "classification": "MISSING_TARGET_MODEL",
-            "reason": f"{TARGET_DB} does not have imported rebuild account review records.",
-            "next_action": "Run make accounting-target-import before target failure tests.",
+            "reason": f"{EXACT_VALIDATION_DB} does not have imported rebuild account review records.",
+            "next_action": "Run make accounting-validation-exact-import before target failure tests.",
         }
-        write_json(PRIVATE_ARTIFACTS / "target-failure-tests-status.json", status)
+        write_json(PRIVATE_ARTIFACTS / "validation-exact-failure-tests-status.json", status)
         raise HarnessError(status["reason"])
 
     before_signature = target_idempotence_signature()
-    failure_script = PRIVATE_ARTIFACTS / "target-failure-tests.py"
+    failure_script = PRIVATE_ARTIFACTS / "validation-exact-failure-tests.py"
     failure_script.write_text(
         "\n".join(
             [
                 "import json",
-                "payload = {'stage': 'target-failure-tests', 'cases': []}",
+                "payload = {'stage': 'validation-exact-failure-tests', 'cases': []}",
                 "Review = env['rebuild.account.move.review']",
                 "sample = Review.search([",
                 "    ('rebuild_source_model', '!=', False),",
@@ -5123,7 +5143,7 @@ def target_failure_tests(args: argparse.Namespace) -> dict[str, Any]:
             "odoo",
             "shell",
             "--config=/etc/odoo/odoo.conf",
-            f"--database={TARGET_DB}",
+            f"--database={EXACT_VALIDATION_DB}",
         ),
         input_file=failure_script,
         check=False,
@@ -5137,7 +5157,7 @@ def target_failure_tests(args: argparse.Namespace) -> dict[str, Any]:
     status = {
         "generated_at": utc_now(),
         "tool_version": TOOL_VERSION,
-        "stage": "target-failure-tests",
+        "stage": "validation-exact-failure-tests",
         "status": "passed" if result.returncode == 0 and shell_payload and shell_payload.get("status") == "passed" and before_signature == after_signature else "failed",
         "classification": "TARGET_FAILURE_GUARDRAILS",
         "script": str(failure_script.relative_to(ROOT)),
@@ -5150,7 +5170,7 @@ def target_failure_tests(args: argparse.Namespace) -> dict[str, Any]:
             "These probes are rollback-only guardrails and do not replace accountant review of real missing or corrupted evidence.",
         ],
     }
-    write_json(PRIVATE_ARTIFACTS / "target-failure-tests-status.json", status)
+    write_json(PRIVATE_ARTIFACTS / "validation-exact-failure-tests-status.json", status)
     if status["status"] != "passed" and not getattr(args, "allow_errors", False):
         raise HarnessError("Target failure guardrails did not pass")
     return status
@@ -5217,7 +5237,7 @@ def source_posted_summary() -> dict[str, Any]:
 
 def target_posted_summary() -> dict[str, Any]:
     move_summary = query_json(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT jsonb_build_object(
             'move_count', count(*)::text,
@@ -5232,7 +5252,7 @@ def target_posted_summary() -> dict[str, Any]:
         set_readonly_role=False,
     )
     line_summary = query_json(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT jsonb_build_object(
             'move_line_count', count(*)::text,
@@ -5273,7 +5293,7 @@ def source_posted_line_amount_profile() -> dict[str, Any]:
 
 def target_posted_line_amount_profile() -> dict[str, Any]:
     return query_json(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT jsonb_build_object(
             'move_line_count', count(*)::text,
@@ -5360,7 +5380,7 @@ def source_currency_rate_rows() -> list[dict[str, Any]]:
 
 def target_currency_rate_rows() -> list[dict[str, Any]]:
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT rate.rebuild_source_id::text AS source_currency_rate_id,
                currency.name::text AS currency,
@@ -5396,7 +5416,7 @@ def currency_rate_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
 def target_full_replay_company_rows() -> list[dict[str, Any]]:
     snapshot = source_snapshot_date() or USL_BENCHMARK_END
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         WITH scope_moves AS (
             SELECT am.id, company.rebuild_source_id AS source_company_id
@@ -5481,7 +5501,7 @@ def source_move_backed_payment_rows() -> list[dict[str, Any]]:
 
 def target_move_backed_payment_rows() -> list[dict[str, Any]]:
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT pay.rebuild_source_id::text AS source_payment_id,
                move.rebuild_source_id::text AS source_move_id,
@@ -5555,7 +5575,7 @@ def source_no_entry_payment_rows() -> list[dict[str, Any]]:
 def target_no_entry_payment_rows() -> list[dict[str, Any]]:
     snapshot = source_snapshot_date() or USL_BENCHMARK_END
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         f"""
         SELECT review.rebuild_source_id::text AS source_payment_id,
                review.name::text AS name,
@@ -5632,7 +5652,7 @@ def source_bank_statement_line_rows() -> list[dict[str, Any]]:
 
 def target_bank_statement_line_rows() -> list[dict[str, Any]]:
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT bsl.rebuild_source_id::text AS source_statement_line_id,
                move.rebuild_source_id::text AS source_move_id,
@@ -5669,7 +5689,7 @@ def target_bank_statement_line_rows() -> list[dict[str, Any]]:
 
 def target_confirmed_vat_refund_reclassification_rows() -> list[dict[str, Any]]:
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT correction.rebuild_source_id::text AS source_statement_line_id,
                company.rebuild_source_id::text AS source_company_id,
@@ -5849,7 +5869,7 @@ def source_analytic_line_rows() -> list[dict[str, Any]]:
 def target_analytic_line_rows() -> list[dict[str, Any]]:
     snapshot = source_snapshot_date() or USL_BENCHMARK_END
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         f"""
         SELECT aal.rebuild_source_id::text AS source_analytic_line_id,
                aal.rebuild_source_analytic_account_id::text AS source_analytic_account_id,
@@ -5919,7 +5939,7 @@ def source_accounting_attachment_rows() -> list[dict[str, Any]]:
 
 def target_accounting_attachment_rows() -> list[dict[str, Any]]:
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT ia.rebuild_source_id::text AS source_attachment_id,
                CASE
@@ -6121,11 +6141,11 @@ def source_move_comparison_rows() -> list[dict[str, Any]]:
 
 
 def target_move_comparison_rows(
-    database: str = TARGET_DB,
+    database: str = EXACT_VALIDATION_DB,
 ) -> list[dict[str, Any]]:
     trace_models = [
         "account.move",
-        *REPLACEMENT_SOURCE_TRACE_ALIASES["account.move"],
+        *DEV_SOURCE_TRACE_ALIASES["account.move"],
     ]
     trace_model_sql = ", ".join(
         f"'{model_name}'"
@@ -6197,7 +6217,7 @@ def source_move_review_rows() -> list[dict[str, Any]]:
 
 def target_move_review_rows() -> list[dict[str, Any]]:
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         f"""
         SELECT review.rebuild_source_id::text AS source_move_id,
                COALESCE(review.source_name::text, '') AS source_name,
@@ -6321,10 +6341,10 @@ def source_document_regeneration_case_rows() -> list[dict[str, Any]]:
 
 
 def target_document_regeneration_case_rows() -> list[dict[str, Any]]:
-    if not table_exists(TARGET_DB, "rebuild_account_document_regeneration_case"):
+    if not table_exists(EXACT_VALIDATION_DB, "rebuild_account_document_regeneration_case"):
         return []
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         f"""
         SELECT case_record.rebuild_source_id::text AS source_move_id,
                COALESCE(case_record.source_state::text, '') AS state,
@@ -6414,7 +6434,7 @@ def source_move_line_review_rows() -> list[dict[str, Any]]:
 def target_move_line_review_rows() -> list[dict[str, Any]]:
     snapshot = source_snapshot_date() or USL_BENCHMARK_END
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         f"""
         SELECT review.rebuild_source_id::text AS source_move_line_id,
                review.source_move_id::text AS source_move_id,
@@ -6489,7 +6509,7 @@ def source_line_comparison_rows() -> list[dict[str, Any]]:
 
 def target_line_comparison_rows() -> list[dict[str, Any]]:
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT aml.rebuild_source_id::text AS source_line_id,
                am.rebuild_source_id::text AS source_move_id,
@@ -6539,7 +6559,7 @@ def source_account_balance_rows() -> list[dict[str, Any]]:
 
 def target_account_balance_rows() -> list[dict[str, Any]]:
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT aa.rebuild_source_id::text AS source_account_id,
                {account_code} AS code,
@@ -6637,7 +6657,7 @@ def source_partial_reconcile_rows() -> list[dict[str, Any]]:
 
 def target_partial_reconcile_rows() -> list[dict[str, Any]]:
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         WITH imported AS (
             SELECT line.id
@@ -6742,7 +6762,7 @@ def source_full_reconcile_rows() -> list[dict[str, Any]]:
 
 def target_full_reconcile_rows() -> list[dict[str, Any]]:
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         WITH imported AS (
             SELECT line.id
@@ -6935,10 +6955,10 @@ def source_reconciliation_review_rows() -> list[dict[str, Any]]:
 
 
 def target_reconciliation_review_rows() -> list[dict[str, Any]]:
-    if not table_exists(TARGET_DB, "rebuild_account_reconciliation_review"):
+    if not table_exists(EXACT_VALIDATION_DB, "rebuild_account_reconciliation_review"):
         return []
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT review.rebuild_source_model || ':' || review.rebuild_source_id::text AS source_reconciliation_review_key,
                review.reconciliation_kind::text AS reconciliation_kind,
@@ -7094,10 +7114,10 @@ def source_report_rows() -> list[dict[str, Any]]:
 
 
 def target_source_report_rows() -> list[dict[str, Any]]:
-    if not table_exists(TARGET_DB, "rebuild_account_source_report"):
+    if not table_exists(EXACT_VALIDATION_DB, "rebuild_account_source_report"):
         return []
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT report.rebuild_source_model || ':' || report.rebuild_source_id::text AS source_report_key,
                report.source_report_id::text AS source_report_id,
@@ -7190,10 +7210,10 @@ def source_report_line_rows() -> list[dict[str, Any]]:
 
 
 def target_source_report_line_rows() -> list[dict[str, Any]]:
-    if not table_exists(TARGET_DB, "rebuild_account_source_report_line"):
+    if not table_exists(EXACT_VALIDATION_DB, "rebuild_account_source_report_line"):
         return []
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT line.rebuild_source_model || ':' || line.rebuild_source_id::text AS source_report_line_key,
                line.source_line_id::text AS source_line_id,
@@ -7249,10 +7269,10 @@ def source_report_expression_rows() -> list[dict[str, Any]]:
 
 
 def target_source_report_expression_rows() -> list[dict[str, Any]]:
-    if not table_exists(TARGET_DB, "rebuild_account_source_report_expression"):
+    if not table_exists(EXACT_VALIDATION_DB, "rebuild_account_source_report_expression"):
         return []
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT expression.rebuild_source_model || ':' || expression.rebuild_source_id::text AS source_report_expression_key,
                expression.source_expression_id::text AS source_expression_id,
@@ -7299,10 +7319,10 @@ def source_report_column_rows() -> list[dict[str, Any]]:
 
 
 def target_source_report_column_rows() -> list[dict[str, Any]]:
-    if not table_exists(TARGET_DB, "rebuild_account_source_report_column"):
+    if not table_exists(EXACT_VALIDATION_DB, "rebuild_account_source_report_column"):
         return []
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT column_record.rebuild_source_model || ':' || column_record.rebuild_source_id::text AS source_report_column_key,
                column_record.source_column_id::text AS source_column_id,
@@ -7479,10 +7499,10 @@ def source_deferred_schedule_rows() -> list[dict[str, Any]]:
 
 
 def target_deferred_schedule_rows() -> list[dict[str, Any]]:
-    if not table_exists(TARGET_DB, "rebuild_account_deferred_schedule_line"):
+    if not table_exists(EXACT_VALIDATION_DB, "rebuild_account_deferred_schedule_line"):
         return []
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT line.source_original_move_id::text || ':' || line.source_deferred_move_id::text AS source_deferred_schedule_key,
                line.source_original_move_id::text AS source_original_move_id,
@@ -7566,7 +7586,7 @@ def source_reconciliation_model_rows() -> list[dict[str, Any]]:
 
 def target_reconciliation_model_rows() -> list[dict[str, Any]]:
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT model.rebuild_source_id::text AS source_reconciliation_model_id,
                {name} AS name,
@@ -7650,7 +7670,7 @@ def source_reconciliation_model_line_rows() -> list[dict[str, Any]]:
 
 def target_reconciliation_model_line_rows() -> list[dict[str, Any]]:
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT line.rebuild_source_id::text
                    AS source_reconciliation_model_line_id,
@@ -7707,7 +7727,7 @@ def source_tax_group_rows() -> list[dict[str, Any]]:
 
 def target_tax_group_rows() -> list[dict[str, Any]]:
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT tg.rebuild_source_id::text AS source_tax_group_id,
                {name} AS name,
@@ -7749,7 +7769,7 @@ def source_tax_tag_rows() -> list[dict[str, Any]]:
 
 def target_tax_tag_rows() -> list[dict[str, Any]]:
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT tag.rebuild_source_id::text AS source_tax_tag_id,
                {name} AS name,
@@ -7798,7 +7818,7 @@ def source_tax_rows() -> list[dict[str, Any]]:
 
 def target_tax_rows() -> list[dict[str, Any]]:
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT tax.rebuild_source_id::text AS source_tax_id,
                {name} AS name,
@@ -7856,7 +7876,7 @@ def source_tax_repartition_rows() -> list[dict[str, Any]]:
 
 def target_tax_repartition_rows() -> list[dict[str, Any]]:
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT rep.rebuild_source_id::text AS source_tax_repartition_line_id,
                tax.rebuild_source_id::text AS source_tax_id,
@@ -7897,7 +7917,7 @@ def source_tax_alternative_rows() -> list[dict[str, Any]]:
 
 def target_tax_alternative_rows() -> list[dict[str, Any]]:
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT dest.rebuild_source_id::text || ':' || src.rebuild_source_id::text AS relation_key,
                dest.rebuild_source_id::text AS source_dest_tax_id,
@@ -7951,7 +7971,7 @@ def source_asset_rows() -> list[dict[str, Any]]:
 
 def target_asset_rows() -> list[dict[str, Any]]:
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT asset.rebuild_source_id::text AS source_asset_id,
                asset.name::text AS name,
@@ -8046,7 +8066,7 @@ def source_depreciation_schedule_rows() -> list[dict[str, Any]]:
 
 def target_depreciation_schedule_rows() -> list[dict[str, Any]]:
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT line.source_asset_id::text AS source_asset_id,
                line.source_move_id::text AS source_move_id,
@@ -8069,7 +8089,7 @@ def target_depreciation_schedule_rows() -> list[dict[str, Any]]:
 
 def target_journal_balance_rows() -> list[dict[str, Any]]:
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT aj.rebuild_source_id::text AS source_journal_id,
                aj.code::text AS code,
@@ -8094,7 +8114,7 @@ def target_journal_balance_rows() -> list[dict[str, Any]]:
 
 def target_unbalanced_moves() -> list[dict[str, Any]]:
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT am.id AS target_move_id,
                am.name,
@@ -8114,10 +8134,10 @@ def target_unbalanced_moves() -> list[dict[str, Any]]:
 
 
 def duplicate_target_traces(table: str) -> list[dict[str, Any]]:
-    if not table_exists(TARGET_DB, table):
+    if not table_exists(EXACT_VALIDATION_DB, table):
         return []
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         f"""
         SELECT rebuild_source_model,
                rebuild_source_id,
@@ -8211,7 +8231,7 @@ def target_lock_enforcement_check() -> dict[str, Any]:
             "odoo",
             "shell",
             "--config=/etc/odoo/odoo.conf",
-            f"--database={TARGET_DB}",
+            f"--database={EXACT_VALIDATION_DB}",
         ),
         input_file=lock_script,
         check=False,
@@ -8232,17 +8252,17 @@ def target_lock_enforcement_check() -> dict[str, Any]:
 
 def target_validate(args: argparse.Namespace) -> dict[str, Any]:
     ensure_dirs()
-    if not table_exists(TARGET_DB, "rebuild_account_import_run"):
+    if not table_exists(EXACT_VALIDATION_DB, "rebuild_account_import_run"):
         status = {
             "generated_at": utc_now(),
             "tool_version": TOOL_VERSION,
-            "stage": "target-validate",
+            "stage": "validation-exact-validate",
             "status": "failed",
             "classification": "MISSING_TARGET_MODEL",
-            "reason": f"{TARGET_DB} does not have rebuild_account_migration installed.",
-            "next_action": "Run make accounting-target-reset and make accounting-target-import before validation.",
+            "reason": f"{EXACT_VALIDATION_DB} does not have rebuild_account_migration installed.",
+            "next_action": "Run make accounting-validation-exact-reset and make accounting-validation-exact-import before validation.",
         }
-        write_json(PRIVATE_ARTIFACTS / "target-validate-status.json", status)
+        write_json(PRIVATE_ARTIFACTS / "validation-exact-validate-status.json", status)
         raise HarnessError(status["reason"])
 
     source_moves = source_move_comparison_rows()
@@ -9027,7 +9047,7 @@ def target_validate(args: argparse.Namespace) -> dict[str, Any]:
         "tool_version": TOOL_VERSION,
         "scope": {
             "source_database": SOURCE_DB,
-            "target_database": TARGET_DB,
+            "target_database": EXACT_VALIDATION_DB,
             "company": "Unstatic Labs",
             "source_company_id": 1,
             "period_start": USL_BENCHMARK_START,
@@ -9075,7 +9095,7 @@ def target_validate(args: argparse.Namespace) -> dict[str, Any]:
         "classification": "POSTED_LEDGER_SLICE_PARITY" if passed else "TRANSFER_DEFECT",
     }
     write_json(PRIVATE_ARTIFACTS / "target-controls.json", controls)
-    write_json(PRIVATE_ARTIFACTS / "target-validate-status.json", controls)
+    write_json(PRIVATE_ARTIFACTS / "validation-exact-validate-status.json", controls)
     if not passed and not getattr(args, "allow_errors", False):
         raise HarnessError("Target posted-ledger slice validation failed. See artifacts/accounting-compat/private/target-controls.json")
     return controls
@@ -9092,7 +9112,7 @@ def write_csv(path: Path, rows: list[dict[str, Any]], fieldnames: list[str]) -> 
 
 def trial_balance_rows() -> list[dict[str, Any]]:
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT {account_code} AS account_code,
                {account_name} AS account_name,
@@ -9120,7 +9140,7 @@ def trial_balance_rows() -> list[dict[str, Any]]:
 
 def general_ledger_rows() -> list[dict[str, Any]]:
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT q.account_code,
                q.account_name,
@@ -9173,7 +9193,7 @@ def general_ledger_rows() -> list[dict[str, Any]]:
 
 def french_statement_rows() -> list[dict[str, Any]]:
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT statement_key::text,
                statement_name::text,
@@ -9197,7 +9217,7 @@ def french_statement_rows() -> list[dict[str, Any]]:
 
 def french_tax_package_rows() -> list[dict[str, Any]]:
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT form_code::text,
                form_name::text,
@@ -9227,7 +9247,7 @@ def french_tax_package_rows() -> list[dict[str, Any]]:
 
 def vat_benchmark_investigation() -> dict[str, Any]:
     target_ledger_rows = query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         f"""
         SELECT {target_account_code_expr()} AS account_code,
                COALESCE(aa.name->>'en_US', aa.name->>'fr_FR', aa.name::text) AS account_name,
@@ -9247,7 +9267,7 @@ def vat_benchmark_investigation() -> dict[str, Any]:
         set_readonly_role=False,
     )
     target_ca12_clearing_rows = query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         f"""
         SELECT am.date::text,
                aj.code::text AS journal_code,
@@ -9275,7 +9295,7 @@ def vat_benchmark_investigation() -> dict[str, Any]:
         set_readonly_role=False,
     )
     external_value_rows = query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT form_code::text,
                field_code::text,
@@ -9296,7 +9316,7 @@ def vat_benchmark_investigation() -> dict[str, Any]:
         set_readonly_role=False,
     )
     tax_package_rows = query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT form_code::text,
                field_code::text,
@@ -9473,7 +9493,7 @@ def vat_benchmark_investigation() -> dict[str, Any]:
 
 def bank_reconciliation_rows() -> list[dict[str, Any]]:
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT date::text,
                journal_code::text,
@@ -9500,7 +9520,7 @@ def bank_reconciliation_rows() -> list[dict[str, Any]]:
 
 def currency_report_rows() -> list[dict[str, Any]]:
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT report_section::text,
                COALESCE(currency.name::text, '') AS currency,
@@ -9527,7 +9547,7 @@ def currency_report_rows() -> list[dict[str, Any]]:
 
 def analytic_distribution_rows() -> list[dict[str, Any]]:
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT analytic_key::text,
                analytic_code::text,
@@ -9549,7 +9569,7 @@ def analytic_distribution_rows() -> list[dict[str, Any]]:
 
 def analytic_distribution_current_rows() -> list[dict[str, Any]]:
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT analytic_key::text,
                analytic_code::text,
@@ -9592,7 +9612,7 @@ def odoo_report_view_controls() -> dict[str, Any]:
         "rebuild_account_french_statement_line",
         "rebuild_account_french_tax_package_line",
     ]
-    missing_views = [view for view in required_views if not table_exists(TARGET_DB, view)]
+    missing_views = [view for view in required_views if not table_exists(EXACT_VALIDATION_DB, view)]
     if missing_views:
         return {
             "status": "failed",
@@ -9601,7 +9621,7 @@ def odoo_report_view_controls() -> dict[str, Any]:
         }
 
     rows = query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT 'trial_balance' AS report_key,
                count(*)::text AS row_count,
@@ -9917,7 +9937,7 @@ def odoo_report_view_controls() -> dict[str, Any]:
     )
     by_key = {row["report_key"]: row for row in rows}
     french_rows = query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT line_code::text,
                round(gross_amount::numeric, 2)::text AS gross_amount,
@@ -9944,7 +9964,7 @@ def odoo_report_view_controls() -> dict[str, Any]:
     )
     french_by_code = {row["line_code"]: row for row in french_rows}
     tax_package_rows = query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT field_code::text,
                form_code::text,
@@ -10176,7 +10196,7 @@ def odoo_report_drilldown_controls() -> dict[str, Any]:
             "odoo",
             "shell",
             "--config=/etc/odoo/odoo.conf",
-            f"--database={TARGET_DB}",
+            f"--database={EXACT_VALIDATION_DB}",
         ),
         input_file=drilldown_script,
         check=False,
@@ -10550,7 +10570,7 @@ def odoo_report_export_wizard_controls() -> dict[str, Any]:
             "odoo",
             "shell",
             "--config=/etc/odoo/odoo.conf",
-            f"--database={TARGET_DB}",
+            f"--database={EXACT_VALIDATION_DB}",
         ),
         input_file=export_script,
         check=False,
@@ -10863,7 +10883,7 @@ def update_source_report_parity_evidence(evidence_by_key: dict[str, dict[str, An
             "odoo",
             "shell",
             "--config=/etc/odoo/odoo.conf",
-            f"--database={TARGET_DB}",
+            f"--database={EXACT_VALIDATION_DB}",
         ),
         input_file=script_path,
         check=False,
@@ -11089,7 +11109,7 @@ def seed_review_decision_records() -> dict[str, Any]:
             "odoo",
             "shell",
             "--config=/etc/odoo/odoo.conf",
-            f"--database={TARGET_DB}",
+            f"--database={EXACT_VALIDATION_DB}",
         ),
         input_file=script_path,
         check=False,
@@ -11446,7 +11466,7 @@ def odoo_accountant_access_controls() -> dict[str, Any]:
             "odoo",
             "shell",
             "--config=/etc/odoo/odoo.conf",
-            f"--database={TARGET_DB}",
+            f"--database={EXACT_VALIDATION_DB}",
         ),
         input_file=access_script,
         check=False,
@@ -12376,7 +12396,7 @@ def fec_structural_preflight(
 
 def fec(args: argparse.Namespace) -> dict[str, Any]:
     ensure_dirs()
-    if not table_exists(TARGET_DB, "l10n_fr_fec_export_wizard"):
+    if not table_exists(EXACT_VALIDATION_DB, "l10n_fr_fec_export_wizard"):
         status = {
             "generated_at": utc_now(),
             "tool_version": TOOL_VERSION,
@@ -12436,7 +12456,7 @@ def fec(args: argparse.Namespace) -> dict[str, Any]:
             "odoo",
             "shell",
             "--config=/etc/odoo/odoo.conf",
-            f"--database={TARGET_DB}",
+            f"--database={EXACT_VALIDATION_DB}",
         ),
         input_file=fec_script,
         check=False,
@@ -12562,7 +12582,7 @@ def fec(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def upsert_target_discrepancy(values: dict[str, Any]) -> None:
-    if not table_exists(TARGET_DB, "rebuild_account_discrepancy"):
+    if not table_exists(EXACT_VALIDATION_DB, "rebuild_account_discrepancy"):
         return
     script_path = PRIVATE_ARTIFACTS / "upsert-target-discrepancy.py"
     payload = json.dumps(values, ensure_ascii=False, sort_keys=True)
@@ -12599,7 +12619,7 @@ def upsert_target_discrepancy(values: dict[str, Any]) -> None:
             "odoo",
             "shell",
             "--config=/etc/odoo/odoo.conf",
-            f"--database={TARGET_DB}",
+            f"--database={EXACT_VALIDATION_DB}",
         ),
         input_file=script_path,
         check=False,
@@ -13523,7 +13543,7 @@ def document_regeneration(args: argparse.Namespace) -> dict[str, Any]:
             "odoo",
             "shell",
             "--config=/etc/odoo/odoo.conf",
-            f"--database={TARGET_DB}",
+            f"--database={EXACT_VALIDATION_DB}",
         ),
         input_file=script_path,
         check=False,
@@ -13564,7 +13584,7 @@ def document_regeneration(args: argparse.Namespace) -> dict[str, Any]:
 
 def target_reconciliation_probe(args: argparse.Namespace) -> dict[str, Any]:
     ensure_dirs()
-    script_path = PRIVATE_ARTIFACTS / "target-reconciliation-probe.py"
+    script_path = PRIVATE_ARTIFACTS / "validation-exact-reconciliation-probe.py"
     script_path.write_text(
         "\n".join(
             [
@@ -13724,7 +13744,7 @@ def target_reconciliation_probe(args: argparse.Namespace) -> dict[str, Any]:
             "odoo",
             "shell",
             "--config=/etc/odoo/odoo.conf",
-            f"--database={TARGET_DB}",
+            f"--database={EXACT_VALIDATION_DB}",
         ),
         input_file=script_path,
         check=False,
@@ -13737,7 +13757,7 @@ def target_reconciliation_probe(args: argparse.Namespace) -> dict[str, Any]:
         status = {
             "generated_at": utc_now(),
             "tool_version": TOOL_VERSION,
-            "stage": "target-reconciliation-probe",
+            "stage": "validation-exact-reconciliation-probe",
             "status": "failed",
             "classification": "NATIVE_RECONCILIATION_PROBE_EXECUTION_DEFECT",
             "script": str(script_path.relative_to(ROOT)),
@@ -13745,24 +13765,24 @@ def target_reconciliation_probe(args: argparse.Namespace) -> dict[str, Any]:
             "output_tail": (result.stdout + result.stderr)[-8000:],
             "next_action": "Inspect the Odoo shell output for the native reconciliation capability probe.",
         }
-        write_json(PRIVATE_ARTIFACTS / "target-reconciliation-probe-status.json", status)
+        write_json(PRIVATE_ARTIFACTS / "validation-exact-reconciliation-probe-status.json", status)
         if not getattr(args, "allow_errors", False):
             raise HarnessError(
-                "Target reconciliation probe failed. See artifacts/accounting-compat/private/target-reconciliation-probe-status.json"
+                "Target reconciliation probe failed. See artifacts/accounting-compat/private/validation-exact-reconciliation-probe-status.json"
             )
         return status
     payload = json.loads(marker)
     status = {
         "generated_at": utc_now(),
         "tool_version": TOOL_VERSION,
-        "stage": "target-reconciliation-probe",
+        "stage": "validation-exact-reconciliation-probe",
         "script": str(script_path.relative_to(ROOT)),
         **payload,
     }
-    write_json(PRIVATE_ARTIFACTS / "target-reconciliation-probe-status.json", status)
+    write_json(PRIVATE_ARTIFACTS / "validation-exact-reconciliation-probe-status.json", status)
     if status["status"] != "passed" and not getattr(args, "allow_errors", False):
         raise HarnessError(
-            "Target reconciliation probe did not pass. See artifacts/accounting-compat/private/target-reconciliation-probe-status.json"
+            "Target reconciliation probe did not pass. See artifacts/accounting-compat/private/validation-exact-reconciliation-probe-status.json"
         )
     return status
 
@@ -13892,7 +13912,7 @@ def currency_rate_provider(args: argparse.Namespace) -> dict[str, Any]:
             "odoo",
             "shell",
             "--config=/etc/odoo/odoo.conf",
-            f"--database={TARGET_DB}",
+            f"--database={EXACT_VALIDATION_DB}",
         ),
         input_file=script_path,
         check=False,
@@ -13995,10 +14015,10 @@ def private_artifact_status(path: Path) -> dict[str, Any]:
 
 
 def target_discrepancy_rows() -> list[dict[str, Any]]:
-    if not table_exists(TARGET_DB, "rebuild_account_discrepancy"):
+    if not table_exists(EXACT_VALIDATION_DB, "rebuild_account_discrepancy"):
         return []
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT COALESCE(company.name::text, '') AS company,
                discrepancy.severity,
@@ -14023,10 +14043,10 @@ def target_discrepancy_rows() -> list[dict[str, Any]]:
 
 
 def target_review_decision_summary() -> list[dict[str, Any]]:
-    if not table_exists(TARGET_DB, "rebuild_account_review_decision"):
+    if not table_exists(EXACT_VALIDATION_DB, "rebuild_account_review_decision"):
         return []
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT gate, state, conclusion, count(*)::text AS count
         FROM rebuild_account_review_decision
@@ -14038,10 +14058,10 @@ def target_review_decision_summary() -> list[dict[str, Any]]:
 
 
 def target_review_summary_rows() -> list[dict[str, Any]]:
-    if not table_exists(TARGET_DB, "rebuild_account_review_summary"):
+    if not table_exists(EXACT_VALIDATION_DB, "rebuild_account_review_summary"):
         return []
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT company.name::text AS company,
                summary.source_snapshot_id,
@@ -14106,10 +14126,10 @@ def target_review_summary_rows() -> list[dict[str, Any]]:
 
 
 def target_source_report_summary() -> list[dict[str, Any]]:
-    if not table_exists(TARGET_DB, "rebuild_account_source_report"):
+    if not table_exists(EXACT_VALIDATION_DB, "rebuild_account_source_report"):
         return []
     return query_rows(
-        TARGET_DB,
+        EXACT_VALIDATION_DB,
         """
         SELECT decision,
                parity_level,
@@ -14131,50 +14151,50 @@ def readiness(args: argparse.Namespace) -> dict[str, Any]:
         "source_package_validation": PRIVATE_ARTIFACTS / "source-package-validation.json",
         "source_restore": PRIVATE_ARTIFACTS / "source-restore-status.json",
         "source_controls": PRIVATE_ARTIFACTS / "source-controls.json",
-        "target_import": PRIVATE_ARTIFACTS / "target-import-status.json",
-        "target_validate": PRIVATE_ARTIFACTS / "target-validate-status.json",
-        "target_idempotence": PRIVATE_ARTIFACTS / "target-idempotence-status.json",
-        "target_failure_tests": PRIVATE_ARTIFACTS / "target-failure-tests-status.json",
+        "target_import": PRIVATE_ARTIFACTS / "validation-exact-import-status.json",
+        "target_validate": PRIVATE_ARTIFACTS / "validation-exact-validate-status.json",
+        "target_idempotence": PRIVATE_ARTIFACTS / "validation-exact-idempotence-status.json",
+        "target_failure_tests": PRIVATE_ARTIFACTS / "validation-exact-failure-tests-status.json",
         "document_regeneration": PRIVATE_ARTIFACTS / "document-regeneration-status.json",
-        "track_b_reset": PRIVATE_ARTIFACTS / "track-b-reset-status.json",
-        "track_b_expenses": PRIVATE_ARTIFACTS / "track-b-expenses-status.json",
-        "track_b_documents": PRIVATE_ARTIFACTS / "track-b-documents-status.json",
-        "track_b_native_attachments_browser": (
+        "native_validation_reset": PRIVATE_ARTIFACTS / "validation-native-reset-status.json",
+        "native_validation_expenses": PRIVATE_ARTIFACTS / "validation-native-expenses-status.json",
+        "native_validation_documents": PRIVATE_ARTIFACTS / "validation-native-documents-status.json",
+        "native_validation_native_attachments_browser": (
             PRIVATE_ARTIFACTS
-            / "track-b-native-attachments-browser-status.json"
+            / "validation-native-native-attachments-browser-status.json"
         ),
-        "track_b_assets": PRIVATE_ARTIFACTS / "track-b-assets-status.json",
-        "track_b_assets_browser": (
-            PRIVATE_ARTIFACTS / "track-b-assets-browser-status.json"
+        "native_validation_assets": PRIVATE_ARTIFACTS / "validation-native-assets-status.json",
+        "native_validation_assets_browser": (
+            PRIVATE_ARTIFACTS / "validation-native-assets-browser-status.json"
         ),
-        "track_b_deferrals": (
-            PRIVATE_ARTIFACTS / "track-b-deferrals-status.json"
+        "native_validation_deferrals": (
+            PRIVATE_ARTIFACTS / "validation-native-deferrals-status.json"
         ),
-        "track_b_deferrals_browser": (
-            PRIVATE_ARTIFACTS / "track-b-deferrals-browser-status.json"
+        "native_validation_deferrals_browser": (
+            PRIVATE_ARTIFACTS / "validation-native-deferrals-browser-status.json"
         ),
-        "track_b_analytics": (
-            PRIVATE_ARTIFACTS / "track-b-analytics-status.json"
+        "native_validation_analytics": (
+            PRIVATE_ARTIFACTS / "validation-native-analytics-status.json"
         ),
-        "track_b_analytics_browser": (
-            PRIVATE_ARTIFACTS / "track-b-analytics-browser-status.json"
+        "native_validation_analytics_browser": (
+            PRIVATE_ARTIFACTS / "validation-native-analytics-browser-status.json"
         ),
-        "track_b_expense_settlement": (
-            PRIVATE_ARTIFACTS / "track-b-expense-settlement-status.json"
+        "native_validation_expense_settlement": (
+            PRIVATE_ARTIFACTS / "validation-native-expense-settlement-status.json"
         ),
-        "track_b_document_settlement": (
-            PRIVATE_ARTIFACTS / "track-b-document-settlement-status.json"
+        "native_validation_document_settlement": (
+            PRIVATE_ARTIFACTS / "validation-native-document-settlement-status.json"
         ),
-        "track_b_general_reconciliation": (
-            PRIVATE_ARTIFACTS / "track-b-general-reconciliation-status.json"
+        "native_validation_general_reconciliation": (
+            PRIVATE_ARTIFACTS / "validation-native-general-reconciliation-status.json"
         ),
-        "track_b_bank_categorization": (
-            PRIVATE_ARTIFACTS / "track-b-bank-categorization-status.json"
+        "native_validation_bank_categorization": (
+            PRIVATE_ARTIFACTS / "validation-native-bank-categorization-status.json"
         ),
-        "track_b_bank_external": (
-            PRIVATE_ARTIFACTS / "track-b-bank-external-status.json"
+        "native_validation_bank_external": (
+            PRIVATE_ARTIFACTS / "validation-native-bank-external-status.json"
         ),
-        "target_reconciliation_probe": PRIVATE_ARTIFACTS / "target-reconciliation-probe-status.json",
+        "target_reconciliation_probe": PRIVATE_ARTIFACTS / "validation-exact-reconciliation-probe-status.json",
         "currency_rate_provider": (
             PRIVATE_ARTIFACTS / "currency-rate-provider-status.json"
         ),
@@ -14199,16 +14219,16 @@ def readiness(args: argparse.Namespace) -> dict[str, Any]:
             PRIVATE_ARTIFACTS
             / "reconciliation-review-browser-status.json"
         ),
-        "replacement_reset": (
-            PRIVATE_ARTIFACTS / "replacement-reset-status.json"
+        "dev_reset": (
+            PRIVATE_ARTIFACTS / "dev-reset-status.json"
         ),
-        "replacement_import": (
-            PRIVATE_ARTIFACTS / "replacement-import-status.json"
+        "dev_import": (
+            PRIVATE_ARTIFACTS / "dev-import-status.json"
         ),
-        "replacement_validate": (
-            PRIVATE_ARTIFACTS / "replacement-validate-status.json"
+        "dev_validate": (
+            PRIVATE_ARTIFACTS / "dev-validate-status.json"
         ),
-        "replacement_browser": (
+        "dev_browser": (
             PRIVATE_ARTIFACTS / "replacement-browser-status.json"
         ),
         "fec": PRIVATE_ARTIFACTS / "fec-status.json",
@@ -14230,21 +14250,21 @@ def readiness(args: argparse.Namespace) -> dict[str, Any]:
         "target_idempotence": {"passed"},
         "target_failure_tests": {"passed"},
         "document_regeneration": {"passed"},
-        "track_b_reset": {"passed"},
-        "track_b_expenses": {"passed"},
-        "track_b_documents": {"passed"},
-        "track_b_native_attachments_browser": {"passed"},
-        "track_b_assets": {"passed"},
-        "track_b_assets_browser": {"passed"},
-        "track_b_deferrals": {"passed"},
-        "track_b_deferrals_browser": {"passed"},
-        "track_b_analytics": {"passed"},
-        "track_b_analytics_browser": {"passed"},
-        "track_b_expense_settlement": {"passed"},
-        "track_b_document_settlement": {"passed"},
-        "track_b_general_reconciliation": {"passed"},
-        "track_b_bank_categorization": {"passed"},
-        "track_b_bank_external": {"passed"},
+        "native_validation_reset": {"passed"},
+        "native_validation_expenses": {"passed"},
+        "native_validation_documents": {"passed"},
+        "native_validation_native_attachments_browser": {"passed"},
+        "native_validation_assets": {"passed"},
+        "native_validation_assets_browser": {"passed"},
+        "native_validation_deferrals": {"passed"},
+        "native_validation_deferrals_browser": {"passed"},
+        "native_validation_analytics": {"passed"},
+        "native_validation_analytics_browser": {"passed"},
+        "native_validation_expense_settlement": {"passed"},
+        "native_validation_document_settlement": {"passed"},
+        "native_validation_general_reconciliation": {"passed"},
+        "native_validation_bank_categorization": {"passed"},
+        "native_validation_bank_external": {"passed"},
         "target_reconciliation_probe": {"passed"},
         "currency_rate_provider": {"passed"},
         "currency_rate_provider_browser": {"passed"},
@@ -14253,10 +14273,10 @@ def readiness(args: argparse.Namespace) -> dict[str, Any]:
         "accounting_home_browser": {"passed"},
         "accounting_hygiene_browser": {"passed"},
         "reconciliation_review_browser": {"passed"},
-        "replacement_reset": {"passed"},
-        "replacement_import": {"passed"},
-        "replacement_validate": {"partial"},
-        "replacement_browser": {"passed"},
+        "dev_reset": {"passed"},
+        "dev_import": {"passed"},
+        "dev_validate": {"partial"},
+        "dev_browser": {"passed"},
         "fec": {"passed"},
         "fec_validation": {"passed"},
         "fec_role_browser": {"passed"},
@@ -14312,7 +14332,7 @@ def readiness(args: argparse.Namespace) -> dict[str, Any]:
                 else None
             ),
             "source_database": SOURCE_DB,
-            "target_database": TARGET_DB,
+            "target_database": EXACT_VALIDATION_DB,
             "benchmark_period": {
                 "date_from": USL_BENCHMARK_START,
                 "date_to": USL_BENCHMARK_END,
@@ -14388,51 +14408,51 @@ def evidence(args: argparse.Namespace) -> dict[str, Any]:
         "parity_matrix": PRIVATE_ARTIFACTS / "parity-matrix-v1.json",
         "source_extract": PRIVATE_ARTIFACTS / "source-extract-status.json",
         "failure_tests": PRIVATE_ARTIFACTS / "failure-tests-status.json",
-        "target_reset": PRIVATE_ARTIFACTS / "target-reset-status.json",
-        "target_import": PRIVATE_ARTIFACTS / "target-import-status.json",
-        "target_validate": PRIVATE_ARTIFACTS / "target-validate-status.json",
-        "target_idempotence": PRIVATE_ARTIFACTS / "target-idempotence-status.json",
-        "target_failure_tests": PRIVATE_ARTIFACTS / "target-failure-tests-status.json",
+        "target_reset": PRIVATE_ARTIFACTS / "validation-exact-reset-status.json",
+        "target_import": PRIVATE_ARTIFACTS / "validation-exact-import-status.json",
+        "target_validate": PRIVATE_ARTIFACTS / "validation-exact-validate-status.json",
+        "target_idempotence": PRIVATE_ARTIFACTS / "validation-exact-idempotence-status.json",
+        "target_failure_tests": PRIVATE_ARTIFACTS / "validation-exact-failure-tests-status.json",
         "document_regeneration": PRIVATE_ARTIFACTS / "document-regeneration-status.json",
-        "track_b_reset": PRIVATE_ARTIFACTS / "track-b-reset-status.json",
-        "track_b_expenses": PRIVATE_ARTIFACTS / "track-b-expenses-status.json",
-        "track_b_documents": PRIVATE_ARTIFACTS / "track-b-documents-status.json",
-        "track_b_native_attachments_browser": (
+        "native_validation_reset": PRIVATE_ARTIFACTS / "validation-native-reset-status.json",
+        "native_validation_expenses": PRIVATE_ARTIFACTS / "validation-native-expenses-status.json",
+        "native_validation_documents": PRIVATE_ARTIFACTS / "validation-native-documents-status.json",
+        "native_validation_native_attachments_browser": (
             PRIVATE_ARTIFACTS
-            / "track-b-native-attachments-browser-status.json"
+            / "validation-native-native-attachments-browser-status.json"
         ),
-        "track_b_assets": PRIVATE_ARTIFACTS / "track-b-assets-status.json",
-        "track_b_assets_browser": (
-            PRIVATE_ARTIFACTS / "track-b-assets-browser-status.json"
+        "native_validation_assets": PRIVATE_ARTIFACTS / "validation-native-assets-status.json",
+        "native_validation_assets_browser": (
+            PRIVATE_ARTIFACTS / "validation-native-assets-browser-status.json"
         ),
-        "track_b_deferrals": (
-            PRIVATE_ARTIFACTS / "track-b-deferrals-status.json"
+        "native_validation_deferrals": (
+            PRIVATE_ARTIFACTS / "validation-native-deferrals-status.json"
         ),
-        "track_b_deferrals_browser": (
-            PRIVATE_ARTIFACTS / "track-b-deferrals-browser-status.json"
+        "native_validation_deferrals_browser": (
+            PRIVATE_ARTIFACTS / "validation-native-deferrals-browser-status.json"
         ),
-        "track_b_analytics": (
-            PRIVATE_ARTIFACTS / "track-b-analytics-status.json"
+        "native_validation_analytics": (
+            PRIVATE_ARTIFACTS / "validation-native-analytics-status.json"
         ),
-        "track_b_analytics_browser": (
-            PRIVATE_ARTIFACTS / "track-b-analytics-browser-status.json"
+        "native_validation_analytics_browser": (
+            PRIVATE_ARTIFACTS / "validation-native-analytics-browser-status.json"
         ),
-        "track_b_expense_settlement": (
-            PRIVATE_ARTIFACTS / "track-b-expense-settlement-status.json"
+        "native_validation_expense_settlement": (
+            PRIVATE_ARTIFACTS / "validation-native-expense-settlement-status.json"
         ),
-        "track_b_document_settlement": (
-            PRIVATE_ARTIFACTS / "track-b-document-settlement-status.json"
+        "native_validation_document_settlement": (
+            PRIVATE_ARTIFACTS / "validation-native-document-settlement-status.json"
         ),
-        "track_b_general_reconciliation": (
-            PRIVATE_ARTIFACTS / "track-b-general-reconciliation-status.json"
+        "native_validation_general_reconciliation": (
+            PRIVATE_ARTIFACTS / "validation-native-general-reconciliation-status.json"
         ),
-        "track_b_bank_categorization": (
-            PRIVATE_ARTIFACTS / "track-b-bank-categorization-status.json"
+        "native_validation_bank_categorization": (
+            PRIVATE_ARTIFACTS / "validation-native-bank-categorization-status.json"
         ),
-        "track_b_bank_external": (
-            PRIVATE_ARTIFACTS / "track-b-bank-external-status.json"
+        "native_validation_bank_external": (
+            PRIVATE_ARTIFACTS / "validation-native-bank-external-status.json"
         ),
-        "target_reconciliation_probe": PRIVATE_ARTIFACTS / "target-reconciliation-probe-status.json",
+        "target_reconciliation_probe": PRIVATE_ARTIFACTS / "validation-exact-reconciliation-probe-status.json",
         "currency_rate_provider": (
             PRIVATE_ARTIFACTS / "currency-rate-provider-status.json"
         ),
@@ -14457,16 +14477,16 @@ def evidence(args: argparse.Namespace) -> dict[str, Any]:
             PRIVATE_ARTIFACTS
             / "reconciliation-review-browser-status.json"
         ),
-        "replacement_reset": (
-            PRIVATE_ARTIFACTS / "replacement-reset-status.json"
+        "dev_reset": (
+            PRIVATE_ARTIFACTS / "dev-reset-status.json"
         ),
-        "replacement_import": (
-            PRIVATE_ARTIFACTS / "replacement-import-status.json"
+        "dev_import": (
+            PRIVATE_ARTIFACTS / "dev-import-status.json"
         ),
-        "replacement_validate": (
-            PRIVATE_ARTIFACTS / "replacement-validate-status.json"
+        "dev_validate": (
+            PRIVATE_ARTIFACTS / "dev-validate-status.json"
         ),
-        "replacement_browser": (
+        "dev_browser": (
             PRIVATE_ARTIFACTS / "replacement-browser-status.json"
         ),
         "vat_benchmark_investigation": PRIVATE_ARTIFACTS / "vat-benchmark-investigation-2025-09-30.json",
@@ -14517,27 +14537,27 @@ def run_all(args: argparse.Namespace) -> dict[str, Any]:
         "source_inspect": inspect_source(args),
         "source_controls": source_controls(args),
         "extract": extract(args),
-        "target_reset": target_reset(args),
-        "target_import": target_import(args),
-        "target_validate": target_validate(args),
-        "target_idempotence": target_idempotence(args),
-        "target_failure_tests": target_failure_tests(args),
+        "validation_exact_reset": target_reset(args),
+        "validation_exact_import": target_import(args),
+        "validation_exact_validate": target_validate(args),
+        "validation_exact_idempotence": target_idempotence(args),
+        "validation_exact_failure_tests": target_failure_tests(args),
         "document_regeneration": document_regeneration(args),
-        "track_b_reset": track_b_reset(args),
-        "track_b_expenses": track_b_expenses(args),
-        "track_b_documents": track_b_documents(args),
-        "track_b_assets": track_b_assets(args),
-        "track_b_deferrals": track_b_deferrals(args),
-        "track_b_expense_settlement": track_b_expense_settlement(args),
-        "track_b_document_settlement": track_b_document_settlement(args),
-        "track_b_general_reconciliation": track_b_general_reconciliation(args),
-        "track_b_bank_categorization": track_b_bank_categorization(args),
-        "track_b_bank_external": track_b_bank_external(args),
-        "track_b_analytics": track_b_analytics(args),
-        "replacement_reset": replacement_reset(args),
-        "replacement_import": replacement_import(args),
-        "replacement_validate": replacement_validate(args),
-        "target_reconciliation_probe": target_reconciliation_probe(args),
+        "validation_native_reset": native_validation_reset(args),
+        "validation_native_expenses": native_validation_expenses(args),
+        "validation_native_documents": native_validation_documents(args),
+        "validation_native_assets": native_validation_assets(args),
+        "validation_native_deferrals": native_validation_deferrals(args),
+        "validation_native_expense_settlement": native_validation_expense_settlement(args),
+        "validation_native_document_settlement": native_validation_document_settlement(args),
+        "validation_native_general_reconciliation": native_validation_general_reconciliation(args),
+        "validation_native_bank_categorization": native_validation_bank_categorization(args),
+        "validation_native_bank_external": native_validation_bank_external(args),
+        "validation_native_analytics": native_validation_analytics(args),
+        "dev_reset": dev_reset(args),
+        "dev_import": dev_import(args),
+        "dev_validate": dev_validate(args),
+        "validation_exact_reconciliation_probe": target_reconciliation_probe(args),
         "currency_rate_provider": currency_rate_provider(args),
         "reports": reports(args),
         "fec": fec(args),
@@ -14559,27 +14579,27 @@ def build_parser() -> argparse.ArgumentParser:
         "source-controls",
         "failure-tests",
         "extract",
-        "target-reset",
-        "target-import",
-        "target-validate",
-        "target-idempotence",
-        "target-failure-tests",
+        "validation-exact-reset",
+        "validation-exact-import",
+        "validation-exact-validate",
+        "validation-exact-idempotence",
+        "validation-exact-failure-tests",
         "document-regeneration",
-        "track-b-reset",
-        "track-b-expenses",
-        "track-b-documents",
-        "track-b-assets",
-        "track-b-deferrals",
-        "track-b-analytics",
-        "track-b-expense-settlement",
-        "track-b-document-settlement",
-        "track-b-general-reconciliation",
-        "track-b-bank-categorization",
-        "track-b-bank-external",
-        "replacement-reset",
-        "replacement-import",
-        "replacement-validate",
-        "target-reconciliation-probe",
+        "validation-native-reset",
+        "validation-native-expenses",
+        "validation-native-documents",
+        "validation-native-assets",
+        "validation-native-deferrals",
+        "validation-native-analytics",
+        "validation-native-expense-settlement",
+        "validation-native-document-settlement",
+        "validation-native-general-reconciliation",
+        "validation-native-bank-categorization",
+        "validation-native-bank-external",
+        "dev-reset",
+        "dev-import",
+        "dev-validate",
+        "validation-exact-reconciliation-probe",
         "currency-rate-provider",
         "reports",
         "fec",
@@ -14609,47 +14629,47 @@ def main(argv: list[str] | None = None) -> int:
             print_summary(args.stage, failure_tests(args))
         elif args.stage == "extract":
             print_summary(args.stage, extract(args))
-        elif args.stage == "target-reset":
+        elif args.stage == "validation-exact-reset":
             print_summary(args.stage, target_reset(args))
-        elif args.stage == "target-import":
+        elif args.stage == "validation-exact-import":
             print_summary(args.stage, target_import(args))
-        elif args.stage == "target-validate":
+        elif args.stage == "validation-exact-validate":
             print_summary(args.stage, target_validate(args))
-        elif args.stage == "target-idempotence":
+        elif args.stage == "validation-exact-idempotence":
             print_summary(args.stage, target_idempotence(args))
-        elif args.stage == "target-failure-tests":
+        elif args.stage == "validation-exact-failure-tests":
             print_summary(args.stage, target_failure_tests(args))
         elif args.stage == "document-regeneration":
             print_summary(args.stage, document_regeneration(args))
-        elif args.stage == "track-b-reset":
-            print_summary(args.stage, track_b_reset(args))
-        elif args.stage == "track-b-expenses":
-            print_summary(args.stage, track_b_expenses(args))
-        elif args.stage == "track-b-documents":
-            print_summary(args.stage, track_b_documents(args))
-        elif args.stage == "track-b-assets":
-            print_summary(args.stage, track_b_assets(args))
-        elif args.stage == "track-b-deferrals":
-            print_summary(args.stage, track_b_deferrals(args))
-        elif args.stage == "track-b-analytics":
-            print_summary(args.stage, track_b_analytics(args))
-        elif args.stage == "track-b-expense-settlement":
-            print_summary(args.stage, track_b_expense_settlement(args))
-        elif args.stage == "track-b-document-settlement":
-            print_summary(args.stage, track_b_document_settlement(args))
-        elif args.stage == "track-b-general-reconciliation":
-            print_summary(args.stage, track_b_general_reconciliation(args))
-        elif args.stage == "track-b-bank-categorization":
-            print_summary(args.stage, track_b_bank_categorization(args))
-        elif args.stage == "track-b-bank-external":
-            print_summary(args.stage, track_b_bank_external(args))
-        elif args.stage == "replacement-reset":
-            print_summary(args.stage, replacement_reset(args))
-        elif args.stage == "replacement-import":
-            print_summary(args.stage, replacement_import(args))
-        elif args.stage == "replacement-validate":
-            print_summary(args.stage, replacement_validate(args))
-        elif args.stage == "target-reconciliation-probe":
+        elif args.stage == "validation-native-reset":
+            print_summary(args.stage, native_validation_reset(args))
+        elif args.stage == "validation-native-expenses":
+            print_summary(args.stage, native_validation_expenses(args))
+        elif args.stage == "validation-native-documents":
+            print_summary(args.stage, native_validation_documents(args))
+        elif args.stage == "validation-native-assets":
+            print_summary(args.stage, native_validation_assets(args))
+        elif args.stage == "validation-native-deferrals":
+            print_summary(args.stage, native_validation_deferrals(args))
+        elif args.stage == "validation-native-analytics":
+            print_summary(args.stage, native_validation_analytics(args))
+        elif args.stage == "validation-native-expense-settlement":
+            print_summary(args.stage, native_validation_expense_settlement(args))
+        elif args.stage == "validation-native-document-settlement":
+            print_summary(args.stage, native_validation_document_settlement(args))
+        elif args.stage == "validation-native-general-reconciliation":
+            print_summary(args.stage, native_validation_general_reconciliation(args))
+        elif args.stage == "validation-native-bank-categorization":
+            print_summary(args.stage, native_validation_bank_categorization(args))
+        elif args.stage == "validation-native-bank-external":
+            print_summary(args.stage, native_validation_bank_external(args))
+        elif args.stage == "dev-reset":
+            print_summary(args.stage, dev_reset(args))
+        elif args.stage == "dev-import":
+            print_summary(args.stage, dev_import(args))
+        elif args.stage == "dev-validate":
+            print_summary(args.stage, dev_validate(args))
+        elif args.stage == "validation-exact-reconciliation-probe":
             print_summary(args.stage, target_reconciliation_probe(args))
         elif args.stage == "currency-rate-provider":
             print_summary(args.stage, currency_rate_provider(args))

@@ -1027,7 +1027,7 @@ class RebuildAccountImportRun(models.Model):
                 })
             status = "passed" if not blocked and not mismatches else "partial"
             stats = {
-                "classification": "TRACK_B_NATIVE_EXTERNAL_BANK_REPLAY",
+                "classification": "NATIVE_VALIDATION_NATIVE_EXTERNAL_BANK_REPLAY",
                 "date_from": options["date_from"],
                 "date_to": options["date_to"],
                 "source_company_ids": options["source_company_ids"],

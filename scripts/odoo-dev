@@ -32,7 +32,7 @@ case "${1:-help}" in
     ;;
   test)
     module="${2:-base}"
-    database="${3:-odoo19_test}"
+    database="${3:-odoo_unit_test}"
     docker compose --profile init run --rm init-db odoo --config=/etc/odoo/odoo.conf --database="$database" --init="$module" --without-demo=true --test-enable --stop-after-init
     ;;
   ruff)

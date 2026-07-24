@@ -1088,7 +1088,7 @@ class RebuildAccountImportRun(models.Model):
                 if row["current_scope_complete"]:
                     complete_scope_counts[row["payment_mode"]] += 1
             stats = {
-                "classification": "TRACK_B_NATIVE_EXPENSE_SETTLEMENT",
+                "classification": "NATIVE_VALIDATION_NATIVE_EXPENSE_SETTLEMENT",
                 "date_from": options["date_from"],
                 "date_to": options["date_to"],
                 "source_company_ids": options["source_company_ids"],

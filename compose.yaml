@@ -1,4 +1,4 @@
-name: ${COMPOSE_PROJECT_NAME:-odoo19}
+name: ${COMPOSE_PROJECT_NAME:-usl-odoo}
 
 services:
   db:
@@ -103,7 +103,7 @@ services:
     command:
       - odoo
       - --config=/etc/odoo/odoo.conf
-      - --database=${ODOO_INIT_DB:-odoo19}
+      - --database=${ODOO_INIT_DB:-odoo_dev}
       - --init=${ODOO_INIT_MODULES:-base}
       - --without-demo=true
       - --stop-after-init

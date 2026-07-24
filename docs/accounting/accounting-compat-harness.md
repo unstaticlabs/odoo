@@ -13,24 +13,24 @@ make accounting-source-restore
 make accounting-source-inspect
 make accounting-extract
 make accounting-failure-tests
-make accounting-target-reset
-make accounting-target-import
-make accounting-target-validate
-make accounting-target-idempotence
-make accounting-target-failure-tests
+make accounting-validation-exact-reset
+make accounting-validation-exact-import
+make accounting-validation-exact-validate
+make accounting-validation-exact-idempotence
+make accounting-validation-exact-failure-tests
 make accounting-document-regeneration
-make accounting-track-b-reset
-make accounting-track-b-expenses
-make accounting-track-b-documents
-make accounting-track-b-assets
-make accounting-track-b-deferrals
-make accounting-track-b-expense-settlement
-make accounting-track-b-document-settlement
-make accounting-track-b-general-reconciliation
-make accounting-track-b-bank-categorization
-make accounting-track-b-bank-external
-make accounting-track-b-analytics
-make accounting-target-reconciliation-probe
+make accounting-validation-native-reset
+make accounting-validation-native-expenses
+make accounting-validation-native-documents
+make accounting-validation-native-assets
+make accounting-validation-native-deferrals
+make accounting-validation-native-expense-settlement
+make accounting-validation-native-document-settlement
+make accounting-validation-native-general-reconciliation
+make accounting-validation-native-bank-categorization
+make accounting-validation-native-bank-external
+make accounting-validation-native-analytics
+make accounting-validation-exact-reconciliation-probe
 make accounting-currency-rate-provider
 make accounting-reports
 make accounting-fec
@@ -80,7 +80,7 @@ source package validation
 → evidence index
 ```
 
-The live `odoo19` database is not reset or modified by these stages. Exact reconstruction uses the disposable `odoo_rebuild_accounting_test` database. Native-engine Track B proof uses a second disposable database, `odoo_rebuild_accounting_track_b`, so recomputed current-period documents cannot alter the exact historical replay.
+The live `odoo_dev` database is not reset or modified by these stages. Exact reconstruction uses the disposable `odoo_validation_exact` database. Native-engine Track B proof uses a second disposable database, `odoo_validation_native`, so recomputed current-period documents cannot alter the exact historical replay.
 
 `make accounting-failure-tests` validates six non-destructive source-package guardrails: missing source directory, missing `dump.sql`, missing filestore directory, filestore path that is not a directory, unsupported dump format and a minimal valid plain-SQL source package. These tests use temporary private packages under `artifacts/accounting-compat/private/failure-tests/` and never mutate the real source backup.
 
@@ -92,9 +92,9 @@ Use this shorter sequence when the immediate goal is to open the imported accoun
 make oca-addons-sync
 make accounting-source-restore
 make accounting-extract
-make accounting-target-reset
-make accounting-target-import
-make accounting-target-validate
+make accounting-validation-exact-reset
+make accounting-validation-exact-import
+make accounting-validation-exact-validate
 make accounting-reports
 ```
 
@@ -114,9 +114,9 @@ The important databases are:
 | Database | Role |
 | --- | --- |
 | `odoo_online_source_saas_19_2` | Read-only source database restored from `usl-online-dump/dump.sql`. |
-| `odoo_rebuild_accounting_test` | Clean target Odoo database rebuilt from the extracted snapshot. |
-| `odoo_rebuild_accounting_track_b` | Separate clean target for native current-period business-document recomputation. |
-| `odoo19` | Normal local demo/development database. It is not the imported accounting target. |
+| `odoo_validation_exact` | Clean target Odoo database rebuilt from the extracted snapshot. |
+| `odoo_validation_native` | Separate clean target for native current-period business-document recomputation. |
+| `odoo_dev` | Normal local demo/development database. It is not the imported accounting target. |
 
 Stage dependencies:
 
@@ -124,23 +124,23 @@ Stage dependencies:
 | --- | --- | --- | --- |
 | `make accounting-source-restore` | `usl-online-dump/dump.sql`, `usl-online-dump/filestore/` | `odoo_online_source_saas_19_2` in `accounting-source-db`; source restore status artifacts | It creates the source database that every later source read depends on. |
 | `make accounting-extract` | Restored source database through read-only SQL | Private canonical snapshot and extraction artifacts | It converts the physical SaaS database into the durable transfer package used by the target importer. |
-| `make accounting-target-reset` | Compose target PostgreSQL service `db` | Fresh `odoo_rebuild_accounting_test` database | It removes old target state so the import is deterministic and not mixed with previous attempts. |
-| `make accounting-target-import` | Canonical snapshot; source database for source metadata; clean target database | Target Odoo records and source-trace metadata | It reconstructs accounting evidence through the target Odoo ORM. |
-| `make accounting-target-validate` | Imported target database | Target validation artifacts and discrepancy records | It proves the imported target is internally consistent before report checks run. |
-| `make accounting-track-b-reset` | Installed target/OCA add-ons | Fresh `odoo_rebuild_accounting_track_b` database | It creates a clean, neutralized proof environment without touching the exact replay target. |
-| `make accounting-track-b-expenses` | Read-only restored source expense/business fields, verified source filestore binaries and Track B configuration | Native employees, products, expenses, company payments, employee receipts and source-traced receipt attachments in the Track B database; private proof artifact | It uses normal expense submission, approval/refusal, receipt preparation and payment posting APIs, then compares every expense and generated accounting effect to source. It verifies every source receipt checksum/size and preserves the source-designated main attachment. Run it before the document stage so expense-generated receipts can be reused. |
-| `make accounting-track-b-documents` | Read-only restored source business fields, verified source filestore binaries and Track B configuration | Native posted invoices, bills, supplier refunds and receipts with source-traced document attachments in the Track B database; private proof artifact | It calls normal Odoo draft creation and `action_post`, compares headers, due dates and per-account effects to source, then verifies every business-document binary and source-designated main attachment. |
-| `make accounting-track-b-assets` | Read-only source asset master data, depreciation schedules and Track B configuration | OCA assets, profiles, depreciation-board lines and native posted depreciation entries; private proof artifact | It seeds the source business schedule into maintained OCA `account_asset_management`, lets OCA create and post every in-period entry, leaves future schedule lines unposted and compares date, amount and account effects exactly. |
-| `make accounting-track-b-deferrals` | Native Track B documents plus read-only source deferred relationships and schedule decisions | Operational deferred-expense records, posted recognition entries, future schedule lines and a traced opening boundary entry; private proof artifact | It creates a focused schedule workflow backed by standard `account.move` posting, validates every posted and future source relationship, and keeps the reviewer surface read-only. |
-| `make accounting-track-b-expense-settlement` | Native Track B expenses plus the read-only source bank/reconciliation graph | Native bank transactions, OCA-generated partial reconciliations, paid company payments and paid employee expenses; private proof artifact | It runs after expenses/documents, replays source operator allocations chronologically, and keeps mixed-transfer non-expense balances explicit for General Reconciliation. |
-| `make accounting-track-b-document-settlement` | Native Track B documents, expense settlement and the read-only source bank/reconciliation graph | Native commercial-document bank transactions, exact OCA-generated partial reconciliations and bounded residuals for General Reconciliation; private proof artifact | It reuses overlapping expense bank lines, creates the remaining bank transactions, applies every direct document/bank edge and validates company/transaction-currency partials plus due-line residuals. |
-| `make accounting-track-b-general-reconciliation` | Native Track B documents and direct bank settlement plus the read-only source non-bank reconciliation graph | Native posted manual entries, document netting, General Reconciliation partials and traced Odoo/OCA exchange-difference moves; private proof artifact | It posts shareholder-current-account and clearing entries through standard journal APIs, reconciles them with documents, and classifies native timing and one-cent exchange differences without copying finalized source journal rows. |
-| `make accounting-track-b-bank-categorization` | Track B through General Reconciliation plus source bank transactions without external partial endpoints | Native OCA-categorized interest, fees, transfers and account allocations plus source-open transactions retained for review; private proof artifact | It replays the operator's account, partner, analytic and currency inputs for direct categorizations and deliberately leaves source-unreconciled transactions open. |
-| `make accounting-track-b-bank-external` | Track B through direct categorization plus the remaining source bank/external-reconciliation graph | Exact multi-line OCA bank categorizations, posted payroll/tax/clearing entries, native General Reconciliation and explicit cutoff boundaries; private proof artifact | It completes all current-period bank transactions while keeping draft/post-cutoff documents as prepayments and identifying five aggregates from earlier bounded settlement stages that still need refinement. |
-| `make accounting-track-b-analytics` | Completed Track B native stages plus source expense decisions, finalized analytic distributions and analytic lines | Explicit analytic-correction audit records and direct source/target reconciliation across both analytic plans; private proof artifact | It runs last, after every posting stage. Native business objects remain the accounting input; the stage applies only source post-posting analytic classifications through Odoo's supported distribution write, then compares both theoretical allocations and actual analytic lines. |
-| `make accounting-replacement-reset` | Completed and validated Track B native state | Fresh `odoo_rebuild_accounting_replacement` clone with the current migration add-on upgraded | It refuses to clone incomplete Track B state and preserves both the exact-replay baseline and the isolated native proof. |
-| `make accounting-replacement-import` | Canonical historical snapshot plus the replacement clone | Exact benchmark history in the replacement database, reusing only four checksum/shape-validated native move representations | It adds the locked historical ledger without duplicating the four current native moves that already represent source history. |
-| `make accounting-replacement-validate` | Source database and completed replacement candidate | Historical parity, current-period difference decomposition and promotion-gate evidence | It requires exact benchmark parity, balanced/unique native state and a classification for every current journal and account-balance difference. A classified difference can still require professional acceptance. |
+| `make accounting-validation-exact-reset` | Compose target PostgreSQL service `db` | Fresh `odoo_validation_exact` database | It removes old target state so the import is deterministic and not mixed with previous attempts. |
+| `make accounting-validation-exact-import` | Canonical snapshot; source database for source metadata; clean target database | Target Odoo records and source-trace metadata | It reconstructs accounting evidence through the target Odoo ORM. |
+| `make accounting-validation-exact-validate` | Imported target database | Target validation artifacts and discrepancy records | It proves the imported target is internally consistent before report checks run. |
+| `make accounting-validation-native-reset` | Installed target/OCA add-ons | Fresh `odoo_validation_native` database | It creates a clean, neutralized proof environment without touching the exact replay target. |
+| `make accounting-validation-native-expenses` | Read-only restored source expense/business fields, verified source filestore binaries and Track B configuration | Native employees, products, expenses, company payments, employee receipts and source-traced receipt attachments in the Track B database; private proof artifact | It uses normal expense submission, approval/refusal, receipt preparation and payment posting APIs, then compares every expense and generated accounting effect to source. It verifies every source receipt checksum/size and preserves the source-designated main attachment. Run it before the document stage so expense-generated receipts can be reused. |
+| `make accounting-validation-native-documents` | Read-only restored source business fields, verified source filestore binaries and Track B configuration | Native posted invoices, bills, supplier refunds and receipts with source-traced document attachments in the Track B database; private proof artifact | It calls normal Odoo draft creation and `action_post`, compares headers, due dates and per-account effects to source, then verifies every business-document binary and source-designated main attachment. |
+| `make accounting-validation-native-assets` | Read-only source asset master data, depreciation schedules and Track B configuration | OCA assets, profiles, depreciation-board lines and native posted depreciation entries; private proof artifact | It seeds the source business schedule into maintained OCA `account_asset_management`, lets OCA create and post every in-period entry, leaves future schedule lines unposted and compares date, amount and account effects exactly. |
+| `make accounting-validation-native-deferrals` | Native Track B documents plus read-only source deferred relationships and schedule decisions | Operational deferred-expense records, posted recognition entries, future schedule lines and a traced opening boundary entry; private proof artifact | It creates a focused schedule workflow backed by standard `account.move` posting, validates every posted and future source relationship, and keeps the reviewer surface read-only. |
+| `make accounting-validation-native-expense-settlement` | Native Track B expenses plus the read-only source bank/reconciliation graph | Native bank transactions, OCA-generated partial reconciliations, paid company payments and paid employee expenses; private proof artifact | It runs after expenses/documents, replays source operator allocations chronologically, and keeps mixed-transfer non-expense balances explicit for General Reconciliation. |
+| `make accounting-validation-native-document-settlement` | Native Track B documents, expense settlement and the read-only source bank/reconciliation graph | Native commercial-document bank transactions, exact OCA-generated partial reconciliations and bounded residuals for General Reconciliation; private proof artifact | It reuses overlapping expense bank lines, creates the remaining bank transactions, applies every direct document/bank edge and validates company/transaction-currency partials plus due-line residuals. |
+| `make accounting-validation-native-general-reconciliation` | Native Track B documents and direct bank settlement plus the read-only source non-bank reconciliation graph | Native posted manual entries, document netting, General Reconciliation partials and traced Odoo/OCA exchange-difference moves; private proof artifact | It posts shareholder-current-account and clearing entries through standard journal APIs, reconciles them with documents, and classifies native timing and one-cent exchange differences without copying finalized source journal rows. |
+| `make accounting-validation-native-bank-categorization` | Track B through General Reconciliation plus source bank transactions without external partial endpoints | Native OCA-categorized interest, fees, transfers and account allocations plus source-open transactions retained for review; private proof artifact | It replays the operator's account, partner, analytic and currency inputs for direct categorizations and deliberately leaves source-unreconciled transactions open. |
+| `make accounting-validation-native-bank-external` | Track B through direct categorization plus the remaining source bank/external-reconciliation graph | Exact multi-line OCA bank categorizations, posted payroll/tax/clearing entries, native General Reconciliation and explicit cutoff boundaries; private proof artifact | It completes all current-period bank transactions while keeping draft/post-cutoff documents as prepayments and identifying five aggregates from earlier bounded settlement stages that still need refinement. |
+| `make accounting-validation-native-analytics` | Completed Track B native stages plus source expense decisions, finalized analytic distributions and analytic lines | Explicit analytic-correction audit records and direct source/target reconciliation across both analytic plans; private proof artifact | It runs last, after every posting stage. Native business objects remain the accounting input; the stage applies only source post-posting analytic classifications through Odoo's supported distribution write, then compares both theoretical allocations and actual analytic lines. |
+| `make accounting-dev-reset` | Completed and validated Track B native state | Fresh `odoo_dev` clone with the current migration add-on upgraded | It refuses to clone incomplete Track B state and preserves both the exact-replay baseline and the isolated native proof. |
+| `make accounting-dev-import` | Canonical historical snapshot plus the replacement clone | Exact benchmark history in the replacement database, reusing only four checksum/shape-validated native move representations | It adds the locked historical ledger without duplicating the four current native moves that already represent source history. |
+| `make accounting-dev-validate` | Source database and completed replacement candidate | Historical parity, current-period difference decomposition and promotion-gate evidence | It requires exact benchmark parity, balanced/unique native state and a classification for every current journal and account-balance difference. A classified difference can still require professional acceptance. |
 | `make accounting-currency-rate-provider` | Imported target company configuration and the official ECB daily XML feed | Native future-dated `res.currency.rate` rows plus provider, retrieval, cron and idempotence evidence | It runs after historical replay. It must never replace a source-traced historical rate, and its reference rows remain separate from transaction-specific bank or platform conversion evidence. |
 | `make accounting-reports` | Imported and validated target database | Report preview/export/drill-down evidence artifacts | It proves the user-facing report surfaces can generate and trace values. |
 
@@ -199,19 +199,19 @@ artifacts/accounting-compat/private/source-controls.json
 artifacts/accounting-compat/private/report-catalogue-v1.json
 artifacts/accounting-compat/private/parity-matrix-v1.json
 artifacts/accounting-compat/private/failure-tests-status.json
-artifacts/accounting-compat/private/target-import-status.json
-artifacts/accounting-compat/private/target-validate-status.json
-artifacts/accounting-compat/private/target-idempotence-status.json
-artifacts/accounting-compat/private/target-failure-tests-status.json
-artifacts/accounting-compat/private/track-b-reset-status.json
-artifacts/accounting-compat/private/track-b-expenses-status.json
-artifacts/accounting-compat/private/track-b-documents-status.json
-artifacts/accounting-compat/private/track-b-expense-settlement-status.json
-artifacts/accounting-compat/private/track-b-document-settlement-status.json
-artifacts/accounting-compat/private/track-b-general-reconciliation-status.json
-artifacts/accounting-compat/private/track-b-bank-categorization-status.json
-artifacts/accounting-compat/private/track-b-bank-external-status.json
-artifacts/accounting-compat/private/target-reconciliation-probe-status.json
+artifacts/accounting-compat/private/validation-exact-import-status.json
+artifacts/accounting-compat/private/validation-exact-validate-status.json
+artifacts/accounting-compat/private/validation-exact-idempotence-status.json
+artifacts/accounting-compat/private/validation-exact-failure-tests-status.json
+artifacts/accounting-compat/private/validation-native-reset-status.json
+artifacts/accounting-compat/private/validation-native-expenses-status.json
+artifacts/accounting-compat/private/validation-native-documents-status.json
+artifacts/accounting-compat/private/validation-native-expense-settlement-status.json
+artifacts/accounting-compat/private/validation-native-document-settlement-status.json
+artifacts/accounting-compat/private/validation-native-general-reconciliation-status.json
+artifacts/accounting-compat/private/validation-native-bank-categorization-status.json
+artifacts/accounting-compat/private/validation-native-bank-external-status.json
+artifacts/accounting-compat/private/validation-exact-reconciliation-probe-status.json
 artifacts/accounting-compat/private/currency-rate-provider-status.json
 artifacts/accounting-compat/private/currency-rate-provider-browser-status.json
 artifacts/accounting-compat/private/reports-status.json
@@ -261,13 +261,13 @@ As of the latest clean rehearsal on 2026-07-23:
 
 Track B is deliberately separate from the exact replay. Three approaches were considered:
 
-1. create recomputed documents inside `odoo_rebuild_accounting_test`, which would mix generated current-period effects with the historical-truth baseline;
+1. create recomputed documents inside `odoo_validation_exact`, which would mix generated current-period effects with the historical-truth baseline;
 2. create a dedicated clean database with the same Community/OCA configuration and replay source business fields through native Odoo posting;
 3. calculate expected taxes, currencies and due lines in a custom migration engine and write the resulting journal entries.
 
 Option 2 is selected. It preserves the exact target as an audit baseline and proves the target product through Odoo's own engines. Option 1 makes later parity controls ambiguous. Option 3 would duplicate the accounting engine and would be another exact-line importer rather than a native workflow proof.
 
-`make accounting-track-b-expenses` first reconstructs all `325` source `hr.expense` records dated `2025-10-01` through `2026-06-30`. Three credible treatments were compared:
+`make accounting-validation-native-expenses` first reconstructs all `325` source `hr.expense` records dated `2025-10-01` through `2026-06-30`. Three credible treatments were compared:
 
 1. replay employee, product and expense business fields through native `hr.expense` submission, approval/refusal, receipt and company-payment APIs in the isolated Track B database;
 2. preserve only finalized source expense ledger/payment rows in the exact target, which retains historical accounting truth but does not prove the replacement expense workflow;
@@ -279,11 +279,11 @@ The clean expense run validates `325/325` expenses and all `176` generated moves
 
 At this expense-document checkpoint, state transitions that depend on settlement remain explicit rather than forged: the `97` source-reconciled company payments stay in process until their bank transactions are matched, and the `95` source-paid own-account expenses stay posted until employee reimbursement replay. A legacy source destination-payable hint is retained as classification evidence; the current native company-expense payment's posted outstanding account is the accounting effect validated to source.
 
-`make accounting-track-b-documents` then reconstructs all `284` posted source business documents for the same period: `36` customer invoices, `161` vendor bills, `3` supplier refunds and `84` purchase receipts. It reuses the `79` receipts already produced by the expense workflow and creates the remaining `205` documents from commercial lines, accounts, quantities, unit prices, discounts, taxes, analytic distributions, fiscal positions, payment terms, partners, dates and the source transaction currency rate, then calls normal `action_post`. The latest clean run validates `284/284`, with `0` blocked cases and `0` mismatches. Coverage is `170` EUR and `114` USD documents.
+`make accounting-validation-native-documents` then reconstructs all `284` posted source business documents for the same period: `36` customer invoices, `161` vendor bills, `3` supplier refunds and `84` purchase receipts. It reuses the `79` receipts already produced by the expense workflow and creates the remaining `205` documents from commercial lines, accounts, quantities, unit prices, discounts, taxes, analytic distributions, fiscal positions, payment terms, partners, dates and the source transaction currency rate, then calls normal `action_post`. The latest clean run validates `284/284`, with `0` blocked cases and `0` mismatches. Coverage is `170` EUR and `114` USD documents.
 
 Validation compares untaxed, tax and total amounts, due dates, and debit/credit/balance/amount-currency aggregates by source account. Finalized source journal lines are never passed to document creation. After expense-generated receipts are reused, two remaining source documents whose stored tax/base totals cannot be derived from their price fields are replayed through Odoo's native `extra_tax_data` manual-tax mechanism. That path is guarded to one unambiguous taxable product line and recorded as `supported_native_manual_tax_override`; ambiguous multi-line allocations remain mismatches rather than guesses.
 
-`make accounting-track-b-expense-settlement` then proves the bank/payment transition for this expense slice. Three credible approaches were compared:
+`make accounting-validation-native-expense-settlement` then proves the bank/payment transition for this expense slice. Three credible approaches were compared:
 
 1. create native `account.bank.statement.line` records and replay the source operator's selected current-expense candidates through maintained OCA `reconcile_bank_line()` behavior;
 2. copy the source statement moves and finalized partial-reconciliation rows, which would preserve history but would not prove the target bank-matching product;
@@ -295,7 +295,7 @@ The bounded expense-settlement run creates `106` native bank transactions: `98` 
 
 All `98` company-account bank lines and `2` reimbursement transfers contain only current-period expense allocations. The other `6` reimbursement transfers also settle older or non-expense shareholder-account items in the source. Track B replays the source edges backed by current-period native expenses and preserves all `19` outside-only source counterpart lines through the same OCA reconciliation payload, including exact account, partner, currency, company amount, transaction amount and analytic distribution. Only source lines themselves split across perimeters retain an aggregate residual. Validation derives the outside balance from all bank counterpart lines minus the traced current-expense partials, so it remains stable after downstream reconciliation. This retains source detail without inventing an endpoint or copying finalized journal rows.
 
-`make accounting-track-b-document-settlement` next proves the direct bank transition for all current-period commercial documents. Three credible approaches were compared:
+`make accounting-validation-native-document-settlement` next proves the direct bank transition for all current-period commercial documents. Three credible approaches were compared:
 
 1. create standard bank transactions and replay the source operator's exact document candidates through OCA Bank Matching, using supported transaction countervalues plus a narrow custom-rate adapter where OCA would otherwise replace the historical company/foreign amount pair;
 2. copy finalized source bank journal items and partial-reconciliation rows into the exact target;
@@ -305,7 +305,7 @@ Option 1 is selected. It preserves the native statement/OCA workflow and uses Od
 
 The clean stage covers `233` source bank transactions and `339` direct document/bank partial-reconciliation edges against `241` native receivable/payable lines. It reuses `8` bank lines and `83` partials already proved by expense settlement, creates the remaining `225` bank lines, creates `256` additional partials, and extends one prior mixed employee transfer through native General Reconciliation. All `339` source company-currency and transaction-currency partial amounts and endpoints match; all `241` due-line transaction-currency residuals match; a rerun reuses all `233` bank lines and `339` document edges with no duplicate trace. `170` bank lines contain only current document allocations. Across the other `63`, OCA preserves `48` outside-only source counterpart lines exactly; only source lines themselves split across perimeters retain a bounded residual.
 
-`make accounting-track-b-general-reconciliation` then proves every current-period non-bank document reconciliation. Three credible approaches were compared:
+`make accounting-validation-native-general-reconciliation` then proves every current-period non-bank document reconciliation. Three credible approaches were compared:
 
 1. post the `CCAVV` shareholder-current-account and `MISC` compensation/clearing entries from journal-entry inputs, then use native General Reconciliation for those document edges and document-to-document netting while retaining Odoo/OCA-generated exchange differences;
 2. copy the finalized source manual-entry, partial-reconciliation and exchange-difference rows, which preserves history but does not prove the target operational workflow;
@@ -315,7 +315,7 @@ Option 1 is selected. Standard draft `account.move` creation and `action_post` p
 
 The clean run covers all `111` source non-bank partial reconciliations and their `114` current-document endpoints. It posts `21` manual entries with `72` exact accounting-input lines: `18` reconciliation-edge entries plus `3` standalone source operator entries whose balanced accounting effect is not owned by a downstream bank stage. It creates `68` manual-entry/document partials plus `3` document-netting partials and traces all `40` native exchange-difference partials. All manual moves are posted and balanced, all source transaction-currency partial amounts and endpoints match, and the final payment-state distribution exactly equals source: `159` paid and `2` reversed vendor bills, `84` paid purchase receipts, `1` paid and `2` partially paid supplier refunds, and `36` paid customer invoices. Odoo's native reconciliation produces two bounded one-cent company-currency differences; one case also has an extra one-cent exchange segment. These are retained as explicit rounding evidence rather than rewriting posted entries. A rerun creates nothing and reuses all `21` moves, `71` input partials and `40` exchange partials without duplicate traces.
 
-`make accounting-track-b-bank-categorization` next covers every source bank transaction that has no external partial-reconciliation endpoint. Three credible approaches were compared:
+`make accounting-validation-native-bank-categorization` next covers every source bank transaction that has no external partial-reconciliation endpoint. Three credible approaches were compared:
 
 1. recreate each bank transaction and replay the source operator's account, partner, analytic and transaction-currency categorization through OCA Bank Matching, while leaving source-unreconciled transactions open;
 2. copy finalized source bank journal lines, which preserves history but does not prove operational categorization;
@@ -323,7 +323,7 @@ The clean run covers all `111` source non-bank partial reconciliations and their
 
 Option 1 is selected. The clean run creates `1,415` additional bank transactions, categorizes `1,229` through OCA and retains the source's `186` open transactions as open. The categorized population consists of interest, bank fees, internal-transfer allocations and bounded payable, shareholder, corporate-tax and investment-account allocations; exactly `5` carry analytic distributions. `908` foreign-journal transactions use Odoo's supported explicit company-currency countervalue while retaining the source journal-currency amount. Every bank header, liquidity effect and categorized counterpart account/partner/currency/analytic effect matches; all moves balance; there are no duplicate traces. A rerun creates or categorizes nothing and reuses all `1,415` bank lines and `1,229` categorizations.
 
-`make accounting-track-b-bank-external` then covers the final `95` current-period bank transactions and their `125` source counterpart lines. Three credible approaches were compared:
+`make accounting-validation-native-bank-external` then covers the final `95` current-period bank transactions and their `125` source counterpart lines. Three credible approaches were compared:
 
 1. reconstruct every bank move through OCA, post source payroll/tax/clearing inputs as standard manual journal entries, and reconcile only valid posted endpoints;
 2. copy finalized source bank and endpoint journal lines, which preserves history but does not prove the replacement workflow;
@@ -333,7 +333,7 @@ Option 1 is selected. The clean run creates all `95` bank transactions and `125`
 
 The remaining `48` source relationships are boundaries, not missing bank transactions: `37` draft-document edges and `2` draft exchange-entry edges remain open prepayments, while `9` receipts against three July 1 customer invoices remain post-cutoff prepayments. The five formerly bounded cross-bank edges now reconcile through exact traced counterparts, so no `preexisting_bounded_bank_aggregate` or `exchange_of_bounded_input` classification remains. No draft document is posted or reconciled to manufacture parity.
 
-`make accounting-track-b-assets` proves the native fixed-asset workflow. Three credible approaches were compared:
+`make accounting-validation-native-assets` proves the native fixed-asset workflow. Three credible approaches were compared:
 
 1. use maintained OCA `account_asset_management`, seed its native depreciation board from the source business schedule and let OCA post each due entry;
 2. recompute a fresh OCA schedule from acquisition values, which changes historical monthly amounts because the source already contains imported depreciation and prorata decisions;
@@ -341,7 +341,7 @@ The remaining `48` source relationships are boundaries, not missing bank transac
 
 Option 1 is selected. It preserves the operator-facing OCA asset lifecycle and the source business decisions without copying finalized journal rows. The clean run creates `3` native assets, `2` account-specific profiles and `91` depreciation-board lines. OCA posts the `28` source-period depreciation entries; every date, amount and account total matches. The `63` future source schedule rows remain unposted native lines. A rerun creates nothing and reuses all `3` assets, `91` schedule lines and `28` moves. The manager browser journey opens the three assets and their posted/future board actions. The reviewer journey sees the same assets and posted move links but no create, recompute, confirm or reverse controls; server ACLs and a combined-view regression test enforce the boundary.
 
-`make accounting-track-b-deferrals` proves the operational deferred-expense workflow. Three credible approaches were compared:
+`make accounting-validation-native-deferrals` proves the operational deferred-expense workflow. Three credible approaches were compared:
 
 1. add a focused schedule model whose due lines post standard balanced `account.move` entries through `action_post`;
 2. adopt or port OCA `account_spread_cost_revenue`;
@@ -349,7 +349,7 @@ Option 1 is selected. It preserves the operator-facing OCA asset lifecycle and t
 
 Option 1 is selected because no maintained OCA 19.0 deferral module is available in the pinned add-on set; the spread module is available only on older OCA branches and a milestone-time port would be migration-sensitive. The evidence-only alternative cannot support daily scheduling or controlled posting. The clean replay creates `5` deferred-expense records with `82` schedule lines, reuses/posts `34` current-period moves, retains `48` future lines, and represents one opening-boundary reversal. Every date, amount, account and analytic distribution matches, and a rerun reuses all records without duplication. The manager can create schedules and post due or individual lines. The reviewer can inspect schedules and linked entries but has no create or post control.
 
-`make accounting-track-b-analytics` then runs after all Track B posting stages. Two materially different source values exist for `29` expense lines: the business-time expense distribution and a later finalized journal-item classification. Three treatments were compared:
+`make accounting-validation-native-analytics` then runs after all Track B posting stages. Two materially different source values exist for `29` expense lines: the business-time expense distribution and a later finalized journal-item classification. Three treatments were compared:
 
 1. replay the expense workflow from its business inputs, then apply only the source's explicit post-posting analytic correction through Odoo's supported analytic-distribution write and retain a read-only audit record;
 2. pass the finalized journal-item distribution into expense creation, which would erase the distinction between business input and later classification;
@@ -367,7 +367,7 @@ The exact historical target and Track B answer different questions, so neither i
 2. promote Track B alone, which would leave the exact pre-cutoff ledger outside the operational candidate;
 3. clone the completed Track B state into a third disposable database and exact-import the benchmark history, reusing only native records whose source identity and accounting shape are validated.
 
-Option 3 is selected. `make accounting-replacement-reset` creates `odoo_rebuild_accounting_replacement` only after Track B proves `284` documents, `325` expenses, `1,841` bank transactions, zero unbalanced posted moves and zero duplicate source move representations. `make accounting-replacement-import` then adds the `2024-01-10` through `2025-09-30` benchmark. It imports `2,046` moves and `4,809` lines while reusing exactly four validated native move aliases (`6727`, `6728`, `6730` and `6735`); a duplicate or shape mismatch blocks the import.
+Option 3 is selected. `make accounting-dev-reset` creates `odoo_dev` only after Track B proves `284` documents, `325` expenses, `1,841` bank transactions, zero unbalanced posted moves and zero duplicate source move representations. `make accounting-dev-import` then adds the `2024-01-10` through `2025-09-30` benchmark. It imports `2,046` moves and `4,809` lines while reusing exactly four validated native move aliases (`6727`, `6728`, `6730` and `6735`); a duplicate or shape mismatch blocks the import.
 
 Historical validation is exact: source and target both contain `2,046` moves, `4,809` lines and debit/credit of `1,064,045.02`. The combined candidate contains `4,541` posted moves and `10,727` posted lines, with zero unbalanced moves and zero duplicate source identities.
 
@@ -410,17 +410,17 @@ historical counts and totals, combined posted counts, four native aliases,
 unclassified difference and EUR `2.64` profit-and-loss difference. This is the
 deterministic comparison required for the second clean hybrid reconstruction.
 
-The validation status is deliberately `partial`, classified as `HYBRID_REPLACEMENT_TARGET_EXPLAINED_NATIVE_DIFFERENCES`. Manager/reviewer report, bill and expense browser journeys now pass on the combined candidate. Professional acceptance of the EUR `2.64` difference and an explicit promotion decision remain required. The disposable candidate does not replace `odoo_rebuild_accounting_test` or authorize production migration.
+The validation status is deliberately `partial`, classified as `DEV_QA_TARGET_EXPLAINED_NATIVE_DIFFERENCES`. Manager/reviewer report, bill and expense browser journeys now pass on the combined candidate. Professional acceptance of the EUR `2.64` difference and an explicit promotion decision remain required. The disposable candidate does not replace `odoo_validation_exact` or authorize production migration.
 
-`make accounting-target-validate` also proves:
+`make accounting-validation-exact-validate` also proves:
 
 - no unbalanced imported posted moves;
 - no duplicate source traces for moves, move review records, document-regeneration case records, move lines, move-line review records, reconciliations, reconciliation review records, source report catalogue records, payments, payment review records, bank statement lines, analytic plans/accounts/lines, attachments, taxes, tax tags or assets;
 - preserved USL lock dates, with a rollback-only protected-write check blocked by Odoo for a locked posted move dated `2024-01-10`.
 
-`make accounting-target-idempotence` now proves accidental repeated import safety for the disposable target. The stage snapshots source-traced accounting consequence counts, posted-ledger debit/credit/balance totals, generated-draft totals, discrepancy counts and duplicate-trace invariants; reruns `make accounting-target-import` against the already processed target; reruns target validation; and then compares the same signature. The importer also preserves post-generation document-regeneration state, so a repeated import after `make accounting-document-regeneration` keeps the `189` validated candidate drafts validated, keeps the `5` review-only cases marked not applicable, and reintroduces `0` document-regeneration blockers. The latest clean rehearsal passed with `signature_matches = true`, `observed_import_run_delta = 1`, `target_validate_status = passed` and no duplicate-trace failures. The additional import-run row is expected audit evidence and is not an accounting consequence.
+`make accounting-validation-exact-idempotence` now proves accidental repeated import safety for the disposable target. The stage snapshots source-traced accounting consequence counts, posted-ledger debit/credit/balance totals, generated-draft totals, discrepancy counts and duplicate-trace invariants; reruns `make accounting-validation-exact-import` against the already processed target; reruns target validation; and then compares the same signature. The importer also preserves post-generation document-regeneration state, so a repeated import after `make accounting-document-regeneration` keeps the `189` validated candidate drafts validated, keeps the `5` review-only cases marked not applicable, and reintroduces `0` document-regeneration blockers. The latest clean rehearsal passed with `signature_matches = true`, `observed_import_run_delta = 1`, `target_validate_status = passed` and no duplicate-trace failures. The additional import-run row is expected audit evidence and is not an accounting consequence.
 
-`make accounting-target-failure-tests` now provides rollback-only target conflict and invariant failure injections. It creates a duplicate source-trace record in `rebuild.account.move.review` inside a savepoint, verifies that the duplicate-trace detector sees one injected duplicate group, rolls the savepoint back, and then verifies both duplicate count and target signature returned to baseline. It also temporarily perturbs one imported posted journal item so a posted move becomes unbalanced, verifies the unbalanced-move detector sees the injected group, rolls back and verifies the target is clean. The same stage now injects an invalid `account_move_line.account_id`, an invalid `account_move_line_account_tax_rel.account_tax_id`, an invalid `account_partial_reconcile.credit_move_id`, corrupted checksum metadata on one imported accounting attachment and source attachment metadata pointing to a missing filestore file. It verifies PostgreSQL rejects the three missing-reference conditions through the target schema, verifies no orphan account, tax relation or reconciliation endpoint remains after rollback, verifies attachment checksum/store metadata mismatch detection fires while injected, verifies source-metadata-driven missing-file discrepancy creation fires while injected, and verifies both evidence probes disappear after rollback. The latest run passed with `baseline_duplicate_groups = 0`, `injected_duplicate_groups = 1`, `final_duplicate_groups = 0`, `baseline_unbalanced_groups = 0`, `injected_unbalanced_groups = 1`, `final_unbalanced_groups = 0`, `baseline_missing_account_lines = 0`, `final_missing_account_lines = 0`, `baseline_missing_tax_relations = 0`, `final_missing_tax_relations = 0`, `baseline_incomplete_reconciliations = 0`, `final_incomplete_reconciliations = 0`, `baseline_attachment_metadata_mismatches = 0`, `injected_attachment_metadata_mismatches = 1`, `final_attachment_metadata_mismatches = 0`, `baseline_missing_file_discrepancies = 0`, `injected_missing_file_discrepancies = 1`, `final_missing_file_discrepancies = 0` and `signature_matches_after_rollback = true`.
+`make accounting-validation-exact-failure-tests` now provides rollback-only target conflict and invariant failure injections. It creates a duplicate source-trace record in `rebuild.account.move.review` inside a savepoint, verifies that the duplicate-trace detector sees one injected duplicate group, rolls the savepoint back, and then verifies both duplicate count and target signature returned to baseline. It also temporarily perturbs one imported posted journal item so a posted move becomes unbalanced, verifies the unbalanced-move detector sees the injected group, rolls back and verifies the target is clean. The same stage now injects an invalid `account_move_line.account_id`, an invalid `account_move_line_account_tax_rel.account_tax_id`, an invalid `account_partial_reconcile.credit_move_id`, corrupted checksum metadata on one imported accounting attachment and source attachment metadata pointing to a missing filestore file. It verifies PostgreSQL rejects the three missing-reference conditions through the target schema, verifies no orphan account, tax relation or reconciliation endpoint remains after rollback, verifies attachment checksum/store metadata mismatch detection fires while injected, verifies source-metadata-driven missing-file discrepancy creation fires while injected, and verifies both evidence probes disappear after rollback. The latest run passed with `baseline_duplicate_groups = 0`, `injected_duplicate_groups = 1`, `final_duplicate_groups = 0`, `baseline_unbalanced_groups = 0`, `injected_unbalanced_groups = 1`, `final_unbalanced_groups = 0`, `baseline_missing_account_lines = 0`, `final_missing_account_lines = 0`, `baseline_missing_tax_relations = 0`, `final_missing_tax_relations = 0`, `baseline_incomplete_reconciliations = 0`, `final_incomplete_reconciliations = 0`, `baseline_attachment_metadata_mismatches = 0`, `injected_attachment_metadata_mismatches = 1`, `final_attachment_metadata_mismatches = 0`, `baseline_missing_file_discrepancies = 0`, `injected_missing_file_discrepancies = 1`, `final_missing_file_discrepancies = 0` and `signature_matches_after_rollback = true`.
 
 ## Future reference-rate provider
 
@@ -440,7 +440,7 @@ Accounting > Configuration > Currency Rate Automation
 
 The daily cron is enabled and scheduled after the ECB's normal publication window. ECB rates are reference information: when a bank, card processor or platform conversion defines a transaction, preserve that actual conversion instead of replacing it with the reference rate.
 
-`make accounting-currency-rate-provider` performs two live updates on `odoo_rebuild_accounting_test`, proves the second creates no row, checks the daily cron and provider trace, and verifies the source-traced historical-rate count is unchanged. The 2026-07-23 proof retrieved the 2026-07-22 feed, wrote GBP `0.8534` and USD `1.1408` per EUR, found no duplicate currency/date row, and preserved all `1,877` imported source rates. The manager browser journey passed, while the accountant-reviewer persona received the expected Accounting Administrator access error.
+`make accounting-currency-rate-provider` performs two live updates on `odoo_validation_exact`, proves the second creates no row, checks the daily cron and provider trace, and verifies the source-traced historical-rate count is unchanged. The 2026-07-23 proof retrieved the 2026-07-22 feed, wrote GBP `0.8534` and USD `1.1408` per EUR, found no duplicate currency/date row, and preserved all `1,877` imported source rates. The manager browser journey passed, while the accountant-reviewer persona received the expected Accounting Administrator access error.
 
 ## Current Odoo-facing report views
 
@@ -566,7 +566,7 @@ override a documented account to debit, credit or either-side expectations.
 The control is a warning/review queue and never posts an automatic correction.
 
 The native business-document evidence artifact is
-`artifacts/accounting-compat/private/track-b-native-attachments-browser-status.json`.
+`artifacts/accounting-compat/private/validation-native-native-attachments-browser-status.json`.
 Three alternatives were compared: keep binaries only on exact-ledger evidence
 records, link the native records to the separately operated source filestore,
 or replay checksum-verified binaries onto their source-traced native records.
@@ -595,7 +595,7 @@ The reports stage now seeds pending review-decision records after generating the
 
 The report-suite blocker is now refreshed from post-export evidence rather than import-time catalogue counts. When every active source report has a target equivalent and Level 4 technical evidence, the open P0 is classified as `legal_or_accounting_uncertainty`, with target value `38 Level 4 technical evidence packages; 0 accountant-accepted reports; 0 missing target equivalents`. This keeps closure blocked while accurately stating that the remaining report-suite gate is accountant/stakeholder acceptance of semantics, PCG/legal-form variants and deliberate scope exclusions rather than a currently missing target report family.
 
-The discrepancy importer is idempotent for recurring end-of-run blockers. Re-running `make accounting-target-import` upserts the current blocker record and marks stale duplicates as `resolved`. The current exact target contains `3` open discrepancies (`1` P0, `1` P1 and `1` accountant-owned P2) plus resolved DGFiP FEC-validation, VAT CA12-clearing and document-regeneration discrepancies. The VAT CA12-clearing evidence now reconciles in a clean run and does not create a source-to-target discrepancy. Review decisions linked to resolved discrepancies are automatically superseded by the report-seed stage while recorded decisions are preserved.
+The discrepancy importer is idempotent for recurring end-of-run blockers. Re-running `make accounting-validation-exact-import` upserts the current blocker record and marks stale duplicates as `resolved`. The current exact target contains `3` open discrepancies (`1` P0, `1` P1 and `1` accountant-owned P2) plus resolved DGFiP FEC-validation, VAT CA12-clearing and document-regeneration discrepancies. The VAT CA12-clearing evidence now reconciles in a clean run and does not create a source-to-target discrepancy. Review decisions linked to resolved discrepancies are automatically superseded by the report-seed stage while recorded decisions are preserved.
 
 `make accounting-readiness` now writes a durable Milestone 13 readiness assessment after comparison and before the evidence index. The JSON and Markdown artifacts summarize technical gate status, source and target identities, open discrepancies, review-decision queues, source-report parity evidence and the closure recommendation. The encoded final gates now include the hybrid reset/import/validation/browser chain, FEC manager/reviewer/operator browser proof and the reconciliation manager/reviewer browser proof; `make accounting-evidence` indexes the same artifacts. Omitting the hybrid candidate would let readiness ignore the selected integration architecture, while requiring its validation to say `passed` would erase the deliberately classified native differences. The selected contract therefore requires `partial` only for `replacement_validate`, requires the other final artifacts to pass, and still leaves candidate promotion to the named professionals. The current readiness assessment has `0` technical failures and remains `blocked` with `1` P0, `1` P1, `1` P2 and `45` draft decisions; it is a closure-control artifact, not a way to mark professional acceptance.
 
@@ -672,7 +672,7 @@ The importer now represents all `13` source `account.payment` workflow records t
 
 The importer now represents `75` cross-boundary source reconciliation relationships as `rebuild.account.reconciliation.review` records. These are the `39` partial reconciliations and `36` full reconciliations that touch at least one imported source journal item and at least one source endpoint outside the selected posted replay boundary. The current breakdown is `39` posted-to-draft partial reconciliations totaling `4,082.49`; `34` full reconciliations with one missing draft endpoint totaling `2,141.81`; and `2` full reconciliations with two missing draft endpoints totaling `940.68`. They preserve source partial/full reconciliation identity, source endpoint line and move IDs where applicable, missing endpoint source move IDs, source move states, source move dates, imported/missing endpoint counts, amounts, max date, company scope and trace metadata. After `make accounting-document-regeneration`, every review row has `all_generated_draft` endpoint coverage: `77` missing source-line mentions resolve to generated target draft lines traced as `account.move.line.document_regeneration`. The review form exposes both imported posted endpoints and generated draft endpoints for inspection. They intentionally do not complete the native target reconciliation graph while those generated endpoints remain draft records. The target validation compares all `75` source review rows to all `75` target review rows with no missing, extra or mismatched rows.
 
-`make accounting-target-reconciliation-probe` adds a rollback-only technical probe for this boundary. It samples a posted-to-draft cross-boundary partial reconciliation, resolves the imported posted endpoint and generated draft endpoint, attempts to create a native `account.partial.reconcile` inside an Odoo savepoint, forces rollback and verifies the native partial count returns to baseline. The stage updates the cross-boundary reconciliation discrepancy with the probe result. Passing this probe proves capability for one representative native partial; it does not authorize applying draft-endpoint reconciliations in the exact posted replay baseline, because that would alter residual/matching presentation outside the posted-ledger replay scope.
+`make accounting-validation-exact-reconciliation-probe` adds a rollback-only technical probe for this boundary. It samples a posted-to-draft cross-boundary partial reconciliation, resolves the imported posted endpoint and generated draft endpoint, attempts to create a native `account.partial.reconcile` inside an Odoo savepoint, forces rollback and verifies the native partial count returns to baseline. The stage updates the cross-boundary reconciliation discrepancy with the probe result. Passing this probe proves capability for one representative native partial; it does not authorize applying draft-endpoint reconciliations in the exact posted replay baseline, because that would alter residual/matching presentation outside the posted-ledger replay scope.
 
 The reconciliation review form now exposes a controlled native-application workflow for partial boundary rows. `Preview Native Partial` opens the exact imported/generated endpoint journal items that would be reconciled. `Record Decision` creates a review decision linked to the specific `rebuild.account.reconciliation.review` row. `Apply Native Partial` remains blocked unless the user is an Accounting Manager, all missing endpoints have generated draft coverage, and a recorded review decision linked to that boundary row has conclusion `accepted` or `accepted_with_difference`. When those gates pass, the action creates or reuses one source-traced `account.partial.reconcile` and marks the review row `native_reconciliation_applied`; repeated application is idempotent. Permanent addon tests cover the unauthorized-user block, missing-decision block, endpoint preview, recorded-decision requirement and no-duplicate behaviour. The full harness still leaves these rows review-only by default.
 
@@ -687,7 +687,7 @@ can recreate a full reconciliation. The `Apply Native Partial` button is
 visible only to Accounting Managers.
 
 The read-only manager/reviewer browser journey passed on
-`odoo_rebuild_accounting_test`: both roles saw `39` partial and `36` full rows
+`odoo_validation_exact`: both roles saw `39` partial and `36` full rows
 under the default filter, opened the balanced EUR `47.72` imported/generated
 pair for source partial `3056` and full reconciliation `1391`, and reached the
 decision surface. The reviewer saw preview/decision controls but no apply,

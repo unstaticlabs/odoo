@@ -18,33 +18,39 @@ This workflow exists to keep accounting development fast, safe and reviewable. D
 
 ## Database roles during development
 
-Use four separate states:
+Use one product database and two isolated validation databases:
 
 - `odoo_online_source_saas_19_2`: restored source backup, read-only for extraction.
-- `odoo_rebuild_accounting_test`: disposable imported target used for Milestone 13 validation.
-- `odoo_rebuild_accounting_track_b`: disposable native-engine target for current-period document, expense and reconciliation proof.
-- `odoo19`: general development or synthetic database; do not use it as production-derived parity evidence unless explicitly rebuilt.
+- `odoo_dev`: canonical developer and QA product database. It combines exact
+  benchmark history with the validated native operating-period replay.
+- `odoo_validation_exact`: pipeline-only proof of exact historical import parity.
+- `odoo_validation_native`: pipeline-only proof that current-period business
+  records reproduce their accounting through native Odoo/OCA workflows.
+
+Do normal module updates, browser QA and product acceptance on `odoo_dev`.
+Do not enter durable business data in any of these databases; all are
+disposable and reproducible.
 
 ## Fast iteration matrix
 
 | Change type | Usually rerun | Avoid unless needed |
 | --- | --- | --- |
 | Markdown docs | `git diff --check` | source restore, target reset |
-| Odoo XML menus/views | `odoo --update=rebuild_account_migration --stop-after-init` on `odoo_rebuild_accounting_test` | source restore, extract |
+| Odoo XML menus/views | `odoo --update=rebuild_account_migration --stop-after-init` on `odoo_dev` | source restore, extract |
 | Odoo Python report formatting only | module update, targeted Odoo tests, one report export smoke test | source restore |
 | Security/ACL changes | module update, role-specific access tests | source restore |
-| Future currency-rate provider changes | module update, targeted provider tests, `accounting-currency-rate-provider`, then manager/reviewer browser journeys | source restore, extract, Track B replay |
-| Importer mapping changes | `accounting-target-reset`, `accounting-target-import`, `accounting-target-validate` | source restore if snapshot unchanged |
+| Future currency-rate provider changes | module update, targeted provider tests, `accounting-currency-rate-provider`, then manager/reviewer browser journeys | source restore, extract, native validation replay |
+| Importer mapping changes | `accounting-validation-exact-reset`, `accounting-validation-exact-import`, `accounting-validation-exact-validate` | source restore if snapshot unchanged |
 | Source extraction mapping changes | `accounting-extract`, target reset/import/validate | source restore if source DB still running and unchanged |
-| Track B expense/document mapping changes | `accounting-track-b-reset`, `accounting-track-b-expenses`, `accounting-track-b-documents` | source restore, exact-target reset/import |
-| Track B native asset changes | Track B reset, `accounting-track-b-assets`; repeat asset replay for idempotence and run the manager/reviewer browser journey | source restore, extraction, exact-target reset/import |
-| Track B native deferral changes | Track B expenses/documents, then `accounting-track-b-deferrals`; repeat deferral replay for idempotence and run the manager/reviewer browser journey | source restore, extraction, exact-target reset/import |
-| Track B expense settlement changes | Track B reset, expenses, documents, `accounting-track-b-expense-settlement`; repeat settlement for idempotence | source restore, exact-target reset/import |
-| Track B document settlement changes | Track B reset, expenses, documents, expense settlement, `accounting-track-b-document-settlement`; repeat document settlement for idempotence | source restore, exact-target reset/import |
-| Track B General Reconciliation changes | Track B reset, expenses, documents, expense settlement, document settlement, `accounting-track-b-general-reconciliation`; repeat General Reconciliation for idempotence | source restore, exact-target reset/import |
-| Track B direct bank categorization changes | Track B reset through General Reconciliation, then `accounting-track-b-bank-categorization`; repeat bank categorization for idempotence | source restore, exact-target reset/import |
-| Track B external-endpoint bank changes | Track B reset through direct bank categorization, then `accounting-track-b-bank-external`; repeat external bank replay for idempotence | source restore, extraction, exact-target reset/import |
-| Track B analytic changes | Run every posting stage through assets, deferrals and external bank replay, then `accounting-track-b-analytics`; repeat analytics for idempotence and run the manager/reviewer/native-report browser journeys | source restore, extraction, exact-target reset/import |
+| native validation expense/document mapping changes | `accounting-validation-native-reset`, `accounting-validation-native-expenses`, `accounting-validation-native-documents` | source restore, exact-validation reset/import |
+| native validation native asset changes | native validation reset, `accounting-validation-native-assets`; repeat asset replay for idempotence and run the manager/reviewer browser journey | source restore, extraction, exact-validation reset/import |
+| native validation native deferral changes | native validation expenses/documents, then `accounting-validation-native-deferrals`; repeat deferral replay for idempotence and run the manager/reviewer browser journey | source restore, extraction, exact-validation reset/import |
+| native validation expense settlement changes | native validation reset, expenses, documents, `accounting-validation-native-expense-settlement`; repeat settlement for idempotence | source restore, exact-validation reset/import |
+| native validation document settlement changes | native validation reset, expenses, documents, expense settlement, `accounting-validation-native-document-settlement`; repeat document settlement for idempotence | source restore, exact-validation reset/import |
+| native validation General Reconciliation changes | native validation reset, expenses, documents, expense settlement, document settlement, `accounting-validation-native-general-reconciliation`; repeat General Reconciliation for idempotence | source restore, exact-validation reset/import |
+| native validation direct bank categorization changes | native validation reset through General Reconciliation, then `accounting-validation-native-bank-categorization`; repeat bank categorization for idempotence | source restore, exact-validation reset/import |
+| native validation external-endpoint bank changes | native validation reset through direct bank categorization, then `accounting-validation-native-bank-external`; repeat external bank replay for idempotence | source restore, extraction, exact-validation reset/import |
+| native validation analytic changes | Run every posting stage through assets, deferrals and external bank replay, then `accounting-validation-native-analytics`; repeat analytics for idempotence and run the manager/reviewer/native-report browser journeys | source restore, extraction, exact-validation reset/import |
 | Source dump or restore script changes | full source restore and downstream stages | none |
 | Closing/report parity milestone proof | full `make accounting-compat` rehearsal | partial validation |
 
@@ -71,7 +77,7 @@ If only Odoo code changed, update the add-on inside the Dev Container:
 ```bash
 odoo --config=/etc/odoo/odoo.conf \
   --addons-path=/workspace/odoo/addons,/workspace/odoo/odoo/addons,/workspace/odoo/custom-addons,/workspace/odoo/oca-addons \
-  --database=odoo_rebuild_accounting_test \
+  --database=odoo_dev \
   --update=rebuild_account_migration \
   --stop-after-init
 ```
@@ -86,22 +92,21 @@ Then run the server:
 ```bash
 odoo --config=/etc/odoo/odoo.conf \
   --addons-path=/workspace/odoo/addons,/workspace/odoo/odoo/addons,/workspace/odoo/custom-addons,/workspace/odoo/oca-addons \
-  --database=odoo_rebuild_accounting_test \
+  --database=odoo_dev \
   --dev=reload,xml,qweb
 ```
 
 Open:
 
 ```text
-http://localhost:8069/web/login?db=odoo_rebuild_accounting_test
+http://localhost:8069/web/login?db=odoo_dev
 ```
 
 ## Module and browser refresh contract
 
-Module state is database-specific. Run the update against the database that
-will be reviewed. Use `odoo_rebuild_accounting_test` for the exact imported
-target or substitute `odoo_rebuild_accounting_replacement` when reviewing the
-hybrid candidate. Never update the restored source database.
+Module state is database-specific. Run normal development updates against
+`odoo_dev`, the database users and QA review. Update a validation database only
+while testing that validation stage. Never update the restored source database.
 
 Two alternatives were considered for this loop:
 
@@ -109,7 +114,8 @@ Two alternatives were considered for this loop:
 2. keep the explicit Odoo command and name the intended target database.
 
 The explicit command is retained because upgrading every disposable database
-would blur the separation between exact import, Track B and hybrid evidence.
+would blur the separation between product QA, exact-import validation and
+native-workflow validation.
 It also makes an accidental source-database update easier to detect.
 
 Use this refresh behavior:
@@ -163,9 +169,9 @@ Or staged:
 make oca-addons-sync
 make accounting-source-restore
 make accounting-extract
-make accounting-target-reset
-make accounting-target-import
-make accounting-target-validate
+make accounting-validation-exact-reset
+make accounting-validation-exact-import
+make accounting-validation-exact-validate
 make accounting-reports
 ```
 

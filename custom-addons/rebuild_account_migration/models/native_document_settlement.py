@@ -880,7 +880,7 @@ class RebuildAccountImportRun(models.Model):
                 bool(row["current_scope_complete"]) for row in bank_rows
             )
             stats = {
-                "classification": "TRACK_B_NATIVE_DOCUMENT_BANK_SETTLEMENT",
+                "classification": "NATIVE_VALIDATION_NATIVE_DOCUMENT_BANK_SETTLEMENT",
                 "date_from": options["date_from"],
                 "date_to": options["date_to"],
                 "source_company_ids": options["source_company_ids"],

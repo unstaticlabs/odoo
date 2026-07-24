@@ -5,7 +5,7 @@ ACCOUNTING_TEST_LOG_LEVEL ?= warn
 USER_DOCS_HOST ?= 127.0.0.1
 USER_DOCS_PORT ?= 8079
 
-.PHONY: oca-addons-sync accounting-compat accounting-source-package-validate accounting-source-validate accounting-source-restore accounting-source-inspect accounting-extract accounting-source-validate-ledger accounting-failure-tests accounting-target-reset accounting-target-import accounting-target-validate accounting-target-idempotence accounting-target-failure-tests accounting-document-regeneration accounting-track-b-reset accounting-track-b-expenses accounting-track-b-documents accounting-track-b-assets accounting-track-b-deferrals accounting-track-b-analytics accounting-track-b-expense-settlement accounting-track-b-document-settlement accounting-track-b-general-reconciliation accounting-track-b-bank-categorization accounting-track-b-bank-external accounting-replacement-reset accounting-replacement-import accounting-replacement-validate accounting-target-reconciliation-probe accounting-currency-rate-provider accounting-reports accounting-fec accounting-fec-preflight accounting-fec-validate accounting-compare accounting-readiness accounting-evidence accounting-addon-tests user-docs-serve user-docs-build
+.PHONY: oca-addons-sync accounting-compat accounting-source-package-validate accounting-source-validate accounting-source-restore accounting-source-inspect accounting-extract accounting-source-validate-ledger accounting-failure-tests accounting-validation-exact-reset accounting-validation-exact-import accounting-validation-exact-validate accounting-validation-exact-idempotence accounting-validation-exact-failure-tests accounting-document-regeneration accounting-validation-native-reset accounting-validation-native-expenses accounting-validation-native-documents accounting-validation-native-assets accounting-validation-native-deferrals accounting-validation-native-analytics accounting-validation-native-expense-settlement accounting-validation-native-document-settlement accounting-validation-native-general-reconciliation accounting-validation-native-bank-categorization accounting-validation-native-bank-external accounting-dev-reset accounting-dev-import accounting-dev-validate accounting-validation-exact-reconciliation-probe accounting-currency-rate-provider accounting-reports accounting-fec accounting-fec-preflight accounting-fec-validate accounting-compare accounting-readiness accounting-evidence accounting-addon-tests user-docs-serve user-docs-build
 
 oca-addons-sync:
 	scripts/sync-oca-addons
@@ -34,68 +34,68 @@ accounting-source-validate-ledger:
 accounting-failure-tests:
 	$(ACCOUNTING_COMPAT) failure-tests
 
-accounting-target-reset: oca-addons-sync
-	$(ACCOUNTING_COMPAT) target-reset
+accounting-validation-exact-reset: oca-addons-sync
+	$(ACCOUNTING_COMPAT) validation-exact-reset
 
-accounting-target-import:
-	$(ACCOUNTING_COMPAT) target-import
+accounting-validation-exact-import:
+	$(ACCOUNTING_COMPAT) validation-exact-import
 
-accounting-target-validate:
-	$(ACCOUNTING_COMPAT) target-validate
+accounting-validation-exact-validate:
+	$(ACCOUNTING_COMPAT) validation-exact-validate
 
-accounting-target-idempotence:
-	$(ACCOUNTING_COMPAT) target-idempotence
+accounting-validation-exact-idempotence:
+	$(ACCOUNTING_COMPAT) validation-exact-idempotence
 
-accounting-target-failure-tests:
-	$(ACCOUNTING_COMPAT) target-failure-tests
+accounting-validation-exact-failure-tests:
+	$(ACCOUNTING_COMPAT) validation-exact-failure-tests
 
 accounting-document-regeneration:
 	$(ACCOUNTING_COMPAT) document-regeneration
 
-accounting-track-b-reset: oca-addons-sync
-	$(ACCOUNTING_COMPAT) track-b-reset
+accounting-validation-native-reset: oca-addons-sync
+	$(ACCOUNTING_COMPAT) validation-native-reset
 
-accounting-track-b-expenses:
-	$(ACCOUNTING_COMPAT) track-b-expenses
+accounting-validation-native-expenses:
+	$(ACCOUNTING_COMPAT) validation-native-expenses
 
-accounting-track-b-documents:
-	$(ACCOUNTING_COMPAT) track-b-documents
+accounting-validation-native-documents:
+	$(ACCOUNTING_COMPAT) validation-native-documents
 
-accounting-track-b-assets:
-	$(ACCOUNTING_COMPAT) track-b-assets
+accounting-validation-native-assets:
+	$(ACCOUNTING_COMPAT) validation-native-assets
 
-accounting-track-b-deferrals:
-	$(ACCOUNTING_COMPAT) track-b-deferrals
+accounting-validation-native-deferrals:
+	$(ACCOUNTING_COMPAT) validation-native-deferrals
 
-accounting-track-b-analytics:
-	$(ACCOUNTING_COMPAT) track-b-analytics
+accounting-validation-native-analytics:
+	$(ACCOUNTING_COMPAT) validation-native-analytics
 
-accounting-track-b-expense-settlement:
-	$(ACCOUNTING_COMPAT) track-b-expense-settlement
+accounting-validation-native-expense-settlement:
+	$(ACCOUNTING_COMPAT) validation-native-expense-settlement
 
-accounting-track-b-document-settlement:
-	$(ACCOUNTING_COMPAT) track-b-document-settlement
+accounting-validation-native-document-settlement:
+	$(ACCOUNTING_COMPAT) validation-native-document-settlement
 
-accounting-track-b-general-reconciliation:
-	$(ACCOUNTING_COMPAT) track-b-general-reconciliation
+accounting-validation-native-general-reconciliation:
+	$(ACCOUNTING_COMPAT) validation-native-general-reconciliation
 
-accounting-track-b-bank-categorization:
-	$(ACCOUNTING_COMPAT) track-b-bank-categorization
+accounting-validation-native-bank-categorization:
+	$(ACCOUNTING_COMPAT) validation-native-bank-categorization
 
-accounting-track-b-bank-external:
-	$(ACCOUNTING_COMPAT) track-b-bank-external
+accounting-validation-native-bank-external:
+	$(ACCOUNTING_COMPAT) validation-native-bank-external
 
-accounting-replacement-reset:
-	$(ACCOUNTING_COMPAT) replacement-reset
+accounting-dev-reset:
+	$(ACCOUNTING_COMPAT) dev-reset
 
-accounting-replacement-import:
-	$(ACCOUNTING_COMPAT) replacement-import
+accounting-dev-import:
+	$(ACCOUNTING_COMPAT) dev-import
 
-accounting-replacement-validate:
-	$(ACCOUNTING_COMPAT) replacement-validate
+accounting-dev-validate:
+	$(ACCOUNTING_COMPAT) dev-validate
 
-accounting-target-reconciliation-probe:
-	$(ACCOUNTING_COMPAT) target-reconciliation-probe
+accounting-validation-exact-reconciliation-probe:
+	$(ACCOUNTING_COMPAT) validation-exact-reconciliation-probe
 
 accounting-currency-rate-provider:
 	$(ACCOUNTING_COMPAT) currency-rate-provider

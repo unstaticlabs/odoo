@@ -997,14 +997,14 @@ class TestRebuildAccountMigration(TransactionCase):
             "currency_id": usd.id,
             "rebuild_source_model": "account.journal",
             "rebuild_source_id": 990013,
-            "rebuild_source_snapshot": "unit-track-b-expenses",
+            "rebuild_source_snapshot": "unit-validation-native-expenses",
         })
         method_lines = journal.inbound_payment_method_line_ids | journal.outbound_payment_method_line_ids
         self.assertTrue(method_lines)
         method_line_ids = method_lines.ids
         import_run = self.env["rebuild.account.import.run"].create({
             "name": "Track B journal idempotence",
-            "source_snapshot_id": "unit-track-b-expenses",
+            "source_snapshot_id": "unit-validation-native-expenses",
         })
         source_row = {
             "id": 990013,
@@ -1021,7 +1021,7 @@ class TestRebuildAccountMigration(TransactionCase):
         }
         options = {
             "source_company_ids": [990001],
-            "source_snapshot_id": "unit-track-b-expenses",
+            "source_snapshot_id": "unit-validation-native-expenses",
         }
 
         with patch.object(type(import_run), "_fetchall", return_value=[source_row]):

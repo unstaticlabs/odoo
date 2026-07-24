@@ -86,9 +86,9 @@ read-only and the replay never falls back to an unverified link.
 
 Private evidence:
 
-- `track-b-documents-status.json`;
-- `track-b-expenses-status.json`;
-- `track-b-native-attachments-browser-status.json`;
+- `validation-native-documents-status.json`;
+- `validation-native-expenses-status.json`;
+- `validation-native-native-attachments-browser-status.json`;
 - `accounting-home-browser-status.json`;
 - `accounting-hygiene-browser-status.json`;
 - `dynamic-report-browser-status.json`;

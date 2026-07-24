@@ -11,21 +11,23 @@ The accounting import harness currently requires Docker Compose. The Dev Contain
 
 ## What This Does
 
-The import pipeline restores the Odoo Online backup and reconstructs a disposable Odoo target database named:
+The complete pipeline restores the Odoo Online backup and builds the canonical
+disposable developer/QA database:
 
 ```text
-odoo_rebuild_accounting_test
+odoo_dev
 ```
 
-You then start Odoo against that database and inspect it in the browser.
-
-Do not confuse it with:
+Two other target databases exist only to validate the two reconstruction
+strategies independently:
 
 ```text
-odoo19
+odoo_validation_exact
+odoo_validation_native
 ```
 
-`odoo19` is the normal local demo/dev database and may contain synthetic bootstrap data.
+There is no separate demo database. All three targets are disposable; only
+`odoo_dev` is a user-facing product environment.
 
 ## Step 1 - Open a Host Shell
 
@@ -85,35 +87,33 @@ Why: the normal Compose `odoo` service uses port `8069`. If you want to run Odoo
 
 Keep PostgreSQL running.
 
-## Step 4 - Build the Imported Accounting Database
+## Step 4 - Build the Development/QA Database
 
 Still in the host shell:
 
 ```bash
-make accounting-source-restore
-make accounting-extract
-make accounting-target-reset
-make accounting-target-import
-make accounting-target-validate
-make accounting-reports
+make accounting-compat
 ```
 
 Expected:
 
 - no `FileNotFoundError: docker`;
 - no failed `make` target;
-- target database `odoo_rebuild_accounting_test` is recreated;
+- both validation databases are recreated;
+- `odoo_dev` is recreated from the validated native state and exact history;
 - report evidence is generated.
 
-These commands are ordered. Run them in this order because each command produces state that the next command needs.
+The full target runs the ordered exact-validation, native-validation and
+development integration stages. Use the individual commands below only when
+iterating on one pipeline layer.
 
 | Command | What it does | Depends on | Produces |
 | --- | --- | --- | --- |
 | `make accounting-source-restore` | Starts the isolated `accounting-source-db` PostgreSQL service and restores `usl-online-dump/dump.sql` into `odoo_online_source_saas_19_2`. It also creates the read-only source role used by extraction. | Docker Compose, `usl-online-dump/dump.sql`, `usl-online-dump/filestore/`. | A running source database containing the Odoo Online backup. |
 | `make accounting-extract` | Reads accounting records from the restored source database and writes the private canonical snapshot/extract files. It does not read business data from the SQL file directly. | `accounting-source-db` must still be running and restored. | Snapshot files under `accounting_compat/private/` and `artifacts/accounting-compat/private/`. |
-| `make accounting-target-reset` | Recreates the disposable target Odoo database `odoo_rebuild_accounting_test` from scratch and initializes the needed Community, OCA and USL target modules. | The normal `db` PostgreSQL service must be running, and `make oca-addons-sync` must have populated `oca-addons/`. | A clean target Odoo database ready for import. |
-| `make accounting-target-import` | Imports the extracted accounting snapshot into the clean target database through the target Odoo ORM. | Source database still running, extracted snapshot present, clean target database present. | Imported companies, accounts, journals, posted entries, report evidence, assets, review records and source traces. |
-| `make accounting-target-validate` | Runs target controls: balanced moves, duplicate source traces, counts, locks, relationships and imported evidence checks. | Successful target import. | Validation status artifacts and discrepancy updates. |
+| `make accounting-validation-exact-reset` | Recreates the disposable target Odoo database `odoo_validation_exact` from scratch and initializes the needed Community, OCA and USL target modules. | The normal `db` PostgreSQL service must be running, and `make oca-addons-sync` must have populated `oca-addons/`. | A clean target Odoo database ready for import. |
+| `make accounting-validation-exact-import` | Imports the extracted accounting snapshot into the clean target database through the target Odoo ORM. | Source database still running, extracted snapshot present, clean target database present. | Imported companies, accounts, journals, posted entries, report evidence, assets, review records and source traces. |
+| `make accounting-validation-exact-validate` | Runs target controls: balanced moves, duplicate source traces, counts, locks, relationships and imported evidence checks. | Successful target import. | Validation status artifacts and discrepancy updates. |
 | `make accounting-reports` | Exercises Odoo-facing report views, previews, exports and drill-down evidence from the imported target. | Successful target validation and imported report data. | Report export/check artifacts and Odoo report evidence. |
 
 Keep these services running until the sequence finishes:
@@ -136,12 +136,6 @@ docker compose --profile accounting-compat up -d accounting-source-db
 ```
 
 Then rerun from the earliest step that needs the source database. When in doubt, rerun the full Step 3 sequence.
-
-If you want the full rehearsal, run this instead:
-
-```bash
-make accounting-compat
-```
 
 ## Step 5 - Open the Dev Container
 
@@ -177,18 +171,17 @@ the running server.
 ```bash
 odoo --config=/etc/odoo/odoo.conf \
   --addons-path=/workspace/odoo/addons,/workspace/odoo/odoo/addons,/workspace/odoo/custom-addons,/workspace/odoo/oca-addons \
-  --database=odoo_rebuild_accounting_test \
+  --database=odoo_dev \
   --update=rebuild_account_migration \
   --stop-after-init
 ```
 
 Expected: Odoo exits by itself without an error.
 
-The update applies only to the named database. Keep
-`odoo_rebuild_accounting_test` for exact imported-target work. When the hybrid
-candidate is intentionally under review, substitute
-`odoo_rebuild_accounting_replacement`. Never run this update against
-`odoo_online_source_saas_19_2`.
+The update applies only to the named database. Use `odoo_dev` for normal
+development and QA. Update `odoo_validation_exact` or
+`odoo_validation_native` only while investigating that pipeline stage. Never
+run an update against `odoo_online_source_saas_19_2`.
 
 ## Step 7 - Start the Dev Odoo Server
 
@@ -197,7 +190,7 @@ Inside the Dev Container:
 ```bash
 odoo --config=/etc/odoo/odoo.conf \
   --addons-path=/workspace/odoo/addons,/workspace/odoo/odoo/addons,/workspace/odoo/custom-addons,/workspace/odoo/oca-addons \
-  --database=odoo_rebuild_accounting_test \
+  --database=odoo_dev \
   --max-cron-threads=0 \
   --dev=reload,xml,qweb
 ```
@@ -209,7 +202,7 @@ Keep this terminal open. It is the running Odoo server.
 Open:
 
 ```text
-http://localhost:8069/web/login?db=odoo_rebuild_accounting_test
+http://localhost:8069/web/login?db=odoo_dev
 ```
 
 Login:
@@ -279,7 +272,7 @@ or start the Dev Container Odoo server on another port:
 
 ```bash
 odoo --config=/etc/odoo/odoo.conf \
-  --database=odoo_rebuild_accounting_test \
+  --database=odoo_dev \
   --http-port=8070 \
   --dev=reload,xml,qweb
 ```
@@ -287,7 +280,7 @@ odoo --config=/etc/odoo/odoo.conf \
 Then open:
 
 ```text
-http://localhost:8070/web/login?db=odoo_rebuild_accounting_test
+http://localhost:8070/web/login?db=odoo_dev
 ```
 
 ## If the User Guide Shows 404 After Login
@@ -297,7 +290,7 @@ The user probably lacks accounting read-only access.
 Inside the Dev Container:
 
 ```bash
-odoo shell --config=/etc/odoo/odoo.conf --database=odoo_rebuild_accounting_test <<'PY'
+odoo shell --config=/etc/odoo/odoo.conf --database=odoo_dev <<'PY'
 user = env.ref("base.user_admin")
 group = env.ref("account.group_account_readonly")
 user.write({"group_ids": [(4, group.id)]})

@@ -6842,7 +6842,7 @@ class RebuildAccountImportRun(models.Model):
                 else "partial"
             )
             stats = {
-                "classification": "TRACK_B_NATIVE_EXPENSE_REPLAY",
+                "classification": "NATIVE_VALIDATION_NATIVE_EXPENSE_REPLAY",
                 "date_from": options["date_from"],
                 "date_to": options["date_to"],
                 "source_company_ids": options["source_company_ids"],
@@ -7264,7 +7264,7 @@ class RebuildAccountImportRun(models.Model):
                 else "partial"
             )
             stats = {
-                "classification": "TRACK_B_NATIVE_BUSINESS_DOCUMENT_REPLAY",
+                "classification": "NATIVE_VALIDATION_NATIVE_BUSINESS_DOCUMENT_REPLAY",
                 "date_from": options["date_from"],
                 "date_to": options["date_to"],
                 "source_company_ids": options["source_company_ids"],

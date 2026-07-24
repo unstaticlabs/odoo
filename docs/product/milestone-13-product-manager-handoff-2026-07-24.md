@@ -574,7 +574,7 @@ readiness files are:
 - `readiness-assessment.md`;
 - `reports-status.json`;
 - `parity-matrix-v1.json`;
-- `target-validate-status.json`;
-- `replacement-validate-status.json`;
+- `validation-exact-validate-status.json`;
+- `dev-validate-status.json`;
 - `fec-validation-status.json`;
 - `evidence-index.json`.

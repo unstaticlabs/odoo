@@ -6,7 +6,7 @@ This checkpoint records verified current reality for Milestone 13. It is not a c
 
 ## Executive summary
 
-Milestone 13 is substantially progressed but not complete. The strongest verified achievement is that the USL closed benchmark posted-ledger slice can be reconstructed in `odoo_rebuild_accounting_test` with source/target parity for moves, move lines, debit, credit, full and partial reconciliations, bank statement lines, scoped attachments, assets, depreciation evidence, deferred schedule evidence and analytic lines.
+Milestone 13 is substantially progressed but not complete. The strongest verified achievement is that the USL closed benchmark posted-ledger slice can be reconstructed in `odoo_validation_exact` with source/target parity for moves, move lines, debit, credit, full and partial reconciliations, bank statement lines, scoped attachments, assets, depreciation evidence, deferred schedule evidence and analytic lines.
 
 The largest remaining product gap is now the rest of the user-facing accounting lifecycle: native current-period invoices/bills/refunds/receipts and all `325` source expenses pass in Track B, while bank matching, employee reimbursement, remaining payment/reconciliation state, replacement-target integration, dynamic report semantics, declaration preparation and accountant acceptance remain incomplete.
 
@@ -27,8 +27,8 @@ Engineering can continue autonomously on implementation increments that have alr
 | Add-on paths | core Odoo, `/mnt/custom-addons`, `/mnt/oca-addons` | configured `odoo shell` logs |
 | Running services | `accounting-source-db`, `db`, `devcontainer`, `odoo` healthy/up | `docker compose ps` |
 | Source DB | `odoo_online_source_saas_19_2` | `source-restore-status.json`, `source-manifest.json` |
-| Target DB | `odoo_rebuild_accounting_test` | `target-validate-status.json`, configured Odoo shell |
-| Synthetic/dev DB | `odoo19` | database inventory; not used as parity evidence |
+| Target DB | `odoo_validation_exact` | `validation-exact-validate-status.json`, configured Odoo shell |
+| Synthetic/dev DB | `odoo_dev` | database inventory; not used as parity evidence |
 
 Relevant commits since `023061c319c` include OCA reporting/reconciliation foundation, Accounting app routing, report menu routing, cash-basis settings preservation, reviewer FEC test access, MIS financial statements, OCA aged-report shortcuts, reconciliation kanban stabilization, native expense workspace dependency, and cron-thread disabling for local parity runtime.
 
@@ -36,9 +36,9 @@ Relevant commits since `023061c319c` include OCA reporting/reconciliation founda
 
 This checkpoint used:
 
-- existing imported target database: yes, `odoo_rebuild_accounting_test`;
-- partial validation rerun: yes, `scripts/accounting-compat target-validate` and `scripts/accounting-compat reports`;
-- browser smoke test: yes, login to `odoo_rebuild_accounting_test`, navigation to `/odoo/accounting`, and `/usl/user-docs`;
+- existing imported target database: yes, `odoo_validation_exact`;
+- partial validation rerun: yes, `scripts/accounting-compat validation-exact-validate` and `scripts/accounting-compat reports`;
+- browser smoke test: yes, login to `odoo_validation_exact`, navigation to `/odoo/accounting`, and `/usl/user-docs`;
 - registry/menu checks: yes, configured `odoo shell`;
 - full clean reconstruction: not rerun during the checkpoint;
 - prior clean-rehearsal evidence inspected: yes, private artifacts under `artifacts/accounting-compat/private/`.
@@ -66,7 +66,7 @@ The checkpoint deliberately did not run source restore, extraction, target reset
 
 ## Installed accounting modules
 
-Configured Odoo shell on `odoo_rebuild_accounting_test` confirms the relevant installed modules:
+Configured Odoo shell on `odoo_validation_exact` confirms the relevant installed modules:
 
 - Odoo Community/accounting: `account`, `account_payment`, `analytic`, `hr_expense`, `l10n_fr`, `l10n_fr_account`, `spreadsheet_account`, `spreadsheet_dashboard_account`;
 - Odoo electronic-invoicing/connectivity modules present but not milestone targets: `account_edi_proxy_client`, `account_edi_ubl_cii`, `account_peppol`, `account_peppol_response`, `l10n_fr_pdp`, `snailmail_account`;
@@ -111,7 +111,7 @@ Current exact-target import status is `partial`, classified as `POSTED_SOURCE_RE
 
 ## Source-versus-target benchmark controls
 
-For USL benchmark period `2024-01-10` through `2025-09-30`, `target-validate-status.json` generated on `2026-07-22T15:57:29+00:00` reports:
+For USL benchmark period `2024-01-10` through `2025-09-30`, `validation-exact-validate-status.json` generated on `2026-07-22T15:57:29+00:00` reports:
 
 | Control | Source | Target | Difference | Status |
 | --- | ---: | ---: | ---: | --- |
@@ -152,7 +152,7 @@ This classification is enough for audit visibility, and isolated Track B now sup
 
 ## User-facing Accounting experience
 
-Browser smoke test on `odoo_rebuild_accounting_test` verified:
+Browser smoke test on `odoo_validation_exact` verified:
 
 - `http://localhost:8069/odoo/accounting` loads a visible Accounting area;
 - visible first-level labels include `Accounting`, `Review Issues`, `Reconcile Bank Transactions`, `Customers`, `Suppliers and Expenses`, and `Reports and Declarations`;
@@ -291,7 +291,7 @@ Current gaps:
 | Source restore | Functionally complete but not rerun in checkpoint | `source-restore-status.json` passed | full clean rehearsal before closure | P1 |
 | Source extraction | Functionally complete but not rerun in checkpoint | `source-manifest.json`, `source-controls.json` | extraction for all non-ledger semantics needs continued validation | P1 |
 | Target reconstruction | Partial | exact target plus separate passing Track B document/expense artifacts | bank/reimbursement/reconciliation integration, reports and declarations | P0 |
-| Posted ledger replay | Verified complete for benchmark slice | `target-validate-status.json` passed | broaden final acceptance beyond posted slice | P0 if regresses |
+| Posted ledger replay | Verified complete for benchmark slice | `validation-exact-validate-status.json` passed | broaden final acceptance beyond posted slice | P0 if regresses |
 | Companies | Verified represented | Odoo shell: 2 companies | USL Media empty readiness/user reports | P1 |
 | Accounts/journals | Functionally complete but acceptance incomplete | import/run counts, validation comparisons | bootstrap/import count distinction needs clearer user evidence | P1 |
 | Taxes/fiscal positions | Partial | tax config imported, tax reports generated | VAT exigibility and declaration acceptance | P0 |

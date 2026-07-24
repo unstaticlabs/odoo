@@ -32,7 +32,7 @@
       "id": "database",
       "type": "promptString",
       "description": "Database name",
-      "default": "odoo19"
+      "default": "odoo_dev"
     },
     {
       "id": "module",

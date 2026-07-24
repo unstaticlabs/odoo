@@ -6,7 +6,7 @@ This checkpoint supersedes the 2026-07-22 checkpoint. It is not a milestone clos
 
 ## Outcome
 
-The disposable `odoo_rebuild_accounting_test` target provides the broad Milestone 13 rehearsal:
+The disposable `odoo_validation_exact` target provides the broad Milestone 13 rehearsal:
 
 - source-traced historical reconstruction and benchmark parity;
 - automatic future ECB reference rates kept separate from historical replay;
@@ -198,7 +198,7 @@ precision; actual analytic-line totals reconcile exactly to source.
 
 ## Hybrid replacement candidate
 
-`odoo_rebuild_accounting_replacement` is a third disposable database, separate
+`odoo_dev` is a third disposable database, separate
 from both the exact-replay baseline and Track B. It clones only a completed
 Track B state and then exact-imports the `2024-01-10` through `2025-09-30`
 benchmark. Four native moves pass source-identity and accounting-shape alias
@@ -233,7 +233,7 @@ native cash-basis timing/aggregation, native exchange timing/aggregation or OCA
 bank-allocation segmentation. The `12` account differences net to EUR `0.00`;
 the remaining profit-and-loss difference is EUR `2.64` and is attributable to
 native exchange timing. Validation therefore remains `partial`, classified as
-`HYBRID_REPLACEMENT_TARGET_EXPLAINED_NATIVE_DIFFERENCES`. Professional
+`DEV_QA_TARGET_EXPLAINED_NATIVE_DIFFERENCES`. Professional
 acceptance and an explicit promotion decision remain open. Replacement
 report/role/browser journeys now pass for both Accounting Manager and the
 single-company accountant reviewer.
@@ -440,7 +440,7 @@ Native asset journey:
 - the reviewer opened the same list and board with `9` read-only move links;
 - the reviewer saw `0` create-move, recompute or reverse controls after the view hardening update;
 - the disposable asset-review user was deleted after the walkthrough;
-- private proof: `artifacts/accounting-compat/private/track-b-assets-browser-status.json`.
+- private proof: `artifacts/accounting-compat/private/validation-native-assets-browser-status.json`.
 
 Native deferral journey:
 
@@ -448,7 +448,7 @@ Native deferral journey:
 - manager-only `New`, `Post Due Entries` and individual `Post` controls were visible;
 - the reviewer opened the same records with `0` create or post controls;
 - the disposable reviewer was deleted after the walkthrough;
-- private proof: `artifacts/accounting-compat/private/track-b-deferrals-browser-status.json`.
+- private proof: `artifacts/accounting-compat/private/validation-native-deferrals-browser-status.json`.
 
 Native analytic journey:
 
@@ -456,7 +456,7 @@ Native analytic journey:
 - current examples showed source-replayed Canada, Australia and Pride classifications;
 - native pivot view, XLSX download and graph view rendered;
 - the read-only correction audit opened with all `29` records for manager and reviewer and no create action;
-- private proof: `artifacts/accounting-compat/private/track-b-analytics-browser-status.json`.
+- private proof: `artifacts/accounting-compat/private/validation-native-analytics-browser-status.json`.
 
 Native document-evidence journey:
 
@@ -468,7 +468,7 @@ Native document-evidence journey:
 - the permanent add-on regression proves that the single-company accountant
   reviewer can read the verified native accounting attachment binary;
 - private proof:
-  `artifacts/accounting-compat/private/track-b-native-attachments-browser-status.json`.
+  `artifacts/accounting-compat/private/validation-native-native-attachments-browser-status.json`.
 
 Hybrid replacement journey:
 
@@ -535,21 +535,21 @@ Passing validation includes:
 python3 -m unittest accounting_compat.tests.test_report_evidence accounting_compat.tests.test_fec_preflight
 python3 -m py_compile accounting_compat/cli.py custom-addons/rebuild_account_migration/models/closing.py custom-addons/rebuild_account_migration/models/review_summary.py custom-addons/rebuild_account_migration/tests/test_declaration_closing.py custom-addons/rebuild_account_migration/tests/test_rebuild_account_migration.py
 docker compose --profile devcontainer run --rm devcontainer ruff check --ignore EM101 custom-addons/rebuild_account_migration/models/closing.py custom-addons/rebuild_account_migration/models/review_summary.py custom-addons/rebuild_account_migration/tests/test_declaration_closing.py custom-addons/rebuild_account_migration/tests/test_rebuild_account_migration.py
-odoo --config=/etc/odoo/odoo.conf --addons-path=/workspace/odoo/addons,/workspace/odoo/odoo/addons,/workspace/odoo/custom-addons,/workspace/odoo/oca-addons --database=odoo_rebuild_accounting_test --update=rebuild_account_migration --stop-after-init
+odoo --config=/etc/odoo/odoo.conf --addons-path=/workspace/odoo/addons,/workspace/odoo/odoo/addons,/workspace/odoo/custom-addons,/workspace/odoo/oca-addons --database=odoo_validation_exact --update=rebuild_account_migration --stop-after-init
 /tmp/odoo-m13-docs-venv/bin/python -m mkdocs build --config-file mkdocs.yml
 git diff --check
-make accounting-target-reset
-make accounting-replacement-reset
-make accounting-replacement-import
-make accounting-replacement-validate
-make accounting-target-import
-make accounting-target-validate
+make accounting-validation-exact-reset
+make accounting-dev-reset
+make accounting-dev-import
+make accounting-dev-validate
+make accounting-validation-exact-import
+make accounting-validation-exact-validate
 make accounting-document-regeneration
-make accounting-track-b-expenses
-make accounting-track-b-documents
-make accounting-track-b-deferrals
-make accounting-track-b-analytics
-make accounting-target-reconciliation-probe
+make accounting-validation-native-expenses
+make accounting-validation-native-documents
+make accounting-validation-native-deferrals
+make accounting-validation-native-analytics
+make accounting-validation-exact-reconciliation-probe
 make accounting-currency-rate-provider
 make accounting-reports
 make accounting-fec

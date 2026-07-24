@@ -751,7 +751,7 @@ class RebuildAccountImportRun(models.Model):
             )
             stats = {
                 "classification": (
-                    "TRACK_B_NATIVE_MULTI_PLAN_ANALYTIC_REPLAY"
+                    "NATIVE_VALIDATION_NATIVE_MULTI_PLAN_ANALYTIC_REPLAY"
                 ),
                 "status": status,
                 "date_from": options["date_from"],

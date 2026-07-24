@@ -77,7 +77,7 @@ The `.env` file is ignored by Git. Change these values before using the stack be
 
 Other useful variables:
 
-- `ODOO_INIT_DB`: database created by the init profile. Default: `odoo19`.
+- `ODOO_INIT_DB`: database created by the init profile. Default: `odoo_dev`.
 - `ODOO_INIT_MODULES`: modules installed during first init. Default: `usl_bootstrap`.
 - `ODOO_ADDONS_PATH`: addon path list for the Compose Odoo service.
 - `ODOO_HTTP_PORT` and `ODOO_GEVENT_PORT`: host ports. Defaults: `8069` and `8072`.
@@ -102,7 +102,7 @@ Inside the Dev Container, initialize the development database once:
 
 ```bash
 odoo --config=/etc/odoo/odoo.conf \
-  --database=odoo19 \
+  --database=odoo_dev \
   --init=base \
   --without-demo=true \
   --stop-after-init
@@ -111,10 +111,10 @@ odoo --config=/etc/odoo/odoo.conf \
 Then start a live development server:
 
 ```bash
-odoo --config=/etc/odoo/odoo.conf --database=odoo19
+odoo --config=/etc/odoo/odoo.conf --database=odoo_dev
 ```
 
-Open <http://localhost:8069/web/login?db=odoo19>.
+Open <http://localhost:8069/web/login?db=odoo_dev>.
 
 Default login for a freshly initialized local database:
 
@@ -143,8 +143,8 @@ Useful commands inside the Dev Container:
 
 ```bash
 ruff check custom-addons
-odoo --config=/etc/odoo/odoo.conf --database=odoo19 --update=your_module --stop-after-init
-odoo --config=/etc/odoo/odoo.conf --database=odoo19 --test-enable --stop-after-init --init=your_module
+odoo --config=/etc/odoo/odoo.conf --database=odoo_dev --update=your_module --stop-after-init
+odoo --config=/etc/odoo/odoo.conf --database=odoo_dev --test-enable --stop-after-init --init=your_module
 ```
 
 Debug configurations are available in `.devcontainer/launch.json`:
@@ -156,7 +156,7 @@ If you want to start Odoo manually under debugpy:
 
 ```bash
 python -Xfrozen_modules=off -m debugpy --listen 0.0.0.0:5678 \
-  /workspace/odoo/odoo-bin --config=/etc/odoo/odoo.conf --database=odoo19
+  /workspace/odoo/odoo-bin --config=/etc/odoo/odoo.conf --database=odoo_dev
 ```
 
 Do not run the normal Compose `odoo` service and a Dev Container Odoo server on the same host ports at the same time. Stop the normal service first if needed:
@@ -184,7 +184,7 @@ scripts/odoo-dev init-db
 scripts/odoo-dev start
 ```
 
-Open <http://localhost:8069/web/login?db=odoo19>.
+Open <http://localhost:8069/web/login?db=odoo_dev>.
 
 Default login for a freshly initialized local database:
 
@@ -220,38 +220,23 @@ scripts/odoo-dev update       # pull service images and rebuild
 scripts/odoo-dev reset        # delete local Compose volumes
 ```
 
-### Unstatic Labs demo database
+### Optional bootstrap fixture
 
-The local demo baseline is provided by `custom-addons/usl_bootstrap`. It installs the standard Community apps for Contacts, Discuss/chatter, Accounting/Invoicing with French localization, Expenses, Projects, Employees, and Sales, then creates fictional `.test` development data for the single company `Unstatic Labs`.
+`custom-addons/usl_bootstrap` remains available for isolated module tests and
+smoke fixtures. It is not the developer/QA product database and must not be
+installed into `odoo_dev`. The canonical `odoo_dev` database is built from the
+accounting compatibility pipeline described below.
 
-Initialize the database:
-
-```bash
-ODOO_INIT_MODULES=usl_bootstrap scripts/odoo-dev init-db
-```
-
-Start Odoo:
+To create an explicitly named throwaway fixture:
 
 ```bash
-scripts/odoo-dev start
+ODOO_INIT_DB=odoo_bootstrap_fixture \
+ODOO_INIT_MODULES=usl_bootstrap \
+scripts/odoo-dev init-db
 ```
 
-Reset and rebuild the same baseline:
-
-```bash
-scripts/odoo-dev reset
-ODOO_INIT_MODULES=usl_bootstrap scripts/odoo-dev init-db
-scripts/odoo-dev start
-```
-
-Open <http://localhost:8069/web/login?db=odoo19>.
-
-Default development login:
-
-```text
-Email/Login: admin
-Password: admin
-```
+Delete the fixture after the isolated test; do not use it for product QA or
+accounting parity evidence.
 
 Installed application domains: Contacts, Discuss, Accounting/Invoicing, French accounting localization, Expenses, Projects and Tasks, Employees, Sales, Settings and application management.
 
@@ -279,7 +264,7 @@ docker compose up -d --force-recreate odoo
 - Odoo web login in a newly initialized database: `admin` / `admin`.
 - Odoo database manager master password: `ODOO_ADMIN_PASSWORD`, default `admin`.
 - PostgreSQL credentials: `ODOO_DB_USER=odoo` and `ODOO_DB_PASSWORD=odoo` by default.
-- Default local database name: `odoo19`.
+- Default local database name: `odoo_dev`.
 
 Starting the Dev Container does not create a database. Running `scripts/odoo-dev init-db` or the explicit `odoo --init=base --stop-after-init` command does.
 

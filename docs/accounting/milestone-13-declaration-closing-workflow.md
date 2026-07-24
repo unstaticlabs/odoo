@@ -154,7 +154,7 @@ scripts/odoo-dev ruff \
 docker compose exec -T devcontainer odoo \
   --config=/etc/odoo/odoo.conf \
   --addons-path=/workspace/odoo/addons,/workspace/odoo/odoo/addons,/workspace/odoo/custom-addons,/workspace/odoo/oca-addons \
-  --database=odoo_rebuild_accounting_test \
+  --database=odoo_validation_exact \
   --update=rebuild_account_migration \
   --test-enable \
   --test-tags=/rebuild_account_migration:TestDeclarationAndClosing \

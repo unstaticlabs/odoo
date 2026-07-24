@@ -25,7 +25,7 @@ scripts/odoo-dev start
 Then open:
 
 ```text
-http://localhost:8069/web/login?db=odoo_rebuild_accounting_test
+http://localhost:8069/web/login?db=odoo_dev
 ```
 
 For the current local development database, sign in with:
@@ -42,23 +42,23 @@ rerun the full import merely to inspect what is already delivered.
 
 ## 1. Know which database you are opening
 
-Use this database first:
+Use this database:
 
 ```text
-odoo_rebuild_accounting_test
+odoo_dev
 ```
 
-It is the exact imported audit target. Use it to verify historical truth,
-reports, FEC, closing controls, permissions and review decisions.
+It is the canonical developer and QA product database. It contains exact
+benchmark history plus the native current-period documents, expenses, payments,
+bank transactions and reconciliations.
 
 Do not use these by accident:
 
 | Database | Purpose |
 | --- | --- |
-| `odoo19` | Synthetic development/demo data, not parity evidence. |
 | `odoo_online_source_saas_19_2` | Restored source evidence; never update or test product behavior here. |
-| `odoo_rebuild_accounting_track_b` | Technical native-workflow proof. |
-| `odoo_rebuild_accounting_replacement` | Hybrid production candidate; professionally unaccepted and not promoted. |
+| `odoo_validation_exact` | Pipeline-only exact-history validation. |
+| `odoo_validation_native` | Pipeline-only native-workflow validation. |
 
 The database is selected by the `db=` part of the browser URL. If numbers or
 menus look wrong, check that first.
@@ -102,7 +102,7 @@ Do not start a second Odoo server in the Dev Container while the Compose
 Open:
 
 ```text
-http://localhost:8069/web/login?db=odoo_rebuild_accounting_test
+http://localhost:8069/web/login?db=odoo_dev
 ```
 
 Sign in as `admin / admin` for this local review. If Odoo first shows
@@ -321,7 +321,7 @@ Then open:
 Accounting > Closing > Accepted Closing Snapshots
 ```
 
-Expected current exact-target count:
+Expected current exact-validation count:
 
 ```text
 0
@@ -361,7 +361,8 @@ Run these from a normal macOS Terminal:
 
 ```bash
 cd /Users/valentin/Code/odoo
-make accounting-target-validate
+make accounting-dev-validate
+make accounting-validation-exact-validate
 make accounting-reports
 make accounting-readiness
 make accounting-evidence
@@ -371,7 +372,8 @@ Expected:
 
 | Command | Expected result |
 | --- | --- |
-| `make accounting-target-validate` | `status: passed`, classification `POSTED_LEDGER_SLICE_PARITY`. |
+| `make accounting-dev-validate` | `status: partial`, classification `DEV_QA_TARGET_EXPLAINED_NATIVE_DIFFERENCES`; all critical checks pass and the classified EUR 2.64 difference remains for professional acceptance. |
+| `make accounting-validation-exact-validate` | `status: passed`, classification `POSTED_LEDGER_SLICE_PARITY`. |
 | `make accounting-reports` | `status: passed`, 56 capability rows and zero technical gaps. |
 | `make accounting-readiness` | Command succeeds but report status remains `blocked`. |
 | `make accounting-evidence` | Evidence index is regenerated successfully. |
@@ -442,8 +444,8 @@ For normal review, do not run:
 ```bash
 make accounting-source-restore
 make accounting-extract
-make accounting-target-reset
-make accounting-target-import
+make accounting-validation-exact-reset
+make accounting-validation-exact-import
 scripts/odoo-dev reset
 ```
 
@@ -451,7 +453,8 @@ Why:
 
 - source restore and extraction are unnecessary when the snapshot is
   unchanged;
-- target reset/import destroys and rebuilds the disposable exact target;
+- validation and development reset/import commands destroy and rebuild their
+  named disposable database;
 - `scripts/odoo-dev reset` removes Compose volumes and local databases.
 
 Use the full rebuild only when you deliberately want to test clean

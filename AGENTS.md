@@ -30,8 +30,8 @@ This repository starts from upstream Odoo 19.0. Keep it close to upstream Odoo: 
 
 - Follow `docs/operations/accounting-development-workflow.md` when working on Milestone 13.
 - Do not rerun source restore, extraction, target reset or full import loops unless the changed code actually requires that stage.
-- For UI, report formatting, menu, permission and documentation changes, prefer an Odoo module update on `odoo_rebuild_accounting_test` plus targeted validation.
-- Keep `odoo19` clearly separated from the imported accounting target. Do not describe synthetic data as parity evidence.
+- For UI, report formatting, menu, permission and documentation changes, prefer an Odoo module update on `odoo_dev` plus targeted validation.
+- Use `odoo_dev` as the only developer/QA product database. Keep `odoo_validation_exact` and `odoo_validation_native` isolated as disposable pipeline proofs, and do not describe either validation database as the product environment.
 - Preserve current source snapshots and private artifacts, but do not commit private production extracts.
 
 ## Commit Discipline

@@ -626,7 +626,7 @@ class RebuildAccountImportRun(models.Model):
                 else "failed"
             )
             stats = {
-                "classification": "TRACK_B_NATIVE_ASSET_DEPRECIATION_REPLAY",
+                "classification": "NATIVE_VALIDATION_NATIVE_ASSET_DEPRECIATION_REPLAY",
                 "status": status,
                 "date_from": options["date_from"],
                 "date_to": options["date_to"],
