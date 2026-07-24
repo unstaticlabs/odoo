@@ -672,7 +672,7 @@ class TestRebuildAccountMigration(TransactionCase):
         for button in mutation_buttons:
             self.assertEqual(button.get("groups"), "account.group_account_user")
 
-    def test_bank_matching_candidates_default_to_closest_amount_ranking(self):
+    def test_bank_matching_candidates_default_to_closest_amount_and_date_ranking(self):
         receivable = self._account(
             "T411230",
             "Closest amount receivable",
@@ -688,10 +688,16 @@ class TestRebuildAccountMigration(TransactionCase):
         })
         journal = self._journal()
         candidate_lines = self.env["account.move.line"]
-        for amount in (70.0, 99.0, 130.0):
+        today = fields.Date.today()
+        for amount, date in (
+            (70.0, fields.Date.subtract(today, days=1)),
+            (99.0, fields.Date.subtract(today, days=10)),
+            (99.0, fields.Date.subtract(today, days=2)),
+            (130.0, today),
+        ):
             move = self.env["account.move"].create({
                 "journal_id": journal.id,
-                "date": fields.Date.today(),
+                "date": date,
                 "line_ids": [
                     Command.create({
                         "name": f"Open item {amount}",
@@ -715,25 +721,35 @@ class TestRebuildAccountMigration(TransactionCase):
             _test_account_reconcile_oca=True,
         ).create({
             "journal_id": self._journal("bank").id,
-            "date": fields.Date.today(),
+            "date": today,
             "partner_id": partner.id,
             "payment_ref": "Closest amount ranking",
             "amount": 100.0,
         })
         result = candidate_lines.with_context(
             reconcile_closest_amount=True,
+            reconcile_closest_date=True,
             reconcile_statement_line_id=bank_line.id,
         ).web_search_read(
             [("id", "in", candidate_lines.ids)],
-            {"amount_residual": {}},
+            {"amount_residual": {}, "date": {}},
         )
 
         residuals = [
             record["amount_residual"]
             for record in result["records"]
         ]
-        self.assertEqual(residuals, [99.0, 130.0, 70.0])
-        self.assertEqual(result["length"], 3)
+        self.assertEqual(residuals, [99.0, 99.0, 130.0, 70.0])
+        self.assertEqual(
+            [record["date"] for record in result["records"]],
+            [
+                fields.Date.subtract(today, days=2),
+                fields.Date.subtract(today, days=10),
+                today,
+                fields.Date.subtract(today, days=1),
+            ],
+        )
+        self.assertEqual(result["length"], 4)
 
         bank_view = self.env.ref(
             "account_reconcile_oca.bank_statement_line_form_reconcile_view",
@@ -745,6 +761,10 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(len(candidate_field), 1)
         self.assertIn(
             "'search_default_reconcile_closest_amount': 1",
+            candidate_field[0].get("context"),
+        )
+        self.assertIn(
+            "'search_default_reconcile_closest_date': 1",
             candidate_field[0].get("context"),
         )
         self.assertIn(
@@ -760,6 +780,11 @@ class TestRebuildAccountMigration(TransactionCase):
         )
         self.assertEqual(len(closest_filter), 1)
         self.assertEqual(closest_filter[0].get("string"), "Closest amount")
+        closest_date_filter = search_view.xpath(
+            "//filter[@name='reconcile_closest_date']",
+        )
+        self.assertEqual(len(closest_date_filter), 1)
+        self.assertEqual(closest_date_filter[0].get("string"), "Closest date")
 
     def test_native_expenses_are_available_from_accounting_payables(self):
         expenses_menu = self.env.ref("hr_expense.menu_hr_expense_account_employee_expenses")

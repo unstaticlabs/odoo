@@ -33,6 +33,10 @@ class AccountMoveLine(models.Model):
         return abs(abs(candidate_amount) - abs(target_amount))
 
     @api.model
+    def _reconcile_closest_date_key(self, statement_line, move_line):
+        return abs((move_line.date - statement_line.date).days)
+
+    @api.model
     @api.readonly
     def web_search_read(
         self,
@@ -44,10 +48,9 @@ class AccountMoveLine(models.Model):
         count_limit=None,
     ):
         statement_line_id = self.env.context.get("reconcile_statement_line_id")
-        if (
-            not self.env.context.get("reconcile_closest_amount")
-            or not statement_line_id
-        ):
+        closest_amount = self.env.context.get("reconcile_closest_amount")
+        closest_date = self.env.context.get("reconcile_closest_date")
+        if not (closest_amount or closest_date) or not statement_line_id:
             return super().web_search_read(
                 domain,
                 specification,
@@ -71,14 +74,23 @@ class AccountMoveLine(models.Model):
             )
 
         candidates = self.search(domain, order=order)
+        def ranking_key(line):
+            key = []
+            if closest_amount:
+                key.append(
+                    self._reconcile_closest_amount_key(statement_line, line),
+                )
+            if closest_date:
+                key.append(
+                    self._reconcile_closest_date_key(statement_line, line),
+                )
+            return tuple(key)
+
         ranked_ids = [
             line.id
             for line in sorted(
                 candidates,
-                key=lambda line: self._reconcile_closest_amount_key(
-                    statement_line,
-                    line,
-                ),
+                key=ranking_key,
             )
         ]
         page_ids = ranked_ids[offset : offset + limit if limit else None]
