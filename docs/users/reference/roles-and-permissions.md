@@ -15,4 +15,3 @@ This role cannot create or edit accounting, post, pay, reconcile, configure, loc
 The company switcher controls the active company context. A user sees only companies granted on their user record. Multi-company reports include only selected companies the user is allowed to access.
 
 Roles and responsible users are configured; personal names are not embedded in the product.
-

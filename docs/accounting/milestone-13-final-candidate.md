@@ -1,10 +1,10 @@
 # Milestone 13 final Accounting v1 candidate
 
-Status date: 25 July 2026  
-Branch: `19-usl-feat-accounting`  
-Implementation commit under verification: `412798935b8`  
-Product database: `odoo_dev`  
-Source snapshot: `source-bf16ce18965e`  
+Status date: 25 July 2026
+Branch: `19-usl-feat-accounting`
+Implementation commit under verification: `412798935b8`
+Product database: `odoo_dev`
+Source snapshot: `source-bf16ce18965e`
 Source dump SHA-256:
 `bf16ce18965e4ce1b23d7b79930b6e43ca7f510339ac6d2db280231f91d1449f`
 

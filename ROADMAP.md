@@ -2368,7 +2368,7 @@ The Odoo Rebuild reaches its intended target when:
 
 - [ ] Devcontainer
 - [ ] Docker compose
-- [ ] 
+- [ ]
 
 
 https://github.com/odoo/odoo/tree/19.0/odoo

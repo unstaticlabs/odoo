@@ -12,4 +12,3 @@ The declaration workspace prepares an operational filing record around those led
 - filing and settlement status.
 
 Use **View Entries** before changing or confirming a value. An external value supplements the traceable calculation; it does not silently overwrite it.
-
