@@ -6186,6 +6186,512 @@ class RebuildAccountImportRun(models.Model):
             "configured_payment_method_line_count": len(configured_method_line_ids),
         }
 
+    def run_source_faithful_expense_materialization_from_source(self, options):
+        """Materialize source expenses without duplicating imported accounting.
+
+        The product database already contains the exact posted source journal
+        entries and reconciliations. This stage reconstructs normal
+        ``hr.expense`` records, restores their workflow state and attachments,
+        then links them to those existing entries and journal items. New
+        expenses continue to use Odoo's standard approval and posting engine.
+        """
+        self.ensure_one()
+        options = {
+            "source_database": "odoo_online_source_saas_19_2",
+            "source_snapshot_id": "source-unknown",
+            "source_dump_sha256": "",
+            "source_version": "Odoo Online Enterprise saas~19.2",
+            "target_database": self.env.cr.dbname,
+            "date_from": "2024-01-10",
+            "date_to": fields.Date.context_today(self),
+            "source_company_ids": [1],
+            **(options or {}),
+        }
+        options["source_company_ids"] = self._source_company_ids(options)
+        self.write({
+            "status": "running",
+            "mode": "exact_ledger_replay",
+            "source_database": options["source_database"],
+            "source_dump_sha256": options.get("source_dump_sha256"),
+            "source_snapshot_id": options["source_snapshot_id"],
+            "source_version": options.get("source_version"),
+            "target_database": options["target_database"],
+        })
+        conn = self._source_connection(options)
+        try:
+            currencies = self._currency_map(conn)
+            countries = self._country_map(conn)
+            companies, _company_rows = self._company_map(
+                conn,
+                options,
+                countries,
+            )
+            partners = self._partner_map(conn, options)
+            accounts, account_ids_to_archive = self._account_map(
+                conn,
+                options,
+                companies,
+                currencies,
+            )
+            expense_account_stats = self._native_expense_extend_account_map(
+                conn,
+                options,
+                companies,
+                currencies,
+                accounts,
+            )
+            account_ids_to_archive.extend(
+                expense_account_stats["archive_after_post_source_ids"],
+            )
+            tax_tags = self._tax_tag_map(conn, options, countries)
+            tax_groups = self._tax_group_map(
+                conn,
+                options,
+                companies,
+                accounts,
+                countries,
+            )
+            taxes, _tax_repartition_lines, _tax_stats = self._tax_map(
+                conn,
+                options,
+                companies,
+                accounts,
+                tax_groups,
+                tax_tags,
+                countries,
+            )
+            journals = self._journal_map(
+                conn,
+                options,
+                companies,
+                accounts,
+                currencies,
+            )
+            method_lines = self._payment_method_line_map(
+                conn,
+                journals,
+                accounts,
+            )
+            analytic_plans = self._analytic_plan_map(conn, options)
+            analytic_accounts = self._analytic_account_map(
+                conn,
+                options,
+                companies,
+                partners,
+                analytic_plans,
+            )
+            expense_rows = self._native_expense_rows(conn, options)
+            employees = self._native_expense_employee_map(
+                conn,
+                options,
+                companies,
+                partners,
+            )
+            products, current_standard_prices = self._native_expense_product_map(
+                conn,
+                options,
+                companies,
+                accounts,
+            )
+            self._native_expense_configure_companies(
+                conn,
+                options,
+                companies,
+                journals,
+                method_lines,
+                accounts,
+                self._native_expense_move_rows(conn, options),
+            )
+
+            Expense = self.env["hr.expense"].sudo().with_context(
+                tracking_disable=True,
+                mail_create_nolog=True,
+            )
+            created_count = 0
+            reused_count = 0
+            blocked_cases = []
+            expenses_by_source_id = {}
+            for source_expense in expense_rows:
+                company = companies.get(source_expense["company_id"])
+                employee = employees.get(source_expense["employee_id"])
+                product = products.get(source_expense["product_id"])
+                currency = currencies.get(source_expense["currency_id"])
+                account = accounts.get(source_expense["account_id"])
+                vendor = partners.get(source_expense["vendor_id"])
+                payment_method_line = method_lines.get(
+                    source_expense["payment_method_line_id"],
+                )
+                missing_tax_ids = [
+                    source_tax_id
+                    for source_tax_id in source_expense["tax_ids"]
+                    if source_tax_id not in taxes
+                ]
+                blockers = [
+                    label
+                    for label, value in (
+                        ("company", company),
+                        ("employee", employee),
+                        ("currency", currency),
+                        ("account", account),
+                    )
+                    if not value
+                ]
+                if source_expense["product_id"] and not product:
+                    blockers.append("product")
+                if source_expense["vendor_id"] and not vendor:
+                    blockers.append("vendor")
+                if missing_tax_ids:
+                    blockers.append("taxes")
+                if blockers:
+                    blocked_cases.append({
+                        "source_expense_id": source_expense["id"],
+                        "source_name": source_expense["name"],
+                        "classification": (
+                            "source_faithful_expense_mapping_error"
+                        ),
+                        "blockers": blockers,
+                        "missing_source_tax_ids": missing_tax_ids,
+                    })
+                    continue
+
+                expense = Expense.search([
+                    ("rebuild_source_model", "=", "hr.expense"),
+                    ("rebuild_source_id", "=", source_expense["id"]),
+                    (
+                        "rebuild_source_snapshot",
+                        "=",
+                        options["source_snapshot_id"],
+                    ),
+                ], limit=1)
+                if expense:
+                    reused_count += 1
+                    expenses_by_source_id[source_expense["id"]] = expense
+                    continue
+                try:
+                    with self.env.cr.savepoint():
+                        current_standard_price = (
+                            current_standard_prices.get(
+                                (
+                                    source_expense["product_id"],
+                                    source_expense["company_id"],
+                                ),
+                                0.0,
+                            )
+                            if product else 0.0
+                        )
+                        if current_standard_price:
+                            product.with_company(company).standard_price = (
+                                self._amount(source_expense["price_unit"])
+                            )
+                        values = {
+                            "name": (
+                                source_expense["name"]
+                                or f"Source expense {source_expense['id']}"
+                            ),
+                            "date": source_expense["date"],
+                            "employee_id": employee.id,
+                            "company_id": company.id,
+                            "product_id": product.id if product else False,
+                            "product_uom_id": (
+                                product.uom_id.id if product else False
+                            ),
+                            "currency_id": currency.id,
+                            "payment_mode": source_expense["payment_mode"],
+                            "vendor_id": vendor.id if vendor else False,
+                            "account_id": account.id,
+                            "tax_ids": [Command.set([
+                                taxes[source_tax_id].id
+                                for source_tax_id
+                                in source_expense["tax_ids"]
+                            ])],
+                            "quantity": self._amount(
+                                source_expense["quantity"],
+                            ),
+                            "total_amount_currency": self._amount(
+                                source_expense["total_amount_currency"],
+                            ),
+                            "total_amount": self._amount(
+                                source_expense["total_amount"],
+                            ),
+                            "analytic_distribution": (
+                                self._native_replay_analytic_distribution(
+                                    source_expense[
+                                        "analytic_distribution"
+                                    ],
+                                    analytic_accounts,
+                                )
+                            ),
+                            "description": source_expense["description"],
+                            "rebuild_import_note": (
+                                "Source-faithful expense restored as a normal "
+                                "Odoo expense and linked to the exact imported "
+                                "source accounting entry."
+                            ),
+                            **self._trace_values(
+                                "hr.expense",
+                                source_expense["id"],
+                                options,
+                            ),
+                        }
+                        if payment_method_line:
+                            values["payment_method_line_id"] = (
+                                payment_method_line.id
+                            )
+                        expense = Expense.with_company(company).create(values)
+                        if source_expense["state"] == "refused":
+                            expense._do_refuse(
+                                "Restored source refusal",
+                            )
+                        elif source_expense["state"] != "draft":
+                            expense.action_submit()
+                            if expense.state == "submitted":
+                                expense._do_approve()
+                            if source_expense["approval_date"]:
+                                expense.approval_date = source_expense[
+                                    "approval_date"
+                                ]
+                        if current_standard_price and product:
+                            product.with_company(company).standard_price = (
+                                current_standard_price
+                            )
+                    created_count += 1
+                    expenses_by_source_id[source_expense["id"]] = expense
+                except Exception as exc:  # noqa: BLE001
+                    blocked_cases.append({
+                        "source_expense_id": source_expense["id"],
+                        "source_name": source_expense["name"],
+                        "classification": (
+                            "source_faithful_expense_creation_error"
+                        ),
+                        "exception_type": type(exc).__name__,
+                        "exception_message": str(exc),
+                    })
+
+            source_move_ids = sorted({
+                row["account_move_id"]
+                for row in expense_rows
+                if row["account_move_id"]
+            })
+            target_moves = {
+                move.rebuild_source_id: move
+                for move in self.env["account.move"].sudo().search([
+                    ("rebuild_source_model", "=", "account.move"),
+                    (
+                        "rebuild_source_snapshot",
+                        "=",
+                        options["source_snapshot_id"],
+                    ),
+                    ("rebuild_source_id", "in", source_move_ids or [0]),
+                ])
+            }
+            linked_move_count = 0
+            for source_expense in expense_rows:
+                if not source_expense["account_move_id"]:
+                    continue
+                expense = expenses_by_source_id.get(source_expense["id"])
+                move = target_moves.get(source_expense["account_move_id"])
+                if not expense or not move:
+                    blocked_cases.append({
+                        "source_expense_id": source_expense["id"],
+                        "source_move_id": source_expense["account_move_id"],
+                        "classification": (
+                            "missing_exact_expense_accounting_entry"
+                        ),
+                    })
+                    continue
+                expense.account_move_id = move
+                linked_move_count += 1
+
+            source_line_links = self._fetchall(
+                conn,
+                """
+                SELECT line.id AS source_line_id,
+                       line.expense_id AS source_expense_id
+                  FROM account_move_line line
+                 WHERE line.expense_id IS NOT NULL
+                   AND line.expense_id = ANY(%(source_expense_ids)s)
+                """,
+                {
+                    "source_expense_ids": (
+                        [row["id"] for row in expense_rows] or [0]
+                    ),
+                },
+            )
+            target_lines = {
+                line.rebuild_source_id: line
+                for line in self.env["account.move.line"].sudo().search([
+                    ("rebuild_source_model", "=", "account.move.line"),
+                    (
+                        "rebuild_source_snapshot",
+                        "=",
+                        options["source_snapshot_id"],
+                    ),
+                    (
+                        "rebuild_source_id",
+                        "in",
+                        [row["source_line_id"] for row in source_line_links]
+                        or [0],
+                    ),
+                ])
+            }
+            linked_line_count = 0
+            for source_link in source_line_links:
+                line = target_lines.get(source_link["source_line_id"])
+                expense = expenses_by_source_id.get(
+                    source_link["source_expense_id"],
+                )
+                if line and expense:
+                    line.expense_id = expense
+                    linked_line_count += 1
+
+            attachment_stats = self._import_attachments(
+                conn,
+                {
+                    **options,
+                    "attachment_target_trace_models": {
+                        "hr.expense": ["hr.expense"],
+                    },
+                },
+                companies,
+                rows=self._native_replay_expense_attachment_rows(
+                    conn,
+                    options,
+                ),
+            )
+            for source_account_id in account_ids_to_archive:
+                accounts[source_account_id].active = False
+
+            passed_count = 0
+            mismatch_cases = []
+            state_counts = defaultdict(int)
+            for source_expense in expense_rows:
+                expense = expenses_by_source_id.get(source_expense["id"])
+                if not expense:
+                    continue
+                expense.invalidate_recordset([
+                    "state",
+                    "approval_state",
+                    "account_move_id",
+                ])
+                state_counts[expense.state] += 1
+                checks = {
+                    "state": expense.state == source_expense["state"],
+                    "approval_state": (
+                        (expense.approval_state or False)
+                        == (source_expense["approval_state"] or False)
+                    ),
+                    "account_move": (
+                        (
+                            expense.account_move_id.rebuild_source_id
+                            or None
+                        )
+                        == source_expense["account_move_id"]
+                    ),
+                    "amount": round(expense.total_amount, 2)
+                    == round(
+                        self._amount(source_expense["total_amount"]),
+                        2,
+                    ),
+                    "currency_amount": round(
+                        expense.total_amount_currency,
+                        2,
+                    )
+                    == round(
+                        self._amount(
+                            source_expense["total_amount_currency"],
+                        ),
+                        2,
+                    ),
+                }
+                if all(checks.values()):
+                    passed_count += 1
+                else:
+                    mismatch_cases.append({
+                        "source_expense_id": source_expense["id"],
+                        "target_expense_id": expense.id,
+                        "source_state": source_expense["state"],
+                        "target_state": expense.state,
+                        "checks": checks,
+                    })
+
+            # The current source package deliberately excludes the Odoo
+            # filestore. Missing binaries are therefore a documented product
+            # boundary, while mapping, checksum and duplication defects remain
+            # release-relevant.
+            attachment_issue_count = sum(
+                attachment_stats.get(key, 0)
+                for key in (
+                    "checksum_mismatch_count",
+                    "duplicate_trace_count",
+                    "main_attachment_mismatch_count",
+                    "unmapped_target_count",
+                )
+            )
+            status = (
+                "passed"
+                if (
+                    not blocked_cases
+                    and not mismatch_cases
+                    and not attachment_issue_count
+                )
+                else "partial"
+            )
+            stats = {
+                "classification": (
+                    "SOURCE_FAITHFUL_NATIVE_EXPENSE_MATERIALIZATION"
+                ),
+                "date_from": options["date_from"],
+                "date_to": options["date_to"],
+                "source_expense_count": len(expense_rows),
+                "created_expense_count": created_count,
+                "reused_expense_count": reused_count,
+                "linked_account_move_count": linked_move_count,
+                "source_expense_line_link_count": len(source_line_links),
+                "linked_expense_line_count": linked_line_count,
+                "passed_expense_count": passed_count,
+                "mismatch_expense_count": len(mismatch_cases),
+                "blocked_case_count": len(blocked_cases),
+                "state_counts": dict(sorted(state_counts.items())),
+                "attachments": attachment_stats,
+                "accepted_missing_attachment_count": (
+                    attachment_stats.get("missing_file_count", 0)
+                ),
+                "mismatch_examples": mismatch_cases[:20],
+                "blocked_examples": blocked_cases[:20],
+            }
+            self.write({
+                "status": status,
+                "finished_at": fields.Datetime.now(),
+                "company_ids": [Command.set([
+                    company.id for company in companies.values()
+                ])],
+                "imported_company_count": len(companies),
+                "imported_account_count": len(accounts),
+                "imported_journal_count": len(journals),
+                "imported_partner_count": len(partners),
+                "imported_move_count": linked_move_count,
+                "warning_count": (
+                    len(blocked_cases)
+                    + len(mismatch_cases)
+                    + attachment_issue_count
+                ),
+                "statistics_json": stats,
+                "notes": (
+                    "Native expense documents and receipts are attached to "
+                    "the exact imported source accounting entries. No "
+                    "additional journal entry is generated."
+                ),
+            })
+            return stats
+        except Exception:
+            self.write({
+                "status": "failed",
+                "finished_at": fields.Datetime.now(),
+            })
+            raise
+        finally:
+            conn.close()
+
     def run_native_expense_replay_from_source(self, options):
         """Rebuild source expenses through the standard Odoo expense engine.
 

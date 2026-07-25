@@ -2816,10 +2816,19 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
         SOURCE_DB,
         """
         WITH source_end AS (
-            SELECT max(date) AS date_to
-            FROM account_move
-            WHERE company_id IN (1, 8)
-              AND state = 'posted'
+            SELECT greatest(
+                (
+                    SELECT max(date)
+                    FROM account_move
+                    WHERE company_id IN (1, 8)
+                      AND state = 'posted'
+                ),
+                (
+                    SELECT max(date)
+                    FROM hr_expense
+                    WHERE company_id = 1
+                )
+            ) AS date_to
         )
         SELECT jsonb_build_object(
             'date_to', source_end.date_to::text,
@@ -2840,6 +2849,13 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
                   AND move.date BETWEEN DATE '2024-01-10'
                                     AND source_end.date_to
                   AND line.account_id IS NOT NULL
+            ),
+            'source_expense_count', (
+                SELECT count(*)
+                FROM hr_expense expense
+                WHERE expense.company_id = 1
+                  AND expense.date BETWEEN DATE '2024-01-10'
+                                       AND source_end.date_to
             )
         )
         FROM source_end
@@ -2871,6 +2887,25 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             "    'preserve_business_documents': True,",
             "    'classify_confirmed_vat_refund': False,",
             "})",
+            "expense_run = env['rebuild.account.import.run'].create({",
+            "    'name': 'USL source-faithful native expenses',",
+            "    'mode': 'exact_ledger_replay',",
+            "    'source_database': 'odoo_online_source_saas_19_2',",
+            f"    'source_dump_sha256': {dump_sha!r},",
+            f"    'source_snapshot_id': {snapshot_id!r},",
+            "    'source_version': 'Odoo Online Enterprise saas~19.2',",
+            f"    'target_database': {DEV_QA_DB!r},",
+            "})",
+            "expense_stats = expense_run.run_source_faithful_expense_materialization_from_source({",
+            "    'source_database': 'odoo_online_source_saas_19_2',",
+            f"    'source_dump_sha256': {dump_sha!r},",
+            f"    'source_snapshot_id': {snapshot_id!r},",
+            "    'source_version': 'Odoo Online Enterprise saas~19.2',",
+            f"    'target_database': {DEV_QA_DB!r},",
+            f"    'date_from': {USL_BENCHMARK_START!r},",
+            f"    'date_to': {source_date_to!r},",
+            "    'source_company_ids': [1],",
+            "})",
             "cases = env['rebuild.account.document.regeneration.case'].search([",
             "    ('case_status', '=', 'candidate_ready'),",
             "    ('generation_status', '=', 'not_generated'),",
@@ -2887,6 +2922,9 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             "    'run_id': run.id,",
             "    'run_status': run.status,",
             "    'stats': stats,",
+            "    'expense_run_id': expense_run.id,",
+            "    'expense_run_status': expense_run.status,",
+            "    'expense_stats': expense_stats,",
             "    'draft_stats': draft_stats,",
             "}, sort_keys=True, default=str))",
             "",
@@ -2938,11 +2976,13 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
     expected = {
         "source_move_count": source_profile["source_move_count"],
         "imported_move_line_count": source_profile["source_move_line_count"],
+        "source_expense_count": source_profile["source_expense_count"],
         "reused_native_move_representation_count": 0,
     }
     checks = {
         key: stats.get(key) == expected_value
         for key, expected_value in expected.items()
+        if key != "source_expense_count"
     }
     checks["sequence_chronology_matches"] = (
         stats.get("sequence_chronology", {}).get(
@@ -2955,6 +2995,15 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
         == payload["draft_stats"]["validated_count"]
         and payload["draft_stats"]["mismatch_count"] == 0
     )
+    checks["native_expenses_match"] = (
+        payload["expense_run_status"] == "passed"
+        and payload["expense_stats"]["source_expense_count"]
+        == source_profile["source_expense_count"]
+        and payload["expense_stats"]["passed_expense_count"]
+        == source_profile["source_expense_count"]
+        and payload["expense_stats"]["mismatch_expense_count"] == 0
+        and payload["expense_stats"]["blocked_case_count"] == 0
+    )
     status = {
         "generated_at": utc_now(),
         "tool_version": TOOL_VERSION,
@@ -2966,9 +3015,12 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
         "date_to": source_date_to,
         "run_id": payload["run_id"],
         "run_status": payload["run_status"],
+        "expense_run_id": payload["expense_run_id"],
+        "expense_run_status": payload["expense_run_status"],
         "expected": expected,
         "checks": checks,
         "statistics": stats,
+        "expense_statistics": payload["expense_stats"],
         "draft_statistics": payload["draft_stats"],
     }
     write_json(PRIVATE_ARTIFACTS / "dev-import-status.json", status)
@@ -3621,6 +3673,36 @@ def dev_validate(args: argparse.Namespace) -> dict[str, Any]:
                 FROM res_currency_rate
                 WHERE company_id IS NULL OR company_id IN (1, 8)
             ),
+            'native_expense_count', (
+                SELECT count(*)::text
+                FROM hr_expense
+                WHERE company_id = 1
+                  AND date >= DATE '2024-01-10'
+            ),
+            'native_expense_move_link_count', (
+                SELECT count(*)::text
+                FROM hr_expense
+                WHERE company_id = 1
+                  AND date >= DATE '2024-01-10'
+                  AND account_move_id IS NOT NULL
+            ),
+            'native_expense_line_link_count', (
+                SELECT count(*)::text
+                FROM account_move_line line
+                JOIN hr_expense expense ON expense.id = line.expense_id
+                WHERE expense.company_id = 1
+                  AND expense.date >= DATE '2024-01-10'
+            ),
+            'native_expense_state_counts', (
+                SELECT jsonb_object_agg(state, state_count)
+                FROM (
+                    SELECT state, count(*)::text AS state_count
+                    FROM hr_expense
+                    WHERE company_id = 1
+                      AND date >= DATE '2024-01-10'
+                    GROUP BY state
+                ) expense_states
+            ),
             'asset_count', (
                 SELECT count(*)::text
                 FROM account_asset
@@ -3712,6 +3794,43 @@ def dev_validate(args: argparse.Namespace) -> dict[str, Any]:
                 SELECT count(*)::text
                 FROM res_currency_rate
                 WHERE rebuild_source_id IS NOT NULL
+            ),
+            'native_expense_count', (
+                SELECT count(*)::text
+                FROM hr_expense expense
+                JOIN res_company company ON company.id = expense.company_id
+                WHERE company.rebuild_source_id = 1
+                  AND expense.rebuild_source_model = 'hr.expense'
+            ),
+            'native_expense_move_link_count', (
+                SELECT count(*)::text
+                FROM hr_expense expense
+                JOIN res_company company ON company.id = expense.company_id
+                WHERE company.rebuild_source_id = 1
+                  AND expense.rebuild_source_model = 'hr.expense'
+                  AND expense.account_move_id IS NOT NULL
+            ),
+            'native_expense_line_link_count', (
+                SELECT count(*)::text
+                FROM account_move_line line
+                JOIN hr_expense expense ON expense.id = line.expense_id
+                JOIN res_company company ON company.id = expense.company_id
+                WHERE company.rebuild_source_id = 1
+                  AND expense.rebuild_source_model = 'hr.expense'
+                  AND line.rebuild_source_model = 'account.move.line'
+            ),
+            'native_expense_state_counts', (
+                SELECT jsonb_object_agg(state, state_count)
+                FROM (
+                    SELECT expense.state,
+                           count(*)::text AS state_count
+                    FROM hr_expense expense
+                    JOIN res_company company
+                      ON company.id = expense.company_id
+                    WHERE company.rebuild_source_id = 1
+                      AND expense.rebuild_source_model = 'hr.expense'
+                    GROUP BY expense.state
+                ) expense_states
             ),
             'asset_count', (
                 SELECT count(*)::text
