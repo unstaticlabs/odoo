@@ -1,6 +1,6 @@
 # Milestone 13 Accounting Configuration Capability Matrix
 
-Last updated: 2026-07-23
+Last updated: 2026-07-25
 
 Status vocabulary:
 
@@ -23,6 +23,7 @@ separate from technical availability.
 | Chart of Accounts | Source accounts, types, reconciliation flags, currencies and company relations are source-traced in native `account.account`. | Implemented | Exact replay/validation and duplicate-trace invariants. |
 | Account Groups | Native `account.group` with an explicit manager route. | Implemented | `Configuration > Accounting > Account Groups`; clean add-on navigation test. |
 | Journals | Source journals, codes, currencies, accounts and payment-method lines are reconstructed in native `account.journal`. | Implemented | Exact replay/validation; journal dashboard and transactions remain native. |
+| Bank statement files | Maintained OCA import creates native statements and transactions from CAMT, QIF and configurable CSV/XLSX layouts. Import stays contextual on each bank journal; the generic top-level import menu is hidden. | Implemented | Fresh-database wizard tests cover format discovery, attachment retention and a real QIF transaction. The browser journey proves import to full-width Transactions and an exact-reference match with visible counterpart lines and Undo. Live bank synchronization remains deferred. |
 | Taxes | Source taxes, scopes, amounts, cash-basis behavior, children, alternatives and repartition lines are source-traced. | Implemented | Exact tax-configuration comparison and tax-report controls. |
 | Tax Groups | Source tax groups are source-traced and exposed through an explicit manager route. | Implemented | Exact comparison plus `Configuration > Accounting > Tax Groups`. |
 | Tax Tags | Source tags and repartition/tag relations are source-traced and exposed through an explicit manager route. | Implemented | Exact comparison plus `Accounting and Tax Tags`. |

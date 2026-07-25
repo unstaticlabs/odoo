@@ -170,6 +170,64 @@
     <record id="account_statement_import_file.account_statement_import_menu" model="ir.ui.menu">
         <field name="active" eval="False"/>
     </record>
+    <record id="account_statement_import_sheet_file.action_statement_import_sheet_report_mappings" model="ir.actions.act_window">
+        <field name="name">Bank Statement File Mappings</field>
+    </record>
+    <record id="account_statement_import_sheet_file.menu_statement_import_sheet_mapping" model="ir.ui.menu">
+        <field name="name">Bank Statement File Mappings</field>
+        <field name="sequence">45</field>
+    </record>
+    <record id="view_rebuild_bank_statement_mapping_label" model="ir.ui.view">
+        <field name="name">account.journal.statement.mapping.label</field>
+        <field name="model">account.journal</field>
+        <field name="inherit_id" ref="account_statement_import_sheet_file.view_account_journal_form_n43"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[field[@name='default_sheet_mapping_id']]" position="attributes">
+                <attribute name="string">Bank Statement File</attribute>
+            </xpath>
+            <xpath expr="//field[@name='default_sheet_mapping_id']" position="attributes">
+                <attribute name="string">CSV/XLSX Mapping</attribute>
+                <attribute name="help">Choose the saved column layout used by this bank's CSV or XLSX exports.</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_rebuild_bank_statement_import_dialog" model="ir.ui.view">
+        <field name="name">account.statement.import.user.labels</field>
+        <field name="model">account.statement.import</field>
+        <field name="inherit_id" ref="account_statement_import_sheet_file.account_statement_import_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//li[field[@name='sheet_mapping_id']]" position="replace">
+                <li>
+                    CSV/XLSX layout:
+                    <field name="sheet_mapping_id" nolabel="1"/>
+                </li>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_rebuild_bank_statement_import_journal_action" model="ir.ui.view">
+        <field name="name">account.journal.dashboard.statement.import</field>
+        <field name="model">account.journal</field>
+        <field name="inherit_id" ref="account_statement_import_file.journal_dashboard_view_inherit"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='import_account_statement']/parent::t" position="attributes">
+                <attribute name="t-if">journal_type == 'bank'</attribute>
+            </xpath>
+            <xpath expr="//button[@name='import_account_statement']" position="attributes">
+                <attribute name="t-if">journal_type == 'bank'</attribute>
+                <attribute name="title">Upload a bank statement file and review the imported transactions before matching them.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='import_account_statement']/span" position="replace">
+                <span>Import Statement</span>
+            </xpath>
+            <xpath expr="//a[@name='import_account_statement']" position="replace">
+                <a
+                    type="object"
+                    name="import_account_statement"
+                    title="Upload a bank statement file and review the imported transactions before matching them."
+                >Import Statement</a>
+            </xpath>
+        </field>
+    </record>
     <record id="view_rebuild_account_journal_dashboard_readonly" model="ir.ui.view">
         <field name="name">account.journal.dashboard.readonly.controls</field>
         <field name="model">account.journal</field>

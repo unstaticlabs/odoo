@@ -190,6 +190,43 @@ class AccountJournal(models.Model):
     _name = "account.journal"
     _inherit = ["account.journal", "rebuild.source.trace.mixin"]
 
+    def _get_bank_statements_available_import_formats(self):
+        formats = super()._get_bank_statements_available_import_formats()
+        friendly_names = {
+            "TXT/CSV/XSLX": self.env._("CSV or XLSX"),
+            "qif": self.env._("QIF"),
+            "camt.053.001.02": self.env._("CAMT.053"),
+            "camt.054.001.02": self.env._("CAMT.054"),
+        }
+        return list(
+            dict.fromkeys(friendly_names.get(item, item) for item in formats),
+        )
+
+
+class AccountStatementImport(models.TransientModel):
+    _inherit = "account.statement.import"
+
+    def _parse_file(self, data_file):
+        parsed = super()._parse_file(data_file)
+        if not self._check_qif(data_file):
+            return parsed
+        journal = self.env["account.journal"].browse(
+            self.env.context.get("journal_id"),
+        )
+        fallback_currency = journal.currency_id or journal.company_id.currency_id
+
+        def with_currency(statement):
+            currency_code, account_number, statement_values = statement
+            return (
+                currency_code or fallback_currency.name,
+                account_number,
+                statement_values,
+            )
+
+        if isinstance(parsed, list):
+            return [with_currency(statement) for statement in parsed]
+        return with_currency(parsed)
+
 
 class AccountReconcileModel(models.Model):
     _name = "account.reconcile.model"

@@ -1122,8 +1122,8 @@ Scope note: payment-provider product support is not a Milestone 13 requirement. 
 - [ ] Track missing source periods.
 - [ ] Alert on stale feeds.
 - [ ] Alert on account disconnection.
-- [ ] Support manual statement import as a fallback.
-- [ ] Support test fixtures without live bank credentials.
+- [x] Support contextual CAMT, QIF and mapped CSV/XLSX statement import from each bank journal.
+- [x] Support repeatable statement-import fixtures without live bank credentials.
 
 ## Reconciliation
 

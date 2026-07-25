@@ -253,6 +253,106 @@ class TestRebuildAccountMigration(TransactionCase):
             ),
         )
 
+    def test_bank_statement_import_is_contextual_and_supports_real_formats(self):
+        bank_journal = self._journal("bank")
+        formats = bank_journal._get_bank_statements_available_import_formats()
+
+        self.assertEqual(
+            set(formats),
+            {"CAMT.053", "CAMT.054", "CSV or XLSX", "QIF"},
+        )
+        action = bank_journal.import_account_statement()
+        self.assertEqual(action["res_model"], "account.statement.import")
+        self.assertEqual(action["target"], "new")
+        self.assertEqual(action["context"], {"journal_id": bank_journal.id})
+
+        top_level_import = self.env.ref(
+            "account_statement_import_file.account_statement_import_menu",
+        )
+        self.assertFalse(top_level_import.active)
+        mapping_menu = self.env.ref(
+            "account_statement_import_sheet_file."
+            "menu_statement_import_sheet_mapping",
+        )
+        self.assertEqual(mapping_menu.name, "Bank Statement File Mappings")
+        self.assertEqual(
+            mapping_menu.action.name,
+            "Bank Statement File Mappings",
+        )
+
+        import_arch = self.env.ref(
+            "rebuild_account_migration."
+            "view_rebuild_bank_statement_import_journal_action",
+        )._get_combined_arch()
+        import_buttons = import_arch.xpath(
+            "//button[@name='import_account_statement']",
+        )
+        self.assertEqual(len(import_buttons), 1)
+        self.assertEqual(
+            [button.get("t-if") for button in import_buttons],
+            ["journal_type == 'bank'"],
+        )
+        self.assertEqual(
+            [button.getparent().get("t-if") for button in import_buttons],
+            ["journal_type == 'bank'"],
+        )
+        self.assertEqual(
+            import_arch.xpath(
+                "normalize-space(//button[@name='import_account_statement']/span)",
+            ),
+            "Import Statement",
+        )
+        self.assertNotIn("(OCA)", etree.tostring(import_arch, encoding="unicode"))
+        import_dialog_arch = self.env.ref(
+            "rebuild_account_migration."
+            "view_rebuild_bank_statement_import_dialog",
+        )._get_combined_arch()
+        self.assertEqual(
+            import_dialog_arch.xpath(
+                "normalize-space(//li[field[@name='sheet_mapping_id']])",
+            ),
+            "CSV/XLSX layout:",
+        )
+
+    def test_qif_statement_import_creates_a_normal_bank_transaction(self):
+        bank_journal = self._journal("bank")
+        self.assertTrue(bank_journal.default_account_id)
+        qif = b"\n".join([
+            b"!Type:Bank",
+            b"D07/25/2026",
+            b"T-123.45",
+            b"PQA statement supplier",
+            b"MImported through the normal statement wizard",
+            b"^",
+        ])
+        wizard = self.env["account.statement.import"].with_context(
+            journal_id=bank_journal.id,
+        ).create({
+            "statement_file": base64.b64encode(qif),
+            "statement_filename": "qa-statement.qif",
+        })
+
+        action = wizard.import_file_button()
+        imported_line = self.env["account.bank.statement.line"].search([
+            ("journal_id", "=", bank_journal.id),
+            (
+                "payment_ref",
+                "=",
+                "Imported through the normal statement wizard",
+            ),
+        ])
+
+        self.assertEqual(len(imported_line), 1)
+        self.assertEqual(imported_line.date, fields.Date.to_date("2026-07-25"))
+        self.assertAlmostEqual(imported_line.amount, -123.45)
+        self.assertEqual(imported_line.statement_id.balance_end_real, -123.45)
+        self.assertEqual(action["res_model"], "account.bank.statement")
+        self.assertIn(imported_line.statement_id.id, action["domain"][0][2])
+        self.assertEqual(
+            imported_line.statement_id.attachment_ids.mapped("name"),
+            ["qa-statement.qif"],
+        )
+
     def test_accounting_home_summary_is_scoped_to_reviewer_companies(self):
         other_company = self.env["res.company"].create({
             "name": "Accounting Home Hidden Company",
