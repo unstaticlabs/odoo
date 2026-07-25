@@ -19,7 +19,7 @@ the page in place, and PDF or XLSX downloads the same report scope.
 | French tax | Tax Report / French VAT |
 | Fixed assets | Asset Register / Depreciation Schedule |
 | Management analysis | SIG / CAF / Management Ratios |
-| Designed analytical statement | Revenue vs Spending and Analytic Distribution |
+| Designed analytical statement | Analytic Profit and Loss / Revenue vs Spending |
 | Free-form analytic exploration | Analysis > Analytic Reporting |
 
 ## Common filters
@@ -65,13 +65,17 @@ filters, grouping, hierarchy, calculations and totals. XLSX also contains a raw
 Each report resolves a governed definition for the selected company and period.
 Its version and origin are retained in the report session and export metadata.
 Accounting Managers inspect or adapt these definitions under **Configuration >
-Accounting > Accounting Framework > Reports**.
+Reports**.
 
 ## Analytic pivot
 
-Analytic Reporting deliberately uses Odoo's native pivot rather than the
-statement layout above. Its default is the current company fiscal year, revenue
-and expense accounts, analytic activity by month and Net Contribution.
+**Analytic Reporting** under Analysis deliberately uses Odoo's native pivot
+rather than the statement layout above. **Analytic Profit and Loss** under
+Reporting is the designed financial statement for a governed period and
+hierarchy; use the pivot for free-form exploration.
+
+Its default is the current company fiscal year, revenue and expense accounts,
+analytic activity by month and Net Contribution.
 
 The pivot supports nested row/column dimensions, fiscal year/quarter/month/week/
 day intervals, several simultaneous measures, expand/collapse, axis flipping,

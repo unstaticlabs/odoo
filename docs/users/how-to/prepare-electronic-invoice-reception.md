@@ -3,15 +3,16 @@
 France requires every VAT-registered business to receive regulated electronic
 invoices through an approved platform from 1 September 2026.
 
-1. Open **Accounting > Configuration > Accounting Framework > Electronic
-   Invoicing**.
+1. Open **Accounting > Configuration > Electronic Invoicing**.
 2. Read the statuses separately:
    - **Implemented and Validated** means the software capability is present;
    - **Ready for Production Activation** means configuration and approval are
      complete;
    - **Not Connected** means no live service is active.
-3. Complete the VAT number, SIREN/SIRET, French electronic-invoicing
-   identifier, contact email, mobile number and incoming purchase journal.
+3. Ask a Technical Administrator to complete the VAT number, SIREN/SIRET,
+   French electronic-invoicing identifier, contact email, mobile number and
+   incoming purchase journal. The Accounting Manager reviews readiness and
+   records the production activation approval.
 4. Leave **Accounting Deployment** as **Development** and the provider
    unselected until the production system and approved platform are decided.
 5. After activation, review incoming items under **Accounting > Review >
@@ -22,5 +23,6 @@ invoices through an approved platform from 1 September 2026.
    records; create another bill only when the evidence proves a separate
    accounting document is required.
 
-Activation, diagnosis and suspension are documented in the
-[production runbook](../../operations/activate-french-electronic-invoicing.md).
+Activation, diagnosis and suspension are documented for operators in
+`docs/operations/activate-french-electronic-invoicing.md`. An Accounting user
+must not activate the connection from a development or reconstructed database.

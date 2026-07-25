@@ -33,7 +33,9 @@ fork-level patch and the tradeoff is documented.
 
 - Follow `docs/operations/accounting-development-workflow.md` when working on Milestone 13.
 - Do not rerun source restore, extraction, target reset or full import loops unless the changed code actually requires that stage.
-- For UI, report formatting, menu, permission and documentation changes, prefer an Odoo module update on `odoo_dev` plus targeted validation.
+- For UI, report formatting, menu, permission and documentation changes, prefer
+  an Odoo module update on `odoo_saas_19_2_candidate_01` plus targeted
+  validation.
 - Never run this branch against the preserved Odoo 19 `odoo_dev` database or
   the read-only `odoo_online_source_saas_19_2` source database.
 - Use `odoo_saas_19_2_candidate_01` as the initial developer/QA candidate.

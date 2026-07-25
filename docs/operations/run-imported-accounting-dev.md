@@ -265,7 +265,7 @@ Accounting > Review > Advanced Audit > Imported Report Export
 The direct user-guide URL after login is:
 
 ```text
-http://localhost:8069/usl/user-docs
+http://localhost:8169/usl/user-docs
 ```
 
 ## If Port 8069 Is Already Used

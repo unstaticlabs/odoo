@@ -107,7 +107,7 @@ odoo --config=/etc/odoo/odoo.conf \
 Open:
 
 ```text
-http://localhost:8069/web/login?db=odoo_saas_19_2_candidate_01
+http://localhost:8169/web/login?db=odoo_saas_19_2_candidate_01
 ```
 
 ## Module and browser refresh contract

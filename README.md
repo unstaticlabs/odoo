@@ -1,35 +1,43 @@
-# Odoo
+# Unstatic Labs Odoo Community fork
 
-[![Build Status](https://runbot.odoo.com/runbot/badge/flat/1/master.svg)](https://runbot.odoo.com/runbot)
-[![Tech Doc](https://img.shields.io/badge/master-docs-875A7B.svg?style=flat&colorA=8F8F8F)](https://www.odoo.com/documentation/master)
-[![Help](https://img.shields.io/badge/master-help-875A7B.svg?style=flat&colorA=8F8F8F)](https://www.odoo.com/forum/help-1)
-[![Nightly Builds](https://img.shields.io/badge/master-nightly-875A7B.svg?style=flat&colorA=8F8F8F)](https://nightly.odoo.com/)
+This repository is Unstatic Labs’ production-oriented Accounting product on
+Odoo Community `saas~19.2`. It extends upstream through isolated modules under
+`custom-addons/` and pinned OCA dependencies; upstream Odoo core remains
+unchanged.
 
-Odoo is a suite of web based open source business apps.
+Accounting v1 provides the daily cockpit for journals, invoices, bills,
+expenses, payments, bank transactions and reconciliation, plus assets,
+deferrals, currencies, analytics, Hygiene, closing, declarations, interactive
+financial reports, PDF/XLSX exports and FEC. A scoped read-only accountant can
+inspect the same accounting and evidence without posting, reconciling,
+configuring or locking records.
 
-The main Odoo Apps include an [Open Source CRM](https://www.odoo.com/page/crm),
-[Website Builder](https://www.odoo.com/app/website),
-[eCommerce](https://www.odoo.com/app/ecommerce),
-[Warehouse Management](https://www.odoo.com/app/inventory),
-[Project Management](https://www.odoo.com/app/project),
-[Billing &amp; Accounting](https://www.odoo.com/app/accounting),
-[Point of Sale](https://www.odoo.com/app/point-of-sale-shop),
-[Human Resources](https://www.odoo.com/app/employees),
-[Marketing](https://www.odoo.com/app/social-marketing),
-[Manufacturing](https://www.odoo.com/app/manufacturing),
-[...](https://www.odoo.com/)
+French electronic-invoice reception is implemented and validated offline. It
+remains visibly **Not Connected** in development: no directory registration,
+production provider endpoint or scheduled exchange may be enabled before the
+production activation procedure is approved.
 
-Odoo Apps can be used as stand-alone applications, but they also integrate seamlessly so you get
-a full-featured [Open Source ERP](https://www.odoo.com) when you install several Apps.
+Primary entry points:
 
-## Getting started with Odoo
+- **Accounting > Overview** for daily operational state;
+- **Accounting > Analysis > Analytic Reporting** for exploratory pivot analysis;
+- **Accounting > Configuration** for governed Controls, Reports, Declarations
+  and electronic-invoice readiness;
+- `/usl/user-docs` for role- and task-based user guidance;
+- [Accounting development workflow](docs/operations/accounting-development-workflow.md)
+  for safe iteration;
+- [Accounting compatibility harness](docs/accounting/accounting-compat-harness.md)
+  for reconstruction and parity evidence.
 
-For a standard installation please follow the [Setup instructions](https://www.odoo.com/documentation/master/administration/install/install.html)
-from the documentation.
+The integration baseline is upstream commit
+`8a44ecc8da96e341ac472fec27352d138ed2edd7`. The source dump and generated
+validation evidence are private local artifacts and must never be committed.
 
-To learn the software, we recommend the [Odoo eLearning](https://www.odoo.com/slides),
-or [Scale-up, the business game](https://www.odoo.com/page/scale-up-business-game).
-Developers can start with [the developer tutorials](https://www.odoo.com/documentation/master/developer/howtos.html).
+## Upstream Odoo
+
+Odoo is a suite of web-based open source business applications. Standard Odoo
+installation and developer documentation is available from
+[odoo.com](https://www.odoo.com/documentation/19.0/).
 
 ## Docker and Dev Container setup
 
@@ -189,7 +197,7 @@ scripts/odoo-dev init-db
 scripts/odoo-dev start
 ```
 
-Open <http://localhost:8069/web/login?db=odoo_saas_19_2_empty_01>.
+Open <http://localhost:8169/web/login?db=odoo_saas_19_2_empty_01>.
 
 Default login for a freshly initialized local database:
 

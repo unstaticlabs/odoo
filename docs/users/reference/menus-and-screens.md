@@ -33,15 +33,9 @@ open any aggregate to its source records.
 ## Reporting
 
 The canonical designed financial, partner, tax, asset, management and
-analytical statements. Use Analysis for free-form pivot exploration and
-Reporting for intentional statement presentation and exports.
-
-## Configuration
-
-**Accounting Framework > Electronic Invoicing** shows software capability,
-production readiness and live-connection status separately. It holds company
-identifiers, provider decision, reception journal and controlled activation
-approval. Development remains visibly **Not Connected**.
+analytical statements. **Analytic Profit and Loss** is the governed analytical
+statement; use **Analysis > Analytic Reporting** for free-form pivot
+exploration.
 
 ## Declarations
 
@@ -54,3 +48,8 @@ shared Accounting Framework. Accounting Managers govern Controls, Reports and
 Declarations from one discoverable area. Read-only accountants inspect the
 operational results, while Technical Administrators can see installed engine
 keys and implementation boundaries.
+
+**Configuration > Electronic Invoicing** shows software capability,
+production readiness and live-connection status separately. It holds company
+identifiers, provider decision, reception journal and controlled activation
+approval. Development remains visibly **Not Connected**.
