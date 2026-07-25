@@ -16,10 +16,10 @@
                     </div>
                 </div>
                 <div class="o_usl_report_exports">
-                    <button class="btn btn-outline-secondary" t-on-click="() => this.exportReport('pdf')">
+                    <button t-if="state.data.capabilities.pdf !== false" class="btn btn-outline-secondary" t-on-click="() => this.exportReport('pdf')">
                         <i class="fa fa-file-pdf-o me-1"/> PDF
                     </button>
-                    <button class="btn btn-primary" t-on-click="() => this.exportReport('xlsx')">
+                    <button t-if="state.data.capabilities.xlsx !== false" class="btn btn-primary" t-on-click="() => this.exportReport('xlsx')">
                         <i class="fa fa-file-excel-o me-1"/> XLSX
                     </button>
                 </div>

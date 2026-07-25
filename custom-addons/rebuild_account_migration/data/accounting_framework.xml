@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <function
+        model="rebuild.account.report.definition"
+        name="_ensure_standard_definitions"/>
+    <function
+        model="rebuild.account.declaration.rule"
+        name="_ensure_governance_metadata"/>
+</odoo>

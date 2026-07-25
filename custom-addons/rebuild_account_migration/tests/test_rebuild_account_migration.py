@@ -867,9 +867,16 @@ class TestRebuildAccountMigration(TransactionCase):
         declaration_rules_menu = self.env.ref(
             "rebuild_account_migration.menu_rebuild_account_declaration_rules",
         )
+        accounting_framework_menu = self.env.ref(
+            "rebuild_account_migration.menu_rebuild_account_framework",
+        )
+        self.assertEqual(
+            accounting_framework_menu.parent_id,
+            self.env.ref("account.account_account_menu"),
+        )
         self.assertEqual(
             declaration_rules_menu.parent_id,
-            self.env.ref("account.account_account_menu"),
+            accounting_framework_menu,
         )
         self.assertIn(
             self.env.ref("account.group_account_manager"),
@@ -885,11 +892,18 @@ class TestRebuildAccountMigration(TransactionCase):
         )
         self.assertEqual(
             closing_controls_menu.parent_id,
-            self.env.ref("account.account_account_menu"),
+            accounting_framework_menu,
         )
         self.assertIn(
             self.env.ref("account.group_account_manager"),
             closing_controls_menu.group_ids,
+        )
+        report_definitions_menu = self.env.ref(
+            "rebuild_account_migration.menu_rebuild_account_report_definitions",
+        )
+        self.assertEqual(
+            report_definitions_menu.parent_id,
+            accounting_framework_menu,
         )
         self.assertEqual(
             self.env.ref(
@@ -4615,6 +4629,73 @@ class TestRebuildAccountMigration(TransactionCase):
             self.env.ref("l10n_fr_account.fec_export_wizard_view"),
         )
 
+    def test_report_definitions_govern_runtime_sessions(self):
+        Definition = self.env["rebuild.account.report.definition"]
+        definitions = Definition._ensure_standard_definitions()
+        self.assertEqual(
+            set(definitions.mapped("report_type")),
+            {
+                value
+                for value, _label
+                in self.env[
+                    "rebuild.account.report.export.wizard"
+                ]._fields["report_type"].selection
+            },
+        )
+        standard = definitions.filtered(
+            lambda definition: definition.code == "trial_balance",
+        )
+        self.assertEqual(standard.origin, "usl")
+        self.assertFalse(standard.company_id)
+        self.assertTrue(standard.business_purpose)
+        with self.assertRaises(UserError):
+            standard.write({"name": "Unsafe direct customization"})
+
+        action = standard.action_customize_for_company()
+        company_definition = Definition.browse(action["res_id"])
+        company_definition.write({
+            "definition_version": "test-company-1",
+            "business_purpose": "Company-governed Trial Balance.",
+            "supports_comparison": False,
+        })
+        self.assertEqual(company_definition.origin, "company")
+        self.assertEqual(
+            Definition._resolve(
+                "trial_balance",
+                self.company,
+                "2099-12-31",
+            ),
+            company_definition,
+        )
+
+        payload = self.env[
+            "rebuild.account.report.export.wizard"
+        ].report_client_load(
+            "trial_balance",
+            {
+                "date_from": "2099-01-01",
+                "date_to": "2099-12-31",
+                "search_text": "__configured_report_definition_test__",
+                "comparison_mode": "previous_year",
+            },
+        )
+        self.assertEqual(
+            payload["definition"]["id"],
+            company_definition.id,
+        )
+        self.assertEqual(
+            payload["definition"]["version"],
+            "test-company-1",
+        )
+        self.assertFalse(payload["capabilities"]["comparison"])
+        self.assertEqual(payload["filters"]["comparison_mode"], "none")
+        wizard = self.env[
+            "rebuild.account.report.export.wizard"
+        ].browse(payload["wizard_id"])
+        self.assertEqual(
+            wizard.report_definition_snapshot["code"],
+            "trial_balance",
+        )
     def test_canonical_report_client_loads_filters_and_downloads(self):
         Report = self.env["rebuild.account.report.export.wizard"]
         self._journal()
@@ -4628,6 +4709,8 @@ class TestRebuildAccountMigration(TransactionCase):
         )
 
         self.assertEqual(trial["report_type"], "trial_balance")
+        self.assertEqual(trial["definition"]["code"], "trial_balance")
+        self.assertTrue(trial["definition"]["version"])
         self.assertEqual(trial["label_column"], "Compte")
         self.assertEqual(trial["locale"], "fr-FR")
         self.assertEqual(trial["filters"]["group_by"], "section")
@@ -4731,6 +4814,15 @@ class TestRebuildAccountMigration(TransactionCase):
             self.assertEqual(download["field"], "export_file")
             self.assertTrue(
                 base64.b64decode(wizard.export_file).startswith(signature),
+            )
+            metadata = json.loads(wizard.export_metadata)
+            self.assertEqual(
+                metadata["report_definition_version"],
+                wizard.report_definition_version,
+            )
+            self.assertEqual(
+                metadata["report_definition"]["code"],
+                "trial_balance",
             )
 
         compared = Report.report_client_load(

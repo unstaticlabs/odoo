@@ -4,7 +4,9 @@
 
 Can inspect all accounting, create and edit documents, post, pay, reconcile,
 configure Accounting Controls, prepare declarations, manage closing and
-generate final or test FEC files.
+generate final or test FEC files. Can inspect shared Report and Declaration
+definitions and create company-specific overrides through the Accounting
+Framework.
 
 ## Read-only accountant
 
@@ -17,8 +19,9 @@ This role cannot create or edit accounting, post, pay, reconcile, configure, loc
 
 ## Technical administrator
 
-Can inspect the evaluator key, source module and technical boundary behind a
-control. Business configuration does not allow arbitrary Python execution.
+Can inspect the evaluator or engine key, source module and technical boundary
+behind Controls, Reports and Declarations. Business configuration does not
+allow arbitrary Python, SQL or JavaScript execution.
 
 ## Company access
 

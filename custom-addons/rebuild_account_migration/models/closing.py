@@ -9,6 +9,8 @@ from odoo import api, fields, models
 from odoo.exceptions import AccessError, UserError
 from odoo.tools import date_utils
 
+from .configurable_definition import ACCOUNTING_DEFINITION_ORIGINS
+
 PROFIT_AND_LOSS_ACCOUNT_TYPES = (
     "income",
     "income_other",
@@ -441,6 +443,7 @@ class RebuildAccountClosingPeriod(models.Model):
         definitions = Definition._ensure_for_company(self.company_id).filtered(
             lambda definition: definition.enabled
             and definition.applies_to_closing
+            and definition._is_effective(self.date_to)
             and definition._applies_to_period_type(self.period_type),
         )
         evaluator_registry = self._closing_control_evaluator_registry()
@@ -477,6 +480,8 @@ class RebuildAccountClosingPeriod(models.Model):
                 "name": definition.name,
                 "owner": definition.owner,
                 "accountant_visible": definition.accountant_visible,
+                "definition_version": definition.definition_version,
+                "definition_snapshot": definition._definition_snapshot(),
             })
         seen = set()
         Control = self.env["rebuild.account.closing.control"]
@@ -1258,6 +1263,7 @@ class RebuildAccountClosingSnapshot(models.Model):
 class RebuildAccountClosingControlDefinition(models.Model):
     _name = "rebuild.account.closing.control.definition"
     _description = "Accounting Control Configuration"
+    _inherit = ["rebuild.account.configurable.definition.mixin"]
     _order = "company_id, sequence, code"
 
     _unique_closing_control_definition = models.Constraint(
@@ -1347,12 +1353,7 @@ class RebuildAccountClosingControlDefinition(models.Model):
         help="Business-facing guidance shown to the person responsible for a failure.",
     )
     origin = fields.Selection(
-        [
-            ("odoo", "Standard Odoo"),
-            ("oca", "OCA Community"),
-            ("usl", "Unstatic Labs"),
-            ("company", "Company-specific"),
-        ],
+        ACCOUNTING_DEFINITION_ORIGINS,
         required=True,
         default="usl",
         readonly=True,
@@ -1415,6 +1416,13 @@ class RebuildAccountClosingControlDefinition(models.Model):
                     updates["evaluator_key"] = code
                 if not existing[code].applies_to_closing:
                     updates["applies_to_closing"] = True
+                if not existing[code].business_purpose:
+                    updates["business_purpose"] = description
+                if not existing[code].expected_outcome:
+                    updates["expected_outcome"] = (
+                        "The evaluator completes and any exception is resolved "
+                        "or governed by the configured readiness policy."
+                    )
                 if updates:
                     existing[code].with_context(
                         accounting_control_seed=True,
@@ -1428,7 +1436,12 @@ class RebuildAccountClosingControlDefinition(models.Model):
                 "category": category,
                 "name": name,
                 "description": description,
+                "business_purpose": description,
                 "accounting_consequence": consequence,
+                "expected_outcome": (
+                    "The evaluator completes and any exception is resolved or "
+                    "governed according to the configured readiness policy."
+                ),
                 "owner": owner,
                 "applies_to_closing": True,
                 "expected_resolution": (
@@ -1446,6 +1459,18 @@ class RebuildAccountClosingControlDefinition(models.Model):
         for offset, values in enumerate(HYGIENE_CONTROL_DEFINITIONS):
             code, category, name, description, consequence, owner = values
             if code in existing:
+                updates = {}
+                if not existing[code].business_purpose:
+                    updates["business_purpose"] = description
+                if not existing[code].expected_outcome:
+                    updates["expected_outcome"] = (
+                        "The underlying accounting issue is corrected and the "
+                        "next Hygiene refresh resolves the result naturally."
+                    )
+                if updates:
+                    existing[code].with_context(
+                        accounting_control_seed=True,
+                    ).write(updates)
                 continue
             existing[code] = self.create({
                 "company_id": company.id,
@@ -1455,7 +1480,12 @@ class RebuildAccountClosingControlDefinition(models.Model):
                 "category": category,
                 "name": name,
                 "description": description,
+                "business_purpose": description,
                 "accounting_consequence": consequence,
+                "expected_outcome": (
+                    "The underlying accounting issue is corrected and the "
+                    "next Hygiene refresh resolves the result naturally."
+                ),
                 "owner": owner,
                 "applies_to_hygiene": True,
                 "expected_resolution": (
@@ -1485,6 +1515,12 @@ class RebuildAccountClosingControlDefinition(models.Model):
             "accountant_visible",
             "expected_resolution",
             "sequence",
+            "definition_version",
+            "lifecycle",
+            "business_purpose",
+            "expected_outcome",
+            "effective_from",
+            "effective_to",
         }
         if (
             business_fields & set(vals)
@@ -1496,6 +1532,21 @@ class RebuildAccountClosingControlDefinition(models.Model):
     def _applies_to_period_type(self, period_type):
         self.ensure_one()
         return self.closing_period_scope in {"all", period_type}
+
+    def _is_effective(self, on_date):
+        self.ensure_one()
+        on_date = fields.Date.to_date(on_date)
+        return (
+            self.lifecycle == "current"
+            and (
+                not self.effective_from
+                or self.effective_from <= on_date
+            )
+            and (
+                not self.effective_to
+                or self.effective_to >= on_date
+            )
+        )
 
     def _apply_result_policy(self, values):
         self.ensure_one()
@@ -1513,6 +1564,8 @@ class RebuildAccountClosingControlDefinition(models.Model):
             **values,
             "status": status,
             "next_action": values.get("next_action") or self.expected_resolution,
+            "definition_version": self.definition_version,
+            "definition_snapshot": self._definition_snapshot(),
         }
 
     def _apply_hygiene_policy(self, values):
@@ -1531,6 +1584,8 @@ class RebuildAccountClosingControlDefinition(models.Model):
             "control_code": self.code,
             "severity": severity,
             "owner_role": self.owner,
+            "definition_version": self.definition_version,
+            "definition_snapshot": self._definition_snapshot(),
         }
 
     def action_refresh_open_workspaces(self):
@@ -1598,6 +1653,8 @@ class RebuildAccountClosingControl(models.Model):
         "rebuild.account.closing.control.definition",
         ondelete="restrict",
     )
+    definition_version = fields.Char(readonly=True)
+    definition_snapshot = fields.Json(readonly=True)
     company_id = fields.Many2one(related="closing_period_id.company_id", store=True, readonly=True, index=True)
     currency_id = fields.Many2one(related="company_id.currency_id", readonly=True)
     sequence = fields.Integer(default=10)

@@ -23,6 +23,8 @@ class RebuildAccountHygieneIssue(models.Model):
         ondelete="restrict",
         readonly=True,
     )
+    definition_version = fields.Char(readonly=True)
+    definition_snapshot = fields.Json(readonly=True)
     control_code = fields.Char(index=True, readonly=True)
     company_id = fields.Many2one(
         "res.company",
@@ -400,7 +402,11 @@ class RebuildAccountHygieneIssue(models.Model):
         Definition = self.env["rebuild.account.closing.control.definition"]
         definitions = Definition._ensure_for_company(company).filtered(
             lambda definition: (
-                definition.enabled and definition.applies_to_hygiene
+                definition.enabled
+                and definition.applies_to_hygiene
+                and definition._is_effective(
+                    fields.Date.context_today(self),
+                )
             ),
         )
         definitions_by_code = {
@@ -439,6 +445,10 @@ class RebuildAccountHygieneIssue(models.Model):
                     candidates.append({
                         **values,
                         "definition_id": definition.id,
+                        "definition_version": definition.definition_version,
+                        "definition_snapshot": (
+                            definition._definition_snapshot()
+                        ),
                         "result_kind": "technical",
                     })
                 continue

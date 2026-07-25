@@ -658,6 +658,14 @@ class TestDeclarationAndClosing(TransactionCase):
         )
         self.assertEqual(bank_control.owner, "accountant_reviewer")
         self.assertEqual(bank_control.definition_id, bank_definition)
+        self.assertEqual(
+            bank_control.definition_version,
+            bank_definition.definition_version,
+        )
+        self.assertEqual(
+            bank_control.definition_snapshot["code"],
+            "bank_reconciliation",
+        )
         self.assertEqual(bank_definition.closing_result_count, 1)
         self.assertEqual(bank_definition.origin, "company")
 
@@ -693,6 +701,49 @@ class TestDeclarationAndClosing(TransactionCase):
         self.assertEqual(
             technical_control.action_open_records()["res_model"],
             "rebuild.account.closing.control.definition",
+        )
+
+    def test_declaration_definitions_are_governed_and_company_versioned(self):
+        company = self._company("Company Declaration Definitions")
+        shared_rule = self.env.ref(
+            "rebuild_account_migration.declaration_rule_3517_2026",
+        )
+        self.assertEqual(shared_rule.origin, "localization")
+        self.assertFalse(shared_rule.company_id)
+        self.assertTrue(shared_rule.business_purpose)
+        with self.assertRaises(UserError):
+            shared_rule.write({"name": "Unsafe direct customization"})
+
+        action = shared_rule.with_company(
+            company,
+        ).action_customize_for_company()
+        company_rule = self.env[
+            "rebuild.account.declaration.rule"
+        ].browse(action["res_id"])
+        company_rule.write({
+            "business_purpose": "Company CA12 filing obligation.",
+            "filing_guidance": "Company-reviewed CA12 filing guidance.",
+        })
+        selected = self.env[
+            "rebuild.account.declaration"
+        ]._rules_for_period(company, date(2026, 9, 30))
+        self.assertIn(company_rule, selected)
+        self.assertNotIn(shared_rule, selected)
+
+        declarations = self.env[
+            "rebuild.account.declaration"
+        ].with_company(company).sync_for_company(company)
+        ca12 = declarations.filtered(
+            lambda declaration: declaration.rule_id == company_rule,
+        )
+        self.assertTrue(ca12)
+        self.assertEqual(
+            ca12[0].definition_snapshot["id"],
+            company_rule.id,
+        )
+        self.assertEqual(
+            ca12[0].definition_snapshot["definition_version"],
+            company_rule.version,
         )
 
     def test_hygiene_issues_link_sources_and_auto_resolve(self):

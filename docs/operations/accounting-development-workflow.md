@@ -228,6 +228,19 @@ AI-generated commit
 
 Prefer one commit per validated, reviewable chunk. Do not mix docs, importer behavior, report UI, permissions and unrelated cleanup in one commit unless they are inseparable.
 
+## Extending the Accounting Framework
+
+New Controls, Reports and Declarations must extend the governed definition
+models rather than introduce a parallel configuration screen. Register a
+whitelisted evaluator or engine key in the installed module, seed only missing
+shared definitions, and freeze the definition version/snapshot into runtime
+results. Shared definitions must not be overwritten on upgrade; use company
+overrides and effective dates for operational adaptations.
+
+Run the narrow model/security test for the new definition plus the affected
+runtime workflow. A full reconstruction is not required unless ledger import,
+schema reconstruction or source extraction behavior changed.
+
 ## Validation note for private-use Enterprise parity
 
 The repository still prefers native Community and maintained OCA functionality first. Enterprise source records and user-visible behavior may be studied to understand the required outcome, but copied proprietary implementation should not be committed unless there is a separate explicit legal and maintenance decision.

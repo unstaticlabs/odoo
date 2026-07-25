@@ -19,4 +19,10 @@ Each declaration shows:
 - payment, refund or credit status;
 - evidence and references.
 
+The separate definition is available under **Configuration > Accounting >
+Accounting Framework > Declarations**. It records the version, applicability,
+official source and filing guidance that generate company/period instances.
+The instance freezes that definition provenance so later configuration changes
+do not rewrite filing history.
+
 **View Entries** opens the journal items behind a ledger-derived value. A manual or externally confirmed value is visibly labelled and never silently replaces the ledger calculation.
