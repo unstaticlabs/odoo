@@ -649,6 +649,8 @@ class TestRebuildAccountMigration(TransactionCase):
             "account.menu_finance_receivables": ("Customers", 2),
             "account.menu_finance_payables": ("Vendors", 3),
             "account.menu_finance_entries": ("Accounting", 4),
+            "rebuild_account_migration.menu_rebuild_account_declarations_root":
+                ("Declarations", 6),
             "account.account_audit_menu": ("Review", 7),
             "account.menu_finance_reports": ("Reporting", 20),
             "account.menu_finance_configuration": ("Configuration", 35),
@@ -665,6 +667,44 @@ class TestRebuildAccountMigration(TransactionCase):
             self.env.ref(
                 "rebuild_account_migration.menu_rebuild_account_closing_root",
             ).active,
+        )
+        self.assertFalse(
+            self.env.ref(
+                "rebuild_account_migration.menu_rebuild_account_declaration_schedule",
+            ).active,
+        )
+        for duplicate_menu_xmlid in (
+            "rebuild_account_migration.menu_rebuild_tax_groups",
+            "rebuild_account_migration.menu_rebuild_reconciliation_models",
+            "rebuild_account_migration.menu_rebuild_incoterms",
+        ):
+            self.assertFalse(self.env.ref(duplicate_menu_xmlid).active)
+        declaration_rules_menu = self.env.ref(
+            "rebuild_account_migration.menu_rebuild_account_declaration_rules",
+        )
+        self.assertEqual(
+            declaration_rules_menu.parent_id,
+            self.env.ref("account.account_account_menu"),
+        )
+        self.assertIn(
+            self.env.ref("account.group_account_manager"),
+            declaration_rules_menu.group_ids,
+        )
+        self.assertNotIn(
+            self.env.ref("account.group_account_readonly"),
+            declaration_rules_menu.group_ids,
+        )
+        closing_controls_menu = self.env.ref(
+            "rebuild_account_migration."
+            "menu_rebuild_account_closing_control_configuration",
+        )
+        self.assertEqual(
+            closing_controls_menu.parent_id,
+            self.env.ref("account.account_account_menu"),
+        )
+        self.assertIn(
+            self.env.ref("account.group_account_manager"),
+            closing_controls_menu.group_ids,
         )
         self.assertEqual(
             self.env.ref(
@@ -691,8 +731,9 @@ class TestRebuildAccountMigration(TransactionCase):
         )
         self.assertEqual(
             general_reconciliation_menu.parent_id,
-            self.env.ref("account.account_closing_menu"),
+            self.env.ref("account.account_transactions_menu"),
         )
+        self.assertEqual(general_reconciliation_menu.sequence, 20)
         matched_items_menu = self.env.ref(
             "rebuild_account_migration.menu_rebuild_account_matched_items",
         )
@@ -721,14 +762,8 @@ class TestRebuildAccountMigration(TransactionCase):
         configuration_routes = {
             "rebuild_account_migration.menu_rebuild_account_groups":
                 "account.group",
-            "rebuild_account_migration.menu_rebuild_tax_groups":
-                "account.tax.group",
             "rebuild_account_migration.menu_rebuild_account_tags":
                 "account.account.tag",
-            "rebuild_account_migration.menu_rebuild_reconciliation_models":
-                "account.reconcile.model",
-            "rebuild_account_migration.menu_rebuild_incoterms":
-                "account.incoterms",
         }
         manager_group = self.env.ref("account.group_account_manager")
         for xmlid, model_name in configuration_routes.items():
@@ -2589,7 +2624,7 @@ class TestRebuildAccountMigration(TransactionCase):
         )
         self.assertEqual(
             menu.parent_id,
-            self.env.ref("account.menu_finance_configuration"),
+            self.env.ref("account.account_account_menu"),
         )
         self.assertEqual(menu.action, action)
         self.assertTrue(cron.active)
