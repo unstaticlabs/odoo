@@ -1,0 +1,111 @@
+diff --git a/account_reconcile_oca/models/account_bank_statement_line.py b/account_reconcile_oca/models/account_bank_statement_line.py
+index 7c61b11..2644123 100644
+--- a/account_reconcile_oca/models/account_bank_statement_line.py
++++ b/account_reconcile_oca/models/account_bank_statement_line.py
+@@ -1242,13 +1242,13 @@ class AccountBankStatementLine(models.Model):
+ 
+     def action_to_check(self):
+         self.ensure_one()
+-        self.move_id.write({"checked": False})
++        self.move_id.write({"review_state": "todo"})
+         if self.can_reconcile and self.journal_id.reconcile_mode == "edit":
+             self.reconcile_bank_line()
+ 
+     def action_checked(self):
+         self.ensure_one()
+-        self.move_id.write({"checked": True})
++        self.move_id.write({"review_state": "reviewed"})
+ 
+     def _get_reconcile_line(
+         self,
+diff --git a/account_reconcile_oca/tests/test_bank_account_reconcile.py b/account_reconcile_oca/tests/test_bank_account_reconcile.py
+index 338eefd..343e0f3 100644
+--- a/account_reconcile_oca/tests/test_bank_account_reconcile.py
++++ b/account_reconcile_oca/tests/test_bank_account_reconcile.py
+@@ -795,13 +795,13 @@ class TestReconciliationWidget(TestAccountReconciliationCommon):
+             f.add_account_move_line_id = receivable1
+             self.assertTrue(f.can_reconcile)
+         self.assertFalse(bank_stmt_line.is_reconciled)
+-        self.assertTrue(bank_stmt_line.checked)
++        self.assertEqual(bank_stmt_line.review_state, "reviewed")
+         bank_stmt_line.action_to_check()
+         self.assertTrue(bank_stmt_line.is_reconciled)
+-        self.assertFalse(bank_stmt_line.checked)
++        self.assertEqual(bank_stmt_line.review_state, "todo")
+         bank_stmt_line.action_checked()
+         self.assertTrue(bank_stmt_line.is_reconciled)
+-        self.assertTrue(bank_stmt_line.checked)
++        self.assertEqual(bank_stmt_line.review_state, "reviewed")
+ 
+     def test_reconcile_invoice_to_check_not_reconciled(self):
+         """
+@@ -826,13 +826,13 @@ class TestReconciliationWidget(TestAccountReconciliationCommon):
+             }
+         )
+         self.assertFalse(bank_stmt_line.is_reconciled)
+-        self.assertTrue(bank_stmt_line.checked)
++        self.assertEqual(bank_stmt_line.review_state, "reviewed")
+         bank_stmt_line.action_to_check()
+         self.assertFalse(bank_stmt_line.is_reconciled)
+-        self.assertFalse(bank_stmt_line.checked)
++        self.assertEqual(bank_stmt_line.review_state, "todo")
+         bank_stmt_line.action_checked()
+         self.assertFalse(bank_stmt_line.is_reconciled)
+-        self.assertTrue(bank_stmt_line.checked)
++        self.assertEqual(bank_stmt_line.review_state, "reviewed")
+ 
+     # Testing widget
+ 
+diff --git a/account_reconcile_oca/views/account_bank_statement_line.xml b/account_reconcile_oca/views/account_bank_statement_line.xml
+index 21dfc56..1f48475 100644
+--- a/account_reconcile_oca/views/account_bank_statement_line.xml
++++ b/account_reconcile_oca/views/account_bank_statement_line.xml
+@@ -12,7 +12,7 @@
+                 <field name="foreign_currency_id" />
+                 <field name="statement_id" />
+                 <field name="statement_balance_end_real" />
+-                <field name="checked" />
++                <field name="review_state" />
+                 <field name="reconcile_aggregate" />
+                 <field name="aggregate_id" />
+                 <field name="aggregate_name" />
+@@ -58,10 +58,10 @@
+                             </div>
+                             <div class="col-4" style="text-align:right">
+                                 <div
+-                                    t-if="!record.checked.raw_value"
++                                    t-if="record.review_state.raw_value === 'todo' || record.review_state.raw_value === 'anomaly'"
+                                     class="badge text-bg-warning"
+                                 >
+-                                        To check
++                                        To review
+                                     </div>
+                                 <div
+                                     t-if="record.is_reconciled.raw_value"
+@@ -187,7 +187,7 @@
+                             class="btn btn-secondary mx-1"
+                             accesskey="c"
+                             type="object"
+-                            invisible="not checked"
++                            invisible="review_state in ('todo', 'anomaly')"
+                         />
+                         <button
+                             name="action_checked"
+@@ -195,7 +195,7 @@
+                             class="btn btn-secondary mx-1"
+                             accesskey="c"
+                             type="object"
+-                            invisible="checked"
++                            invisible="review_state not in ('todo', 'anomaly')"
+                         />
+                         <button
+                             name="action_show_move"
+@@ -209,7 +209,7 @@
+                 <field name="id" invisible="1" />
+                 <field name="name" invisible="1" />
+                 <field name="can_reconcile" invisible="1" />
+-                <field name="checked" invisible="1" />
++                <field name="review_state" invisible="1" />
+                 <field name="partner_id" invisible="1" />
+                 <field name="company_id" invisible="1" />
+                 <field name="journal_id" invisible="1" />

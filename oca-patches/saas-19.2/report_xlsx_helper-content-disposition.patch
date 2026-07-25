@@ -1,0 +1,14 @@
+diff --git a/report_xlsx_helper/controllers/main.py b/report_xlsx_helper/controllers/main.py
+index d4920cb..55bb942 100644
+--- a/report_xlsx_helper/controllers/main.py
++++ b/report_xlsx_helper/controllers/main.py
+@@ -3,7 +3,8 @@
+ 
+ import json
+ 
+-from odoo.http import content_disposition, request, route
++from odoo.http import request, route
++from odoo.http.stream import content_disposition
+ 
+ from odoo.addons.report_xlsx.controllers.main import ReportController
+ 

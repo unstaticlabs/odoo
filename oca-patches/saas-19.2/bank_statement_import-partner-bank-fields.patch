@@ -1,0 +1,130 @@
+diff --git a/account_statement_import_base/models/account_journal.py b/account_statement_import_base/models/account_journal.py
+index 23ef98c..d83c9eb 100644
+--- a/account_statement_import_base/models/account_journal.py
++++ b/account_statement_import_base/models/account_journal.py
+@@ -21,10 +21,10 @@ class AccountJournal(models.Model):
+         speeddict = {"account_number": {}}
+         partner_banks = self.env["res.partner.bank"].search_read(
+             [("company_id", "in", (False, self.company_id.id))],
+-            ["acc_number", "partner_id"],
++            ["account_number", "partner_id"],
+         )
+         for partner_bank in partner_banks:
+-            speeddict["account_number"][partner_bank["acc_number"]] = {
++            speeddict["account_number"][partner_bank["account_number"]] = {
+                 "partner_id": partner_bank["partner_id"][0],
+                 "partner_bank_id": partner_bank["id"],
+             }
+
+diff --git a/account_statement_import_camt/tests/test_import_bank_statement.py b/account_statement_import_camt/tests/test_import_bank_statement.py
+index 0b9aeab..7e85221 100644
+--- a/account_statement_import_camt/tests/test_import_bank_statement.py
++++ b/account_statement_import_camt/tests/test_import_bank_statement.py
+@@ -133,7 +133,7 @@ class TestImport(TransactionCase):
+         eur.write({"active": True})
+         bank = cls.env["res.partner.bank"].create(
+             {
+-                "acc_number": "NL77ABNA0574908765",
++                "account_number": "NL77ABNA0574908765",
+                 "partner_id": cls.env.ref("base.main_partner").id,
+                 "company_id": cls.env.ref("base.main_company").id,
+                 "bank_id": cls.env.ref("base.res_bank_1").id,
+@@ -141,7 +141,7 @@ class TestImport(TransactionCase):
+         )
+         cls.env["res.partner.bank"].create(
+             {
+-                "acc_number": "NL46ABNA0499998748",
++                "account_number": "NL46ABNA0499998748",
+                 "partner_id": cls.env.ref("base.main_partner").id,
+                 "company_id": cls.env.ref("base.main_company").id,
+                 "bank_id": cls.env.ref("base.res_bank_1").id,
+
+diff --git a/account_statement_import_file/demo/partner_bank.xml b/account_statement_import_file/demo/partner_bank.xml
+index dc3af34..c13a701 100644
+--- a/account_statement_import_file/demo/partner_bank.xml
++++ b/account_statement_import_file/demo/partner_bank.xml
+@@ -6,25 +6,25 @@
+ -->
+ <odoo noupdate="1">
+     <record id="ofx_partner_bank_1" model="res.partner.bank">
+-        <field name="acc_number">BE02631118262640</field>
++        <field name="account_number">BE02631118262640</field>
+         <field name="partner_id" ref="base.res_partner_2" />
+         <field name="bank_id" ref="base.res_bank_1" />
+     </record>
+ 
+     <record id="ofx_partner_bank_2" model="res.partner.bank">
+-        <field name="acc_number">20987654321</field>
++        <field name="account_number">20987654321</field>
+         <field name="partner_id" ref="base.res_partner_3" />
+         <field name="bank_id" ref="base.res_bank_1" />
+     </record>
+ 
+     <record id="qif_partner_bank_1" model="res.partner.bank">
+-        <field name="acc_number">21987654321</field>
++        <field name="account_number">21987654321</field>
+         <field name="partner_id" ref="base.res_partner_4" />
+         <field name="bank_id" ref="base.res_bank_1" />
+     </record>
+ 
+     <record id="qif_partner_bank_2" model="res.partner.bank">
+-        <field name="acc_number">22987654321</field>
++        <field name="account_number">22987654321</field>
+         <field name="partner_id" ref="base.res_partner_3" />
+         <field name="bank_id" ref="base.res_bank_1" />
+     </record>
+
+diff --git a/account_statement_import_file/tests/test_account_statement_import_file.py b/account_statement_import_file/tests/test_account_statement_import_file.py
+index b9c69cb..48685e5 100644
+--- a/account_statement_import_file/tests/test_account_statement_import_file.py
++++ b/account_statement_import_file/tests/test_account_statement_import_file.py
+@@ -15,10 +15,10 @@ class TestAccountStatementImportFile(common.TransactionCase):
+         cls.eur_currency = cls.env.ref("base.EUR")
+         cls.eur_currency.write({"active": True})
+         cls.bank_account = cls.env["res.partner.bank"].create(
+-            {"acc_number": "1111111111", "partner_id": cls.env.company.partner_id.id}
++            {"account_number": "1111111111", "partner_id": cls.env.company.partner_id.id}
+         )
+         cls.bank_account_2 = cls.env["res.partner.bank"].create(
+-            {"acc_number": "3333333333", "partner_id": cls.env.company.partner_id.id}
++            {"account_number": "3333333333", "partner_id": cls.env.company.partner_id.id}
+         )
+         cls.journal_1 = cls.env["account.journal"].create(
+             {
+
+diff --git a/account_statement_import_file/wizard/account_statement_import.py b/account_statement_import_file/wizard/account_statement_import.py
+index d293112..52ec733 100644
+--- a/account_statement_import_file/wizard/account_statement_import.py
++++ b/account_statement_import_file/wizard/account_statement_import.py
+@@ -227,7 +227,7 @@ class AccountStatementImport(models.TransientModel):
+                 [
+                     ("type", "=", "bank"),
+                     (
+-                        "bank_account_id.sanitized_acc_number",
++                        "bank_account_id.sanitized_account_number",
+                         "ilike",
+                         sanitized_account_number,
+                     ),
+@@ -250,7 +250,7 @@ class AccountStatementImport(models.TransientModel):
+                 bank_accounts = self.env["res.partner.bank"].search(
+                     [
+                         ("partner_id", "=", company.partner_id.id),
+-                        ("sanitized_acc_number", "ilike", sanitized_account_number),
++                        ("sanitized_account_number", "ilike", sanitized_account_number),
+                     ],
+                     limit=1,
+                 )
+
+diff --git a/account_statement_import_sheet_file/wizard/account_statement_import_sheet_parser.py b/account_statement_import_sheet_file/wizard/account_statement_import_sheet_parser.py
+index aff4d5c..818e81b 100644
+--- a/account_statement_import_sheet_file/wizard/account_statement_import_sheet_parser.py
++++ b/account_statement_import_sheet_file/wizard/account_statement_import_sheet_parser.py
+@@ -84,7 +84,7 @@ class AccountStatementImportSheetParser(models.TransientModel):
+             raise ValueError(f"Unsupported sheet type: {sheet_type}")
+         journal = self.env["account.journal"].browse(self.env.context.get("journal_id"))
+         currency_code = (journal.currency_id or journal.company_id.currency_id).name
+-        account_number = journal.bank_account_id.acc_number
++        account_number = journal.bank_account_id.account_number
+         lines = getattr(self, f"_parse_lines_{sheet_type}")(
+             mapping, data_file, currency_code
+         )
