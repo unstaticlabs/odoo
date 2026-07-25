@@ -317,6 +317,12 @@ class TestRebuildAccountMigration(TransactionCase):
     def test_qif_statement_import_creates_a_normal_bank_transaction(self):
         bank_journal = self._journal("bank")
         self.assertTrue(bank_journal.default_account_id)
+        self.env["account.bank.statement.line"].create({
+            "journal_id": bank_journal.id,
+            "date": "2026-07-24",
+            "payment_ref": "Existing ungrouped bank history",
+            "amount": 500.0,
+        })
         qif = b"\n".join([
             b"!Type:Bank",
             b"D07/25/2026",
@@ -345,7 +351,11 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(len(imported_line), 1)
         self.assertEqual(imported_line.date, fields.Date.to_date("2026-07-25"))
         self.assertAlmostEqual(imported_line.amount, -123.45)
-        self.assertEqual(imported_line.statement_id.balance_end_real, -123.45)
+        self.assertAlmostEqual(imported_line.statement_id.balance_start, 500.0)
+        self.assertAlmostEqual(imported_line.statement_id.balance_end, 376.55)
+        self.assertAlmostEqual(imported_line.statement_id.balance_end_real, 376.55)
+        self.assertTrue(imported_line.statement_id.is_complete)
+        self.assertTrue(imported_line.statement_id.is_valid)
         self.assertEqual(action["res_model"], "account.bank.statement")
         self.assertIn(imported_line.statement_id.id, action["domain"][0][2])
         self.assertEqual(

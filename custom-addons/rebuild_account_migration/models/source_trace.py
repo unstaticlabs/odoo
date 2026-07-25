@@ -217,6 +217,11 @@ class AccountStatementImport(models.TransientModel):
 
         def with_currency(statement):
             currency_code, account_number, statement_values = statement
+            for statement_value in statement_values:
+                # QIF contains movements, not an authoritative account
+                # balance. Let Odoo derive the statement end from the
+                # journal's current balance and those movements.
+                statement_value.pop("balance_end_real", None)
             return (
                 currency_code or fallback_currency.name,
                 account_number,
