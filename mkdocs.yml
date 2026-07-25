@@ -24,8 +24,10 @@ nav:
       - Match a Bank Transaction: how-to/reconcile-bank-transaction.md
       - Reconcile a Non-Bank Account: how-to/reconcile-clearing-account.md
       - Investigate a Report Value: how-to/investigate-report-value.md
+      - Analyze Analytic Performance: how-to/analyze-analytic-performance.md
       - Review Accounting Hygiene: how-to/review-accounting-hygiene.md
       - Prepare a Declaration: how-to/prepare-declaration.md
+      - Prepare Electronic-Invoice Reception: how-to/prepare-electronic-invoice-reception.md
       - Run a Monthly Review: how-to/run-monthly-review.md
       - Export Reports and FEC: how-to/export-reports-and-fec.md
       - Provide Accountant Access: how-to/provide-accountant-access.md

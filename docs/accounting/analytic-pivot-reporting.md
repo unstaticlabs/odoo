@@ -3,7 +3,7 @@
 ## Product contract
 
 **Accounting > Analysis > Analytic Reporting** is the exploratory complement
-to the configured Analytic Distribution statement and Revenue vs Spending
+to the configured Analytic Profit and Loss statement and Revenue vs Spending
 chart. It uses `account.analytic.line` directly, so pivot, list and graph views
 share one company-scoped population and every aggregate can drill into the
 contributing analytic items.

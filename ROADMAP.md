@@ -11,11 +11,11 @@ documented source/scope assumptions**.
 Professional approval and external filing are explicitly outside the engineering
 completion gate.
 
-### Verified on `odoo_dev`
+### Verified on `odoo_saas_19_2_candidate_01`
 
 - [x] The complete latest accounting snapshot is represented in the single
-  developer/QA product database, including `5,033` moves (`4,843` posted and
-  `189` draft), `3,040` bank transactions, `1,877` historical currency rates,
+  developer/QA product database, including `5,039` moves (`4,849` posted and
+  `189` draft), `3,046` bank transactions, `1,889` historical currency rates,
   `632` analytic lines, `360` native expenses and native asset schedules.
 - [x] Current-period parity for 1 October 2025 through 30 June 2026 is exact:
   `2,694` posted moves, `6,319` lines and debit/credit of `1,708,270.52`, with
@@ -47,7 +47,8 @@ Final evidence and residual advisories are recorded in
 ### Explicitly deferred
 
 - [x] Professional accounting sign-off and external filing.
-- [x] Peppol and electronic tax filing.
+- [x] Live approved-platform activation and electronic tax filing. Reception
+  capability is implemented, safely tested and deliberately not connected.
 - [x] Probabilistic or AI-powered matching.
 - [x] Live bank synchronization and payment-provider ingestion.
 
@@ -833,7 +834,9 @@ Final evidence and residual advisories are recorded in
 - [ ] Inventory chart-of-accounts configuration.
 - [ ] Inventory taxes.
 - [ ] Inventory fiscal positions.
-- [x] Inventory currencies and rates. The restored source contains 1,877 ECB-tagged native EUR/USD/GBP rates from 2024-01-01 through 2026-07-20; the importer now replays and source-traces every rate.
+- [x] Inventory currencies and rates. The restored source contains 1,889
+  source-traced native EUR/USD/GBP rates through 2026-07-24; the importer
+  replays and traces every rate.
 - [ ] Inventory analytic plans and accounts.
 - [ ] Inventory bank accounts and journals.
 - [ ] Inventory reconciliation models.
@@ -849,7 +852,8 @@ Final evidence and residual advisories are recorded in
 - [ ] Inventory inbound-email flows.
 - [ ] Inventory outgoing-email configuration.
 - [ ] Inventory bank-sync providers.
-- [ ] Inventory Peppol/e-invoicing configuration.
+- [x] Inventory electronic-invoicing configuration and reception prerequisites.
+  Production approved-platform selection and activation remain deferred.
 - [ ] Inventory external integrations.
 - [ ] Inventory API users.
 - [ ] Inventory current custom payroll workflow.
@@ -1025,7 +1029,9 @@ Final evidence and residual advisories are recorded in
 - [ ] Validate payment differences.
 - [ ] Validate multicurrency invoices.
 - [ ] Validate multicurrency payments.
-- [x] Validate restored native currency-rate parity across the full source snapshot (1,877/1,877 rates, provider and retrieval metadata, no mismatches or duplicate traces).
+- [x] Validate restored native currency-rate parity across the full source
+  snapshot (1,889/1,889 rates, provider and retrieval metadata, no mismatches
+  or duplicate traces).
 - [x] Configure and validate automatic future ECB reference rates with native rows, daily scheduling, source-history preservation, idempotence and manager/reviewer access controls.
 - [ ] Validate residual foreign-exchange balances.
 - [ ] Validate realized and unrealized exchange differences where required.
