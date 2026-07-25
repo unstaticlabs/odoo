@@ -814,8 +814,6 @@ class TestRebuildAccountMigration(TransactionCase):
             "account.menu_finance_receivables": ("Customers", 2),
             "account.menu_finance_payables": ("Vendors", 3),
             "account.menu_finance_entries": ("Accounting", 4),
-            "rebuild_account_migration.menu_rebuild_account_declarations_root":
-                ("Declarations", 6),
             "account.account_audit_menu": ("Review", 7),
             "account.menu_finance_reports": ("Reporting", 20),
             "account.menu_finance_configuration": ("Configuration", 35),
@@ -827,6 +825,16 @@ class TestRebuildAccountMigration(TransactionCase):
             self.assertEqual(menu.parent_id, finance_menu)
             self.assertEqual(menu.name, name)
             self.assertEqual(menu.sequence, sequence)
+
+        declarations_menu = self.env.ref(
+            "rebuild_account_migration.menu_rebuild_account_declarations_root",
+        )
+        self.assertEqual(
+            declarations_menu.parent_id,
+            self.env.ref("account.account_audit_menu"),
+        )
+        self.assertEqual(declarations_menu.name, "Declarations")
+        self.assertEqual(declarations_menu.sequence, 1)
 
         self.assertFalse(
             self.env.ref(

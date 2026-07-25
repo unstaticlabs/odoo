@@ -700,7 +700,7 @@
     </record>
 
     <menuitem id="menu_rebuild_account_closing_root" name="Closing" parent="account.menu_finance" action="action_rebuild_account_closing_period" sequence="5" groups="account.group_account_readonly" active="False"/>
-    <menuitem id="menu_rebuild_account_declarations_root" name="Declarations" parent="account.menu_finance" action="action_rebuild_account_declaration" sequence="6" groups="account.group_account_readonly"/>
+    <menuitem id="menu_rebuild_account_declarations_root" name="Declarations" parent="account.account_audit_menu" action="action_rebuild_account_declaration" sequence="1" groups="account.group_account_readonly"/>
     <menuitem id="menu_rebuild_account_closing_workspace" name="Closing Workspaces" parent="account.account_closing_menu" action="action_rebuild_account_closing_period" sequence="1" groups="account.group_account_readonly"/>
     <menuitem id="menu_rebuild_account_closing_snapshot" name="Accepted Closing Snapshots" parent="account.account_closing_menu" action="action_rebuild_account_closing_snapshot" sequence="2" groups="account.group_account_readonly"/>
     <menuitem id="menu_rebuild_account_declaration_schedule" name="Declaration Schedule" parent="account.account_reports_taxes_and_fiscal_menu" action="action_rebuild_account_declaration" sequence="0" groups="account.group_account_readonly" active="False"/>
