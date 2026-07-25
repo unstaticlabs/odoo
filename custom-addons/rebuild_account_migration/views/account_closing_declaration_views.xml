@@ -78,7 +78,10 @@
                 <field name="amount" optional="show"/>
                 <field name="value_text" optional="show"/>
                 <field name="source_kind"/>
-                <field name="validation_status" widget="badge"/>
+                <field name="validation_status" widget="badge"
+                    decoration-success="validation_status == 'matched'"
+                    decoration-warning="validation_status == 'review'"
+                    decoration-danger="validation_status == 'mismatch'"/>
                 <field name="is_unresolved" optional="show"/>
                 <field name="source_reference" optional="hide"/>
                 <button name="action_open_source_items" type="object" string="View Entries" icon="fa-search"/>
@@ -104,7 +107,10 @@
                             <field name="value_text"/>
                         </group>
                         <group>
-                            <field name="validation_status" widget="badge"/>
+                            <field name="validation_status" widget="badge"
+                                decoration-success="validation_status == 'matched'"
+                                decoration-warning="validation_status == 'review'"
+                                decoration-danger="validation_status == 'mismatch'"/>
                             <field name="is_unresolved"/>
                             <field name="source_kind"/>
                             <field name="account_prefixes"/>
@@ -152,8 +158,17 @@
                 <field name="rule_version" string="Version"/>
                 <field name="period_start" optional="hide"/>
                 <field name="period_end"/>
-                <field name="status" widget="badge"/>
-                <field name="validation_status" widget="badge"/>
+                <field name="status" widget="badge"
+                    decoration-success="status in ('ready_to_file', 'filed', 'paid')"
+                    decoration-info="status in ('internal_review', 'accountant_review', 'accountant_reviewed')"
+                    decoration-warning="status in ('to_prepare', 'data_missing')"
+                    decoration-danger="status == 'blocked'"
+                    decoration-muted="status in ('archived', 'not_applicable')"/>
+                <field name="validation_status" widget="badge"
+                    decoration-success="validation_status == 'ready'"
+                    decoration-warning="validation_status == 'warning'"
+                    decoration-danger="validation_status == 'blocked'"
+                    decoration-muted="validation_status == 'not_run'"/>
                 <field name="review_status" optional="hide"/>
                 <field name="filing_status" optional="hide"/>
                 <field name="payment_status" optional="hide"/>
@@ -391,7 +406,11 @@
             <list create="false" delete="false" decoration-danger="status == 'block'" decoration-warning="status == 'warning'" decoration-success="status == 'pass'" decoration-muted="status == 'not_applicable'">
                 <field name="category"/>
                 <field name="name"/>
-                <field name="status" widget="badge"/>
+                <field name="status" widget="badge"
+                    decoration-success="status == 'pass'"
+                    decoration-warning="status == 'warning'"
+                    decoration-danger="status == 'block'"
+                    decoration-muted="status == 'not_applicable'"/>
                 <field name="record_count"/>
                 <field name="amount" optional="show"/>
                 <field name="owner" string="Responsible Role"/>
@@ -431,8 +450,16 @@
                 <field name="name"/>
                 <field name="company_id" groups="base.group_multi_company"/>
                 <field name="period_type"/>
-                <field name="state" widget="badge"/>
-                <field name="readiness_status" widget="badge"/>
+                <field name="state" widget="badge"
+                    decoration-success="state in ('ready', 'closed')"
+                    decoration-info="state in ('preparing', 'internal_review', 'accountant_review')"
+                    decoration-danger="state == 'blocked'"
+                    decoration-muted="state in ('open', 'archived')"/>
+                <field name="readiness_status" widget="badge"
+                    decoration-success="readiness_status == 'ready'"
+                    decoration-warning="readiness_status == 'warning'"
+                    decoration-danger="readiness_status == 'blocked'"
+                    decoration-muted="readiness_status == 'not_run'"/>
                 <field name="blocking_count"/>
                 <field name="warning_count"/>
                 <field name="review_status" optional="show"/>
@@ -476,8 +503,17 @@
                         <group>
                             <field name="fiscalyear_start"/>
                             <field name="fiscalyear_end"/>
-                            <field name="readiness_status" widget="badge"/>
-                            <field name="review_status" widget="badge"/>
+                            <field name="readiness_status" widget="badge"
+                                decoration-success="readiness_status == 'ready'"
+                                decoration-warning="readiness_status == 'warning'"
+                                decoration-danger="readiness_status == 'blocked'"
+                                decoration-muted="readiness_status == 'not_run'"/>
+                            <field name="review_status" widget="badge"
+                                decoration-success="review_status == 'accepted'"
+                                decoration-warning="review_status in ('accountant_requested', 'accepted_with_difference')"
+                                decoration-danger="review_status == 'rejected'"
+                                decoration-info="review_status == 'internal_ready'"
+                                decoration-muted="review_status == 'not_started'"/>
                             <field name="last_refreshed_at"/>
                         </group>
                     </group>
@@ -495,7 +531,11 @@
                                 <list create="false" delete="false" decoration-danger="status == 'block'" decoration-warning="status == 'warning'" decoration-success="status == 'pass'" decoration-muted="status == 'not_applicable'">
                                     <field name="category"/>
                                     <field name="name"/>
-                                    <field name="status" widget="badge"/>
+                                    <field name="status" widget="badge"
+                                        decoration-success="status == 'pass'"
+                                        decoration-warning="status == 'warning'"
+                                        decoration-danger="status == 'block'"
+                                        decoration-muted="status == 'not_applicable'"/>
                                     <field name="record_count"/>
                                     <field name="amount" optional="show"/>
                                     <field name="owner" string="Responsible Role"/>
@@ -518,7 +558,9 @@
                             <field name="snapshot_ids" nolabel="1" readonly="1">
                                 <list create="false" edit="false" delete="false">
                                     <field name="name"/>
-                                    <field name="decision_conclusion" widget="badge"/>
+                                    <field name="decision_conclusion" widget="badge"
+                                        decoration-success="decision_conclusion == 'accepted'"
+                                        decoration-warning="decision_conclusion == 'accepted_with_difference'"/>
                                     <field name="reviewer_name"/>
                                     <field name="reviewed_at"/>
                                     <field name="captured_at"/>

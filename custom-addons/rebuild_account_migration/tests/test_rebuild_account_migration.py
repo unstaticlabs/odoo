@@ -1080,6 +1080,55 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(len(color_fields), 1)
         self.assertEqual(color_fields[0].get("column_invisible"), "True")
 
+    def test_accounting_status_badges_use_semantic_colors(self):
+        expected_decorations = {
+            "hygiene_status": {
+                "decoration-success",
+                "decoration-warning",
+                "decoration-danger",
+            },
+            "latest_closing_readiness": {
+                "decoration-success",
+                "decoration-warning",
+                "decoration-danger",
+                "decoration-muted",
+            },
+            "next_declaration_status": {
+                "decoration-success",
+                "decoration-info",
+                "decoration-warning",
+                "decoration-danger",
+                "decoration-muted",
+            },
+        }
+        overview_arch = self.env.ref(
+            "rebuild_account_migration.view_rebuild_accounting_home_form",
+        )._get_combined_arch()
+
+        for field_name, decorations in expected_decorations.items():
+            badge = overview_arch.xpath(
+                f"//field[@name='{field_name}' and @widget='badge']",
+            )[0]
+            self.assertTrue(decorations.issubset(badge.attrib))
+
+        for view_xmlid, field_name in (
+            (
+                "rebuild_account_migration.view_rebuild_account_declaration_list",
+                "status",
+            ),
+            (
+                "rebuild_account_migration.view_rebuild_account_closing_list",
+                "readiness_status",
+            ),
+        ):
+            view_arch = self.env.ref(view_xmlid)._get_combined_arch()
+            badge = view_arch.xpath(
+                f"//field[@name='{field_name}' and @widget='badge']",
+            )[0]
+            self.assertIn("decoration-success", badge.attrib)
+            self.assertIn("decoration-warning", badge.attrib)
+            self.assertIn("decoration-danger", badge.attrib)
+
     def test_bank_matching_mutation_controls_require_full_accounting_access(self):
         view = self.env.ref(
             "account_reconcile_oca.bank_statement_line_form_reconcile_view",
