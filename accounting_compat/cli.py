@@ -15119,7 +15119,7 @@ def evidence(args: argparse.Namespace) -> dict[str, Any]:
         "native_validation_documents": PRIVATE_ARTIFACTS / "validation-native-documents-status.json",
         "native_validation_native_attachments_browser": (
             PRIVATE_ARTIFACTS
-            / "validation-native-native-attachments-browser-status.json"
+            / "validation-native-attachments-browser-status.json"
         ),
         "native_validation_assets": PRIVATE_ARTIFACTS / "validation-native-assets-status.json",
         "native_validation_assets_browser": (
