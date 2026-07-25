@@ -256,8 +256,14 @@ class RebuildAccountImportRun(models.Model):
             ),
             "date": bank_line.date == row["date"],
             "journal": bank_line.journal_id.rebuild_source_id == row["journal_id"],
-            "amount": round(bank_line.amount, 6)
-            == round(self._amount(row["amount"]), 6),
+            # Source bank imports can retain sub-cent precision (for example
+            # 1.795). The SaaS Monetary field normalizes the displayed amount
+            # to the journal currency precision on create.
+            "amount": bank_line.currency_id.compare_amounts(
+                bank_line.amount,
+                self._amount(row["amount"]),
+            )
+            == 0,
             "amount_currency": round(bank_line.amount_currency, 2)
             == round(effective_amount_currency, 2),
             "foreign_currency": bank_line.foreign_currency_id
@@ -543,6 +549,22 @@ class RebuildAccountImportRun(models.Model):
                 ),
                 "source_open_bank_line_count": sum(
                     not row["is_reconciled"] for row in rows
+                ),
+                "source_amount_precision_normalization_count": sum(
+                    round(self._amount(row["amount"]), 6)
+                    != round(
+                        (
+                            journal.currency_id
+                            or journal.company_id.currency_id
+                        ).round(
+                            self._amount(row["amount"]),
+                        ),
+                        6,
+                    )
+                    for row in rows
+                    if (
+                        journal := journals.get(row["journal_id"])
+                    )
                 ),
                 "source_analytic_categorization_count": sum(
                     bool(row["analytic_distribution"]) for row in rows

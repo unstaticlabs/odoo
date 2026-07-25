@@ -224,6 +224,15 @@ class RebuildAccountImportRun(models.Model):
                    statement_line.amount, statement_line.amount_currency,
                    statement_line.is_reconciled,
                    statement_line.unique_import_id,
+                   (
+                       SELECT sum(liquidity_line.balance)
+                       FROM account_move_line liquidity_line
+                       JOIN account_journal liquidity_journal
+                         ON liquidity_journal.id = statement_line.journal_id
+                       WHERE liquidity_line.move_id = statement_line.move_id
+                         AND liquidity_line.account_id
+                             = liquidity_journal.default_account_id
+                   ) AS liquidity_balance,
                    statement_move.date, statement_move.name AS move_name,
                    selected.payment_mode,
                    COALESCE(scope.current_scope_complete, false) AS current_scope_complete,
@@ -546,6 +555,38 @@ class RebuildAccountImportRun(models.Model):
             bank_line.manual_reference,
         )
 
+    @staticmethod
+    def _native_expense_settlement_preserve_liquidity_balance(
+        bank_line,
+        source_balance,
+    ):
+        """Preserve the source entry's frozen journal-to-company rate."""
+        liquidity_lines, suspense_lines, other_lines = bank_line._seek_for_lines()
+        if len(liquidity_lines) != 1 or len(suspense_lines) != 1 or other_lines:
+            message = (
+                "Expected one liquidity and one suspense line before native "
+                f"matching, got {len(liquidity_lines)}, "
+                f"{len(suspense_lines)}, {len(other_lines)}"
+            )
+            raise ValueError(message)
+        source_balance = float(source_balance)
+        if round(liquidity_lines.balance, 2) == round(source_balance, 2):
+            return
+        liquidity_lines.with_context(check_move_validity=False).write({
+            "debit": source_balance if source_balance > 0 else 0.0,
+            "credit": -source_balance if source_balance < 0 else 0.0,
+        })
+        suspense_balance = -source_balance
+        suspense_lines.with_context(check_move_validity=False).write({
+            "debit": suspense_balance if suspense_balance > 0 else 0.0,
+            "credit": -suspense_balance if suspense_balance < 0 else 0.0,
+        })
+        if not bank_line.company_id.currency_id.is_zero(
+            sum(bank_line.move_id.line_ids.mapped("balance")),
+        ):
+            raise ValueError("Frozen-rate bank move is not balanced")
+        bank_line.reconcile_data_info = bank_line._default_reconcile_data()
+
     def _native_bank_replay_add_manual_allocation(
         self,
         bank_line,
@@ -846,6 +887,10 @@ class RebuildAccountImportRun(models.Model):
                             bank_line = StatementLine.with_company(
                                 journal.company_id,
                             ).create(vals)
+                            self._native_expense_settlement_preserve_liquidity_balance(
+                                bank_line,
+                                row["liquidity_balance"],
+                            )
                             auto_partials = [
                                 self._native_expense_settlement_related_partial(
                                     target_line_map[edge["source_line_id"]],
@@ -1057,10 +1102,14 @@ class RebuildAccountImportRun(models.Model):
                     "target_line_ids": unreconciled_target_lines.ids[:20],
                     "count": len(unreconciled_target_lines),
                 })
-            unpaid_payments = company_payments.filtered(lambda payment: payment.state != "paid")
+            unpaid_payments = company_payments.filtered(
+                lambda payment: payment.state != "reconciled",
+            )
             if unpaid_payments:
                 state_mismatches.append({
-                    "classification": "company_expense_payments_not_paid",
+                    "classification": (
+                        "company_expense_payments_not_reconciled"
+                    ),
                     "target_payment_ids": unpaid_payments.ids[:20],
                     "count": len(unpaid_payments),
                 })
@@ -1108,8 +1157,10 @@ class RebuildAccountImportRun(models.Model):
                 }),
                 "settled_target_line_count": len(edge_target_lines),
                 "company_payment_count": len(company_payments),
-                "paid_company_payment_count": len(
-                    company_payments.filtered(lambda payment: payment.state == "paid"),
+                "reconciled_company_payment_count": len(
+                    company_payments.filtered(
+                        lambda payment: payment.state == "reconciled",
+                    ),
                 ),
                 "employee_expense_count": len(employee_expenses),
                 "paid_employee_expense_count": len(

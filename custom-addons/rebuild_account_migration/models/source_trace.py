@@ -158,6 +158,15 @@ class HrExpense(models.Model):
         string="Next step",
     )
 
+    def _compute_price_unit(self):
+        super()._compute_price_unit()
+        source_price_unit = self.env.context.get(
+            "rebuild_source_expense_price_unit",
+        )
+        if source_price_unit is not None:
+            for expense in self.filtered(lambda record: record.state == "draft"):
+                expense.price_unit = source_price_unit
+
     @api.depends(
         "state",
         "product_id",
