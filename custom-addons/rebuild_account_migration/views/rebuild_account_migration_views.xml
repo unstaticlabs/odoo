@@ -928,25 +928,6 @@
                             </div>
                         </section>
 
-                        <section class="o_usl_overview_section">
-                            <h3 class="o_usl_overview_section_title">Prepared decisions</h3>
-                            <div class="row g-3">
-                                <div class="col-12 col-md-6">
-                                    <div class="o_usl_overview_card">
-                                        <h4 class="o_usl_overview_card_title">Accounting manager</h4>
-                                        <span class="o_usl_overview_value"><field name="valentin_action_count" nolabel="1"/></span>
-                                        <button name="action_open_valentin_actions" type="object" string="Review assigned decisions" class="btn-link"/>
-                                    </div>
-                                </div>
-                                <div class="col-12 col-md-6">
-                                    <div class="o_usl_overview_card">
-                                        <h4 class="o_usl_overview_card_title">Accountant reviewer</h4>
-                                        <span class="o_usl_overview_value"><field name="accountant_action_count" nolabel="1"/></span>
-                                        <button name="action_open_accountant_actions" type="object" string="Review accountant decisions" class="btn-link"/>
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
                     </div>
                 </sheet>
             </form>
@@ -1465,7 +1446,7 @@
             <form string="Accounting Discrepancy">
                 <sheet>
                     <header>
-                        <button name="action_record_review_decision" type="object" string="Record Review Decision"/>
+                        <button name="action_record_review_decision" type="object" string="Record Review Decision" groups="account.group_account_manager"/>
                     </header>
                     <group>
                         <group>
@@ -1549,8 +1530,8 @@
             <form string="Accounting Review Decision" delete="0">
                 <sheet>
                     <header>
-                        <button name="action_record" type="object" string="Mark Recorded" invisible="state != 'draft'"/>
-                        <button name="action_supersede" type="object" string="Supersede" invisible="state == 'superseded'"/>
+                        <button name="action_record" type="object" string="Mark Recorded" groups="account.group_account_manager" invisible="state != 'draft'"/>
+                        <button name="action_supersede" type="object" string="Supersede" groups="account.group_account_manager" invisible="state == 'superseded'"/>
                         <button name="action_open_external_value" type="object" string="External Value" invisible="not external_value_id"/>
                         <button name="action_open_discrepancy" type="object" string="Discrepancy" invisible="not discrepancy_id"/>
                         <button name="action_open_source_report" type="object" string="Source Report" invisible="not source_report_id"/>
@@ -1658,7 +1639,7 @@
                 <field name="source_document"/>
                 <field name="discrepancy_id"/>
                 <button name="action_open_tax_package_lines" type="object" string="Tax Lines" icon="fa-list"/>
-                <button name="action_record_review_decision" type="object" string="Review" icon="fa-check-square-o"/>
+                <button name="action_record_review_decision" type="object" string="Review" icon="fa-check-square-o" groups="account.group_account_manager"/>
             </list>
         </field>
     </record>
@@ -1671,7 +1652,7 @@
                 <header>
                     <button name="action_open_tax_package_lines" type="object" string="Tax Package Lines"/>
                     <button name="action_open_discrepancy" type="object" string="Discrepancy" invisible="not discrepancy_id"/>
-                    <button name="action_record_review_decision" type="object" string="Record Review Decision" class="btn-primary"/>
+                    <button name="action_record_review_decision" type="object" string="Record Review Decision" class="btn-primary" groups="account.group_account_manager"/>
                 </header>
                 <sheet>
                     <group>
@@ -2446,7 +2427,7 @@
                         <button name="action_open_generated_missing_endpoint_items" type="object" string="Open Generated Draft Endpoints"/>
                         <button name="action_preview_native_partial_reconciliation" type="object" string="Preview Native Partial" invisible="reconciliation_kind != 'partial'"/>
                         <button name="action_preview_native_full_reconciliation_scope" type="object" string="Preview Full Scope" invisible="reconciliation_kind != 'full'"/>
-                        <button name="action_record_review_decision" type="object" string="Record Decision"/>
+                        <button name="action_record_review_decision" type="object" string="Record Decision" groups="account.group_account_manager"/>
                         <button name="action_open_review_decisions" type="object" string="Decisions"/>
                         <button name="action_apply_native_partial_reconciliation" type="object" string="Apply Native Partial" groups="account.group_account_manager" invisible="reconciliation_kind != 'partial'"/>
                     </header>
@@ -2599,7 +2580,7 @@
                         <button name="action_open_source_lines" type="object" string="Source Lines"/>
                         <button name="action_open_source_expressions" type="object" string="Source Expressions"/>
                         <button name="action_open_source_columns" type="object" string="Source Columns"/>
-                        <button name="action_record_review_decision" type="object" string="Record Review Decision"/>
+                        <button name="action_record_review_decision" type="object" string="Record Review Decision" groups="account.group_account_manager"/>
                     </header>
                     <group>
                         <group>
@@ -4928,7 +4909,7 @@
         name="Advanced Audit"
         parent="account.account_audit_menu"
         sequence="90"
-        groups="account.group_account_readonly"/>
+        groups="base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_review_issues_priority"
         name="Accounting Hygiene"
@@ -4949,238 +4930,238 @@
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_review_summary"
         sequence="5"
-        groups="account.group_account_readonly"/>
+        groups="base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_user_guide"
         name="User Guide"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_user_guide"
         sequence="6"
-        groups="account.group_account_readonly"/>
+        groups="base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_import_run"
         name="Import Runs"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_import_run"
         sequence="10"
-        groups="account.group_account_readonly"/>
+        groups="base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_discrepancy"
         name="Discrepancies"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_discrepancy"
         sequence="20"
-        groups="account.group_account_readonly"/>
+        groups="base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_review_decision"
         name="Review Decisions"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_review_decision"
         sequence="22"
-        groups="account.group_account_readonly"/>
+        groups="base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_external_report_value"
         name="External Report Values"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_external_report_value"
         sequence="23"
-        groups="account.group_account_readonly"/>
+        groups="base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_source_report"
         name="Source Report Catalogue"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_source_report"
         sequence="25"
-        groups="account.group_account_readonly"/>
+        groups="base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_source_report_line"
         name="Source Report Lines"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_source_report_line"
         sequence="26"
-        groups="account.group_account_readonly"/>
+        groups="base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_source_report_expression"
         name="Source Report Expressions"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_source_report_expression"
         sequence="27"
-        groups="account.group_account_readonly"/>
+        groups="base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_deferred_schedule_line"
         name="Imported Deferred Schedule"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_deferred_schedule_line"
         sequence="28"
-        groups="account.group_account_readonly"/>
+        groups="base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_analytic_override"
         name="Native Analytic Corrections"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_analytic_override"
         sequence="29"
-        groups="account.group_account_readonly"/>
+        groups="base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_asset"
         name="Fixed Asset Register"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_asset"
         sequence="30"
-        groups="account.group_account_readonly"/>
+        groups="base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_asset_depreciation_schedule_line"
         name="Imported Depreciation Schedule"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_asset_depreciation_schedule_line"
         sequence="35"
-        groups="account.group_account_readonly"/>
+        groups="base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_trial_balance_line"
         name="Imported Trial Balance"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_trial_balance_line"
         sequence="40"
-        groups="account.group_account_readonly"/>
+        groups="base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_general_ledger_line"
         name="Imported General Ledger"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_general_ledger_line"
         sequence="50"
-        groups="account.group_account_readonly"/>
+        groups="base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_journal_report_line"
         name="Imported Journal Report"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_journal_report_line"
         sequence="60"
-        groups="account.group_account_readonly"/>
+        groups="base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_partner_ledger_line"
         name="Imported Partner Ledger"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_partner_ledger_line"
         sequence="70"
-        groups="account.group_account_readonly"/>
+        groups="base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_open_item_line"
         name="Imported Open Items"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_open_item_line"
         sequence="80"
-        groups="account.group_account_readonly"/>
+        groups="base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_balance_sheet_line"
         name="Imported Balance Sheet"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_balance_sheet_line"
         sequence="90"
-        groups="account.group_account_readonly"/>
+        groups="base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_profit_loss_line"
         name="Imported Profit and Loss"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_profit_loss_line"
         sequence="100"
-        groups="account.group_account_readonly"/>
+        groups="base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_tax_report_line"
         name="Imported VAT and Tax Report"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_tax_report_line"
         sequence="110"
-        groups="account.group_account_readonly"/>
+        groups="base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_eu_tax_report_line"
         name="Imported EC/OSS Tax Review"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_eu_tax_report_line"
         sequence="111"
-        groups="account.group_account_readonly"/>
+        groups="base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_move_review"
         name="Source Move Workflow Review"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_move_review"
         sequence="112"
-        groups="account.group_account_readonly"/>
+        groups="base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_document_regeneration_case"
         name="Document Regeneration Cases"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_document_regeneration_case"
         sequence="112"
-        groups="account.group_account_readonly"/>
+        groups="base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_move_line_review"
         name="Source Move Line Workflow Review"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_move_line_review"
         sequence="112"
-        groups="account.group_account_readonly"/>
+        groups="base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_payment_review"
         name="Source Payment Workflow Review"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_payment_review"
         sequence="113"
-        groups="account.group_account_readonly"/>
+        groups="base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_reconciliation_review"
         name="Source Reconciliation Boundary Review"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_reconciliation_review"
         sequence="114"
-        groups="account.group_account_readonly"/>
+        groups="base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_bank_reconciliation_line"
         name="Imported Bank Reconciliation"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_bank_reconciliation_line"
         sequence="115"
-        groups="account.group_account_readonly"/>
+        groups="base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_currency_report_line"
         name="Imported Currency Gain/Loss"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_currency_report_line"
         sequence="114"
-        groups="account.group_account_readonly"/>
+        groups="base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_management_summary_line"
         name="Imported Cash Flow and Executive Summary"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_management_summary_line"
         sequence="115"
-        groups="account.group_account_readonly"/>
+        groups="base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_analytic_distribution_line"
         name="Imported Analytic Distribution"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_analytic_distribution_line"
         sequence="116"
-        groups="account.group_account_readonly"/>
+        groups="base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_french_statement_line"
         name="Imported French Annual Statements"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_french_statement_line"
         sequence="120"
-        groups="account.group_account_readonly"/>
+        groups="base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_french_tax_package_line"
         name="Imported French Tax Package Mapping"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_french_tax_package_line"
         sequence="125"
-        groups="account.group_account_readonly"/>
+        groups="base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_export_wizard_evidence"
         name="Imported Report Export"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_report_export_wizard"
         sequence="130"
-        groups="account.group_account_readonly"/>
+        groups="base.group_system,-account.group_account_readonly"/>
 
     <record id="action_rebuild_interactive_trial_balance" model="ir.actions.client">
         <field name="name">Trial Balance</field>

@@ -237,6 +237,21 @@ class TestRebuildAccountMigration(TransactionCase):
                 ),
             ],
         )
+        home_arch = self.env.ref(
+            "rebuild_account_migration.view_rebuild_accounting_home_form",
+        )._get_combined_arch()
+        self.assertFalse(
+            home_arch.xpath(
+                "//button[@name='action_open_valentin_actions' or "
+                "@name='action_open_accountant_actions']",
+            ),
+        )
+        self.assertFalse(
+            home_arch.xpath(
+                "//field[@name='valentin_action_count' or "
+                "@name='accountant_action_count']",
+            ),
+        )
 
     def test_accounting_home_summary_is_scoped_to_reviewer_companies(self):
         other_company = self.env["res.company"].create({
@@ -3131,6 +3146,15 @@ class TestRebuildAccountMigration(TransactionCase):
                 "rebuild_account_migration.menu_rebuild_account_migration",
             ),
         )
+        system_group = self.env.ref("base.group_system")
+        self.assertIn(system_group, menu.parent_id.group_ids)
+        self.assertTrue(menu.parent_id.child_id)
+        for audit_menu in menu.parent_id.child_id:
+            self.assertIn(
+                system_group,
+                audit_menu.group_ids,
+                f"{audit_menu.display_name} must remain a technical-only menu",
+            )
         self.assertEqual(
             menu.action.res_model,
             "rebuild.account.analytic.override",
@@ -3500,6 +3524,45 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(discrepancy.status, "open")
         self.assertFalse(discrepancy.approver)
         self.assertEqual(decision.state, "draft")
+
+        restricted_view_buttons = (
+            (
+                "rebuild.account.discrepancy",
+                "rebuild_account_migration.view_rebuild_account_discrepancy_form",
+                ("action_record_review_decision",),
+            ),
+            (
+                "rebuild.account.review.decision",
+                "rebuild_account_migration.view_rebuild_account_review_decision_form",
+                ("action_record", "action_supersede"),
+            ),
+            (
+                "rebuild.account.external.report.value",
+                "rebuild_account_migration.view_rebuild_account_external_report_value_form",
+                ("action_record_review_decision",),
+            ),
+            (
+                "rebuild.account.reconciliation.review",
+                "rebuild_account_migration.view_rebuild_account_reconciliation_review_form",
+                ("action_record_review_decision",),
+            ),
+            (
+                "rebuild.account.source.report",
+                "rebuild_account_migration.view_rebuild_account_source_report_form",
+                ("action_record_review_decision",),
+            ),
+        )
+        for model_name, view_xmlid, button_names in restricted_view_buttons:
+            view = self.env[model_name].with_user(reviewer).get_view(
+                self.env.ref(view_xmlid).id,
+                "form",
+            )
+            arch = etree.fromstring(view["arch"])
+            for button_name in button_names:
+                self.assertFalse(
+                    arch.xpath(f"//button[@name='{button_name}']"),
+                    f"{button_name} must not be visible to the read-only reviewer",
+                )
 
     def test_report_export_metadata_and_empty_csv(self):
         wizard = self.env["rebuild.account.report.export.wizard"].create({

@@ -80,7 +80,7 @@ read-only and the replay never falls back to an unverified link.
 | Read private technical attachments outside accounting | System-only | Denied | Rollback-only `AccessError` regression. |
 | Generate and download a complete posted test FEC | Allowed | Allowed; test mode locked | Reviewer and finance-operator browser journeys each produced the `4,781`-row benchmark and a visible download link. |
 | Generate an official non-test FEC or advance the fiscal lock date | Allowed | Denied | Native/custom server gates and view state; ordinary finance operators are also denied. |
-| Record a professional acceptance decision | Product/accounting authority only when acting in that named role | May prepare/record accountant decisions assigned to the reviewer | Durable review-decision workflow; no acceptance is self-recorded by the implementation agent. |
+| Record a professional acceptance decision | Accounting Manager only | Read-only; can inspect the resulting declaration, closing and accounting evidence | Manager-only decision actions, strict reviewer ACLs and browser navigation checks. |
 
 ## Evidence and closure boundary
 

@@ -136,7 +136,7 @@ decision while leaving a controlled superseding-review path.
 ## Roles and review gates
 
 - Accounting Manager can refresh, prepare, post permitted corrections, record external filing/payment state and apply standard locks.
-- Read-only Accountant inherits Odoo accounting read-only access. The role can inspect source entries, reports, declarations, closings and packages and can record an optional review where authorized. It cannot edit posted accounting, declaration preparation records, closing controls or lock dates.
+- Read-only Accountant inherits Odoo accounting read-only access. The role can inspect source entries, reports, declarations, closings, packages and manager-recorded review decisions. It cannot create or record review decisions, edit posted accounting, change declaration preparation or filing state, run closing controls, or change lock dates.
 - Review decisions update declaration/closing state through the controlled decision application only. Accepted declaration decisions require an evidence summary; accepted closing decisions also require a generated package and create immutable snapshots.
 - A closing acceptance does not override automated blockers. A close with blockers remains blocked.
 - Future finance agents should receive company-scoped read access or purpose-specific manager authority; they must not receive unrestricted cross-company accounting access.
