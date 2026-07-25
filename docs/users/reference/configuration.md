@@ -10,7 +10,7 @@ Accounting managers use **Configuration** for:
 - analytic plans and accounts;
 - asset models;
 - declaration configuration;
-- Closing Controls.
+- Accounting Controls.
 
 ## Bank statement files
 
@@ -20,11 +20,28 @@ bank's CSV or XLSX export, create a **Statement Sheet Mapping** in
 settings. The mapping describes the date, amount, reference and partner columns;
 it does not post or reconcile transactions automatically.
 
-## Closing Controls
+## Accounting Controls
 
-Open **Configuration > Closing Controls**. Each definition has a category, order, responsible role, explanation and accounting consequence.
+Open **Configuration > Controls**. The catalogue shows every configured control
+used by Accounting Hygiene or Closing. Each definition explains what it checks,
+why it matters, the expected resolution, its responsible role, its origin and
+its readiness effect.
 
-Disable a control only when it is not applicable to the company. The next Closing Workspace refresh uses the enabled definitions. Changing a definition does not modify posted accounting.
+Accounting Managers can enable a control, choose whether it applies to Hygiene
+or Closing, limit its Closing period scope, and set its effect to Dynamic,
+Informational, Advisory or Blocking. Dynamic keeps the evaluator's contextual
+recommendation. Editing business behavior labels the control
+**Company-specific**.
+
+Use **Refresh Results** after a configuration change. The next Hygiene and open
+Closing refresh uses the new policy. A disabled Hygiene result resolves
+naturally and a disabled Closing result disappears from the refreshed
+workspace; historical results remain available. Configuration never posts,
+reconciles, changes declarations or applies lock dates.
+
+Technical Administrators can inspect the installed evaluator key and technical
+boundary on **Advanced Logic**. The product deliberately uses whitelisted
+module evaluators instead of arbitrary Python entered in the UI.
 
 ## Safe configuration practice
 

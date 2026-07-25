@@ -39,6 +39,13 @@ CLOSING_CONTROL_OWNERS = [
     ("finance_operator", "Finance Operator / Agent"),
 ]
 
+CLOSING_CONTROL_IMPACT_POLICIES = [
+    ("evaluator", "Dynamic — Use Evaluator Recommendation"),
+    ("informational", "Informational — Does Not Affect Readiness"),
+    ("advisory", "Advisory — Creates a Readiness Warning"),
+    ("blocking", "Blocking — Prevents Readiness"),
+]
+
 CLOSING_CONTROL_DEFINITIONS = (
     ("accounting_completeness", "accounting", "Accounting completeness", "Checks for draft miscellaneous journal entries in the period.", "Unreviewed drafts can change the final ledger after the close.", "accounting_manager"),
     ("document_completeness", "documents", "Document completeness", "Checks for draft invoices and bills and posted documents without primary evidence.", "Incomplete documents weaken balances, tax support and the audit trail.", "accounting_manager"),
@@ -54,6 +61,65 @@ CLOSING_CONTROL_DEFINITIONS = (
     ("reports", "reports", "Closing reports", "Checks availability of the core reports needed to review the period.", "A close cannot be reviewed consistently without reproducible supporting reports.", "accounting_manager"),
     ("fec", "fec", "FEC readiness", "Checks whether the statutory accounting export can be generated for the period.", "An unavailable or invalid FEC is a material French compliance risk.", "accounting_manager"),
     ("lock_dates", "locks", "Lock-date readiness", "Checks the current lock dates and whether they protect the reviewed period.", "Unlocked reviewed periods can be changed inadvertently after sign-off.", "accounting_manager"),
+)
+
+HYGIENE_CONTROL_DEFINITIONS = (
+    (
+        "hygiene_bank_unmatched",
+        "reconciliation",
+        "Unmatched bank transactions",
+        "Finds bank transactions whose accounting counterpart or category is incomplete.",
+        "Cash can be correct while counterpart accounts, partners, taxes or open-item statuses remain incomplete.",
+        "finance_operator",
+    ),
+    (
+        "hygiene_vendor_evidence",
+        "documents",
+        "Supplier document evidence",
+        "Finds new supplier documents without a main invoice, receipt or supporting file.",
+        "Unsupported supplier documents weaken deductibility, VAT support and the audit trail.",
+        "finance_operator",
+    ),
+    (
+        "hygiene_stale_documents",
+        "documents",
+        "Stale draft documents",
+        "Finds draft invoices, bills and receipts that have remained unfinished beyond the configured evaluator window.",
+        "Old drafts may hide missing liabilities, receivables or corrections from posted-ledger reporting.",
+        "finance_operator",
+    ),
+    (
+        "hygiene_expense_evidence",
+        "documents",
+        "Expense receipt evidence",
+        "Finds new expenses without a receipt or supporting file.",
+        "Unsupported expenses and deductible VAT are difficult to review or substantiate.",
+        "finance_operator",
+    ),
+    (
+        "hygiene_stale_expenses",
+        "documents",
+        "Stale expense workflows",
+        "Finds expense workflows that have not reached accounting within the configured evaluator window.",
+        "Unfinished expenses delay reimbursement and omit costs from management reporting.",
+        "finance_operator",
+    ),
+    (
+        "hygiene_analytic_allocation",
+        "analytic",
+        "Missing analytic allocation",
+        "Finds posted profit-and-loss journal items without an analytic distribution.",
+        "General accounting remains balanced, but activity and profitability reporting can be incomplete.",
+        "finance_operator",
+    ),
+    (
+        "hygiene_duplicate_documents",
+        "documents",
+        "Possible duplicate supplier documents",
+        "Finds posted supplier documents sharing the same partner, reference, date and signed total.",
+        "A confirmed duplicate overstates expense, VAT and supplier liability.",
+        "accounting_manager",
+    ),
 )
 
 CANONICAL_CLOSING_REPORT_ACTIONS = (
@@ -229,6 +295,8 @@ class RebuildAccountClosingPeriod(models.Model):
     control_line_ids = fields.One2many("rebuild.account.closing.control", "closing_period_id", string="Closing Controls")
     blocking_count = fields.Integer(compute="_compute_control_counts")
     warning_count = fields.Integer(compute="_compute_control_counts")
+    information_count = fields.Integer(compute="_compute_control_counts")
+    technical_failure_count = fields.Integer(compute="_compute_control_counts")
     passed_count = fields.Integer(compute="_compute_control_counts")
     readiness_summary = fields.Text()
     actions_awaiting_valentin = fields.Text()
@@ -260,6 +328,14 @@ class RebuildAccountClosingPeriod(models.Model):
         for closing in self:
             closing.blocking_count = len(closing.control_line_ids.filtered(lambda line: line.status == "block"))
             closing.warning_count = len(closing.control_line_ids.filtered(lambda line: line.status == "warning"))
+            closing.information_count = len(
+                closing.control_line_ids.filtered(lambda line: line.status == "info"),
+            )
+            closing.technical_failure_count = len(
+                closing.control_line_ids.filtered(
+                    lambda line: line.status == "technical_error",
+                ),
+            )
             closing.passed_count = len(closing.control_line_ids.filtered(lambda line: line.status == "pass"))
 
     @api.depends("snapshot_ids")
@@ -362,36 +438,46 @@ class RebuildAccountClosingPeriod(models.Model):
     def _refresh_controls(self):
         self.ensure_one()
         Definition = self.env["rebuild.account.closing.control.definition"]
-        definitions = Definition._ensure_for_company(self.company_id)
-        controls = [
-            self._control_accounting_completeness(),
-            self._control_document_completeness(),
-            self._control_bank_reconciliation(),
-            self._control_partner_open_items(),
-            self._control_unusual_balances(),
-            self._control_tax_declarations(),
-            self._control_payroll(),
-            self._control_assets_deferrals(),
-            self._control_currency(),
-            self._control_analytic(),
-            self._control_issues(),
-            self._control_reports(),
-            self._control_fec(),
-            self._control_lock_dates(),
-        ]
-        definitions_by_code = {definition.code: definition for definition in definitions}
-        controls = [
-            {
+        definitions = Definition._ensure_for_company(self.company_id).filtered(
+            lambda definition: definition.enabled
+            and definition.applies_to_closing
+            and definition._applies_to_period_type(self.period_type),
+        )
+        evaluator_registry = self._closing_control_evaluator_registry()
+        controls = []
+        for definition in definitions:
+            evaluator_name = evaluator_registry.get(definition.evaluator_key)
+            try:
+                control = self._run_closing_control_evaluator(
+                    definition,
+                    evaluator_name,
+                )
+                control = definition._apply_result_policy(control)
+            except Exception as exc:  # noqa: BLE001 - persist a governed technical result.
+                control = self._control_values(
+                    definition.code,
+                    definition.category,
+                    definition.name,
+                    "technical_error",
+                    1,
+                    0.0,
+                    (
+                        "This control could not be evaluated. No accounting "
+                        f"failure is asserted. Technical error: {type(exc).__name__}: {exc}"
+                    ),
+                    "Ask a Technical Administrator to inspect the configured evaluator.",
+                    owner=definition.owner,
+                    accountant_visible=definition.accountant_visible,
+                )
+            controls.append({
                 **control,
-                "definition_id": definitions_by_code[control["code"]].id,
-                "sequence": definitions_by_code[control["code"]].sequence,
-                "category": definitions_by_code[control["code"]].category,
-                "name": definitions_by_code[control["code"]].name,
-                "owner": definitions_by_code[control["code"]].owner,
-            }
-            for control in controls
-            if definitions_by_code[control["code"]].enabled
-        ]
+                "definition_id": definition.id,
+                "sequence": definition.sequence,
+                "category": definition.category,
+                "name": definition.name,
+                "owner": definition.owner,
+                "accountant_visible": definition.accountant_visible,
+            })
         seen = set()
         Control = self.env["rebuild.account.closing.control"]
         for values in controls:
@@ -400,26 +486,63 @@ class RebuildAccountClosingPeriod(models.Model):
         self.control_line_ids.filtered(lambda line: line.code not in seen).unlink()
         blocking = [control for control in controls if control["status"] == "block"]
         warnings = [control for control in controls if control["status"] == "warning"]
-        readiness = "blocked" if blocking else "warning" if warnings else "ready"
+        technical_failures = [
+            control for control in controls if control["status"] == "technical_error"
+        ]
+        information = [control for control in controls if control["status"] == "info"]
+        passed_or_not_applicable = [
+            control
+            for control in controls
+            if control["status"] in {"pass", "not_applicable"}
+        ]
+        readiness = (
+            "blocked"
+            if blocking or technical_failures
+            else "warning"
+            if warnings
+            else "ready"
+        )
         actions = [
             control["next_action"]
-            for control in blocking + warnings
+            for control in blocking + technical_failures + warnings
             if control.get("owner") == "accounting_manager"
         ]
         accountant = [control["summary"] for control in controls if control.get("accountant_visible")]
         vals = {
             "readiness_status": readiness,
             "readiness_summary": (
-                f"{len(blocking)} blocking control(s), {len(warnings)} warning(s), "
-                f"{len(controls) - len(blocking) - len(warnings)} passed/not-applicable control(s)."
+                f"{len(blocking)} accounting blocker(s), "
+                f"{len(technical_failures)} technical failure(s), "
+                f"{len(warnings)} warning(s), {len(information)} information item(s), "
+                f"{len(passed_or_not_applicable)} passed/not-applicable control(s)."
             ),
             "actions_awaiting_valentin": "\n".join(actions),
             "accountant_information": "\n".join(accountant),
             "last_refreshed_at": fields.Datetime.now(),
         }
         if self.state in {"open", "preparing", "blocked", "internal_review"}:
-            vals["state"] = "blocked" if blocking else "internal_review"
+            vals["state"] = (
+                "blocked" if blocking or technical_failures else "internal_review"
+            )
         self.write(vals)
+
+    def _run_closing_control_evaluator(self, definition, evaluator_name):
+        if not evaluator_name or not hasattr(self, evaluator_name):
+            message = (
+                "No installed evaluator is registered for "
+                f"{definition.evaluator_key or definition.code}."
+            )
+            raise UserError(message)
+        return getattr(self, evaluator_name)()
+
+    @api.model
+    def _closing_control_evaluator_registry(self):
+        """Whitelisted evaluator extension point for installed modules."""
+        return {
+            code: f"_control_{code}"
+            for code, _category, _name, _description, _consequence, _owner
+            in CLOSING_CONTROL_DEFINITIONS
+        }
 
     def _control_values(self, code, category, name, status, count, amount, summary, next_action, owner="accounting_manager", accountant_visible=True):
         return {
@@ -685,13 +808,18 @@ class RebuildAccountClosingPeriod(models.Model):
             lambda issue: issue.severity == "1_blocking",
         )
         blocking_count = len(high) + len(blocking_hygiene)
-        issue_count = len(discrepancies) + len(hygiene_issues)
+        actionable_hygiene = hygiene_issues.filtered(
+            lambda issue: issue.severity != "4_information",
+        )
+        issue_count = len(discrepancies) + len(actionable_hygiene)
         return self._control_values(
             "issues", "issues", "Accounting Hygiene issues",
             "block" if blocking_count else "warning" if issue_count else "pass",
             issue_count, sum(hygiene_issues.mapped("amount")),
             (
-                f"{len(hygiene_issues)} actionable Hygiene issue(s) and "
+                f"{len(actionable_hygiene)} actionable and "
+                f"{len(hygiene_issues - actionable_hygiene)} informational "
+                "Hygiene result(s), plus "
                 f"{len(discrepancies)} migration discrepancy record(s); "
                 f"{blocking_count} blocking."
             ),
@@ -770,8 +898,11 @@ class RebuildAccountClosingPeriod(models.Model):
     def action_request_accountant_review(self):
         self.action_refresh_controls()
         for closing in self:
-            if closing.blocking_count:
-                message = "Resolve all blocking closing controls before requesting accountant review."
+            if closing.readiness_status == "blocked":
+                message = (
+                    "Resolve accounting blockers and technical control failures "
+                    "before requesting accountant review."
+                )
                 raise UserError(message)
         self.write({"state": "accountant_review", "review_status": "accountant_requested"})
         return True
@@ -783,9 +914,10 @@ class RebuildAccountClosingPeriod(models.Model):
             )
         self.action_refresh_controls()
         for closing in self:
-            if closing.blocking_count:
+            if closing.readiness_status == "blocked":
                 raise UserError(
-                    "Resolve all blocking controls before approving this workspace as ready to close.",
+                    "Resolve accounting blockers and technical control failures "
+                    "before approving this workspace as ready to close.",
                 )
         self.write({"state": "ready", "review_status": "internal_ready"})
         return True
@@ -820,8 +952,11 @@ class RebuildAccountClosingPeriod(models.Model):
             raise AccessError(message)
         for closing in self:
             closing.action_refresh_controls()
-            if closing.blocking_count:
-                message = "The period cannot close while blocking controls remain."
+            if closing.readiness_status == "blocked":
+                message = (
+                    "The period cannot close while accounting blockers or "
+                    "technical control failures remain."
+                )
                 raise UserError(message)
             if closing.review_status not in {"accepted", "accepted_with_difference"}:
                 message = "A recorded closing review decision is required before lock dates can be applied."
@@ -1122,7 +1257,7 @@ class RebuildAccountClosingSnapshot(models.Model):
 
 class RebuildAccountClosingControlDefinition(models.Model):
     _name = "rebuild.account.closing.control.definition"
-    _description = "Closing Control Configuration"
+    _description = "Accounting Control Configuration"
     _order = "company_id, sequence, code"
 
     _unique_closing_control_definition = models.Constraint(
@@ -1166,6 +1301,102 @@ class RebuildAccountClosingControlDefinition(models.Model):
             "refresh; it does not alter accounting records."
         ),
     )
+    applies_to_hygiene = fields.Boolean(
+        string="Accounting Hygiene",
+        help="Run this control when Accounting Hygiene is refreshed.",
+    )
+    applies_to_closing = fields.Boolean(
+        string="Closing Readiness",
+        help="Run this control when a matching closing workspace is refreshed.",
+    )
+    closing_period_scope = fields.Selection(
+        [
+            ("all", "All Closing Periods"),
+            ("month", "Month End Only"),
+            ("quarter", "Quarter End Only"),
+            ("annual", "Annual Close Only"),
+        ],
+        required=True,
+        default="all",
+        help="Limits closing execution without changing daily Hygiene execution.",
+    )
+    impact_policy = fields.Selection(
+        CLOSING_CONTROL_IMPACT_POLICIES,
+        required=True,
+        default="evaluator",
+        help=(
+            "Dynamic preserves the installed evaluator's contextual result. "
+            "The other choices consistently map every detected exception to "
+            "information, a warning or a readiness blocker."
+        ),
+    )
+    accountant_visible = fields.Boolean(
+        string="Include in Accountant Summary",
+        default=True,
+        help=(
+            "Include this control's summary in the accountant review text. "
+            "The structured control and result remain inspectable."
+        ),
+    )
+    expected_resolution = fields.Text(
+        required=True,
+        default=(
+            "Open the current result, correct or document the underlying "
+            "accounting condition, then refresh the control."
+        ),
+        help="Business-facing guidance shown to the person responsible for a failure.",
+    )
+    origin = fields.Selection(
+        [
+            ("odoo", "Standard Odoo"),
+            ("oca", "OCA Community"),
+            ("usl", "Unstatic Labs"),
+            ("company", "Company-specific"),
+        ],
+        required=True,
+        default="usl",
+        readonly=True,
+    )
+    source_module = fields.Char(required=True, default="rebuild_account_migration", readonly=True)
+    evaluator_key = fields.Char(
+        readonly=True,
+        help="Stable key resolved through the installed evaluator registry.",
+    )
+    technical_model = fields.Char(readonly=True)
+    technical_summary = fields.Text(
+        readonly=True,
+        help="Implementation boundary and important assumptions for technical review.",
+    )
+    closing_result_count = fields.Integer(compute="_compute_result_counts")
+    hygiene_result_count = fields.Integer(compute="_compute_result_counts")
+
+    @api.depends("company_id")
+    def _compute_result_counts(self):
+        ClosingResult = self.env["rebuild.account.closing.control"]
+        HygieneResult = self.env["rebuild.account.hygiene.issue"]
+        closing_groups = ClosingResult._read_group(
+            [("definition_id", "in", self.ids)],
+            ["definition_id"],
+            ["__count"],
+        ) if self.ids else []
+        hygiene_groups = HygieneResult._read_group(
+            [("definition_id", "in", self.ids)],
+            ["definition_id"],
+            ["__count"],
+        ) if self.ids else []
+        closing_counts = {definition.id: count for definition, count in closing_groups}
+        hygiene_counts = {definition.id: count for definition, count in hygiene_groups}
+        for definition in self:
+            definition.closing_result_count = closing_counts.get(definition.id, 0)
+            definition.hygiene_result_count = hygiene_counts.get(definition.id, 0)
+
+    @api.constrains("applies_to_hygiene", "applies_to_closing")
+    def _check_usage(self):
+        for definition in self:
+            if not definition.applies_to_hygiene and not definition.applies_to_closing:
+                raise UserError(
+                    "An Accounting Control must apply to Hygiene, Closing, or both.",
+                )
 
     @api.model
     def _ensure_for_company(self, company):
@@ -1179,38 +1410,176 @@ class RebuildAccountClosingControlDefinition(models.Model):
         for sequence, values in enumerate(CLOSING_CONTROL_DEFINITIONS, start=1):
             code, category, name, description, consequence, owner = values
             if code in existing:
+                updates = {}
+                if not existing[code].evaluator_key:
+                    updates["evaluator_key"] = code
+                if not existing[code].applies_to_closing:
+                    updates["applies_to_closing"] = True
+                if updates:
+                    existing[code].with_context(
+                        accounting_control_seed=True,
+                    ).write(updates)
                 continue
             existing[code] = self.create({
                 "company_id": company.id,
                 "sequence": sequence * 10,
                 "code": code,
+                "evaluator_key": code,
                 "category": category,
                 "name": name,
                 "description": description,
                 "accounting_consequence": consequence,
                 "owner": owner,
+                "applies_to_closing": True,
+                "expected_resolution": (
+                    "Open the current closing result, resolve or document the "
+                    "underlying condition, then refresh readiness."
+                ),
+                "technical_model": "rebuild.account.closing.period",
+                "technical_summary": (
+                    f"Python-backed closing evaluator registered as {code}. "
+                    "It reads company-scoped accounting records for the "
+                    "workspace dates and does not post or alter journal entries."
+                ),
+            })
+        next_sequence = (len(CLOSING_CONTROL_DEFINITIONS) + 1) * 10
+        for offset, values in enumerate(HYGIENE_CONTROL_DEFINITIONS):
+            code, category, name, description, consequence, owner = values
+            if code in existing:
+                continue
+            existing[code] = self.create({
+                "company_id": company.id,
+                "sequence": next_sequence + offset * 10,
+                "code": code,
+                "evaluator_key": "builtin_hygiene",
+                "category": category,
+                "name": name,
+                "description": description,
+                "accounting_consequence": consequence,
+                "owner": owner,
+                "applies_to_hygiene": True,
+                "expected_resolution": (
+                    "Open the affected records, resolve or document the "
+                    "underlying condition, then refresh Accounting Hygiene."
+                ),
+                "technical_model": "rebuild.account.hygiene.issue",
+                "technical_summary": (
+                    "Python-backed deterministic Hygiene evaluator. Results "
+                    "retain first/last detection, resolution and source links."
+                ),
             })
         return self.search([("company_id", "=", company.id)])
 
+    def write(self, vals):
+        business_fields = {
+            "enabled",
+            "name",
+            "category",
+            "description",
+            "accounting_consequence",
+            "owner",
+            "applies_to_hygiene",
+            "applies_to_closing",
+            "closing_period_scope",
+            "impact_policy",
+            "accountant_visible",
+            "expected_resolution",
+            "sequence",
+        }
+        if (
+            business_fields & set(vals)
+            and not self.env.context.get("accounting_control_seed")
+        ):
+            vals = {**vals, "origin": "company"}
+        return super().write(vals)
+
+    def _applies_to_period_type(self, period_type):
+        self.ensure_one()
+        return self.closing_period_scope in {"all", period_type}
+
+    def _apply_result_policy(self, values):
+        self.ensure_one()
+        status = values["status"]
+        if (
+            self.impact_policy != "evaluator"
+            and status not in {"pass", "not_applicable", "technical_error"}
+        ):
+            status = {
+                "informational": "info",
+                "advisory": "warning",
+                "blocking": "block",
+            }[self.impact_policy]
+        return {
+            **values,
+            "status": status,
+            "next_action": values.get("next_action") or self.expected_resolution,
+        }
+
+    def _apply_hygiene_policy(self, values):
+        self.ensure_one()
+        if self.impact_policy == "evaluator":
+            severity = values["severity"]
+        else:
+            severity = {
+                "informational": "4_information",
+                "advisory": "2_warning",
+                "blocking": "1_blocking",
+            }[self.impact_policy]
+        return {
+            **values,
+            "definition_id": self.id,
+            "control_code": self.code,
+            "severity": severity,
+            "owner_role": self.owner,
+        }
+
     def action_refresh_open_workspaces(self):
+        if not self.env.user.has_group("account.group_account_manager"):
+            message = (
+                "Only an Accounting Manager can refresh configured "
+                "Accounting Controls."
+            )
+            raise AccessError(message)
         companies = self.company_id if self else self.env.companies
         closings = self.env["rebuild.account.closing.period"].search([
             ("company_id", "in", companies.ids),
             ("state", "not in", ["closed", "archived"]),
         ])
         closings.action_refresh_controls()
+        for company in companies:
+            self.env["rebuild.account.hygiene.issue"].sync_for_company(company)
         return {
             "type": "ir.actions.client",
             "tag": "display_notification",
             "params": {
-                "title": "Closing controls refreshed",
+                "title": "Accounting controls refreshed",
                 "message": (
-                    f"{len(closings)} open closing workspace(s) now use the "
-                    "current configuration."
+                    f"Accounting Hygiene and {len(closings)} open closing "
+                    "workspace(s) now use the current configuration."
                 ),
                 "type": "success",
                 "sticky": False,
             },
+        }
+
+    def action_open_closing_results(self):
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Closing Control Results",
+            "res_model": "rebuild.account.closing.control",
+            "view_mode": "list",
+            "domain": [("definition_id", "in", self.ids)],
+            "context": {"create": False, "delete": False},
+        }
+
+    def action_open_hygiene_results(self):
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Accounting Hygiene Results",
+            "res_model": "rebuild.account.hygiene.issue",
+            "view_mode": "list,form",
+            "domain": [("definition_id", "in", self.ids)],
+            "context": {"create": False, "delete": False},
         }
 
 
@@ -1236,8 +1605,24 @@ class RebuildAccountClosingControl(models.Model):
     category = fields.Selection(CLOSING_CONTROL_CATEGORIES, required=True, index=True)
     name = fields.Char(required=True)
     status = fields.Selection(
-        [("pass", "Passed"), ("warning", "Warning"), ("block", "Blocking"), ("not_applicable", "Not Applicable")],
+        [
+            ("pass", "Passed"),
+            ("info", "Information"),
+            ("warning", "Warning"),
+            ("block", "Blocking"),
+            ("technical_error", "Technical Failure"),
+            ("not_applicable", "Not Applicable"),
+        ],
         required=True,
+        index=True,
+    )
+    result_kind = fields.Selection(
+        [
+            ("accounting", "Accounting Result"),
+            ("technical", "Technical Failure"),
+        ],
+        compute="_compute_result_kind",
+        store=True,
         index=True,
     )
     record_count = fields.Integer()
@@ -1252,6 +1637,13 @@ class RebuildAccountClosingControl(models.Model):
     )
     accountant_visible = fields.Boolean(default=True)
 
+    @api.depends("status")
+    def _compute_result_kind(self):
+        for control in self:
+            control.result_kind = (
+                "technical" if control.status == "technical_error" else "accounting"
+            )
+
     @api.model
     def _upsert(self, closing, code, vals):
         control = self.search([("closing_period_id", "=", closing.id), ("code", "=", code)], limit=1)
@@ -1265,6 +1657,16 @@ class RebuildAccountClosingControl(models.Model):
     def action_open_records(self):
         self.ensure_one()
         closing = self.closing_period_id
+        if self.status == "technical_error" and self.definition_id:
+            return {
+                "type": "ir.actions.act_window",
+                "name": "Accounting Control",
+                "res_model": "rebuild.account.closing.control.definition",
+                "res_id": self.definition_id.id,
+                "view_mode": "form",
+                "target": "current",
+                "context": {"create": False, "delete": False},
+            }
         if self.code == "accounting_completeness":
             return self._action("Draft Journal Entries", "account.move", [
                 ("company_id", "=", self.company_id.id), ("date", ">=", closing.date_from),

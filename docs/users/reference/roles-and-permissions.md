@@ -2,13 +2,23 @@
 
 ## Accounting manager
 
-Can inspect all accounting, create and edit documents, post, pay, reconcile, configure, prepare declarations, manage closing and generate final or test FEC files.
+Can inspect all accounting, create and edit documents, post, pay, reconcile,
+configure Accounting Controls, prepare declarations, manage closing and
+generate final or test FEC files.
 
 ## Read-only accountant
 
-Can inspect documents, evidence, journal entries and reconciliations; filter and drill into reports; download PDF/XLSX; inspect declarations and closing material; and generate a complete posted test FEC.
+Can inspect documents, evidence, journal entries and reconciliations; filter and
+drill into reports; download PDF/XLSX; inspect Accounting Controls and their
+current or historical results; inspect declarations and closing material; and
+generate a complete posted test FEC.
 
 This role cannot create or edit accounting, post, pay, reconcile, configure, lock periods or mark declarations and closing complete.
+
+## Technical administrator
+
+Can inspect the evaluator key, source module and technical boundary behind a
+control. Business configuration does not allow arbitrary Python execution.
 
 ## Company access
 

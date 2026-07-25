@@ -16,6 +16,14 @@ class RebuildAccountHygieneIssue(models.Model):
     )
 
     issue_key = fields.Char(required=True, index=True, readonly=True)
+    definition_id = fields.Many2one(
+        "rebuild.account.closing.control.definition",
+        string="Accounting Control",
+        index=True,
+        ondelete="restrict",
+        readonly=True,
+    )
+    control_code = fields.Char(index=True, readonly=True)
     company_id = fields.Many2one(
         "res.company",
         required=True,
@@ -30,6 +38,7 @@ class RebuildAccountHygieneIssue(models.Model):
             ("evidence", "Missing Evidence"),
             ("analytic", "Analytic Allocation"),
             ("duplicate", "Possible Duplicate"),
+            ("technical", "Technical Failure"),
         ],
         required=True,
         index=True,
@@ -39,6 +48,7 @@ class RebuildAccountHygieneIssue(models.Model):
             ("1_blocking", "Blocking"),
             ("2_warning", "Warning"),
             ("3_attention", "Attention"),
+            ("4_information", "Information"),
         ],
         required=True,
         index=True,
@@ -66,6 +76,16 @@ class RebuildAccountHygieneIssue(models.Model):
         ],
         required=True,
         default="high",
+    )
+    result_kind = fields.Selection(
+        [
+            ("accounting", "Accounting Result"),
+            ("technical", "Technical Failure"),
+        ],
+        required=True,
+        default="accounting",
+        index=True,
+        readonly=True,
     )
     owner_role = fields.Selection(
         [
@@ -99,6 +119,7 @@ class RebuildAccountHygieneIssue(models.Model):
         self,
         company,
         issue_key,
+        control_code,
         issue_type,
         severity,
         title,
@@ -117,6 +138,7 @@ class RebuildAccountHygieneIssue(models.Model):
     ):
         return {
             "issue_key": issue_key,
+            "control_code": control_code,
             "company_id": company.id,
             "issue_type": issue_type,
             "severity": severity,
@@ -138,7 +160,7 @@ class RebuildAccountHygieneIssue(models.Model):
         }
 
     @api.model
-    def _candidate_values(self, company):
+    def _evaluate_builtin_hygiene(self, company):
         now = fields.Date.context_today(self)
         cutoff = date_utils.subtract(now, days=30)
         candidates = []
@@ -153,6 +175,7 @@ class RebuildAccountHygieneIssue(models.Model):
             candidates.append(self._issue_values(
                 company,
                 "bank:unmatched",
+                "hygiene_bank_unmatched",
                 "reconciliation",
                 "2_warning",
                 f"Match {len(bank_lines)} bank transactions",
@@ -187,6 +210,7 @@ class RebuildAccountHygieneIssue(models.Model):
             candidates.append(self._issue_values(
                 company,
                 "vendor-evidence:missing",
+                "hygiene_vendor_evidence",
                 "evidence",
                 "2_warning",
                 f"Add evidence to {len(missing_vendor_evidence)} supplier documents",
@@ -216,6 +240,7 @@ class RebuildAccountHygieneIssue(models.Model):
             candidates.append(self._issue_values(
                 company,
                 "stale-draft:documents",
+                "hygiene_stale_documents",
                 "draft",
                 "3_attention",
                 f"Finish or discard {len(stale_documents)} stale draft documents",
@@ -248,6 +273,7 @@ class RebuildAccountHygieneIssue(models.Model):
             candidates.append(self._issue_values(
                 company,
                 "expense-evidence:missing",
+                "hygiene_expense_evidence",
                 "evidence",
                 "2_warning",
                 f"Add receipts to {len(missing_expense_evidence)} expenses",
@@ -275,6 +301,7 @@ class RebuildAccountHygieneIssue(models.Model):
             candidates.append(self._issue_values(
                 company,
                 "stale-expense:workflow",
+                "hygiene_stale_expenses",
                 "draft",
                 "3_attention",
                 f"Continue {len(stale_expenses)} stale expense workflows",
@@ -306,6 +333,7 @@ class RebuildAccountHygieneIssue(models.Model):
             candidates.append(self._issue_values(
                 company,
                 "analytic:unallocated",
+                "hygiene_analytic_allocation",
                 "analytic",
                 "3_attention",
                 f"Review analytic allocation on {len(analytic_lines)} journal items",
@@ -344,6 +372,7 @@ class RebuildAccountHygieneIssue(models.Model):
             candidates.append(self._issue_values(
                 company,
                 "duplicate:" + "-".join(str(record_id) for record_id in sorted(group.ids)),
+                "hygiene_duplicate_documents",
                 "duplicate",
                 "2_warning",
                 f"Review {len(group)} possible duplicate supplier documents",
@@ -360,6 +389,73 @@ class RebuildAccountHygieneIssue(models.Model):
                 target_res_ids=group.ids,
             ))
         return candidates
+
+    @api.model
+    def _hygiene_evaluator_registry(self):
+        """Whitelisted evaluator extension point for installed modules."""
+        return {"builtin_hygiene": "_evaluate_builtin_hygiene"}
+
+    @api.model
+    def _candidate_values(self, company):
+        Definition = self.env["rebuild.account.closing.control.definition"]
+        definitions = Definition._ensure_for_company(company).filtered(
+            lambda definition: (
+                definition.enabled and definition.applies_to_hygiene
+            ),
+        )
+        definitions_by_code = {
+            definition.code: definition for definition in definitions
+        }
+        evaluator_registry = self._hygiene_evaluator_registry()
+        candidates = []
+        for evaluator_key in set(definitions.mapped("evaluator_key")):
+            evaluator_name = evaluator_registry.get(evaluator_key)
+            evaluator_definitions = definitions.filtered(
+                lambda definition: definition.evaluator_key == evaluator_key,
+            )
+            try:
+                evaluated = self._run_hygiene_evaluator(
+                    evaluator_key,
+                    evaluator_name,
+                    company,
+                )
+            except Exception as exc:  # noqa: BLE001 - persist governed technical results.
+                for definition in evaluator_definitions:
+                    values = self._issue_values(
+                        company,
+                        f"technical:{definition.code}",
+                        definition.code,
+                        "technical",
+                        "1_blocking",
+                        f"{definition.name} could not run",
+                        "The configured control evaluator failed before it could determine whether an accounting issue exists.",
+                        "A technical failure is not an accounting failure, but readiness cannot rely on a control that did not run.",
+                        "Ask a Technical Administrator to inspect the evaluator and retry the control.",
+                        "No accounting conclusion was produced.",
+                        f"{type(exc).__name__}: {exc}",
+                        definition,
+                        owner_role="accounting_manager",
+                    )
+                    candidates.append({
+                        **values,
+                        "definition_id": definition.id,
+                        "result_kind": "technical",
+                    })
+                continue
+            for values in evaluated:
+                definition = definitions_by_code.get(values["control_code"])
+                if definition:
+                    candidates.append(definition._apply_hygiene_policy(values))
+        return candidates
+
+    @api.model
+    def _run_hygiene_evaluator(self, evaluator_key, evaluator_name, company):
+        if not evaluator_name or not hasattr(self, evaluator_name):
+            message = (
+                f"No installed evaluator is registered for {evaluator_key}."
+            )
+            raise UserError(message)
+        return getattr(self, evaluator_name)(company)
 
     @api.model
     def sync_for_company(self, company):
