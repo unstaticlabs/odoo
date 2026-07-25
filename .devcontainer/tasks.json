@@ -1,0 +1,44 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Odoo: start",
+      "type": "shell",
+      "command": "odoo --config=/etc/odoo/odoo.conf",
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "Odoo: init database",
+      "type": "shell",
+      "command": "odoo --config=/etc/odoo/odoo.conf --database=${input:database} --init=${input:module} --without-demo=true --stop-after-init",
+      "problemMatcher": []
+    },
+    {
+      "label": "Python: ruff check",
+      "type": "shell",
+      "command": "ruff check odoo addons custom-addons",
+      "problemMatcher": []
+    },
+    {
+      "label": "Odoo: run tests",
+      "type": "shell",
+      "command": "odoo --config=/etc/odoo/odoo.conf --database=${input:database} --test-enable --stop-after-init --init=${input:module}",
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "database",
+      "type": "promptString",
+      "description": "Database name",
+      "default": "odoo_dev"
+    },
+    {
+      "id": "module",
+      "type": "promptString",
+      "description": "Module",
+      "default": "base"
+    }
+  ]
+}
