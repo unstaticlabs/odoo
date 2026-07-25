@@ -666,13 +666,13 @@ class TestRebuildAccountMigration(TransactionCase):
             [
                 (
                     self.env.ref(
-                        "rebuild_account_migration.view_rebuild_account_hygiene_list",
+                        "rebuild_account_migration.view_rebuild_account_hygiene_issue_list",
                     ).id,
                     "list",
                 ),
                 (
                     self.env.ref(
-                        "rebuild_account_migration.view_rebuild_account_hygiene_form",
+                        "rebuild_account_migration.view_rebuild_account_hygiene_issue_form",
                     ).id,
                     "form",
                 ),

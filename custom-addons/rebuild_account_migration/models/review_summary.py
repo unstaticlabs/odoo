@@ -147,6 +147,10 @@ class RebuildAccountReviewSummary(models.Model):
         string="Items Requiring Attention",
         readonly=True,
     )
+    hygiene_issue_count = fields.Integer(
+        string="Open Actionable Issues",
+        compute="_compute_hygiene_issue_count",
+    )
     hygiene_status = fields.Selection(
         [
             ("ready", "Ready"),
@@ -189,6 +193,14 @@ class RebuildAccountReviewSummary(models.Model):
         ],
         readonly=True,
     )
+
+    def _compute_hygiene_issue_count(self):
+        Issue = self.env["rebuild.account.hygiene.issue"]
+        for summary in self:
+            summary.hygiene_issue_count = Issue.search_count([
+                ("company_id", "=", summary.company_id.id),
+                ("status", "=", "open"),
+            ])
 
     @api.model
     def action_open_accounting_home(self):
@@ -371,9 +383,29 @@ class RebuildAccountReviewSummary(models.Model):
             raise AccessError(message)
         if self.latest_closing_period_id:
             self.latest_closing_period_id.action_refresh_controls()
+        else:
+            self.env["rebuild.account.hygiene.issue"].sync_for_company(
+                self.company_id,
+            )
         return {
             "type": "ir.actions.client",
             "tag": "reload",
+        }
+
+    def action_open_hygiene_issues(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Accounting Hygiene",
+            "res_model": "rebuild.account.hygiene.issue",
+            "view_mode": "list,form",
+            "views": [(False, "list"), (False, "form")],
+            "domain": [("company_id", "=", self.company_id.id)],
+            "context": {
+                "create": False,
+                "delete": False,
+                "search_default_open": 1,
+            },
         }
 
     def action_open_open_receivables(self):

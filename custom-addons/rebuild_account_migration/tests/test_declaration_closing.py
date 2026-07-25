@@ -10,6 +10,10 @@ from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError
 from odoo.tests import TransactionCase, tagged
 
+from odoo.addons.rebuild_account_migration.models.closing import (
+    CLOSING_CONTROL_DEFINITIONS,
+)
+
 
 @tagged("post_install", "-at_install", "rebuild_account_migration_unit")
 class TestDeclarationAndClosing(TransactionCase):
@@ -490,7 +494,7 @@ class TestDeclarationAndClosing(TransactionCase):
         self.assertEqual(control_values["status"], "warning")
         self.assertEqual(control_values["record_count"], 3)
         self.assertEqual(control_values["amount"], 220.0)
-        self.assertEqual(control_values["owner"], "operator")
+        self.assertEqual(control_values["owner"], "finance_operator")
         self.assertEqual(
             contra_asset._rebuild_hygiene_expected_balance_side(),
             "credit",
@@ -523,6 +527,126 @@ class TestDeclarationAndClosing(TransactionCase):
         self.assertGreaterEqual(hygiene.hygiene_attention_count, 3)
         hygiene_action = hygiene.action_open_unusual_balances()
         self.assertEqual(hygiene_action["res_model"], "account.move.line")
+
+    def test_closing_controls_are_company_configurable(self):
+        company = self._company("Configurable Closing Controls")
+        closing = self.env["rebuild.account.closing.period"].with_company(
+            company,
+        ).create({
+            "name": "Configurable January close",
+            "company_id": company.id,
+            "period_type": "month",
+            "date_from": "2026-01-01",
+            "date_to": "2026-01-31",
+            "fiscalyear_start": "2025-10-01",
+            "fiscalyear_end": "2026-09-30",
+        })
+
+        closing.action_refresh_controls()
+        definitions = self.env[
+            "rebuild.account.closing.control.definition"
+        ].search([("company_id", "=", company.id)])
+        self.assertEqual(
+            {definition.code for definition in definitions},
+            {values[0] for values in CLOSING_CONTROL_DEFINITIONS},
+        )
+        bank_definition = definitions.filtered(
+            lambda definition: definition.code == "bank_reconciliation",
+        )
+        bank_definition.write({
+            "enabled": False,
+            "owner": "accountant_reviewer",
+        })
+        closing.action_refresh_controls()
+        self.assertFalse(
+            closing.control_line_ids.filtered(
+                lambda line: line.code == "bank_reconciliation",
+            ),
+        )
+        bank_definition.enabled = True
+        closing.action_refresh_controls()
+        bank_control = closing.control_line_ids.filtered(
+            lambda line: line.code == "bank_reconciliation",
+        )
+        self.assertEqual(bank_control.owner, "accountant_reviewer")
+        self.assertEqual(bank_control.definition_id, bank_definition)
+
+    def test_hygiene_issues_link_sources_and_auto_resolve(self):
+        company = self._company("Actionable Hygiene Company")
+        expense_account = self._account(
+            company,
+            "606100",
+            "Supplies",
+            "expense",
+        )
+        payable_account = self._account(
+            company,
+            "401100",
+            "Suppliers",
+            "liability_payable",
+            True,
+        )
+        journal = self.env["account.journal"].with_company(company).create({
+            "name": "Hygiene Purchases",
+            "code": "HYP",
+            "type": "purchase",
+            "company_id": company.id,
+            "default_account_id": expense_account.id,
+        })
+        partner = self.env["res.partner"].with_company(company).create({
+            "name": "Hygiene Supplier",
+            "company_id": company.id,
+            "property_account_payable_id": payable_account.id,
+        })
+        bill = self.env["account.move"].with_company(company).create({
+            "move_type": "in_invoice",
+            "company_id": company.id,
+            "journal_id": journal.id,
+            "partner_id": partner.id,
+            "invoice_date": "2025-10-01",
+            "date": "2025-10-01",
+            "invoice_line_ids": [
+                Command.create({
+                    "name": "Office supplies",
+                    "account_id": expense_account.id,
+                    "quantity": 1,
+                    "price_unit": 120.0,
+                }),
+            ],
+        })
+
+        Issue = self.env["rebuild.account.hygiene.issue"].with_company(company)
+        Issue.sync_for_company(company)
+        bill_issues = Issue.search([
+            ("company_id", "=", company.id),
+            ("target_model", "=", "account.move"),
+            ("target_res_id", "=", bill.id),
+            ("status", "=", "open"),
+        ])
+        self.assertEqual(
+            set(bill_issues.mapped("issue_type")),
+            {"draft", "evidence"},
+        )
+        evidence_issue = bill_issues.filtered(
+            lambda issue: issue.issue_type == "evidence",
+        )
+        self.assertEqual(evidence_issue.confidence, "high")
+        self.assertEqual(evidence_issue.owner_role, "finance_operator")
+        source_action = evidence_issue.action_open_source()
+        self.assertEqual(source_action["res_model"], "account.move")
+        self.assertEqual(source_action["res_id"], bill.id)
+
+        bill.button_cancel()
+        Issue.sync_for_company(company)
+        self.assertFalse(
+            Issue.search_count([
+                ("id", "in", bill_issues.ids),
+                ("status", "=", "open"),
+            ]),
+        )
+        self.assertTrue(
+            all(issue.resolved_at for issue in bill_issues),
+        )
 
     def test_confirmed_vat_refund_reclassification_is_balanced_and_idempotent(self):
         company = self._company("VAT Reclassification Company")

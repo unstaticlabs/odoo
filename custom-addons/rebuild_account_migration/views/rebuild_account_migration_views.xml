@@ -704,6 +704,13 @@
                 <header>
                     <button name="action_open_journal_dashboard" type="object" string="Journals"/>
                     <button name="action_open_bank_matching" type="object" string="Bank Matching"/>
+                    <button name="action_open_hygiene_issues" type="object" string="Accounting Hygiene"/>
+                    <button
+                        name="action_refresh_hygiene"
+                        type="object"
+                        string="Refresh Hygiene"
+                        groups="account.group_account_manager"
+                        title="Re-run deterministic Hygiene and closing controls from the current accounting records. No accounting entry is posted or changed."/>
                     <button name="action_open_user_guide" type="object" string="User Guide"/>
                     <button
                         name="action_open_accounting_settings"
@@ -750,8 +757,8 @@
                         <button name="action_open_expenses" type="object" class="oe_stat_button" icon="fa-credit-card">
                             <field name="draft_expense_count" widget="statinfo" string="Expenses to Process"/>
                         </button>
-                        <button name="action_open_open_discrepancies" type="object" class="oe_stat_button" icon="fa-exclamation-triangle">
-                            <field name="open_discrepancy_count" widget="statinfo" string="Open Issues"/>
+                        <button name="action_open_hygiene_issues" type="object" class="oe_stat_button" icon="fa-exclamation-triangle">
+                            <field name="hygiene_issue_count" widget="statinfo" string="Hygiene Issues"/>
                         </button>
                     </div>
                     <div class="o_usl_accounting_overview">
@@ -817,6 +824,31 @@
                                         </span>
                                         <div class="o_usl_overview_detail"><field name="open_payable_count" nolabel="1"/> open supplier items.</div>
                                         <button name="action_open_open_payables" type="object" string="Review payables" class="btn-link"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="o_usl_overview_section">
+                            <h3 class="o_usl_overview_section_title">Accounting Hygiene</h3>
+                            <div class="row g-3">
+                                <div class="col-12 col-md-6">
+                                    <div class="o_usl_overview_card">
+                                        <div class="o_usl_overview_status">
+                                            <h4 class="o_usl_overview_card_title">Actionable issues</h4>
+                                            <field name="hygiene_status" nolabel="1" widget="badge"/>
+                                        </div>
+                                        <span class="o_usl_overview_value"><field name="hygiene_issue_count" nolabel="1"/></span>
+                                        <div class="o_usl_overview_detail">Deterministic recommendations linked directly to records that need review.</div>
+                                        <button name="action_open_hygiene_issues" type="object" string="Review Accounting Hygiene" class="btn-link"/>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <div class="o_usl_overview_card">
+                                        <h4 class="o_usl_overview_card_title">Evidence follow-up</h4>
+                                        <span class="o_usl_overview_value"><field name="missing_vendor_attachment_count" nolabel="1"/></span>
+                                        <div class="o_usl_overview_detail">Supplier documents currently missing their primary evidence.</div>
+                                        <button name="action_open_missing_vendor_attachments" type="object" string="Review missing evidence" class="btn-link"/>
                                     </div>
                                 </div>
                             </div>
@@ -1004,7 +1036,8 @@
                     <button
                         name="action_refresh_hygiene"
                         type="object"
-                        string="Refresh Controls"
+                        string="Refresh Hygiene"
+                        title="Re-run deterministic Hygiene and closing controls from the current accounting records. No accounting entry is posted or changed."
                         groups="account.group_account_manager"/>
                     <button name="action_open_bank_matching" type="object" string="Bank Matching"/>
                     <button
@@ -1012,7 +1045,7 @@
                         type="object"
                         string="Current Closing Controls"
                         invisible="not latest_closing_period_id"/>
-                    <button name="action_open_open_discrepancies" type="object" string="Open Issues"/>
+                    <button name="action_open_hygiene_issues" type="object" string="Actionable Issues"/>
                     <button name="action_open_user_guide" type="object" string="User Guide"/>
                 </header>
                 <sheet>
@@ -1055,8 +1088,8 @@
                         <button name="action_open_unusual_balances" type="object" class="oe_stat_button" icon="fa-balance-scale">
                             <field name="unusual_balance_count" widget="statinfo" string="Unusual Balances"/>
                         </button>
-                        <button name="action_open_open_discrepancies" type="object" class="oe_stat_button" icon="fa-exclamation-triangle">
-                            <field name="open_discrepancy_count" widget="statinfo" string="Open Issues"/>
+                        <button name="action_open_hygiene_issues" type="object" class="oe_stat_button" icon="fa-exclamation-triangle">
+                            <field name="hygiene_issue_count" widget="statinfo" string="Actionable Issues"/>
                         </button>
                     </div>
                     <group>
@@ -1140,13 +1173,123 @@
         </field>
     </record>
 
+    <record id="view_rebuild_account_hygiene_issue_search" model="ir.ui.view">
+        <field name="name">rebuild.account.hygiene.issue.search</field>
+        <field name="model">rebuild.account.hygiene.issue</field>
+        <field name="arch" type="xml">
+            <search string="Accounting Hygiene">
+                <field name="title"/>
+                <field name="source_label"/>
+                <field name="company_id"/>
+                <field name="issue_type"/>
+                <field name="owner_user_id"/>
+                <filter name="open" string="Open" domain="[('status', '=', 'open')]"/>
+                <filter name="resolved" string="Resolved" domain="[('status', '=', 'resolved')]"/>
+                <filter name="dismissed" string="Dismissed" domain="[('status', '=', 'dismissed')]"/>
+                <separator/>
+                <filter name="blocking" string="Blocking" domain="[('severity', '=', '1_blocking')]"/>
+                <filter name="warning" string="Warnings" domain="[('severity', '=', '2_warning')]"/>
+                <filter name="unassigned" string="Unassigned" domain="[('owner_user_id', '=', False)]"/>
+                <separator/>
+                <filter name="group_type" string="Issue Type" context="{'group_by': 'issue_type'}"/>
+                <filter name="group_role" string="Responsible Role" context="{'group_by': 'owner_role'}"/>
+                <filter name="group_status" string="Status" context="{'group_by': 'status'}"/>
+                <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_rebuild_account_hygiene_issue_list" model="ir.ui.view">
+        <field name="name">rebuild.account.hygiene.issue.list</field>
+        <field name="model">rebuild.account.hygiene.issue</field>
+        <field name="arch" type="xml">
+            <list create="false" delete="false" decoration-danger="severity == '1_blocking' and status == 'open'" decoration-warning="severity == '2_warning' and status == 'open'" decoration-muted="status != 'open'">
+                <field name="severity" widget="badge"/>
+                <field name="title"/>
+                <field name="issue_type"/>
+                <field name="issue_date"/>
+                <field name="amount" optional="show"/>
+                <field name="owner_role"/>
+                <field name="owner_user_id" optional="show"/>
+                <field name="confidence" optional="hide"/>
+                <field name="status" widget="badge"/>
+                <button name="action_open_source" type="object" string="Open Source" icon="fa-external-link" title="Open the accounting record that needs review. This does not modify it."/>
+                <button name="action_check_resolution" type="object" string="Check" icon="fa-check-circle" groups="account.group_account_manager" invisible="status != 'open'" title="Re-run the deterministic control. The issue resolves only when its underlying condition is fixed."/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_rebuild_account_hygiene_issue_form" model="ir.ui.view">
+        <field name="name">rebuild.account.hygiene.issue.form</field>
+        <field name="model">rebuild.account.hygiene.issue</field>
+        <field name="arch" type="xml">
+            <form create="false" delete="false">
+                <header>
+                    <button name="action_open_source" type="object" string="Open Source Record" class="btn-primary" title="Open the document, transaction, expense or journal item that caused this issue."/>
+                    <button name="action_check_resolution" type="object" string="Check Resolution" groups="account.group_account_manager" invisible="status != 'open'" title="Re-run the control and resolve this issue only if the accounting condition has been fixed."/>
+                    <button name="action_dismiss" type="object" string="Dismiss" groups="account.group_account_manager" invisible="status != 'open'" confirm="Dismiss this issue without changing the underlying accounting record? It remains traceable and can be reviewed later." title="Record that this deterministic signal has been reviewed and deliberately dismissed."/>
+                    <field name="status" widget="statusbar" statusbar_visible="open,resolved,dismissed"/>
+                </header>
+                <sheet>
+                    <field name="currency_id" invisible="1"/>
+                    <widget name="web_ribbon" title="Resolved" bg_color="text-bg-success" invisible="status != 'resolved'"/>
+                    <widget name="web_ribbon" title="Dismissed" bg_color="text-bg-secondary" invisible="status != 'dismissed'"/>
+                    <div class="oe_title">
+                        <h1><field name="title"/></h1>
+                        <h2><field name="source_label" readonly="1"/></h2>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="company_id" readonly="1" groups="base.group_multi_company"/>
+                            <field name="issue_type" readonly="1"/>
+                            <field name="severity" widget="badge" readonly="1"/>
+                            <field name="issue_date" readonly="1"/>
+                            <field name="amount" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="owner_role"/>
+                            <field name="owner_user_id" options="{'no_create': True}"/>
+                            <field name="confidence" readonly="1"/>
+                            <field name="first_detected_at" readonly="1"/>
+                            <field name="last_detected_at" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="What needs attention">
+                        <field name="description" nolabel="1" readonly="1"/>
+                    </group>
+                    <group string="Why it matters">
+                        <field name="why_it_matters" nolabel="1" readonly="1"/>
+                    </group>
+                    <group string="Recommended next action">
+                        <field name="recommended_action" nolabel="1" readonly="1"/>
+                    </group>
+                    <group string="Accounting consequence">
+                        <field name="accounting_consequence" nolabel="1" readonly="1"/>
+                    </group>
+                    <group string="Evidence used by this control">
+                        <field name="evidence" nolabel="1" readonly="1"/>
+                    </group>
+                    <group string="Resolution history" invisible="status == 'open'">
+                        <field name="resolved_at" readonly="1" invisible="status != 'resolved'"/>
+                        <field name="dismissed_at" readonly="1" invisible="status != 'dismissed'"/>
+                        <field name="dismissed_by_id" readonly="1" invisible="status != 'dismissed'"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
     <record id="action_rebuild_account_hygiene" model="ir.actions.act_window">
         <field name="name">Accounting Hygiene</field>
-        <field name="res_model">rebuild.account.review.summary</field>
+        <field name="res_model">rebuild.account.hygiene.issue</field>
         <field name="view_mode">list,form</field>
-        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'list', 'view_id': ref('view_rebuild_account_hygiene_list')}), (0, 0, {'view_mode': 'form', 'view_id': ref('view_rebuild_account_hygiene_form')})]"/>
-        <field name="search_view_id" ref="view_rebuild_account_hygiene_search"/>
-        <field name="context">{'search_default_group_hygiene_status': 1}</field>
+        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'list', 'view_id': ref('view_rebuild_account_hygiene_issue_list')}), (0, 0, {'view_mode': 'form', 'view_id': ref('view_rebuild_account_hygiene_issue_form')})]"/>
+        <field name="search_view_id" ref="view_rebuild_account_hygiene_issue_search"/>
+        <field name="context">{'search_default_open': 1, 'create': False, 'delete': False}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No open Accounting Hygiene issue.</p>
+            <p>Use Refresh Hygiene from Overview after accounting records change.</p>
+        </field>
     </record>
 
     <record id="view_rebuild_account_import_run_list" model="ir.ui.view">

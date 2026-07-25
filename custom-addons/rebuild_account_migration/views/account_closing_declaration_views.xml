@@ -300,6 +300,86 @@
         <field name="context">{'create': False, 'delete': False}</field>
     </record>
 
+    <record id="view_rebuild_account_closing_control_definition_list" model="ir.ui.view">
+        <field name="name">rebuild.account.closing.control.definition.list</field>
+        <field name="model">rebuild.account.closing.control.definition</field>
+        <field name="arch" type="xml">
+            <list create="false" delete="false">
+                <header>
+                    <button
+                        name="action_refresh_open_workspaces"
+                        type="object"
+                        string="Apply Configuration"
+                        class="btn-primary"
+                        title="Recalculate every open closing workspace using the enabled controls and responsible roles shown here."/>
+                </header>
+                <field name="enabled" widget="boolean_toggle"/>
+                <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                <field name="category"/>
+                <field name="name"/>
+                <field name="owner"/>
+                <field name="description" optional="show"/>
+                <field name="accounting_consequence" optional="hide"/>
+                <field name="sequence" optional="hide"/>
+                <field name="code" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_rebuild_account_closing_control_definition_form" model="ir.ui.view">
+        <field name="name">rebuild.account.closing.control.definition.form</field>
+        <field name="model">rebuild.account.closing.control.definition</field>
+        <field name="arch" type="xml">
+            <form create="false" delete="false">
+                <header>
+                    <button
+                        name="action_refresh_open_workspaces"
+                        type="object"
+                        string="Apply to Open Workspaces"
+                        class="btn-primary"
+                        title="Recalculate every open closing workspace for this company using this configuration."/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Disabled" bg_color="text-bg-secondary" invisible="enabled"/>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="company_id" options="{'no_create': True}"/>
+                            <field name="category"/>
+                            <field name="owner"/>
+                        </group>
+                        <group>
+                            <field name="enabled"/>
+                            <field name="sequence"/>
+                            <field name="code" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="What this checks">
+                        <field name="description" nolabel="1"/>
+                    </group>
+                    <group string="Why it matters">
+                        <field name="accounting_consequence" nolabel="1"/>
+                    </group>
+                    <div class="alert alert-info" role="alert">
+                        Disabling this control only removes it from future workspace refreshes.
+                        It never changes journal entries, documents, declarations or lock dates.
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_rebuild_account_closing_control_definition" model="ir.actions.act_window">
+        <field name="name">Closing Controls</field>
+        <field name="res_model">rebuild.account.closing.control.definition</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'create': False, 'delete': False}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Refresh a closing workspace once to create the standard control configuration.</p>
+            <p>Accounting Managers can then enable or disable controls and assign their responsible role.</p>
+        </field>
+    </record>
+
     <record id="view_rebuild_account_closing_control_list" model="ir.ui.view">
         <field name="name">rebuild.account.closing.control.list</field>
         <field name="model">rebuild.account.closing.control</field>
@@ -310,7 +390,7 @@
                 <field name="status" widget="badge"/>
                 <field name="record_count"/>
                 <field name="amount" optional="show"/>
-                <field name="owner"/>
+                <field name="owner" string="Responsible Role"/>
                 <field name="summary" optional="show"/>
                 <field name="next_action" optional="hide"/>
                 <button name="action_open_records" type="object" string="Review" icon="fa-search"/>
@@ -363,8 +443,8 @@
         <field name="arch" type="xml">
             <form create="false" delete="false">
                 <header>
-                    <button name="action_refresh_controls" type="object" string="Refresh Controls" icon="fa-refresh" groups="account.group_account_manager"/>
-                    <button name="action_prepare" type="object" string="Prepare Close" groups="account.group_account_manager" invisible="state not in ['open', 'preparing', 'blocked', 'internal_review']"/>
+                    <button name="action_refresh_controls" type="object" string="Refresh Readiness" icon="fa-refresh" groups="account.group_account_manager" title="Recalculate the enabled closing controls from the current accounting records. This does not post or modify accounting entries."/>
+                    <button name="action_prepare" type="object" string="Prepare Review" groups="account.group_account_manager" invisible="state not in ['open', 'preparing', 'blocked', 'internal_review']" title="Refresh readiness and move the workspace toward internal review when no blocking control remains."/>
                     <button name="action_request_accountant_review" type="object" string="Request Accountant Review" class="oe_highlight" groups="account.group_account_manager" invisible="state != 'internal_review'"/>
                     <button name="action_record_review_decision" type="object" string="Record Review Decision" groups="rebuild_account_migration.group_rebuild_accountant_reviewer,account.group_account_manager" invisible="state not in ['accountant_review', 'ready']"/>
                     <button name="action_capture_accepted_snapshots" type="object" string="Capture Accepted Snapshots" groups="account.group_account_manager" invisible="review_status not in ['accepted', 'accepted_with_difference']"/>
@@ -413,7 +493,7 @@
                                     <field name="status" widget="badge"/>
                                     <field name="record_count"/>
                                     <field name="amount" optional="show"/>
-                                    <field name="owner"/>
+                                    <field name="owner" string="Responsible Role"/>
                                     <field name="summary"/>
                                     <button name="action_open_records" type="object" string="Review" icon="fa-search"/>
                                 </list>
@@ -578,4 +658,5 @@
     <menuitem id="menu_rebuild_account_closing_snapshot" name="Accepted Closing Snapshots" parent="account.account_closing_menu" action="action_rebuild_account_closing_snapshot" sequence="2" groups="account.group_account_readonly"/>
     <menuitem id="menu_rebuild_account_declaration_schedule" name="Declaration Schedule" parent="account.account_reports_taxes_and_fiscal_menu" action="action_rebuild_account_declaration" sequence="0" groups="account.group_account_readonly"/>
     <menuitem id="menu_rebuild_account_declaration_rules" name="Rules and Official Sources" parent="account.account_reports_taxes_and_fiscal_menu" action="action_rebuild_account_declaration_rule" sequence="90" groups="account.group_account_readonly"/>
+    <menuitem id="menu_rebuild_account_closing_control_configuration" name="Closing Controls" parent="account.menu_finance_configuration" action="action_rebuild_account_closing_control_definition" sequence="75" groups="account.group_account_manager"/>
 </odoo>

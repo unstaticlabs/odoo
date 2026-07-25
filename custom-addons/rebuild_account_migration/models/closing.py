@@ -18,6 +18,44 @@ PROFIT_AND_LOSS_ACCOUNT_TYPES = (
     "expense_direct_cost",
 )
 
+CLOSING_CONTROL_CATEGORIES = [
+    ("accounting", "Accounting"),
+    ("documents", "Documents"),
+    ("reconciliation", "Reconciliation"),
+    ("tax", "Tax and Declarations"),
+    ("payroll", "Payroll"),
+    ("assets", "Assets and Deferrals"),
+    ("currency", "Currency"),
+    ("analytic", "Analytics"),
+    ("issues", "Issues"),
+    ("reports", "Reports"),
+    ("fec", "FEC"),
+    ("locks", "Lock Dates"),
+]
+
+CLOSING_CONTROL_OWNERS = [
+    ("accounting_manager", "Accounting Manager"),
+    ("accountant_reviewer", "Accountant Reviewer"),
+    ("finance_operator", "Finance Operator / Agent"),
+]
+
+CLOSING_CONTROL_DEFINITIONS = (
+    ("accounting_completeness", "accounting", "Accounting completeness", "Checks for draft miscellaneous journal entries in the period.", "Unreviewed drafts can change the final ledger after the close.", "accounting_manager"),
+    ("document_completeness", "documents", "Document completeness", "Checks for draft invoices and bills and posted documents without primary evidence.", "Incomplete documents weaken balances, tax support and the audit trail.", "accounting_manager"),
+    ("bank_reconciliation", "reconciliation", "Bank reconciliation", "Checks for bank transactions that still have an unmatched residual.", "Unmatched cash movements make cash and counterpart balances unreliable.", "accounting_manager"),
+    ("partner_open_items", "reconciliation", "Receivable and payable review", "Surfaces customer and supplier balances still open at period end.", "Old or unexplained residuals can misstate receivables, payables and cash collection.", "finance_operator"),
+    ("unusual_balances", "accounting", "Unusual account balances", "Finds accounts whose aggregate balance is opposite to their configured natural side.", "Wrong-way balances often reveal classification, sign or reconciliation problems.", "finance_operator"),
+    ("tax_declarations", "tax", "Tax and declaration readiness", "Checks applicable declarations and their preparation status for the period.", "Late or unsupported declarations create compliance and payment risk.", "accounting_manager"),
+    ("payroll", "payroll", "Payroll accounting", "Checks payroll-related postings and review evidence when payroll accounts are used.", "Missing or unexplained payroll entries can understate liabilities and expenses.", "accounting_manager"),
+    ("assets_deferrals", "assets", "Assets and deferrals", "Checks asset, depreciation and deferred-recognition schedules used by the period.", "Incomplete schedules can misstate assets, liabilities and period results.", "accounting_manager"),
+    ("currency", "currency", "Foreign-currency review", "Checks foreign-currency activity and the supporting rate coverage.", "Missing rates or valuation review can misstate balances and exchange differences.", "accounting_manager"),
+    ("analytic", "analytic", "Analytic completeness", "Checks whether relevant posted expense and revenue lines have analytic allocation.", "Missing allocation weakens management reporting without changing the general ledger.", "finance_operator"),
+    ("issues", "issues", "Accounting Hygiene issues", "Checks unresolved Accounting Hygiene exceptions affecting the period.", "Known exceptions should be resolved or explicitly documented before closing.", "accounting_manager"),
+    ("reports", "reports", "Closing reports", "Checks availability of the core reports needed to review the period.", "A close cannot be reviewed consistently without reproducible supporting reports.", "accounting_manager"),
+    ("fec", "fec", "FEC readiness", "Checks whether the statutory accounting export can be generated for the period.", "An unavailable or invalid FEC is a material French compliance risk.", "accounting_manager"),
+    ("lock_dates", "locks", "Lock-date readiness", "Checks the current lock dates and whether they protect the reviewed period.", "Unlocked reviewed periods can be changed inadvertently after sign-off.", "accounting_manager"),
+)
+
 
 class IrAttachment(models.Model):
     _inherit = "ir.attachment"
@@ -296,12 +334,16 @@ class RebuildAccountClosingPeriod(models.Model):
         return closing
 
     def action_refresh_controls(self):
+        for company in self.company_id:
+            self.env["rebuild.account.hygiene.issue"].sync_for_company(company)
         for closing in self:
             closing._refresh_controls()
         return True
 
     def _refresh_controls(self):
         self.ensure_one()
+        Definition = self.env["rebuild.account.closing.control.definition"]
+        definitions = Definition._ensure_for_company(self.company_id)
         controls = [
             self._control_accounting_completeness(),
             self._control_document_completeness(),
@@ -318,6 +360,19 @@ class RebuildAccountClosingPeriod(models.Model):
             self._control_fec(),
             self._control_lock_dates(),
         ]
+        definitions_by_code = {definition.code: definition for definition in definitions}
+        controls = [
+            {
+                **control,
+                "definition_id": definitions_by_code[control["code"]].id,
+                "sequence": definitions_by_code[control["code"]].sequence,
+                "category": definitions_by_code[control["code"]].category,
+                "name": definitions_by_code[control["code"]].name,
+                "owner": definitions_by_code[control["code"]].owner,
+            }
+            for control in controls
+            if definitions_by_code[control["code"]].enabled
+        ]
         seen = set()
         Control = self.env["rebuild.account.closing.control"]
         for values in controls:
@@ -327,7 +382,11 @@ class RebuildAccountClosingPeriod(models.Model):
         blocking = [control for control in controls if control["status"] == "block"]
         warnings = [control for control in controls if control["status"] == "warning"]
         readiness = "blocked" if blocking else "warning" if warnings else "ready"
-        actions = [control["next_action"] for control in blocking + warnings if control.get("owner") == "valentin"]
+        actions = [
+            control["next_action"]
+            for control in blocking + warnings
+            if control.get("owner") == "accounting_manager"
+        ]
         accountant = [control["summary"] for control in controls if control.get("accountant_visible")]
         vals = {
             "readiness_status": readiness,
@@ -343,7 +402,7 @@ class RebuildAccountClosingPeriod(models.Model):
             vals["state"] = "blocked" if blocking else "internal_review"
         self.write(vals)
 
-    def _control_values(self, code, category, name, status, count, amount, summary, next_action, owner="valentin", accountant_visible=True):
+    def _control_values(self, code, category, name, status, count, amount, summary, next_action, owner="accounting_manager", accountant_visible=True):
         return {
             "code": code,
             "category": category,
@@ -421,7 +480,7 @@ class RebuildAccountClosingPeriod(models.Model):
             "partner_open_items", "reconciliation", "Receivable and payable review",
             "warning" if lines else "pass", len(lines), amount,
             f"{len(lines)} open receivable/payable item(s), absolute residual {amount:.2f} {self.currency_id.name}.",
-            "Review ageing and document legitimate open customer and supplier balances.", owner="operator",
+            "Review ageing and document legitimate open customer and supplier balances.", owner="finance_operator",
         )
 
     def _unusual_balance_rows(self):
@@ -489,7 +548,7 @@ class RebuildAccountClosingPeriod(models.Model):
                 "Review the account-grouped journal items and document a "
                 "legitimate overdraft, advance, contra balance or correction."
             ),
-            owner="operator",
+            owner="finance_operator",
         )
 
     def _control_tax_declarations(self):
@@ -517,7 +576,7 @@ class RebuildAccountClosingPeriod(models.Model):
             return self._control_values(
                 "payroll", "payroll", "Payroll status", "not_applicable", 0, 0.0,
                 "Payroll is outside the installed Community accounting stack; an external payroll package must be retained.",
-                "Confirm the external payroll and social-declaration package for the period.", owner="operator",
+                "Confirm the external payroll and social-declaration package for the period.", owner="finance_operator",
             )
         drafts = self.env["hr.payslip"].search_count([
             ("company_id", "=", self.company_id.id),
@@ -564,7 +623,7 @@ class RebuildAccountClosingPeriod(models.Model):
         return self._control_values(
             "currency", "currency", "Foreign-currency control", "warning" if lines else "pass", len(lines), amount,
             f"{len(lines)} open foreign-currency receivable/payable line(s), company-currency residual {amount:.2f}.",
-            "Review currency exposure and record any required period-end revaluation outside the immutable source replay.", owner="operator",
+            "Review currency exposure and record any required period-end revaluation outside the immutable source replay.", owner="finance_operator",
         )
 
     def _control_analytic(self):
@@ -580,20 +639,39 @@ class RebuildAccountClosingPeriod(models.Model):
         return self._control_values(
             "analytic", "analytic", "Analytic completeness", "warning" if lines else "pass", len(lines), amount,
             f"{len(lines)} profit-and-loss line(s) have no analytic distribution; absolute balance {amount:.2f}.",
-            "Confirm whether unallocated lines need analytic coding or a documented exclusion.", owner="operator",
+            "Confirm whether unallocated lines need analytic coding or a documented exclusion.", owner="finance_operator",
         )
 
     def _control_issues(self):
-        issues = self.env["rebuild.account.discrepancy"].search([
+        discrepancies = self.env["rebuild.account.discrepancy"].search([
             ("company_id", "=", self.company_id.id),
             ("status", "in", ["open", "investigating"]),
         ])
-        high = issues.filtered(lambda issue: issue.severity in {"P0", "P1"})
+        high = discrepancies.filtered(
+            lambda issue: issue.severity in {"P0", "P1"},
+        )
+        hygiene_issues = self.env["rebuild.account.hygiene.issue"].search([
+            ("company_id", "=", self.company_id.id),
+            ("status", "=", "open"),
+            "|",
+            ("issue_date", "=", False),
+            ("issue_date", "<=", self.date_to),
+        ])
+        blocking_hygiene = hygiene_issues.filtered(
+            lambda issue: issue.severity == "1_blocking",
+        )
+        blocking_count = len(high) + len(blocking_hygiene)
+        issue_count = len(discrepancies) + len(hygiene_issues)
         return self._control_values(
-            "issues", "issues", "Unresolved accounting issues", "block" if high else "warning" if issues else "pass",
-            len(issues), 0.0,
-            f"{len(high)} P0/P1 and {len(issues - high)} lower-priority unresolved discrepancy record(s).",
-            "Resolve or record an authorized evidence-backed decision for every close-impacting discrepancy.",
+            "issues", "issues", "Accounting Hygiene issues",
+            "block" if blocking_count else "warning" if issue_count else "pass",
+            issue_count, sum(hygiene_issues.mapped("amount")),
+            (
+                f"{len(hygiene_issues)} actionable Hygiene issue(s) and "
+                f"{len(discrepancies)} migration discrepancy record(s); "
+                f"{blocking_count} blocking."
+            ),
+            "Open Accounting Hygiene, resolve the underlying records, and refresh the controls.",
         )
 
     def _control_reports(self):
@@ -630,7 +708,7 @@ class RebuildAccountClosingPeriod(models.Model):
         return self._control_values(
             "lock_dates", "locks", "Lock-date readiness", status, len(missing), 0.0,
             "All standard accounting lock dates cover the period." if not missing else f"Lock dates not yet covering the close: {', '.join(missing)}.",
-            "After all blockers and required approvals clear, use Close and Apply Standard Lock Dates.", owner="valentin",
+            "After all blockers and required approvals clear, use Close and Apply Standard Lock Dates.", owner="accounting_manager",
         )
 
     def action_prepare(self):
@@ -977,6 +1055,100 @@ class RebuildAccountClosingSnapshot(models.Model):
         raise UserError("Accepted closing snapshots cannot be deleted.")
 
 
+class RebuildAccountClosingControlDefinition(models.Model):
+    _name = "rebuild.account.closing.control.definition"
+    _description = "Closing Control Configuration"
+    _order = "company_id, sequence, code"
+
+    _unique_closing_control_definition = models.Constraint(
+        "UNIQUE (company_id, code)",
+        "A closing control can only be configured once per company.",
+    )
+
+    company_id = fields.Many2one(
+        "res.company",
+        required=True,
+        index=True,
+        default=lambda self: self.env.company,
+    )
+    sequence = fields.Integer(default=10)
+    code = fields.Char(required=True, index=True, readonly=True)
+    name = fields.Char(required=True, translate=True)
+    category = fields.Selection(
+        CLOSING_CONTROL_CATEGORIES,
+        required=True,
+        index=True,
+    )
+    description = fields.Text(
+        required=True,
+        help="What the control examines when a closing workspace is refreshed.",
+    )
+    accounting_consequence = fields.Text(
+        required=True,
+        help="Why an exception matters to the accounting review.",
+    )
+    owner = fields.Selection(
+        CLOSING_CONTROL_OWNERS,
+        required=True,
+        default="accounting_manager",
+        string="Responsible Role",
+    )
+    enabled = fields.Boolean(
+        default=True,
+        help=(
+            "Enabled controls are calculated in every closing workspace for "
+            "this company. Disabling a control removes it from the next "
+            "refresh; it does not alter accounting records."
+        ),
+    )
+
+    @api.model
+    def _ensure_for_company(self, company):
+        company.ensure_one()
+        existing = {
+            definition.code: definition
+            for definition in self.with_context(active_test=False).search([
+                ("company_id", "=", company.id),
+            ])
+        }
+        for sequence, values in enumerate(CLOSING_CONTROL_DEFINITIONS, start=1):
+            code, category, name, description, consequence, owner = values
+            if code in existing:
+                continue
+            existing[code] = self.create({
+                "company_id": company.id,
+                "sequence": sequence * 10,
+                "code": code,
+                "category": category,
+                "name": name,
+                "description": description,
+                "accounting_consequence": consequence,
+                "owner": owner,
+            })
+        return self.search([("company_id", "=", company.id)])
+
+    def action_refresh_open_workspaces(self):
+        companies = self.company_id if self else self.env.companies
+        closings = self.env["rebuild.account.closing.period"].search([
+            ("company_id", "in", companies.ids),
+            ("state", "not in", ["closed", "archived"]),
+        ])
+        closings.action_refresh_controls()
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": "Closing controls refreshed",
+                "message": (
+                    f"{len(closings)} open closing workspace(s) now use the "
+                    "current configuration."
+                ),
+                "type": "success",
+                "sticky": False,
+            },
+        }
+
+
 class RebuildAccountClosingControl(models.Model):
     _name = "rebuild.account.closing.control"
     _description = "USL Accounting Closing Control"
@@ -988,28 +1160,15 @@ class RebuildAccountClosingControl(models.Model):
     )
 
     closing_period_id = fields.Many2one("rebuild.account.closing.period", required=True, index=True, ondelete="cascade")
+    definition_id = fields.Many2one(
+        "rebuild.account.closing.control.definition",
+        ondelete="restrict",
+    )
     company_id = fields.Many2one(related="closing_period_id.company_id", store=True, readonly=True, index=True)
     currency_id = fields.Many2one(related="company_id.currency_id", readonly=True)
     sequence = fields.Integer(default=10)
     code = fields.Char(required=True, index=True)
-    category = fields.Selection(
-        [
-            ("accounting", "Accounting"),
-            ("documents", "Documents"),
-            ("reconciliation", "Reconciliation"),
-            ("tax", "Tax and Declarations"),
-            ("payroll", "Payroll"),
-            ("assets", "Assets and Deferrals"),
-            ("currency", "Currency"),
-            ("analytic", "Analytics"),
-            ("issues", "Issues"),
-            ("reports", "Reports"),
-            ("fec", "FEC"),
-            ("locks", "Lock Dates"),
-        ],
-        required=True,
-        index=True,
-    )
+    category = fields.Selection(CLOSING_CONTROL_CATEGORIES, required=True, index=True)
     name = fields.Char(required=True)
     status = fields.Selection(
         [("pass", "Passed"), ("warning", "Warning"), ("block", "Blocking"), ("not_applicable", "Not Applicable")],
@@ -1021,13 +1180,10 @@ class RebuildAccountClosingControl(models.Model):
     summary = fields.Text(required=True)
     next_action = fields.Text(required=True)
     owner = fields.Selection(
-        [
-            ("valentin", "Accounting Manager"),
-            ("accountant", "Accountant Reviewer"),
-            ("operator", "Finance Operator / Agent"),
-        ],
+        CLOSING_CONTROL_OWNERS,
         required=True,
-        default="valentin",
+        default="accounting_manager",
+        string="Responsible Role",
     )
     accountant_visible = fields.Boolean(default=True)
 
@@ -1084,8 +1240,12 @@ class RebuildAccountClosingControl(models.Model):
         if self.code == "tax_declarations":
             return closing.action_open_declarations()
         if self.code == "issues":
-            return self._action("Accounting Issues", "rebuild.account.discrepancy", [
-                ("company_id", "=", self.company_id.id), ("status", "in", ["open", "investigating"]),
+            return self._action("Accounting Hygiene", "rebuild.account.hygiene.issue", [
+                ("company_id", "=", self.company_id.id),
+                ("status", "=", "open"),
+                "|",
+                ("issue_date", "=", False),
+                ("issue_date", "<=", closing.date_to),
             ])
         if self.code == "reports":
             return self._action("Report Review", "rebuild.account.source.report", [
