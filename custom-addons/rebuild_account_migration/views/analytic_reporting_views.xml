@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_rebuild_analytic_reporting_search" model="ir.ui.view">
+        <field name="name">account.analytic.line.reporting.search</field>
+        <field name="model">account.analytic.line</field>
+        <field name="arch" type="xml">
+            <search string="Analytic Reporting">
+                <field name="name"/>
+                <field name="date"/>
+                <field name="account_id"/>
+                <field name="general_account_id"/>
+                <field name="rebuild_financial_account_group_id"/>
+                <field name="rebuild_financial_account_type"/>
+                <field name="partner_id" filter_domain="[('partner_id', 'child_of', self)]"/>
+                <field name="product_id"/>
+                <field name="journal_id"/>
+                <field name="rebuild_document_id"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <separator/>
+                <filter name="current_fiscal_year" string="Current Fiscal Year" domain="[('rebuild_current_fiscal_year', '=', True)]"/>
+                <filter name="period" string="Date" date="date"/>
+                <filter name="profit_loss_accounts" string="Revenue and Spending" domain="[('general_account_id.internal_group', 'in', ['income', 'expense'])]"/>
+                <separator/>
+                <filter name="revenue_lines" string="Revenue" domain="[('analytic_profitability', '=', 'revenue')]"/>
+                <filter name="spending_lines" string="Spending" domain="[('analytic_profitability', '=', 'loss')]"/>
+                <group>
+                    <filter name="account_id" string="Analytic Account" context="{'group_by': 'account_id'}"/>
+                    <filter name="group_date" string="Date" context="{'group_by': 'date'}"/>
+                    <filter name="group_financial_account" string="Financial Account" context="{'group_by': 'general_account_id'}"/>
+                    <filter name="group_account_group" string="Account Group" context="{'group_by': 'rebuild_financial_account_group_id'}"/>
+                    <filter name="group_account_category" string="Account Category" context="{'group_by': 'rebuild_financial_account_type'}"/>
+                    <filter name="group_partner" string="Partner" context="{'group_by': 'partner_id'}"/>
+                    <filter name="group_product" string="Product" context="{'group_by': 'product_id'}"/>
+                    <filter name="group_journal" string="Journal" context="{'group_by': 'journal_id'}"/>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}" groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_rebuild_analytic_reporting_pivot" model="ir.ui.view">
+        <field name="name">account.analytic.line.reporting.pivot</field>
+        <field name="model">account.analytic.line</field>
+        <field name="arch" type="xml">
+            <pivot string="Analytic Reporting" sample="1" js_class="analytic_pivot">
+                <field name="account_id" type="row"/>
+                <field name="date" interval="month" type="col"/>
+                <field name="rebuild_net_contribution" type="measure"/>
+                <field name="rebuild_revenue" type="measure"/>
+                <field name="rebuild_spending" type="measure"/>
+                <field name="amount" type="measure" string="Accounting Amount"/>
+                <field name="unit_amount" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_rebuild_analytic_reporting_graph" model="ir.ui.view">
+        <field name="name">account.analytic.line.reporting.graph</field>
+        <field name="model">account.analytic.line</field>
+        <field name="arch" type="xml">
+            <graph string="Analytic Reporting" type="bar" stacked="0" sample="1" js_class="analytic_graph">
+                <field name="account_id"/>
+                <field name="date" interval="month"/>
+                <field name="rebuild_net_contribution" type="measure"/>
+                <field name="rebuild_revenue" type="measure" invisible="1"/>
+                <field name="rebuild_spending" type="measure" invisible="1"/>
+                <field name="amount" type="measure" string="Accounting Amount" invisible="1"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_rebuild_analytic_reporting_list" model="ir.ui.view">
+        <field name="name">account.analytic.line.reporting.list</field>
+        <field name="model">account.analytic.line</field>
+        <field name="arch" type="xml">
+            <list string="Analytic Reporting" create="0" edit="0" delete="0" default_order="date desc, id desc">
+                <field name="date"/>
+                <field name="name"/>
+                <field name="account_id"/>
+                <field name="general_account_id"/>
+                <field name="rebuild_financial_account_group_id" optional="hide"/>
+                <field name="rebuild_financial_account_type" optional="hide"/>
+                <field name="partner_id" optional="show"/>
+                <field name="product_id" optional="hide"/>
+                <field name="journal_id" optional="hide"/>
+                <field name="rebuild_document_id" optional="hide"/>
+                <field name="move_line_id" widget="line_open_move_widget" optional="show"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <field name="currency_id" column_invisible="True"/>
+                <field name="amount" string="Accounting Amount" sum="Accounting Amount"/>
+                <field name="rebuild_revenue" sum="Revenue" optional="show"/>
+                <field name="rebuild_spending" sum="Spending" optional="show"/>
+                <field name="rebuild_net_contribution" sum="Net Contribution" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_rebuild_analytic_reporting" model="ir.actions.act_window">
+        <field name="name">Analytic Reporting</field>
+        <field name="res_model">account.analytic.line</field>
+        <field name="path">analytic-reporting</field>
+        <field name="view_mode">pivot,list,graph,form</field>
+        <field name="search_view_id" ref="view_rebuild_analytic_reporting_search"/>
+        <field name="context">{
+            'search_default_current_fiscal_year': 1,
+            'search_default_profit_loss_accounts': 1,
+            'pivot_row_groupby': ['account_id'],
+            'pivot_column_groupby': ['date:month'],
+            'pivot_measures': ['rebuild_net_contribution'],
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No analytic activity exists for the selected fiscal period.
+            </p>
+            <p>
+                Remove or change the active period and accounting filters to inspect another population.
+                Every pivot value can be opened to the contributing analytic items and journal entries.
+            </p>
+        </field>
+    </record>
+
+    <record id="view_rebuild_analytic_reporting_pivot_action" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">pivot</field>
+        <field name="view_id" ref="view_rebuild_analytic_reporting_pivot"/>
+        <field name="act_window_id" ref="action_rebuild_analytic_reporting"/>
+    </record>
+    <record id="view_rebuild_analytic_reporting_list_action" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_rebuild_analytic_reporting_list"/>
+        <field name="act_window_id" ref="action_rebuild_analytic_reporting"/>
+    </record>
+    <record id="view_rebuild_analytic_reporting_graph_action" model="ir.actions.act_window.view">
+        <field name="sequence" eval="3"/>
+        <field name="view_mode">graph</field>
+        <field name="view_id" ref="view_rebuild_analytic_reporting_graph"/>
+        <field name="act_window_id" ref="action_rebuild_analytic_reporting"/>
+    </record>
+    <record id="view_rebuild_analytic_reporting_form_action" model="ir.actions.act_window.view">
+        <field name="sequence" eval="4"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="analytic.view_account_analytic_line_form"/>
+        <field name="act_window_id" ref="action_rebuild_analytic_reporting"/>
+    </record>
+
+    <menuitem
+        id="menu_rebuild_account_analysis"
+        name="Analysis"
+        parent="account.menu_finance"
+        sequence="15"
+        groups="account.group_account_readonly"/>
+    <menuitem
+        id="menu_rebuild_analytic_reporting"
+        name="Analytic Reporting"
+        parent="menu_rebuild_account_analysis"
+        action="action_rebuild_analytic_reporting"
+        sequence="1"
+        groups="account.group_account_readonly"/>
+</odoo>

@@ -64,6 +64,9 @@ definition only after historical results have frozen its provenance.
 - The report client resolves the active Report for the selected company and
   period. Its filter/export capabilities and default hierarchy govern the
   runtime session.
+- Native analysis workspaces, including Analytic Reporting, resolve a visible
+  Report definition for catalogue, provenance and navigation purposes while
+  retaining Odoo's specialized pivot engine and native saved analysis state.
 - Declaration synchronization resolves current rules by country, company and
   fiscal period. Company definitions override matching localization rules.
 - Disabled or deprecated definitions do not silently fall back around a

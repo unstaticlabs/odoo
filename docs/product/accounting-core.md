@@ -48,6 +48,9 @@ Valentin and the accountant must be able to:
 - Interactive reports are statement-first: one shared filter and interaction
   system presents explicit sections, groups, details, subtotals, totals and
   controls consistently on screen, in PDF and in the readable XLSX sheet.
+- Exploratory analysis uses Odoo's native pivot/list/graph framework over
+  authoritative analytic items. It remains distinct from designed financial
+  statements while reconciling to the same accounting population.
 - Controls, Reports and Declarations are governed definitions with shared
   origin, lifecycle, company, effective-date and version semantics. Runtime
   issues, report sessions/exports and filing instances freeze the definition

@@ -44,6 +44,7 @@ these databases; all target databases are disposable and reproducible.
 | Markdown docs | `git diff --check` | source restore, target reset |
 | Odoo XML menus/views | `odoo --update=rebuild_account_migration --stop-after-init` on `odoo_saas_19_2_candidate_01` | source restore, extract |
 | Odoo Python report formatting only | module update, targeted Odoo tests, one report export smoke test | source restore |
+| Native analytic pivot fields/views | module update, targeted measure/view test, aggregate sign/reconciliation query; focused pivot browser smoke only when interaction changed | source restore, native analytic replay |
 | Security/ACL changes | module update, role-specific access tests | source restore |
 | Future currency-rate provider changes | module update, targeted provider tests, `accounting-currency-rate-provider`, then manager/reviewer browser journeys | source restore, extract, native validation replay |
 | Importer mapping changes | `accounting-validation-exact-reset`, `accounting-validation-exact-import`, `accounting-validation-exact-validate` | source restore if snapshot unchanged |

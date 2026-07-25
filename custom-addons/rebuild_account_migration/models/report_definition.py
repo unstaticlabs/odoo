@@ -26,6 +26,7 @@ ACCOUNTING_REPORT_TYPES = [
     ("cash_flow", "Cash Flow Statement"),
     ("executive_summary", "Executive Summary"),
     ("analytic_report", "Analytic Distribution"),
+    ("analytic_pivot", "Analytic Reporting"),
     ("fixed_assets", "Fixed Asset Register"),
     ("fixed_asset_group_account", "Fixed Asset Register by Account"),
     ("depreciation_schedule", "Depreciation Schedule"),
@@ -65,6 +66,7 @@ REPORT_ACTIONS = {
     "cash_flow": "rebuild_account_migration.action_rebuild_interactive_cash_flow",
     "executive_summary": "rebuild_account_migration.action_rebuild_interactive_executive_summary",
     "analytic_report": "rebuild_account_migration.action_rebuild_interactive_analytic_report",
+    "analytic_pivot": "rebuild_account_migration.action_rebuild_analytic_reporting",
     "fixed_assets": "rebuild_account_migration.action_rebuild_interactive_fixed_assets",
     "fixed_asset_group_account": "rebuild_account_migration.action_rebuild_account_report_export_fixed_asset_group_account",
     "depreciation_schedule": "rebuild_account_migration.action_rebuild_interactive_depreciation_schedule",
@@ -104,6 +106,7 @@ def _report_seed_values(report_type, name):
         "cash_flow",
         "executive_summary",
         "analytic_report",
+        "analytic_pivot",
     }
     schedule = report_type in {
         "fixed_assets",
@@ -162,6 +165,7 @@ def _report_seed_values(report_type, name):
         "sig_caf_2024": "section",
         "tax_report": "section",
         "analytic_report": "analytic",
+        "analytic_pivot": "analytic",
     }
     return {
         "name": name,

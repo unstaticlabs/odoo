@@ -20,9 +20,18 @@ Journal entries, journal items, payments, assets, general reconciliation and clo
 
 Accounting Hygiene and other focused review work. Technical audit tools are available only in the advanced area.
 
+## Analysis
+
+**Analytic Reporting** is the native exploratory pivot over analytic items.
+Combine configured analytic plans with dates, financial accounts, partners,
+products, journals and companies; switch between pivot, list and graph; and
+open any aggregate to its source records.
+
 ## Reporting
 
-The canonical interactive financial, partner, tax, asset, management and analytical reports.
+The canonical designed financial, partner, tax, asset, management and
+analytical statements. Use Analysis for free-form pivot exploration and
+Reporting for intentional statement presentation and exports.
 
 ## Declarations
 
