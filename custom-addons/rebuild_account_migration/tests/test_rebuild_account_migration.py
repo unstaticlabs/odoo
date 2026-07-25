@@ -2047,6 +2047,77 @@ class TestRebuildAccountMigration(TransactionCase):
                 accounts[source_account_id],
             )
 
+    def test_account_group_import_preserves_prefix_hierarchy_and_is_idempotent(self):
+        snapshot = "unit-account-groups"
+        import_run = self.env["rebuild.account.import.run"].create({
+            "name": "Account group replay",
+            "source_snapshot_id": snapshot,
+        })
+        source_company_id = 990001
+        source_rows = [
+            {
+                "id": 990101,
+                "name": {
+                    "en_US": "Capital and reserves",
+                    "fr_FR": "Capital et réserves",
+                },
+                "code_prefix_start": "T10",
+                "code_prefix_end": "T10",
+                "company_id": source_company_id,
+            },
+            {
+                "id": 990102,
+                "name": {
+                    "en_US": "Capital",
+                    "fr_FR": "Capital",
+                },
+                "code_prefix_start": "T101",
+                "code_prefix_end": "T101",
+                "company_id": source_company_id,
+            },
+        ]
+        options = {
+            "source_company_ids": [source_company_id],
+            "source_snapshot_id": snapshot,
+            "source_database": "unit_source",
+        }
+
+        with patch.object(
+            type(import_run),
+            "_fetchall",
+            side_effect=[source_rows, source_rows],
+        ):
+            first = import_run._account_group_map(
+                object(),
+                options,
+                {source_company_id: self.company},
+            )
+            second = import_run._account_group_map(
+                object(),
+                options,
+                {source_company_id: self.company},
+            )
+
+        self.assertEqual(first[990101], second[990101])
+        self.assertEqual(first[990102], second[990102])
+        self.assertEqual(first[990102].parent_id, first[990101])
+        self.assertEqual(
+            self.env["account.group"].search_count([
+                ("rebuild_source_snapshot", "=", snapshot),
+            ]),
+            2,
+        )
+        self.assertEqual(
+            first[990101].with_context(lang="en_US").name,
+            "Capital and reserves",
+        )
+        self.assertEqual(
+            first[990101]._fields["name"]._get_stored_translations(
+                first[990101],
+            )["fr_FR"],
+            "Capital et réserves",
+        )
+
     def test_journal_replay_preserves_payment_method_lines_when_currency_is_unchanged(self):
         usd = self.env.ref("base.USD")
         journal = self.env["account.journal"].create({

@@ -360,6 +360,11 @@ class AccountAccount(models.Model):
     _inherit = ["account.account", "rebuild.source.trace.mixin"]
 
 
+class AccountGroup(models.Model):
+    _name = "account.group"
+    _inherit = ["account.group", "rebuild.source.trace.mixin"]
+
+
 class AccountJournal(models.Model):
     _name = "account.journal"
     _inherit = ["account.journal", "rebuild.source.trace.mixin"]

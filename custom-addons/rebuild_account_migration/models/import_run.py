@@ -1733,7 +1733,93 @@ class RebuildAccountImportRun(models.Model):
             partners[row["id"]] = partner
         return partners
 
+    def _account_group_map(self, conn, options, companies):
+        """Import the source chart hierarchy before accounts are evaluated.
+
+        Odoo derives ``account.account.group_id`` from the most specific
+        matching prefix range.  Reusing an existing native group with the same
+        company and range keeps the import compatible with targets where the
+        localization already installed the French hierarchy.
+        """
+        rows = self._fetchall(
+            conn,
+            """
+            SELECT id, name, code_prefix_start, code_prefix_end, company_id
+              FROM account_group
+             WHERE company_id = ANY(%(source_company_ids)s)
+             ORDER BY char_length(code_prefix_start), code_prefix_start, id
+            """,
+            options,
+        )
+        Group = self.env["account.group"].sudo().with_context(
+            delay_account_group_sync=True,
+        )
+        groups = {}
+        source_languages = {
+            language
+            for row in rows
+            if isinstance(row["name"], dict)
+            for language, translated_name in row["name"].items()
+            if translated_name
+        }
+        if source_languages:
+            self.env["res.lang"].sudo().with_context(active_test=False).search([
+                ("code", "in", list(source_languages)),
+                ("active", "=", False),
+            ]).write({"active": True})
+        for row in rows:
+            company = companies.get(row["company_id"])
+            if not company:
+                continue
+            group = Group.search([
+                ("rebuild_source_model", "=", "account.group"),
+                ("rebuild_source_id", "=", row["id"]),
+                ("rebuild_source_snapshot", "=", options.get("source_snapshot_id")),
+            ], limit=1)
+            if not group:
+                group = Group.search([
+                    ("company_id", "=", company.id),
+                    ("code_prefix_start", "=", row["code_prefix_start"]),
+                    ("code_prefix_end", "=", row["code_prefix_end"]),
+                ], limit=1)
+            vals = {
+                "name": self._source_text(row["name"])
+                or f"Source account group {row['id']}",
+                "code_prefix_start": row["code_prefix_start"],
+                "code_prefix_end": row["code_prefix_end"],
+                "company_id": company.id,
+                **self._trace_values("account.group", row["id"], options),
+            }
+            if group:
+                group.write(vals)
+            else:
+                group = Group.create(vals)
+            if isinstance(row["name"], dict):
+                group.update_field_translations(
+                    "name",
+                    {
+                        language: translated_name
+                        for language, translated_name in row["name"].items()
+                        if translated_name
+                    },
+                )
+            groups[row["id"]] = group
+
+        imported_groups = Group.browse([
+            group.id for group in groups.values()
+        ])
+        if imported_groups:
+            imported_groups.with_context(
+                delay_account_group_sync=False,
+            )._adapt_parent_account_group(
+                self.env["res.company"].browse(
+                    list({group.company_id.id for group in imported_groups}),
+                ),
+            )
+        return groups
+
     def _account_map(self, conn, options, companies, currencies):
+        self._account_group_map(conn, options, companies)
         rows = self._fetchall(
             conn,
             """
