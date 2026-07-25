@@ -427,7 +427,8 @@ class AccountBankStatementLine(models.Model):
     rebuild_matching_color = fields.Integer(
         compute="_compute_rebuild_transaction_display",
     )
-    rebuild_linked_document = fields.Char(
+    rebuild_linked_move_id = fields.Many2one(
+        "account.move",
         compute="_compute_rebuild_transaction_display",
         string="Linked document or entry",
     )
@@ -480,17 +481,12 @@ class AccountBankStatementLine(models.Model):
             linked_moves = linked_lines.move_id.filtered(
                 lambda move: move != statement_line.move_id,
             )
-            linked_names = list(dict.fromkeys(
-                linked_moves.mapped("display_name"),
-            ))
-            statement_line.rebuild_linked_document = ", ".join(
-                linked_names[:2],
+            business_moves = linked_moves.filtered(
+                lambda move: move.move_type != "entry",
             )
-            if len(linked_names) > 2:
-                statement_line.rebuild_linked_document += _(
-                    " and %s more",
-                    len(linked_names) - 2,
-                )
+            statement_line.rebuild_linked_move_id = (
+                business_moves[:1] or linked_moves[:1]
+            )
 
     def action_rebuild_open_bank_matching(self):
         self.ensure_one()

@@ -1577,9 +1577,9 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(bank_line.rebuild_transaction_status, "matched")
         self.assertEqual(bank_line.rebuild_remaining_amount, 0.0)
         self.assertTrue(bank_line.rebuild_matching_reference)
-        self.assertIn(
-            clearing_move.display_name,
-            bank_line.rebuild_linked_document,
+        self.assertEqual(
+            bank_line.rebuild_linked_move_id,
+            clearing_move,
         )
 
         action = self.env.ref(
@@ -1601,7 +1601,7 @@ class TestRebuildAccountMigration(TransactionCase):
             "amount",
             "journal_id",
             "rebuild_matching_reference",
-            "rebuild_linked_document",
+            "rebuild_linked_move_id",
             "rebuild_remaining_amount",
         ):
             self.assertTrue(
