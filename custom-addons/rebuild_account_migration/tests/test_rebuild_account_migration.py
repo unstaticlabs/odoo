@@ -262,6 +262,11 @@ class TestRebuildAccountMigration(TransactionCase):
                 "//button[@name='action_open_accounting_settings']",
             ),
         )
+        self.assertFalse(
+            home_arch.xpath(
+                "/form/header/button[@name='action_open_hygiene_issues']",
+            ),
+        )
         review_buttons = home_arch.xpath(
             "//button[@name='action_open_bank_review']",
         )
