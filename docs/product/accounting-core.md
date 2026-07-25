@@ -51,6 +51,11 @@ Valentin and the accountant must be able to:
 - Exploratory analysis uses Odoo's native pivot/list/graph framework over
   authoritative analytic items. It remains distinct from designed financial
   statements while reconciling to the same accounting population.
+- French electronic-invoice reception uses Odoo's maintained approved-platform
+  and UBL/CII capabilities behind an explicit production activation gate.
+  Readiness, live connection and scheduled exchange are separate states;
+  received payloads retain immutable processing evidence and enter the normal
+  native vendor-bill workflow.
 - Controls, Reports and Declarations are governed definitions with shared
   origin, lifecycle, company, effective-date and version semantics. Runtime
   issues, report sessions/exports and filing instances freeze the definition

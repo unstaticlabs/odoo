@@ -130,6 +130,277 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(len(attachment), 1)
         self.assertEqual(bill.message_main_attachment_id, attachment)
 
+    def test_french_einvoice_reception_is_offline_traceable_and_deduplicated(self):
+        purchase_journal = self._journal("purchase")
+        self.company.write({
+            "peppol_purchase_journal_id": purchase_journal.id,
+            "account_peppol_proxy_state": "not_registered",
+            "rebuild_einvoice_environment": "development",
+            "rebuild_einvoice_provider": False,
+        })
+        proxy_user = self.env["account_edi_proxy_client.user"].new({
+            "company_id": self.company.id,
+            "proxy_type": "pdp",
+            "edi_mode": "test",
+        })
+        self.company.write({
+            "country_id": self.env.ref("base.fr").id,
+            "vat": "FR48983982950",
+            "company_registry": "98398295000021",
+            "peppol_eas": "0225",
+            "peppol_endpoint": "983982950",
+            "street": "1 rue de la Validation",
+            "zip": "75001",
+            "city": "Paris",
+        })
+        recipient = self.env["res.partner"].create({
+            "name": "Unit French Electronic Invoice Recipient",
+            "country_id": self.env.ref("base.fr").id,
+            "vat": "FR23334175221",
+            "company_registry": "96851575905823",
+            "peppol_eas": "0225",
+            "peppol_endpoint": "968515759_96851575905823",
+            "street": "16 rue de la Réception",
+            "zip": "59000",
+            "city": "Lille",
+        })
+        tax_group = self.env["account.tax.group"].create({
+            "name": "Unit French Electronic Invoice VAT",
+            "company_id": self.company.id,
+            "country_id": self.env.ref("base.fr").id,
+        })
+        sale_tax = self.env["account.tax"].create({
+            "name": "Unit French Electronic Invoice VAT 20%",
+            "amount": 20.0,
+            "amount_type": "percent",
+            "type_tax_use": "sale",
+            "company_id": self.company.id,
+            "tax_group_id": tax_group.id,
+        })
+        source_invoice = self.env["account.move"].create({
+            "move_type": "out_invoice",
+            "partner_id": recipient.id,
+            "journal_id": self._journal("sale").id,
+            "invoice_date": "2026-09-01",
+            "invoice_line_ids": [
+                Command.create({
+                    "name": "Representative electronic service",
+                    "account_id": self._account(
+                        "T706920",
+                        "Unit e-invoice service revenue",
+                        "income",
+                    ).id,
+                    "quantity": 1.0,
+                    "price_unit": 120.0,
+                    "tax_ids": [Command.set(sale_tax.ids)],
+                }),
+            ],
+        })
+        source_invoice.action_post()
+        valid_payload, export_errors = self.env[
+            "account.edi.xml.ubl_21_fr"
+        ]._export_invoice(source_invoice)
+        self.assertFalse(export_errors)
+        self.assertIn(b"<Invoice", valid_payload)
+
+        valid_attachment = self.env["ir.attachment"].create({
+            "name": "representative-french-supplier-invoice.xml",
+            "raw": valid_payload,
+            "mimetype": "application/xml",
+        })
+        valid_result = proxy_user._peppol_import_invoice(
+            valid_attachment,
+            "done",
+            "unit-pdp-valid-2026",
+            journal=purchase_journal,
+        )
+        bill = valid_result["move"]
+        valid_evidence = self.env["rebuild.einvoice.reception"].search([
+            ("provider_message_uuid", "=", "unit-pdp-valid-2026"),
+        ])
+
+        self.assertTrue(bill.exists())
+        self.assertEqual(bill.move_type, "in_invoice")
+        self.assertEqual(bill.state, "draft")
+        self.assertTrue(bill.partner_id)
+        self.assertTrue(bill.invoice_line_ids)
+        self.assertEqual(bill.peppol_move_state, "done")
+        self.assertEqual(valid_evidence.status, "bill_created")
+        self.assertEqual(valid_evidence.move_id, bill)
+        self.assertEqual(valid_evidence.attachment_id, valid_attachment)
+        self.assertEqual(valid_attachment.res_model, "account.move")
+        self.assertEqual(valid_attachment.res_id, bill.id)
+        self.assertEqual(bill.rebuild_einvoice_reception_status, "bill_created")
+        bill.action_post()
+        self.assertEqual(bill.state, "posted")
+        payment = self.env["account.payment.register"].with_context(
+            active_model="account.move",
+            active_ids=bill.ids,
+        ).create({
+            "payment_date": bill.date,
+            "journal_id": self._journal("bank").id,
+        })._create_payments()
+        self.assertTrue(payment)
+        self.assertEqual(bill.payment_state, "paid")
+        self.assertTrue(
+            bill.line_ids.filtered(
+                lambda line: line.account_id.account_type == "liability_payable",
+            ).reconciled,
+        )
+
+        reviewer = self.env["res.users"].with_context(
+            no_reset_password=True,
+        ).create({
+            "name": "Electronic Invoice Evidence Reviewer",
+            "login": "einvoice.evidence.reviewer@example.invalid",
+            "email": "einvoice.evidence.reviewer@example.invalid",
+            "company_id": self.company.id,
+            "company_ids": [Command.set([self.company.id])],
+            "group_ids": [Command.set([self.reviewer_group.id])],
+        })
+        self.assertEqual(
+            valid_evidence.with_user(reviewer).status,
+            "bill_created",
+        )
+        with self.assertRaises(AccessError):
+            self.env["rebuild.einvoice.reception"].with_user(reviewer).create({
+                "company_id": self.company.id,
+                "provider_message_uuid": "unauthorized-reviewer-write",
+            })
+        readiness_menu = self.env.ref(
+            "rebuild_account_migration.menu_rebuild_einvoice_readiness",
+        )
+        reception_menu = self.env.ref(
+            "rebuild_account_migration.menu_rebuild_einvoice_reception",
+        )
+        self.assertIn(self.env.ref("account.group_account_manager"), readiness_menu.group_ids)
+        self.assertIn(self.readonly_group, reception_menu.group_ids)
+        self.assertEqual(
+            self.env.ref(
+                "rebuild_account_migration.action_rebuild_einvoice_reception",
+            ).res_model,
+            "rebuild.einvoice.reception",
+        )
+
+        duplicate_attachment = self.env["ir.attachment"].create({
+            "name": "duplicate-supplier-invoice.xml",
+            "raw": valid_payload,
+            "mimetype": "application/xml",
+        })
+        duplicate_result = proxy_user._peppol_import_invoice(
+            duplicate_attachment,
+            "done",
+            "unit-pdp-duplicate-2026",
+            journal=purchase_journal,
+        )
+        duplicate_evidence = self.env["rebuild.einvoice.reception"].search([
+            ("provider_message_uuid", "=", "unit-pdp-duplicate-2026"),
+        ])
+
+        self.assertNotIn("move", duplicate_result)
+        self.assertEqual(duplicate_evidence.status, "duplicate")
+        self.assertEqual(duplicate_evidence.duplicate_of_id, valid_evidence)
+        self.assertEqual(duplicate_evidence.move_id, bill)
+        self.assertEqual(
+            duplicate_attachment.res_model,
+            "rebuild.einvoice.reception",
+        )
+        self.assertEqual(duplicate_attachment.res_id, duplicate_evidence.id)
+
+        malformed_attachment = self.env["ir.attachment"].create({
+            "name": "malformed-supplier-invoice.xml",
+            "raw": b"<Invoice><broken>",
+            "mimetype": "application/xml",
+        })
+        malformed_result = proxy_user._peppol_import_invoice(
+            malformed_attachment,
+            "done",
+            "unit-pdp-malformed-2026",
+            journal=purchase_journal,
+        )
+        malformed_evidence = self.env["rebuild.einvoice.reception"].search([
+            ("provider_message_uuid", "=", "unit-pdp-malformed-2026"),
+        ])
+
+        self.assertNotIn("move", malformed_result)
+        self.assertEqual(malformed_evidence.status, "technical_error")
+        self.assertEqual(malformed_evidence.failure_kind, "technical")
+        self.assertTrue(malformed_evidence.processing_summary)
+
+        rejected_attachment = self.env["ir.attachment"].create({
+            "name": "provider-rejected-supplier-invoice.xml",
+            "raw": valid_payload + b"\n",
+            "mimetype": "application/xml",
+        })
+        rejected_result = proxy_user._peppol_import_invoice(
+            rejected_attachment,
+            "error",
+            "unit-pdp-rejected-2026",
+            journal=purchase_journal,
+        )
+        rejected_evidence = self.env["rebuild.einvoice.reception"].search([
+            ("provider_message_uuid", "=", "unit-pdp-rejected-2026"),
+        ])
+
+        self.assertTrue(rejected_result["move"])
+        self.assertEqual(rejected_evidence.status, "rejected")
+        self.assertEqual(rejected_evidence.failure_kind, "technical")
+
+        settings = self.env["res.config.settings"].create({
+            "company_id": self.company.id,
+        })
+        with self.assertRaisesRegex(
+            UserError,
+            "Electronic invoicing cannot be activated",
+        ):
+            settings.action_open_peppol_form()
+        registration = self.env["pdp.registration"].new({
+            "company_id": self.company.id,
+        })
+        with self.assertRaisesRegex(
+            UserError,
+            "Electronic invoicing cannot be activated",
+        ):
+            registration.button_register_pdp_participant()
+        self.assertFalse(self.company.rebuild_einvoice_exchange_enabled)
+        self.assertEqual(
+            self.company.rebuild_einvoice_connection_status,
+            "not_connected",
+        )
+        self.assertEqual(
+            self.company.rebuild_einvoice_capability_status,
+            "implemented_validated",
+        )
+        self.assertEqual(
+            self.company.rebuild_einvoice_readiness_status,
+            "configuration_required",
+        )
+
+        self.company.write({
+            "account_peppol_contact_email": "accounting@example.invalid",
+            "account_peppol_phone_number": "+33612345678",
+            "rebuild_einvoice_provider": "odoo_pdp",
+            "rebuild_einvoice_environment": "production",
+        })
+        self.company.action_rebuild_approve_einvoice_activation()
+        self.assertTrue(self.company.rebuild_einvoice_activation_approved)
+        self.assertEqual(
+            self.company.rebuild_einvoice_readiness_status,
+            "ready",
+        )
+        self.assertEqual(
+            self.company.rebuild_einvoice_connection_status,
+            "not_connected",
+        )
+        self.assertFalse(self.company.rebuild_einvoice_exchange_enabled)
+        with self.assertRaisesRegex(
+            UserError,
+            "Complete approved-platform registration",
+        ):
+            self.company.action_rebuild_enable_einvoice_exchange()
+        self.company.action_rebuild_revoke_einvoice_activation()
+        self.assertFalse(self.company.rebuild_einvoice_activation_approved)
+
     def test_native_email_gateway_creates_employee_expense_with_receipt(self):
         employee_user = self.env["res.users"].with_context(
             no_reset_password=True,
@@ -4856,6 +5127,7 @@ class TestRebuildAccountMigration(TransactionCase):
             wizard.report_definition_snapshot["code"],
             "trial_balance",
         )
+
     def test_canonical_report_client_loads_filters_and_downloads(self):
         Report = self.env["rebuild.account.report.export.wizard"]
         self._journal()
