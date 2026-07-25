@@ -1129,6 +1129,21 @@ class TestRebuildAccountMigration(TransactionCase):
             self.assertIn("decoration-warning", badge.attrib)
             self.assertIn("decoration-danger", badge.attrib)
 
+        hygiene_issue_arch = self.env.ref(
+            "rebuild_account_migration.view_rebuild_account_hygiene_issue_list",
+        )._get_combined_arch()
+        severity_badge = hygiene_issue_arch.xpath(
+            "//field[@name='severity' and @widget='badge']",
+        )[0]
+        self.assertIn("decoration-danger", severity_badge.attrib)
+        self.assertIn("decoration-warning", severity_badge.attrib)
+        issue_status_badge = hygiene_issue_arch.xpath(
+            "//field[@name='status' and @widget='badge']",
+        )[0]
+        self.assertIn("decoration-info", issue_status_badge.attrib)
+        self.assertIn("decoration-success", issue_status_badge.attrib)
+        self.assertIn("decoration-muted", issue_status_badge.attrib)
+
     def test_bank_matching_mutation_controls_require_full_accounting_access(self):
         view = self.env.ref(
             "account_reconcile_oca.bank_statement_line_form_reconcile_view",

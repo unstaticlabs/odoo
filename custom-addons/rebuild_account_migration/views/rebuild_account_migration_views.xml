@@ -1593,7 +1593,12 @@
         <field name="model">rebuild.account.hygiene.issue</field>
         <field name="arch" type="xml">
             <list create="false" delete="false" decoration-danger="severity == '1_blocking' and status == 'open'" decoration-warning="severity == '2_warning' and status == 'open'" decoration-muted="status != 'open'">
-                <field name="severity" widget="badge"/>
+                <field
+                    name="severity"
+                    widget="badge"
+                    decoration-danger="severity == '1_blocking'"
+                    decoration-warning="severity == '2_warning'"
+                    decoration-info="severity == '3_attention'"/>
                 <field name="title"/>
                 <field name="issue_type"/>
                 <field name="issue_date"/>
@@ -1601,7 +1606,12 @@
                 <field name="owner_role"/>
                 <field name="owner_user_id" optional="show"/>
                 <field name="confidence" optional="hide"/>
-                <field name="status" widget="badge"/>
+                <field
+                    name="status"
+                    widget="badge"
+                    decoration-info="status == 'open'"
+                    decoration-success="status == 'resolved'"
+                    decoration-muted="status == 'dismissed'"/>
                 <button name="action_open_source" type="object" string="Open Source" icon="fa-external-link" title="Open the accounting record that needs review. This does not modify it."/>
                 <button name="action_check_resolution" type="object" string="Check" icon="fa-check-circle" groups="account.group_account_manager" invisible="status != 'open'" title="Re-run the deterministic control. The issue resolves only when its underlying condition is fixed."/>
             </list>
@@ -1631,7 +1641,13 @@
                         <group>
                             <field name="company_id" readonly="1" groups="base.group_multi_company"/>
                             <field name="issue_type" readonly="1"/>
-                            <field name="severity" widget="badge" readonly="1"/>
+                            <field
+                                name="severity"
+                                widget="badge"
+                                readonly="1"
+                                decoration-danger="severity == '1_blocking'"
+                                decoration-warning="severity == '2_warning'"
+                                decoration-info="severity == '3_attention'"/>
                             <field name="issue_date" readonly="1"/>
                             <field name="amount" readonly="1"/>
                         </group>
