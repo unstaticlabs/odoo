@@ -186,21 +186,165 @@
         <field name="parent_id" ref="account.menu_finance_entries"/>
         <field name="sequence">30</field>
     </record>
+    <record id="view_rebuild_account_move_line_reconciliation_result" model="ir.ui.view">
+        <field name="name">account.move.line.reconciliation.overview</field>
+        <field name="model">account.move.line</field>
+        <field name="arch" type="xml">
+            <list
+                string="General Reconciliation"
+                create="0"
+                edit="0"
+                delete="0"
+                default_order="date desc, id desc">
+                <field name="date"/>
+                <field name="move_id" string="Entry"/>
+                <field name="account_id"/>
+                <field name="partner_id" optional="show"/>
+                <field name="name" string="Label"/>
+                <field
+                    name="debit"
+                    widget="monetary"
+                    options="{'currency_field': 'company_currency_id'}"
+                    sum="Debit"/>
+                <field
+                    name="credit"
+                    widget="monetary"
+                    options="{'currency_field': 'company_currency_id'}"
+                    sum="Credit"/>
+                <field
+                    name="amount_currency"
+                    widget="monetary"
+                    options="{'currency_field': 'currency_id'}"
+                    optional="hide"/>
+                <field
+                    name="amount_residual"
+                    string="Remaining"
+                    widget="monetary"
+                    options="{'currency_field': 'company_currency_id'}"
+                    sum="Remaining"/>
+                <field name="company_currency_id" column_invisible="True"/>
+                <field name="currency_id" column_invisible="True"/>
+                <field
+                    name="rebuild_reconciliation_state"
+                    string="Status"
+                    widget="badge"
+                    decoration-success="rebuild_reconciliation_state == 'full'"
+                    decoration-warning="rebuild_reconciliation_state == 'partial'"
+                    decoration-muted="rebuild_reconciliation_state == 'open'"/>
+                <field
+                    name="matching_number"
+                    string="Match ref."
+                    widget="badge"
+                    options="{'color_field': 'rebuild_matching_color'}"/>
+                <field name="rebuild_matching_color" column_invisible="True"/>
+                <button
+                    name="action_reconcile_manually"
+                    string="Match"
+                    type="object"
+                    class="btn btn-primary"
+                    groups="account.group_account_user"
+                    invisible="rebuild_reconciliation_state != 'open'"
+                    title="Open the matching workspace with this item already selected."/>
+                <button
+                    name="action_reconcile_manually"
+                    string="Continue"
+                    type="object"
+                    groups="account.group_account_user"
+                    invisible="rebuild_reconciliation_state != 'partial'"
+                    title="Continue matching the remaining open amount."/>
+                <button
+                    name="action_rebuild_unreconcile"
+                    string="Undo"
+                    type="object"
+                    groups="account.group_account_user"
+                    invisible="rebuild_reconciliation_state == 'open'"
+                    title="Remove this full or partial matching and reopen the affected items."/>
+                <button
+                    name="action_rebuild_open_source"
+                    string="Open"
+                    type="object"
+                    title="Open the original journal entry."/>
+            </list>
+        </field>
+    </record>
+    <record id="view_rebuild_account_move_line_reconciliation_search" model="ir.ui.view">
+        <field name="name">account.move.line.reconciliation.overview.search</field>
+        <field name="model">account.move.line</field>
+        <field name="arch" type="xml">
+            <search string="General Reconciliation">
+                <field name="account_id"/>
+                <field name="partner_id"/>
+                <field name="move_id"/>
+                <field name="name" string="Label"/>
+                <filter
+                    name="unreconciled"
+                    string="Unreconciled"
+                    domain="[('reconciled', '=', False)]"
+                    help="Show open and partially matched items."/>
+                <filter
+                    name="partial"
+                    string="Partially matched"
+                    domain="[('reconciled', '=', False), '|', ('matched_debit_ids', '!=', False), ('matched_credit_ids', '!=', False)]"/>
+                <filter
+                    name="reconciled"
+                    string="Reconciled"
+                    domain="[('reconciled', '=', True)]"/>
+                <separator/>
+                <filter
+                    name="has_residual"
+                    string="With residual"
+                    domain="[('amount_residual', '!=', 0)]"/>
+                <filter
+                    name="this_fiscal_year"
+                    string="Current fiscal year"
+                    date="date"
+                    default_period="year"/>
+                <separator/>
+                <filter
+                    name="group_by_account"
+                    string="Account"
+                    context="{'group_by': 'account_id'}"/>
+                <filter
+                    name="group_by_partner"
+                    string="Partner"
+                    context="{'group_by': 'partner_id'}"/>
+                <filter
+                    name="group_by_month"
+                    string="Month"
+                    context="{'group_by': 'date:month'}"/>
+            </search>
+        </field>
+    </record>
+    <record id="action_rebuild_account_reconciliation_overview" model="ir.actions.act_window">
+        <field name="name">General Reconciliation</field>
+        <field name="res_model">account.move.line</field>
+        <field name="view_mode">list,pivot</field>
+        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'list', 'view_id': ref('view_rebuild_account_move_line_reconciliation_result')})]"/>
+        <field name="search_view_id" ref="view_rebuild_account_move_line_reconciliation_search"/>
+        <field name="domain">[('parent_state', '=', 'posted'), ('account_id.reconcile', '=', True)]</field>
+        <field name="context">{'search_default_unreconciled': 1, 'create': False, 'delete': False}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No journal items match the selected reconciliation filters</p>
+            <p>Remove the active filter to inspect reconciled history, or adjust the account, partner and period filters.</p>
+        </field>
+    </record>
     <record id="account_reconcile_oca.account_account_reconcile_menu" model="ir.ui.menu">
         <field name="name">General Reconciliation</field>
         <field name="parent_id" ref="account.account_closing_menu"/>
+        <field name="action" eval="'ir.actions.act_window,%d' % ref('action_rebuild_account_reconciliation_overview')"/>
         <field name="sequence">10</field>
     </record>
     <record id="account_reconcile_oca.account_account_reconcile_act_window" model="ir.actions.act_window">
         <field name="name">General Reconciliation</field>
     </record>
     <record id="action_rebuild_account_matched_items" model="ir.actions.act_window">
-        <field name="name">Matched Items and Undo</field>
+        <field name="name">Reconciliation Overview</field>
         <field name="res_model">account.move.line</field>
         <field name="view_mode">list,pivot,graph</field>
-        <field name="domain">[('parent_state', '=', 'posted'), ('account_id.reconcile', '=', True), ('reconciled', '=', True)]</field>
-        <field name="context">{'search_default_group_by_account': 1, 'search_default_group_by_partner': 1}</field>
-        <field name="search_view_id" ref="account.view_account_move_line_filter"/>
+        <field name="domain">[('parent_state', '=', 'posted'), ('account_id.reconcile', '=', True)]</field>
+        <field name="context">{'search_default_unreconciled': 1, 'create': False, 'delete': False}</field>
+        <field name="search_view_id" ref="view_rebuild_account_move_line_reconciliation_search"/>
+        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'list', 'view_id': ref('view_rebuild_account_move_line_reconciliation_result')})]"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">No matched items in this scope</p>
             <p>Select a matched journal item and use Action → Unreconcile to undo its full or partial reconciliation.</p>
@@ -213,6 +357,9 @@
         action="action_rebuild_account_matched_items"
         sequence="11"
         groups="account.group_account_readonly"/>
+    <record id="menu_rebuild_account_matched_items" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
     <record id="view_rebuild_account_general_reconciliation_form" model="ir.ui.view">
         <field name="name">account.account.reconcile.form.general.reconciliation</field>
         <field name="model">account.account.reconcile</field>

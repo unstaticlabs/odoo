@@ -348,6 +348,112 @@ class TestRebuildAccountMigration(TransactionCase):
             [-100.0, 100.0],
         )
 
+    def test_general_reconciliation_keeps_full_partial_and_undo_results_visible(self):
+        clearing = self._account(
+            "T471993",
+            "General reconciliation result",
+            "asset_current",
+        )
+        clearing.reconcile = True
+        offset = self._account(
+            "T580993",
+            "General reconciliation result offset",
+            "asset_current",
+        )
+        journal = self._journal()
+        moves = self.env["account.move"].create([
+            {
+                "move_type": "entry",
+                "date": fields.Date.today(),
+                "journal_id": journal.id,
+                "line_ids": [
+                    Command.create({
+                        "name": "Reconciliation result debit",
+                        "account_id": clearing.id,
+                        "debit": 100.0,
+                    }),
+                    Command.create({
+                        "name": "Reconciliation result offset",
+                        "account_id": offset.id,
+                        "credit": 100.0,
+                    }),
+                ],
+            },
+            {
+                "move_type": "entry",
+                "date": fields.Date.today(),
+                "journal_id": journal.id,
+                "line_ids": [
+                    Command.create({
+                        "name": "Reconciliation result credit",
+                        "account_id": clearing.id,
+                        "credit": 60.0,
+                    }),
+                    Command.create({
+                        "name": "Reconciliation result offset",
+                        "account_id": offset.id,
+                        "debit": 60.0,
+                    }),
+                ],
+            },
+        ])
+        moves.action_post()
+        clearing_lines = moves.line_ids.filtered(
+            lambda line: line.account_id == clearing,
+        )
+        self.env.flush_all()
+        reconciliation_group = self.env["account.account.reconcile"].search([
+            ("account_id", "=", clearing.id),
+            ("company_id", "=", self.company.id),
+        ], limit=1)
+        reconciliation_group = reconciliation_group.with_context(
+            default_account_move_lines=clearing_lines.ids,
+        )
+
+        result = reconciliation_group.reconcile()
+
+        self.assertEqual(result["res_model"], "account.move.line")
+        self.assertEqual(result["domain"], [("id", "in", clearing_lines.ids)])
+        self.assertEqual(
+            result["views"][0][0],
+            self.env.ref(
+                "rebuild_account_migration."
+                "view_rebuild_account_move_line_reconciliation_result",
+            ).id,
+        )
+        clearing_lines.invalidate_recordset()
+        self.assertEqual(
+            set(clearing_lines.mapped("rebuild_reconciliation_state")),
+            {"partial", "full"},
+        )
+        self.assertEqual(
+            sorted(round(value, 2) for value in clearing_lines.mapped(
+                "amount_residual",
+            )),
+            [0.0, 40.0],
+        )
+        matching_reference = clearing_lines.mapped("matching_number")[0]
+        self.assertTrue(matching_reference)
+        self.assertEqual(
+            len(set(clearing_lines.mapped("rebuild_matching_color"))),
+            1,
+        )
+
+        undo_result = clearing_lines.action_rebuild_unreconcile()
+
+        self.assertEqual(undo_result["tag"], "display_notification")
+        clearing_lines.invalidate_recordset()
+        self.assertEqual(
+            set(clearing_lines.mapped("rebuild_reconciliation_state")),
+            {"open"},
+        )
+        self.assertEqual(
+            sorted(round(value, 2) for value in clearing_lines.mapped(
+                "amount_residual",
+            )),
+            [-60.0, 100.0],
+        )
+
     def test_monthly_revenue_spending_trend_uses_posted_native_ledger(self):
         revenue_account = self._account(
             "T707991",
@@ -505,12 +611,17 @@ class TestRebuildAccountMigration(TransactionCase):
         matched_items_action = self.env.ref(
             "rebuild_account_migration.action_rebuild_account_matched_items",
         )
-        self.assertEqual(
-            matched_items_menu.parent_id,
-            self.env.ref("account.account_closing_menu"),
+        overview_action = self.env.ref(
+            "rebuild_account_migration."
+            "action_rebuild_account_reconciliation_overview",
         )
-        self.assertEqual(matched_items_menu.action, matched_items_action)
-        self.assertIn(
+        self.assertFalse(matched_items_menu.active)
+        self.assertEqual(general_reconciliation_menu.action, overview_action)
+        self.assertEqual(
+            safe_eval(overview_action.context)["search_default_unreconciled"],
+            1,
+        )
+        self.assertNotIn(
             ("reconciled", "=", True),
             safe_eval(matched_items_action.domain),
         )
