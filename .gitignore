@@ -5,6 +5,12 @@ _build/
 .*
 !.gitignore
 !.gitkeep
+!.dockerignore
+!.devcontainer
+!.devcontainer/**
+!.cursor
+!.cursor/**
+!.env.example
 !.github
 !.mailmap
 !.weblate.json
@@ -51,3 +57,13 @@ package.json
 /man/
 /share/
 /src/
+
+usl-online-dump/
+/oca-addons/*
+!/oca-addons/README.md
+/oca-src/
+/accounting_compat/private/
+/artifacts/accounting-compat/private/
+/artifacts/user-docs/site/
+/output/
+/tmp/

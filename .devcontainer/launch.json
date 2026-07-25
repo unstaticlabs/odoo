@@ -1,0 +1,58 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Odoo: Run",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "/workspace/odoo/odoo-bin",
+      "pythonArgs": [
+        "-Xfrozen_modules=off"
+      ],
+      "args": [
+        "--config=/etc/odoo/odoo.conf"
+      ],
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "env": {
+        "PYTHONPATH": "/workspace/odoo"
+      }
+    },
+    {
+      "name": "Odoo: Debug current test module",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "/workspace/odoo/odoo-bin",
+      "pythonArgs": [
+        "-Xfrozen_modules=off"
+      ],
+      "args": [
+        "--config=/etc/odoo/odoo.conf",
+        "--database=${input:database}",
+        "--test-enable",
+        "--stop-after-init",
+        "--log-level=test",
+        "--init=${input:module}"
+      ],
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "env": {
+        "PYTHONPATH": "/workspace/odoo"
+      }
+    }
+  ],
+  "inputs": [
+    {
+      "id": "database",
+      "type": "promptString",
+      "description": "Database name",
+      "default": "odoo_dev"
+    },
+    {
+      "id": "module",
+      "type": "promptString",
+      "description": "Module to install/test",
+      "default": "base"
+    }
+  ]
+}
