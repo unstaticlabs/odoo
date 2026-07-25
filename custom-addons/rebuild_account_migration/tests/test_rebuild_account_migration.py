@@ -2156,13 +2156,15 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(expense_arch.get("js_class"), "hr_expense_tree")
         for field_name in (
             "rebuild_receipt_state",
-            "rebuild_next_step",
             "analytic_distribution",
             "total_amount",
         ):
             self.assertTrue(
                 expense_arch.xpath(f"//field[@name='{field_name}']"),
             )
+        self.assertFalse(
+            expense_arch.xpath("//field[@name='rebuild_next_step']"),
+        )
 
     def test_expense_manager_gets_explicit_review_step_and_guidance(self):
         manager = self.env["res.users"].with_context(
@@ -2267,6 +2269,28 @@ class TestRebuildAccountMigration(TransactionCase):
         expense_form = self.env.ref(
             "hr_expense.hr_expense_view_form",
         )._get_combined_arch()
+        self.assertTrue(
+            expense_form.xpath(
+                "//field[@name='rebuild_next_step' and @invisible='1']",
+            ),
+        )
+        for next_step in (
+            "category",
+            "receipt",
+            "submit",
+            "approve",
+            "post",
+            "payment",
+            "processing",
+            "done",
+            "refused",
+        ):
+            self.assertTrue(
+                expense_form.xpath(
+                    "//div[contains(@class, 'alert') "
+                    f"and @invisible=\"rebuild_next_step != '{next_step}'\"]",
+                ),
+            )
         self.assertTrue(
             expense_form.xpath(
                 "//button[@name='action_pay' "

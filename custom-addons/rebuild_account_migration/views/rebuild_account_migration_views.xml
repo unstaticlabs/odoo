@@ -576,13 +576,6 @@
                 <field name="vendor_id" optional="hide"/>
                 <field name="company_id" optional="hide" groups="base.group_multi_company"/>
                 <field name="total_amount" widget="monetary" options="{'currency_field': 'company_currency_id'}" sum="Total"/>
-                <field
-                    name="rebuild_next_step"
-                    widget="badge"
-                    decoration-warning="rebuild_next_step in ('category', 'receipt', 'approve', 'post', 'payment')"
-                    decoration-info="rebuild_next_step in ('submit', 'processing')"
-                    decoration-success="rebuild_next_step == 'done'"
-                    decoration-danger="rebuild_next_step == 'refused'"/>
                 <field name="state" widget="badge" optional="hide"/>
             </list>
         </field>
@@ -620,13 +613,40 @@
                 <field name="rebuild_receipt_state" invisible="1"/>
                 <field name="rebuild_next_step" invisible="1"/>
                 <div class="alert alert-warning" role="alert" invisible="rebuild_next_step != 'category'">
-                    Choose an expense category before submitting. The category determines the accounting account and taxes.
+                    <strong>Next step: choose an expense category.</strong>
+                    The category determines the accounting account, taxes and receipt policy.
                 </div>
                 <div class="alert alert-warning" role="alert" invisible="rebuild_next_step != 'receipt'">
-                    Attach the receipt before continuing so the reviewer can verify the expense. If this category legitimately requires no receipt, update the category policy first.
+                    <strong>Next step: attach the receipt.</strong>
+                    Evidence is required before submission, approval or posting so the reviewer can verify the expense. If this category legitimately needs no receipt, an Expense Manager must update the category policy.
+                </div>
+                <div class="alert alert-info" role="status" invisible="rebuild_next_step != 'submit'">
+                    <strong>Ready to submit.</strong>
+                    Review the amount, category, paid-by method, taxes, analytic distribution and receipt, then send the expense to the manager.
+                </div>
+                <div class="alert alert-info" role="status" invisible="rebuild_next_step != 'approve'">
+                    <strong>Awaiting approval.</strong>
+                    The Expense Manager should verify the business purpose, accounting, analytics and evidence before approving.
+                </div>
+                <div class="alert alert-info" role="status" invisible="rebuild_next_step != 'post'">
+                    <strong>Approved and ready to post.</strong>
+                    Posting creates the native accounting entry. Review the accounting details before continuing.
                 </div>
                 <div class="alert alert-info" role="status" invisible="rebuild_next_step != 'payment'">
-                    This employee-paid expense has been posted. Record the reimbursement, then match the payment in the bank journal.
+                    <strong>Next step: reimburse the employee.</strong>
+                    Record the reimbursement from this expense or its journal entry, then match the payment with the bank transaction.
+                </div>
+                <div class="alert alert-info" role="status" invisible="rebuild_next_step != 'processing'">
+                    <strong>Reimbursement in progress.</strong>
+                    Confirm the payment and bank matching. The expense completes when settlement is recorded.
+                </div>
+                <div class="alert alert-success" role="status" invisible="rebuild_next_step != 'done'">
+                    <strong>Expense workflow complete.</strong>
+                    The accounting is posted or paid. Use the linked journal entry and bank transaction for any further review.
+                </div>
+                <div class="alert alert-danger" role="alert" invisible="rebuild_next_step != 'refused'">
+                    <strong>Expense refused.</strong>
+                    Review the refusal reason and correct the expense before submitting it again.
                 </div>
             </xpath>
             <xpath expr="//button[@name='action_post']" position="attributes">
