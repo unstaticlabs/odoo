@@ -500,6 +500,13 @@ class TestRebuildAccountMigration(TransactionCase):
             "Unit monthly cash",
             "asset_cash",
         )
+        analytic_plan = self.env["account.analytic.plan"].create({
+            "name": "Unit monthly plan",
+        })
+        analytic_account = self.env["account.analytic.account"].create({
+            "name": "Unit monthly activity",
+            "plan_id": analytic_plan.id,
+        })
         journal = self._journal()
 
         for date, revenue, spending in (
@@ -520,6 +527,9 @@ class TestRebuildAccountMigration(TransactionCase):
                         "name": "Monthly revenue",
                         "account_id": revenue_account.id,
                         "credit": revenue,
+                        "analytic_distribution": {
+                            str(analytic_account.id): 100.0,
+                        },
                     }),
                     Command.create({
                         "name": "Monthly spending",
@@ -539,42 +549,71 @@ class TestRebuildAccountMigration(TransactionCase):
             ("company_id", "=", self.company.id),
             ("month", "in", ["2026-01-01", "2026-02-01"]),
         ])
+        amounts = {}
+        for row in rows:
+            key = fields.Date.to_string(row.month)
+            current = amounts.setdefault(key, [0.0, 0.0, 0.0, 0])
+            current[0] += row.revenue
+            current[1] += row.spending
+            current[2] += row.net_contribution
+            current[3] += row.line_count
         amounts = {
-            (fields.Date.to_string(row.month), row.metric): (
-                round(row.amount, 2),
-                row.line_count,
+            key: (
+                round(values[0], 2),
+                round(values[1], 2),
+                round(values[2], 2),
+                values[3],
             )
-            for row in rows
+            for key, values in amounts.items()
         }
         self.assertEqual(
             amounts,
             {
-                ("2026-01-01", "revenue"): (1000.0, 1),
-                ("2026-01-01", "spending"): (400.0, 1),
-                ("2026-01-01", "net_contribution"): (600.0, 2),
-                ("2026-02-01", "revenue"): (500.0, 1),
-                ("2026-02-01", "spending"): (700.0, 1),
-                ("2026-02-01", "net_contribution"): (-200.0, 2),
+                "2026-01-01": (1000.0, 400.0, 600.0, 2),
+                "2026-02-01": (500.0, 700.0, -200.0, 2),
             },
         )
+        self.assertEqual(
+            self.env["rebuild.account.revenue.spending.month"].search_count([
+                ("company_id", "=", self.company.id),
+                ("month", "in", ["2026-01-01", "2026-02-01"]),
+                ("analytic_plan_ids", "in", analytic_plan.ids),
+                ("analytic_account_ids", "in", analytic_account.ids),
+            ]),
+            2,
+        )
 
-        february_net = rows.filtered(
+        february_spending = rows.filtered(
             lambda row: (
                 fields.Date.to_string(row.month) == "2026-02-01"
-                and row.metric == "net_contribution"
+                and row.account_id == spending_account
             ),
         )
-        drilldown = february_net.action_open_journal_items()
+        drilldown = february_spending.action_open_journal_items()
         self.assertEqual(drilldown["res_model"], "account.move.line")
         self.assertEqual(
             self.env["account.move.line"].search_count(drilldown["domain"]),
-            2,
+            1,
         )
         action = self.env.ref(
             "rebuild_account_migration."
             "action_rebuild_account_revenue_spending_month",
         )
         self.assertEqual(action.view_mode, "graph,pivot,list")
+        graph_view = self.env.ref(
+            "rebuild_account_migration."
+            "view_rebuild_account_revenue_spending_month_graph",
+        )
+        self.assertIn('type="line"', graph_view.arch)
+        self.assertIn('stacked="0"', graph_view.arch)
+        self.assertIn('name="net_contribution"', graph_view.arch)
+        pivot_view = self.env.ref(
+            "rebuild_account_migration."
+            "view_rebuild_account_revenue_spending_month_pivot",
+        )
+        self.assertIn('name="net_contribution"', pivot_view.arch)
+        self.assertNotIn('name="revenue" type="measure"', pivot_view.arch)
+        self.assertNotIn('name="spending" type="measure"', pivot_view.arch)
         self.assertEqual(
             self.env.ref(
                 "rebuild_account_migration."

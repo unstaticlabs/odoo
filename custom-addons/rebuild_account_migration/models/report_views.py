@@ -1858,22 +1858,38 @@ class RebuildAccountRevenueSpendingMonth(models.Model):
     _name = "rebuild.account.revenue.spending.month"
     _description = "Monthly Revenue, Spending and Net Contribution"
     _auto = False
-    _order = "company_id, month, metric_sequence"
+    _order = "company_id, month, account_id, partner_id, move_line_id"
 
     company_id = fields.Many2one("res.company", readonly=True)
     company_currency_id = fields.Many2one("res.currency", readonly=True)
     month = fields.Date(readonly=True)
-    metric_sequence = fields.Integer(readonly=True)
-    metric = fields.Selection(
-        selection=[
-            ("revenue", "Revenue"),
-            ("spending", "Spending"),
-            ("net_contribution", "Net Contribution"),
-        ],
+    move_line_id = fields.Many2one("account.move.line", readonly=True)
+    account_id = fields.Many2one("account.account", readonly=True)
+    partner_id = fields.Many2one("res.partner", readonly=True)
+    analytic_plan_ids = fields.Many2many(
+        "account.analytic.plan",
+        "rebuild_revenue_spending_analytic_plan_rel",
+        "report_id",
+        "analytic_plan_id",
+        readonly=True,
+    )
+    analytic_account_ids = fields.Many2many(
+        "account.analytic.account",
+        "rebuild_revenue_spending_analytic_account_rel",
+        "report_id",
+        "analytic_account_id",
         readonly=True,
     )
     line_count = fields.Integer(readonly=True)
-    amount = fields.Monetary(
+    revenue = fields.Monetary(
+        currency_field="company_currency_id",
+        readonly=True,
+    )
+    spending = fields.Monetary(
+        currency_field="company_currency_id",
+        readonly=True,
+    )
+    net_contribution = fields.Monetary(
         currency_field="company_currency_id",
         readonly=True,
     )
@@ -1896,128 +1912,103 @@ class RebuildAccountRevenueSpendingMonth(models.Model):
                 ),
             ),
         ]
-        if self.metric == "revenue":
-            domain.append((
-                "account_id.account_type",
-                "in",
-                ["income", "income_other"],
-            ))
-        elif self.metric == "spending":
-            domain.append((
-                "account_id.account_type",
-                "in",
-                [
-                    "expense",
-                    "expense_other",
-                    "expense_direct_cost",
-                    "expense_depreciation",
-                ],
-            ))
-        else:
-            domain.append((
-                "account_id.account_type",
-                "in",
-                [
-                    "income",
-                    "income_other",
-                    "expense",
-                    "expense_other",
-                    "expense_direct_cost",
-                    "expense_depreciation",
-                ],
-            ))
+        domain.append((
+            "account_id.account_type",
+            "in",
+            [
+                "income",
+                "income_other",
+                "expense",
+                "expense_other",
+                "expense_direct_cost",
+                "expense_depreciation",
+            ],
+        ))
+        if self.account_id:
+            domain.append(("account_id", "=", self.account_id.id))
+        if self.partner_id:
+            domain.append(("partner_id", "=", self.partner_id.id))
+        domain.append(("id", "=", self.move_line_id.id))
         return _journal_items_action(
             self,
             domain,
-            name=(
-                f"{dict(self._fields['metric'].selection)[self.metric]} "
-                f"Journal Items - {fields.Date.to_string(self.month)}"
-            ),
+            name=f"Revenue and Spending - {fields.Date.to_string(self.month)}",
         )
 
     def init(self):
+        analytic_plan_rel = "rebuild_revenue_spending_analytic_plan_rel"
+        analytic_account_rel = "rebuild_revenue_spending_analytic_account_rel"
+        tools.drop_view_if_exists(self.env.cr, analytic_plan_rel)
+        tools.drop_view_if_exists(self.env.cr, analytic_account_rel)
         tools.drop_view_if_exists(self.env.cr, self._table)
         self.env.cr.execute(
             f"""
             CREATE OR REPLACE VIEW {self._table} AS (
-                WITH monthly AS (
-                    SELECT line.company_id,
-                           company.currency_id AS company_currency_id,
-                           date_trunc('month', move.date)::date AS month,
-                           count(line.id) FILTER (
-                               WHERE account.account_type IN ('income', 'income_other')
-                           )::integer AS revenue_line_count,
-                           count(line.id) FILTER (
-                               WHERE account.account_type IN (
-                                   'expense',
-                                   'expense_other',
-                                   'expense_direct_cost',
-                                   'expense_depreciation'
-                               )
-                           )::integer AS spending_line_count,
-                           count(line.id) FILTER (
-                               WHERE account.account_type IN (
-                                   'income',
-                                   'income_other',
-                                   'expense',
-                                   'expense_other',
-                                   'expense_direct_cost',
-                                   'expense_depreciation'
-                               )
-                           )::integer AS net_line_count,
-                           round(-COALESCE(sum(line.balance) FILTER (
-                               WHERE account.account_type IN ('income', 'income_other')
-                           ), 0)::numeric, 2) AS revenue,
-                           round(COALESCE(sum(line.balance) FILTER (
-                               WHERE account.account_type IN (
-                                   'expense',
-                                   'expense_other',
-                                   'expense_direct_cost',
-                                   'expense_depreciation'
-                               )
-                           ), 0)::numeric, 2) AS spending
+                SELECT line.id,
+                       line.company_id,
+                       company.currency_id AS company_currency_id,
+                       date_trunc('month', move.date)::date AS month,
+                       line.id AS move_line_id,
+                       line.account_id,
+                       line.partner_id,
+                       1::integer AS line_count,
+                       round(CASE
+                           WHEN account.account_type IN ('income', 'income_other')
+                           THEN -line.balance
+                           ELSE 0
+                       END::numeric, 2) AS revenue,
+                       round(CASE
+                           WHEN account.account_type IN (
+                               'expense',
+                               'expense_other',
+                               'expense_direct_cost',
+                               'expense_depreciation'
+                           )
+                           THEN line.balance
+                           ELSE 0
+                       END::numeric, 2) AS spending,
+                       round(-line.balance::numeric, 2) AS net_contribution
                       FROM account_move_line line
                       JOIN account_move move ON move.id = line.move_id
                       JOIN account_account account ON account.id = line.account_id
                       JOIN res_company company ON company.id = line.company_id
                      WHERE move.state = 'posted'
-                     GROUP BY line.company_id,
-                              company.currency_id,
-                              date_trunc('month', move.date)::date
-                ),
-                metrics AS (
-                    SELECT company_id,
-                           company_currency_id,
-                           month,
-                           10 AS metric_sequence,
-                           'revenue'::varchar AS metric,
-                           revenue_line_count AS line_count,
-                           revenue AS amount
-                      FROM monthly
-                    UNION ALL
-                    SELECT company_id,
-                           company_currency_id,
-                           month,
-                           20 AS metric_sequence,
-                           'spending'::varchar AS metric,
-                           spending_line_count AS line_count,
-                           spending AS amount
-                      FROM monthly
-                    UNION ALL
-                    SELECT company_id,
-                           company_currency_id,
-                           month,
-                           30 AS metric_sequence,
-                           'net_contribution'::varchar AS metric,
-                           net_line_count AS line_count,
-                           revenue - spending AS amount
-                      FROM monthly
-                )
-                SELECT row_number() OVER (
-                           ORDER BY company_id, month, metric_sequence
-                       )::integer AS id,
-                       metrics.*
-                  FROM metrics
+                       AND account.account_type IN (
+                           'income',
+                           'income_other',
+                           'expense',
+                           'expense_other',
+                           'expense_direct_cost',
+                           'expense_depreciation'
+                       )
+            )
+            """,
+        )
+        self.env.cr.execute(
+            f"""
+            CREATE OR REPLACE VIEW {analytic_account_rel} AS (
+                SELECT DISTINCT line.id AS report_id,
+                       account_key::integer AS analytic_account_id
+                  FROM account_move_line line
+                  CROSS JOIN LATERAL jsonb_object_keys(
+                      COALESCE(line.analytic_distribution, '{{}}'::jsonb)
+                  ) AS distribution_key
+                  CROSS JOIN LATERAL regexp_split_to_table(
+                      distribution_key,
+                      ','
+                  ) AS account_key
+                 WHERE line.id IN (SELECT id FROM {self._table})
+            )
+            """,
+        )
+        self.env.cr.execute(
+            f"""
+            CREATE OR REPLACE VIEW {analytic_plan_rel} AS (
+                SELECT DISTINCT relation.report_id,
+                       analytic_account.plan_id AS analytic_plan_id
+                  FROM {analytic_account_rel} relation
+                  JOIN account_analytic_account analytic_account
+                    ON analytic_account.id = relation.analytic_account_id
             )
             """,
         )

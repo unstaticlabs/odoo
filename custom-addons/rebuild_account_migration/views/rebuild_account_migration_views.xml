@@ -3919,9 +3919,14 @@
             <list string="Revenue vs Spending" create="0" edit="0" delete="0">
                 <field name="company_id" groups="base.group_multi_company"/>
                 <field name="month"/>
-                <field name="metric"/>
+                <field name="account_id" optional="show"/>
+                <field name="partner_id" optional="hide"/>
+                <field name="analytic_plan_ids" widget="many2many_tags" optional="hide"/>
+                <field name="analytic_account_ids" widget="many2many_tags" optional="hide"/>
                 <field name="line_count" sum="Journal Items"/>
-                <field name="amount" sum="Amount"/>
+                <field name="revenue" sum="Revenue"/>
+                <field name="spending" sum="Spending"/>
+                <field name="net_contribution" sum="Net Contribution"/>
                 <button name="action_open_journal_items" type="object" string="Journal Items" icon="fa-list"/>
             </list>
         </field>
@@ -3931,10 +3936,14 @@
         <field name="name">rebuild.account.revenue.spending.month.graph</field>
         <field name="model">rebuild.account.revenue.spending.month</field>
         <field name="arch" type="xml">
-            <graph string="Revenue vs Spending" type="line">
+            <graph
+                string="Revenue vs Spending"
+                type="line"
+                stacked="0">
                 <field name="month" interval="month"/>
-                <field name="metric" type="col"/>
-                <field name="amount" type="measure"/>
+                <field name="revenue" type="measure"/>
+                <field name="spending" type="measure"/>
+                <field name="net_contribution" type="measure"/>
             </graph>
         </field>
     </record>
@@ -3944,9 +3953,8 @@
         <field name="model">rebuild.account.revenue.spending.month</field>
         <field name="arch" type="xml">
             <pivot string="Revenue vs Spending">
-                <field name="metric" type="row"/>
                 <field name="month" interval="month" type="col"/>
-                <field name="amount" type="measure"/>
+                <field name="net_contribution" type="measure"/>
             </pivot>
         </field>
     </record>
@@ -3958,16 +3966,17 @@
             <search string="Revenue vs Spending">
                 <field name="company_id"/>
                 <field name="month"/>
-                <field name="metric"/>
+                <field name="account_id"/>
+                <field name="partner_id"/>
+                <field name="analytic_plan_ids"/>
+                <field name="analytic_account_ids"/>
                 <filter
                     name="replacement_period"
                     string="Oct 2025 - Jun 2026"
                     domain="[('month','&gt;=','2025-10-01'),('month','&lt;=','2026-06-01')]"/>
-                <filter name="revenue" string="Revenue" domain="[('metric','=','revenue')]"/>
-                <filter name="spending" string="Spending" domain="[('metric','=','spending')]"/>
-                <filter name="net_contribution" string="Net Contribution" domain="[('metric','=','net_contribution')]"/>
-                <filter name="group_metric" string="Metric" context="{'group_by': 'metric'}"/>
                 <filter name="group_month" string="Month" context="{'group_by': 'month:month'}"/>
+                <filter name="group_account" string="Accounting Account" context="{'group_by': 'account_id'}"/>
+                <filter name="group_partner" string="Partner" context="{'group_by': 'partner_id'}"/>
             </search>
         </field>
     </record>
@@ -3983,6 +3992,8 @@
             </p>
             <p>
                 The trend is calculated dynamically from posted native journal items.
+                Analytic allocations remain dimensions of the same accounting totals,
+                so removing filters never duplicates revenue or spending.
             </p>
         </field>
     </record>
