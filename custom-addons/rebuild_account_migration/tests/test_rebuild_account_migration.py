@@ -1488,6 +1488,18 @@ class TestRebuildAccountMigration(TransactionCase):
                 "//field[@name='rebuild_transaction_status']",
             ),
         )
+        reconciled_entry_button = transaction_arch.xpath(
+            "//button[@name='action_open_journal_entry'][@icon='fa-check']",
+        )
+        self.assertEqual(len(reconciled_entry_button), 1)
+        self.assertEqual(
+            reconciled_entry_button[0].get("invisible"),
+            "rebuild_transaction_status != 'matched'",
+        )
+        self.assertIn(
+            "text-success",
+            reconciled_entry_button[0].get("class"),
+        )
 
         transaction_action = bank_journal.action_rebuild_open_transactions()
         matching_action = bank_journal.action_rebuild_open_bank_matching()
