@@ -36,6 +36,21 @@
         </field>
     </record>
 
+    <record id="view_rebuild_account_move_line_matching_chip" model="ir.ui.view">
+        <field name="name">account.move.line.list.matching.chip</field>
+        <field name="model">account.move.line</field>
+        <field name="inherit_id" ref="account.view_move_line_tree"/>
+        <field name="arch" type="xml">
+            <field name="matching_number" position="attributes">
+                <attribute name="widget">badge</attribute>
+                <attribute name="options">{'color_field': 'rebuild_matching_color'}</attribute>
+            </field>
+            <field name="matching_number" position="after">
+                <field name="rebuild_matching_color" column_invisible="True"/>
+            </field>
+        </field>
+    </record>
+
     <record id="view_rebuild_currency_rate_update_wizard_form" model="ir.ui.view">
         <field name="name">rebuild.currency.rate.update.wizard.form</field>
         <field name="model">rebuild.currency.rate.update.wizard</field>

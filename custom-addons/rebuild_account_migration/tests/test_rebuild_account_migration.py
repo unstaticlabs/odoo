@@ -1060,6 +1060,26 @@ class TestRebuildAccountMigration(TransactionCase):
         with self.assertRaises(AccessError):
             hygiene.with_user(reviewer).action_refresh_hygiene()
 
+    def test_journal_items_use_the_shared_matching_reference_chip(self):
+        journal_items_view = self.env.ref(
+            "account.view_move_line_tree",
+        )._get_combined_arch()
+        matching_fields = journal_items_view.xpath(
+            "//field[@name='matching_number']",
+        )
+        color_fields = journal_items_view.xpath(
+            "//field[@name='rebuild_matching_color']",
+        )
+
+        self.assertEqual(len(matching_fields), 1)
+        self.assertEqual(matching_fields[0].get("widget"), "badge")
+        self.assertEqual(
+            safe_eval(matching_fields[0].get("options")),
+            {"color_field": "rebuild_matching_color"},
+        )
+        self.assertEqual(len(color_fields), 1)
+        self.assertEqual(color_fields[0].get("column_invisible"), "True")
+
     def test_bank_matching_mutation_controls_require_full_accounting_access(self):
         view = self.env.ref(
             "account_reconcile_oca.bank_statement_line_form_reconcile_view",
