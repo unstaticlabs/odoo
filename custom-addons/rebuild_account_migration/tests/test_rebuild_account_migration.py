@@ -1716,6 +1716,7 @@ class TestRebuildAccountMigration(TransactionCase):
         category = self.env["product.product"].create({
             "name": "Unit expense journey",
             "can_be_expensed": True,
+            "standard_price": 59.4,
             "property_account_expense_id": expense_account.id,
         })
         expense = self.env["hr.expense"].with_user(manager).create({
@@ -1741,6 +1742,19 @@ class TestRebuildAccountMigration(TransactionCase):
             rebuild_source_materialization=True,
         ).action_submit()
         self.assertEqual(restored_expense.state, "submitted")
+        historical_expense = self.env["hr.expense"].with_context(
+            rebuild_source_expense_price_unit=52.0,
+        ).create({
+            "name": "Source historical category price",
+            "employee_id": employee.id,
+            "product_id": category.id,
+            "company_id": self.company.id,
+            "payment_mode": "own_account",
+            "quantity": 1.0,
+            "total_amount_currency": 52.0,
+        })
+        self.assertEqual(historical_expense.price_unit, 52.0)
+        self.assertEqual(historical_expense.total_amount_currency, 52.0)
         receipt = self.env["ir.attachment"].sudo().create({
             "name": "unit-receipt.pdf",
             "type": "binary",

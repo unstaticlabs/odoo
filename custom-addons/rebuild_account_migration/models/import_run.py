@@ -7042,6 +7042,7 @@ class RebuildAccountImportRun(models.Model):
             Expense = self.env["hr.expense"].sudo().with_context(
                 tracking_disable=True,
                 mail_create_nolog=True,
+                rebuild_source_materialization=True,
             )
             Move = self.env["account.move"].sudo().with_context(
                 tracking_disable=True,
@@ -7135,6 +7136,14 @@ class RebuildAccountImportRun(models.Model):
                                     for source_tax_id in source_expense["tax_ids"]
                                 ])],
                                 "quantity": self._amount(source_expense["quantity"]),
+                                # The SaaS field is stored/precomputed and its
+                                # current product cost can otherwise replace
+                                # the historical source unit price during
+                                # create. Supplying the source business value
+                                # suppresses that precompute for this replay.
+                                "price_unit": self._amount(
+                                    source_expense["price_unit"],
+                                ),
                                 "total_amount_currency": self._amount(
                                     source_expense["total_amount_currency"],
                                 ),
@@ -7159,15 +7168,11 @@ class RebuildAccountImportRun(models.Model):
                             }
                             if payment_method_line:
                                 vals["payment_method_line_id"] = payment_method_line.id
-                            expense = Expense.with_company(company).create(vals)
-                            if source_expense["state"] == "refused":
-                                expense._do_refuse("Restored source refusal")
-                            elif source_expense["state"] != "draft":
-                                expense.action_submit()
-                                if expense.state == "submitted":
-                                    expense._do_approve()
-                                if source_expense["approval_date"]:
-                                    expense.approval_date = source_expense["approval_date"]
+                            expense = Expense.with_company(company).with_context(
+                                rebuild_source_expense_price_unit=self._amount(
+                                    source_expense["price_unit"],
+                                ),
+                            ).create(vals)
                             expense.flush_recordset([
                                 "price_unit",
                                 "total_amount_currency",
@@ -7211,6 +7216,52 @@ class RebuildAccountImportRun(models.Model):
             expense_attachment_issue_count = self._attachment_issue_count(
                 expense_attachment_stats,
             )
+
+            # The USL product policy requires the receipt to exist before an
+            # expense can be submitted. Create every expense in draft first,
+            # restore its source attachment above, and only then exercise the
+            # standard refusal/submission/approval workflow. The replay-only
+            # context preserves source-approved records whose receipt was not
+            # retained without weakening the policy for normal UI submissions.
+            for source_expense in expense_rows:
+                expense = expenses_by_source_id.get(source_expense["id"])
+                if not expense or expense.state != "draft":
+                    continue
+                try:
+                    with self.env.cr.savepoint():
+                        replay_expense = expense.with_context(
+                            rebuild_source_expense_price_unit=self._amount(
+                                source_expense["price_unit"],
+                            ),
+                        )
+                        replay_expense._compute_price_unit()
+                        replay_expense.flush_recordset([
+                            "price_unit",
+                            "total_amount_currency",
+                            "total_amount",
+                            "tax_amount_currency",
+                            "tax_amount",
+                            "untaxed_amount_currency",
+                            "untaxed_amount",
+                        ])
+                        if source_expense["state"] == "refused":
+                            replay_expense._do_refuse("Restored source refusal")
+                        elif source_expense["state"] != "draft":
+                            replay_expense.action_submit()
+                            if expense.state == "submitted":
+                                replay_expense._do_approve()
+                            if source_expense["approval_date"]:
+                                expense.approval_date = (
+                                    source_expense["approval_date"]
+                                )
+                except Exception as exc:  # noqa: BLE001 - classify each source expense.
+                    blocked_cases.append({
+                        "source_expense_id": source_expense["id"],
+                        "source_name": source_expense["name"],
+                        "classification": "native_expense_workflow_error",
+                        "exception_type": type(exc).__name__,
+                        "exception_message": str(exc),
+                    })
 
             created_company_payment_move_count = 0
             reused_company_payment_move_count = 0
