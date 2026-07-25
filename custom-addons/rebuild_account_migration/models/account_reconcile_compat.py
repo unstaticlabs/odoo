@@ -432,6 +432,13 @@ class AccountBankStatementLine(models.Model):
         compute="_compute_rebuild_transaction_display",
         string="Linked document or entry",
     )
+    # Compatibility for web clients that cached the transaction list before
+    # rebuild_linked_move_id replaced the former display-only field. Keep this
+    # out of current views; it can be removed after the next major upgrade.
+    rebuild_linked_document = fields.Char(
+        compute="_compute_rebuild_transaction_display",
+        string="Legacy linked document",
+    )
 
     @api.depends(
         "amount",
@@ -486,6 +493,9 @@ class AccountBankStatementLine(models.Model):
             )
             statement_line.rebuild_linked_move_id = (
                 business_moves[:1] or linked_moves[:1]
+            )
+            statement_line.rebuild_linked_document = (
+                statement_line.rebuild_linked_move_id.display_name
             )
 
     def action_rebuild_open_bank_matching(self):

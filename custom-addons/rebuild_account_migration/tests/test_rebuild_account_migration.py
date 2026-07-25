@@ -1581,6 +1581,10 @@ class TestRebuildAccountMigration(TransactionCase):
             bank_line.rebuild_linked_move_id,
             clearing_move,
         )
+        self.assertEqual(
+            bank_line.rebuild_linked_document,
+            clearing_move.display_name,
+        )
 
         action = self.env.ref(
             "account_statement_base.account_bank_statement_line_action",
