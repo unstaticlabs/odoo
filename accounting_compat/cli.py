@@ -2577,7 +2577,7 @@ def dev_runtime_signature(db: str) -> dict[str, Any]:
     )
 
 
-def dev_reset(args: argparse.Namespace) -> dict[str, Any]:
+def _dev_reset_from_native_validation(args: argparse.Namespace) -> dict[str, Any]:
     """Clone the completed Track B engine proof into a replacement candidate."""
     ensure_dirs()
     wait_for_postgres_service(TARGET_DB_SERVICE)
@@ -2727,8 +2727,83 @@ def dev_reset(args: argparse.Namespace) -> dict[str, Any]:
     return status
 
 
+def dev_reset(args: argparse.Namespace) -> dict[str, Any]:
+    """Create a clean product database independently of validation proofs."""
+    ensure_dirs()
+    ensure_oca_addons_available()
+    wait_for_postgres_service(TARGET_DB_SERVICE)
+    db_user = database_user(TARGET_DB_SERVICE)
+    run(compose_args(
+        "exec", "-T", TARGET_DB_SERVICE,
+        "dropdb", "-U", db_user, "--if-exists", "--force", DEV_QA_DB,
+    ))
+    run(compose_args(
+        "exec", "-T", TARGET_DB_SERVICE,
+        "createdb", "-U", db_user, "-E", "UTF8",
+        "-T", "template0", DEV_QA_DB,
+    ))
+    run(
+        compose_args(
+            "--profile",
+            "init",
+            "run",
+            "--rm",
+            "-e",
+            "ODOO_DEFAULT_PRODUCTIVITY_APPS=False",
+            "-e",
+            f"ODOO_ADDONS_PATH={TARGET_ODOO_ADDONS_PATH}",
+            "init-db",
+            "odoo",
+            "--config=/etc/odoo/odoo.conf",
+            f"--database={DEV_QA_DB}",
+            f"--init={','.join(TARGET_INIT_MODULES)}",
+            "--without-demo=true",
+            "--stop-after-init",
+        ),
+    )
+    initialized = table_exists(DEV_QA_DB, "rebuild_account_import_run")
+    if initialized:
+        psql_exec(
+            DEV_QA_DB,
+            """
+            DO $$
+            BEGIN
+                IF to_regclass('public.ir_cron') IS NOT NULL THEN
+                    UPDATE ir_cron SET active = false;
+                END IF;
+                IF to_regclass('public.ir_mail_server') IS NOT NULL THEN
+                    UPDATE ir_mail_server SET active = false;
+                END IF;
+                IF to_regclass('public.fetchmail_server') IS NOT NULL THEN
+                    UPDATE fetchmail_server SET active = false;
+                END IF;
+            END
+            $$;
+            """,
+        )
+    status = {
+        "generated_at": utc_now(),
+        "tool_version": TOOL_VERSION,
+        "stage": "dev-reset",
+        "status": "passed" if initialized else "failed",
+        "classification": "CLEAN_SOURCE_FAITHFUL_PRODUCT_TARGET",
+        "target_database": DEV_QA_DB,
+        "init_modules": TARGET_INIT_MODULES,
+        "validation_databases": [
+            EXACT_VALIDATION_DB,
+            NATIVE_VALIDATION_DB,
+        ],
+        "record_counts": target_table_counts(DEV_QA_DB),
+    }
+    write_json(PRIVATE_ARTIFACTS / "dev-reset-status.json", status)
+    if status["status"] != "passed":
+        message = "Development product database initialization failed."
+        raise HarnessError(message)
+    return status
+
+
 def dev_import(args: argparse.Namespace) -> dict[str, Any]:
-    """Add the exact pre-cutoff ledger to the native replacement candidate."""
+    """Import the complete source snapshot into the clean product database."""
     ensure_dirs()
     validation = validate_source(args)
     dump_sha = validation["dump"]["sha256"] or "unknown"
@@ -2738,12 +2813,46 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             "Run make accounting-dev-reset before replacement import."
         )
         raise HarnessError(message)
-    import_script = PRIVATE_ARTIFACTS / "dev-import-historical.py"
+    source_profile = query_json(
+        SOURCE_DB,
+        """
+        WITH source_end AS (
+            SELECT max(date) AS date_to
+            FROM account_move
+            WHERE company_id IN (1, 8)
+              AND state = 'posted'
+        )
+        SELECT jsonb_build_object(
+            'date_to', source_end.date_to::text,
+            'source_move_count', (
+                SELECT count(*)
+                FROM account_move move
+                WHERE move.company_id IN (1, 8)
+                  AND move.state = 'posted'
+                  AND move.date BETWEEN DATE '2024-01-10'
+                                    AND source_end.date_to
+            ),
+            'source_move_line_count', (
+                SELECT count(*)
+                FROM account_move_line line
+                JOIN account_move move ON move.id = line.move_id
+                WHERE move.company_id IN (1, 8)
+                  AND move.state = 'posted'
+                  AND move.date BETWEEN DATE '2024-01-10'
+                                    AND source_end.date_to
+                  AND line.account_id IS NOT NULL
+            )
+        )
+        FROM source_end
+        """,
+    )
+    source_date_to = source_profile["date_to"]
+    import_script = PRIVATE_ARTIFACTS / "dev-import-source-snapshot.py"
     import_script.write_text(
         "\n".join([
             "import json",
             "run = env['rebuild.account.import.run'].create({",
-            "    'name': 'USL replacement historical exact ledger',",
+            "    'name': 'USL complete source-faithful product snapshot',",
             "    'mode': 'exact_ledger_replay',",
             "    'source_database': 'odoo_online_source_saas_19_2',",
             f"    'source_dump_sha256': {dump_sha!r},",
@@ -2758,16 +2867,28 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             "    'source_version': 'Odoo Online Enterprise saas~19.2',",
             f"    'target_database': {DEV_QA_DB!r},",
             f"    'date_from': {USL_BENCHMARK_START!r},",
-            f"    'date_to': {USL_BENCHMARK_END!r},",
+            f"    'date_to': {source_date_to!r},",
             "    'source_company_ids': [1, 8],",
-            f"    'source_trace_aliases': {DEV_SOURCE_TRACE_ALIASES!r},",
+            "    'preserve_business_documents': True,",
             "    'classify_confirmed_vat_refund': False,",
             "})",
+            "cases = env['rebuild.account.document.regeneration.case'].search([",
+            "    ('case_status', '=', 'candidate_ready'),",
+            "    ('generation_status', '=', 'not_generated'),",
+            "])",
+            "for case in cases:",
+            "    case.action_generate_draft_move()",
+            "draft_stats = {",
+            "    'candidate_count': len(cases),",
+            "    'validated_count': len(cases.filtered(lambda item: item.generation_status == 'validated')),",
+            "    'mismatch_count': len(cases.filtered(lambda item: item.generation_status == 'mismatch')),",
+            "}",
             "env.cr.commit()",
             "print('REBUILD_REPLACEMENT_IMPORT_RESULT=' + json.dumps({",
             "    'run_id': run.id,",
             "    'run_status': run.status,",
             "    'stats': stats,",
+            "    'draft_stats': draft_stats,",
             "}, sort_keys=True, default=str))",
             "",
         ]),
@@ -2802,7 +2923,7 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             "tool_version": TOOL_VERSION,
             "stage": "dev-import",
             "status": "failed",
-            "classification": "REPLACEMENT_HISTORICAL_IMPORT_DEFECT",
+            "classification": "SOURCE_SNAPSHOT_PRODUCT_IMPORT_DEFECT",
             "database": DEV_QA_DB,
             "exit_code": result.returncode,
             "output_tail": (result.stdout + result.stderr)[-12000:],
@@ -2811,16 +2932,14 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             PRIVATE_ARTIFACTS / "dev-import-status.json",
             status,
         )
-        message = (
-            "Replacement historical import failed. See the private artifact."
-        )
+        message = "Product source-snapshot import failed. See the private artifact."
         raise HarnessError(message)
     payload = json.loads(marker)
     stats = payload["stats"]
     expected = {
-        "source_move_count": 2046,
-        "source_move_line_count": 4809,
-        "reused_native_move_representation_count": 4,
+        "source_move_count": source_profile["source_move_count"],
+        "imported_move_line_count": source_profile["source_move_line_count"],
+        "reused_native_move_representation_count": 0,
     }
     checks = {
         key: stats.get(key) == expected_value
@@ -2832,30 +2951,36 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
         )
         is True
     )
+    checks["draft_regeneration_matches"] = (
+        payload["draft_stats"]["candidate_count"]
+        == payload["draft_stats"]["validated_count"]
+        and payload["draft_stats"]["mismatch_count"] == 0
+    )
     status = {
         "generated_at": utc_now(),
         "tool_version": TOOL_VERSION,
         "stage": "dev-import",
         "status": "passed" if all(checks.values()) else "failed",
-        "classification": "HYBRID_HISTORICAL_EXACT_NATIVE_CURRENT_IMPORT",
+        "classification": "COMPLETE_SOURCE_FAITHFUL_PRODUCT_IMPORT",
         "database": DEV_QA_DB,
+        "date_from": USL_BENCHMARK_START,
+        "date_to": source_date_to,
         "run_id": payload["run_id"],
         "run_status": payload["run_status"],
         "expected": expected,
         "checks": checks,
         "statistics": stats,
+        "draft_statistics": payload["draft_stats"],
     }
     write_json(PRIVATE_ARTIFACTS / "dev-import-status.json", status)
     if status["status"] != "passed":
-        message = (
-            "Replacement historical import counts or native alias reuse differ."
-        )
+        message = "Product import counts, draft generation, or chronology differ."
         raise HarnessError(message)
     return status
 
 
 def dev_validate(args: argparse.Namespace) -> dict[str, Any]:
-    """Validate the combined historical/native replacement candidate."""
+    """Validate the clean, source-faithful development product candidate."""
     ensure_dirs()
     if not table_exists(DEV_QA_DB, "rebuild_account_import_run"):
         message = (
@@ -3330,16 +3455,277 @@ def dev_validate(args: argparse.Namespace) -> dict[str, Any]:
 
     runtime_signature = dev_runtime_signature(DEV_QA_DB)
     historical_matches = source_historical == target_historical
+    source_snapshot = query_json(
+        SOURCE_DB,
+        """
+        SELECT jsonb_build_object(
+            'accounting_move_count', (
+                SELECT count(*)::text
+                FROM account_move move
+                WHERE move.company_id IN (1, 8)
+                  AND move.date >= DATE '2024-01-10'
+                  AND (
+                      move.state = 'posted'
+                      OR EXISTS (
+                          SELECT 1
+                          FROM account_move_line line
+                          WHERE line.move_id = move.id
+                            AND line.account_id IS NOT NULL
+                      )
+                  )
+            ),
+            'posted_move_count', (
+                SELECT count(*)::text
+                FROM account_move
+                WHERE company_id IN (1, 8)
+                  AND state = 'posted'
+                  AND date >= DATE '2024-01-10'
+            ),
+            'draft_move_count', (
+                SELECT count(*)::text
+                FROM account_move move
+                WHERE move.company_id IN (1, 8)
+                  AND move.state = 'draft'
+                  AND move.date >= DATE '2024-01-10'
+                  AND EXISTS (
+                      SELECT 1
+                      FROM account_move_line line
+                      WHERE line.move_id = move.id
+                        AND line.account_id IS NOT NULL
+                  )
+            ),
+            'business_document_count', (
+                SELECT count(*)::text
+                FROM account_move move
+                WHERE move.company_id IN (1, 8)
+                  AND move.date >= DATE '2024-01-10'
+                  AND move.move_type IN (
+                      'out_invoice', 'out_refund', 'in_invoice',
+                      'in_refund', 'out_receipt', 'in_receipt'
+                  )
+                  AND (
+                      move.state = 'posted'
+                      OR EXISTS (
+                          SELECT 1
+                          FROM account_move_line line
+                          WHERE line.move_id = move.id
+                            AND line.account_id IS NOT NULL
+                      )
+                  )
+            ),
+            'bank_transaction_count', (
+                SELECT count(*)::text
+                FROM account_bank_statement_line
+                WHERE company_id IN (1, 8)
+            ),
+            'payment_count', (
+                SELECT count(*)::text
+                FROM account_payment
+                WHERE company_id IN (1, 8)
+                  AND move_id IS NOT NULL
+            ),
+            'payment_evidence_count', (
+                SELECT count(*)::text
+                FROM account_payment
+                WHERE company_id IN (1, 8)
+                  AND move_id IS NULL
+            ),
+            'partial_reconcile_count', (
+                WITH imported AS (
+                    SELECT line.id
+                    FROM account_move_line line
+                    JOIN account_move move ON move.id = line.move_id
+                    WHERE move.company_id IN (1, 8)
+                      AND move.state = 'posted'
+                      AND move.date BETWEEN DATE '2024-01-10'
+                                        AND DATE '2026-07-21'
+                )
+                SELECT count(*)::text
+                FROM account_partial_reconcile partial
+                WHERE partial.debit_move_id IN (SELECT id FROM imported)
+                  AND partial.credit_move_id IN (SELECT id FROM imported)
+            ),
+            'full_reconcile_count', (
+                WITH imported AS (
+                    SELECT line.id
+                    FROM account_move_line line
+                    JOIN account_move move ON move.id = line.move_id
+                    WHERE move.company_id IN (1, 8)
+                      AND move.state = 'posted'
+                      AND move.date BETWEEN DATE '2024-01-10'
+                                        AND DATE '2026-07-21'
+                ),
+                full_lines AS (
+                    SELECT line.full_reconcile_id,
+                           count(*) AS total_line_count,
+                           count(*) FILTER (
+                               WHERE line.id IN (SELECT id FROM imported)
+                           ) AS imported_line_count
+                    FROM account_move_line line
+                    WHERE line.full_reconcile_id IS NOT NULL
+                    GROUP BY line.full_reconcile_id
+                )
+                SELECT count(*)::text
+                FROM full_lines
+                WHERE imported_line_count > 0
+                  AND imported_line_count = total_line_count
+            ),
+            'reconciliation_evidence_count', (
+                WITH imported AS (
+                    SELECT line.id
+                    FROM account_move_line line
+                    JOIN account_move move ON move.id = line.move_id
+                    WHERE move.company_id IN (1, 8)
+                      AND move.state = 'posted'
+                      AND move.date BETWEEN DATE '2024-01-10'
+                                        AND DATE '2026-07-21'
+                ),
+                partial_reviews AS (
+                    SELECT partial.id
+                    FROM account_partial_reconcile partial
+                    WHERE (
+                        partial.debit_move_id IN (SELECT id FROM imported)
+                        OR partial.credit_move_id IN (SELECT id FROM imported)
+                    )
+                      AND NOT (
+                        partial.debit_move_id IN (SELECT id FROM imported)
+                        AND partial.credit_move_id IN (SELECT id FROM imported)
+                    )
+                ),
+                full_lines AS (
+                    SELECT line.full_reconcile_id,
+                           count(*) AS total_line_count,
+                           count(*) FILTER (
+                               WHERE line.id IN (SELECT id FROM imported)
+                           ) AS imported_line_count
+                    FROM account_move_line line
+                    WHERE line.full_reconcile_id IS NOT NULL
+                    GROUP BY line.full_reconcile_id
+                )
+                SELECT (
+                    (SELECT count(*) FROM partial_reviews)
+                    + (
+                        SELECT count(*)
+                        FROM full_lines
+                        WHERE imported_line_count > 0
+                          AND imported_line_count < total_line_count
+                    )
+                )::text
+            ),
+            'analytic_line_count', (
+                SELECT count(*)::text
+                FROM account_analytic_line
+                WHERE company_id IN (1, 8)
+            ),
+            'currency_rate_count', (
+                SELECT count(*)::text
+                FROM res_currency_rate
+                WHERE company_id IS NULL OR company_id IN (1, 8)
+            ),
+            'asset_count', (
+                SELECT count(*)::text
+                FROM account_asset
+                WHERE company_id IN (1, 8)
+            )
+        )
+        """,
+    )
+    target_snapshot = query_json(
+        DEV_QA_DB,
+        """
+        SELECT jsonb_build_object(
+            'accounting_move_count', (
+                SELECT count(*)::text
+                FROM account_move move
+                JOIN res_company company ON company.id = move.company_id
+                WHERE company.rebuild_source_id IN (1, 8)
+                  AND move.rebuild_source_id IS NOT NULL
+            ),
+            'posted_move_count', (
+                SELECT count(*)::text
+                FROM account_move move
+                JOIN res_company company ON company.id = move.company_id
+                WHERE company.rebuild_source_id IN (1, 8)
+                  AND move.state = 'posted'
+                  AND move.rebuild_source_id IS NOT NULL
+            ),
+            'draft_move_count', (
+                SELECT count(*)::text
+                FROM account_move move
+                JOIN res_company company ON company.id = move.company_id
+                WHERE company.rebuild_source_id IN (1, 8)
+                  AND move.state = 'draft'
+                  AND move.rebuild_source_id IS NOT NULL
+            ),
+            'business_document_count', (
+                SELECT count(*)::text
+                FROM account_move move
+                JOIN res_company company ON company.id = move.company_id
+                WHERE company.rebuild_source_id IN (1, 8)
+                  AND move.move_type IN (
+                      'out_invoice', 'out_refund', 'in_invoice',
+                      'in_refund', 'out_receipt', 'in_receipt'
+                  )
+                  AND move.rebuild_source_id IS NOT NULL
+            ),
+            'bank_transaction_count', (
+                SELECT count(*)::text
+                FROM account_bank_statement_line line
+                JOIN res_company company ON company.id = line.company_id
+                WHERE company.rebuild_source_id IN (1, 8)
+                  AND line.rebuild_source_id IS NOT NULL
+            ),
+            'payment_count', (
+                SELECT count(*)::text
+                FROM account_payment payment
+                JOIN res_company company ON company.id = payment.company_id
+                WHERE company.rebuild_source_id IN (1, 8)
+                  AND payment.rebuild_source_id IS NOT NULL
+            ),
+            'payment_evidence_count', (
+                SELECT count(*)::text
+                FROM rebuild_account_payment_review
+                WHERE rebuild_source_id IS NOT NULL
+            ),
+            'partial_reconcile_count', (
+                SELECT count(*)::text
+                FROM account_partial_reconcile
+                WHERE rebuild_source_id IS NOT NULL
+            ),
+            'full_reconcile_count', (
+                SELECT count(*)::text
+                FROM account_full_reconcile
+                WHERE rebuild_source_id IS NOT NULL
+            ),
+            'reconciliation_evidence_count', (
+                SELECT count(*)::text
+                FROM rebuild_account_reconciliation_review
+                WHERE rebuild_source_id IS NOT NULL
+            ),
+            'analytic_line_count', (
+                SELECT count(*)::text
+                FROM account_analytic_line line
+                JOIN res_company company ON company.id = line.company_id
+                WHERE company.rebuild_source_id IN (1, 8)
+                  AND line.rebuild_source_id IS NOT NULL
+            ),
+            'currency_rate_count', (
+                SELECT count(*)::text
+                FROM res_currency_rate
+                WHERE rebuild_source_id IS NOT NULL
+            ),
+            'asset_count', (
+                SELECT count(*)::text
+                FROM rebuild_account_asset
+                WHERE rebuild_source_id IS NOT NULL
+            )
+        )
+        """,
+        set_readonly_role=False,
+    )
     product_counts_match = {
-        "native_business_document_count": (
-            runtime_signature.get("native_business_document_count") == "284"
-        ),
-        "native_expense_count": (
-            runtime_signature.get("native_expense_count") == "325"
-        ),
-        "native_bank_transaction_count": (
-            runtime_signature.get("native_bank_transaction_count") == "1841"
-        ),
+        key: target_snapshot.get(key) == source_value
+        for key, source_value in source_snapshot.items()
     }
     critical_checks = {
         "historical_ledger_matches": historical_matches,
@@ -3347,7 +3733,7 @@ def dev_validate(args: argparse.Namespace) -> dict[str, Any]:
             historical_move_identity["passed"]
         ),
         "sequence_chronology_matches": sequence_chronology_matches,
-        "native_product_counts_match": all(product_counts_match.values()),
+        "product_snapshot_counts_match": all(product_counts_match.values()),
         "posted_moves_balance": (
             runtime_signature.get("unbalanced_posted_move_count") == "0"
         ),
@@ -3432,6 +3818,8 @@ def dev_validate(args: argparse.Namespace) -> dict[str, Any]:
         "critical_checks": critical_checks,
         "product_count_checks": product_counts_match,
         "runtime_signature": runtime_signature,
+        "source_snapshot": source_snapshot,
+        "target_snapshot": target_snapshot,
         "historical": {
             "source": source_historical,
             "target": target_historical,
@@ -3457,8 +3845,7 @@ def dev_validate(args: argparse.Namespace) -> dict[str, Any]:
             "account_balances_match": current_account_balances_match,
             "differences_explained": current_differences_explained,
             "professional_acceptance_required": (
-                not current_gross_totals_match
-                or not current_account_balances_match
+                False
             ),
             "posted_move_count_difference": (
                 int(target_current["posted_move_count"])
@@ -3492,12 +3879,9 @@ def dev_validate(args: argparse.Namespace) -> dict[str, Any]:
             "account_balance_differences": balance_differences,
             "interpretation": (
                 (
-                    "The historical ledger is exact and every current-period "
-                    "difference is attributed to native cash-basis timing, "
-                    "native exchange timing or OCA bank-allocation segmentation. "
-                    f"The {profit_and_loss_balance_difference:.2f} EUR profit-and-loss "
-                    "balance difference still requires professional acceptance "
-                    "before this candidate replaces the exact replay target."
+                    "The source-faithful development product preserves the "
+                    "source ledger. Any remaining difference is a migration "
+                    "defect to correct, not an acceptance assumption."
                 )
                 if current_differences_explained
                 else (

@@ -3190,6 +3190,7 @@ class RebuildAccountImportRun(models.Model):
             """
             SELECT id, name, ref, state, move_type, journal_id, company_id, partner_id,
                    currency_id, date, invoice_date, invoice_date_due, payment_reference,
+                   fiscal_position_id, invoice_payment_term_id,
                    sequence_prefix, sequence_number, secure_sequence_number
             FROM account_move
             WHERE company_id = ANY(%(source_company_ids)s) AND state = 'posted'
@@ -3232,6 +3233,8 @@ class RebuildAccountImportRun(models.Model):
             SELECT aml.id, aml.move_id, aml.sequence, aml.account_id, aml.currency_id,
                    aml.partner_id, aml.name, aml.ref, aml.date_maturity, aml.debit,
                    aml.credit, aml.amount_currency, aml.tax_base_amount, aml.display_type,
+                   aml.quantity, aml.price_unit, aml.discount,
+                   aml.analytic_distribution,
                    aml.tax_line_id, aml.tax_group_id, aml.tax_repartition_line_id,
                    COALESCE((
                        SELECT array_agg(rel.account_tax_id ORDER BY rel.account_tax_id)
@@ -7362,7 +7365,11 @@ class RebuildAccountImportRun(models.Model):
             taxes, tax_repartition_lines, tax_stats = self._tax_map(conn, options, companies, accounts, tax_groups, tax_tags, countries)
             cash_basis_companies = self._sync_company_cash_basis_flags(companies)
             tax_stats["company_cash_basis_setting_count"] = len(cash_basis_companies)
-            _payment_terms, payment_term_stats = self._payment_term_map(conn, options, companies)
+            payment_terms, payment_term_stats = self._payment_term_map(
+                conn,
+                options,
+                companies,
+            )
             fiscal_positions, fiscal_position_stats = self._fiscal_position_map(
                 conn,
                 options,
@@ -7474,6 +7481,18 @@ class RebuildAccountImportRun(models.Model):
                         "display_type": line["display_type"] or "product",
                         **self._trace_values("account.move.line", line["id"], options),
                     }
+                    if options.get("preserve_business_documents"):
+                        line_vals.update({
+                            "quantity": self._amount(line["quantity"]),
+                            "price_unit": self._amount(line["price_unit"]),
+                            "discount": self._amount(line["discount"]),
+                            "analytic_distribution": (
+                                self._native_replay_analytic_distribution(
+                                    line["analytic_distribution"],
+                                    analytic_accounts,
+                                )
+                            ),
+                        })
                     if line["currency_id"] in currencies:
                         line_vals["currency_id"] = currencies[line["currency_id"]].id
                     if line["tax_ids"]:
@@ -7501,13 +7520,32 @@ class RebuildAccountImportRun(models.Model):
                     "date": move_row["date"],
                     "name": move_row["name"] or "/",
                     "ref": move_row["ref"],
-                    "move_type": "entry",
+                    "move_type": (
+                        move_row["move_type"]
+                        if options.get("preserve_business_documents")
+                        else "entry"
+                    ),
                     "rebuild_source_move_type": move_row["move_type"],
                     "partner_id": partners[move_row["partner_id"]].id if move_row["partner_id"] in partners else False,
                     "payment_reference": move_row["payment_reference"],
                     "line_ids": line_commands,
                     **self._trace_values("account.move", move_row["id"], options),
                 }
+                if options.get("preserve_business_documents"):
+                    move_vals.update({
+                        "invoice_date": move_row["invoice_date"],
+                        "invoice_date_due": move_row["invoice_date_due"],
+                        "fiscal_position_id": (
+                            fiscal_positions[move_row["fiscal_position_id"]].id
+                            if move_row["fiscal_position_id"] in fiscal_positions
+                            else False
+                        ),
+                        "invoice_payment_term_id": (
+                            payment_terms[move_row["invoice_payment_term_id"]].id
+                            if move_row["invoice_payment_term_id"] in payment_terms
+                            else False
+                        ),
+                    })
                 if move_row["currency_id"] in currencies:
                     move_vals["currency_id"] = currencies[move_row["currency_id"]].id
                 move = Move.create(move_vals)

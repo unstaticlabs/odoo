@@ -157,6 +157,17 @@ class RebuildAccountDocumentRegenerationCase(models.Model):
             "in_receipt",
         }
         if review.state == "cancel" or review.source_state == "cancel":
+            if review.source_accounting_line_count and review.move_line_review_count:
+                return {
+                    "generation_scope": "cancelled_source_record",
+                    "case_status": "candidate_ready",
+                    "generation_status": "not_generated",
+                    "blocker_reason": "",
+                    "recommended_action": (
+                        "Represent the cancelled source entry as a cancelled "
+                        "native move and verify its preserved accounting lines."
+                    ),
+                }
             return {
                 "generation_scope": "cancelled_source_record",
                 "case_status": "review_only_cancelled_source",
@@ -429,5 +440,7 @@ class RebuildAccountDocumentRegenerationCase(models.Model):
             "line_ids": [self._line_command_from_review(line_review) for line_review in source_lines],
             **self._trace_values("account.move.document_regeneration", self.source_move_id),
         })
+        if move_review.state == "cancel" or move_review.source_state == "cancel":
+            move.button_cancel()
         self._validate_generated_move(move)
         return self.action_open_generated_move()
