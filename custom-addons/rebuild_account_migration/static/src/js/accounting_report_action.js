@@ -48,11 +48,12 @@ export class AccountingReportAction extends Component {
                 [
                     this.reportType,
                     filters,
-                    this.state.data?.wizard_id || false,
+                    this.state.data?.wizard_id || this.props.resId || false,
                 ],
             );
             this.state.data = data;
             this.state.filters = { ...data.filters };
+            this.props.updateActionState({ resId: data.wizard_id });
         } finally {
             this.state.loading = false;
         }

@@ -4064,6 +4064,20 @@ class TestRebuildAccountMigration(TransactionCase):
         )
         self.assertEqual(filtered["filters"]["journal_ids"], [journal.id])
         self.assertEqual(filtered["filters"]["target_move"], "all")
+        filtered_wizard = Report.browse(filtered["wizard_id"])
+        source_action = Report.report_client_open_sources(
+            filtered_wizard.id,
+            filtered_wizard.preview_line_ids[0].id,
+        )
+        self.assertEqual(source_action["res_model"], "account.move.line")
+        self.assertEqual(
+            source_action["views"],
+            [
+                (False, "list"),
+                (False, "form"),
+                (False, "pivot"),
+            ],
+        )
 
         for export_format, signature in (
             ("pdf", b"%PDF"),

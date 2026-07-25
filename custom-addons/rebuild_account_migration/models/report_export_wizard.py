@@ -1168,6 +1168,11 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 "name": "Imported Analytic Lines",
                 "res_model": "account.analytic.line",
                 "view_mode": "list,form,pivot",
+                "views": [
+                    (False, "list"),
+                    (False, "form"),
+                    (False, "pivot"),
+                ],
                 "domain": self._analytic_line_domain(),
                 "context": {"create": False, "delete": False},
             }
@@ -1176,6 +1181,11 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "name": "Imported Journal Items",
             "res_model": "account.move.line",
             "view_mode": "list,form,pivot",
+            "views": [
+                (False, "list"),
+                (False, "form"),
+                (False, "pivot"),
+            ],
             "domain": self._journal_item_domain(),
             "context": {"create": False, "delete": False},
         }
@@ -1473,6 +1483,11 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 "name": self._preview_source_action_name(preview_line, "Analytic Sources"),
                 "res_model": "account.analytic.line",
                 "view_mode": "list,form,pivot",
+                "views": [
+                    (False, "list"),
+                    (False, "form"),
+                    (False, "pivot"),
+                ],
                 "domain": domain,
                 "context": {"create": False, "delete": False},
             }
@@ -1482,6 +1497,11 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "name": self._preview_source_action_name(preview_line, "Journal Item Sources"),
             "res_model": "account.move.line",
             "view_mode": "list,form,pivot",
+            "views": [
+                (False, "list"),
+                (False, "form"),
+                (False, "pivot"),
+            ],
             "domain": domain,
             "context": {"create": False, "delete": False},
         }
