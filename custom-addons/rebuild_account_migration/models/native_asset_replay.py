@@ -187,8 +187,28 @@ class RebuildAccountImportRun(models.Model):
             row["analytic_distribution"],
             analytic_accounts,
         )
+        period_label = {
+            "month": self.env._("monthly"),
+            "quarter": self.env._("quarterly"),
+            "year": self.env._("annual"),
+        }[self._native_asset_period(row["method_period"])]
+        method_label = {
+            "linear": self.env._("straight-line"),
+            "degressive": self.env._("declining-balance"),
+            "degressive_then_linear": self.env._(
+                "declining-balance then straight-line",
+            ),
+        }.get(row["method"], self.env._("depreciation"))
+        asset_account = accounts[row["account_asset_id"]]
+        profile_name = self.env._(
+            "%(account_code)s — %(method)s, %(periods)s %(period_label)s periods",
+            account_code=asset_account.code,
+            method=method_label,
+            periods=row["method_number"],
+            period_label=period_label,
+        )
         values = {
-            "name": f"{row['name']} — source depreciation profile",
+            "name": profile_name,
             "account_asset_id": accounts[row["account_asset_id"]].id,
             "account_depreciation_id": accounts[
                 row["account_depreciation_id"]
@@ -272,6 +292,12 @@ class RebuildAccountImportRun(models.Model):
         opening_amount = self._amount(row["already_depreciated_amount_import"])
         if not opening_amount:
             return self.env["account.asset.line"]
+        opening_date = fields.Date.to_date(
+            options.get("opening_depreciation_date"),
+        ) or (
+            fields.Date.to_date(options["date_from"])
+            - timedelta(days=1)
+        )
         Line = self.env["account.asset.line"].sudo()
         opening = Line.search([
             ("asset_id", "=", asset.id),
@@ -284,13 +310,30 @@ class RebuildAccountImportRun(models.Model):
             ("rebuild_source_id", "=", row["id"]),
         ], limit=1)
         if opening:
+            opening.with_context(allow_asset_line_update=True).write({
+                "name": self.env._("Depreciation before migration"),
+                "amount": opening_amount,
+            })
+            if opening.line_date != opening_date:
+                # OCA correctly blocks backdating ordinary asset lines after
+                # posted depreciation. This traced opening line is migration
+                # metadata rather than an accounting entry, so update only
+                # its presentation date without touching any journal item.
+                self.env.cr.execute(
+                    """
+                    UPDATE account_asset_line
+                       SET line_date = %s
+                     WHERE id = %s
+                    """,
+                    [opening_date, opening.id],
+                )
+                opening.invalidate_recordset(["line_date"])
             return opening
         return Line.create({
-            "name": "Imported depreciation through 30 September 2025",
+            "name": self.env._("Depreciation before migration"),
             "asset_id": asset.id,
             "amount": opening_amount,
-            "line_date": fields.Date.to_date(options["date_from"])
-            - timedelta(days=1),
+            "line_date": opening_date,
             "init_entry": True,
             "type": "depreciate",
             "rebuild_source_asset_id": row["id"],
@@ -420,12 +463,20 @@ class RebuildAccountImportRun(models.Model):
             "date_from": "2025-10-01",
             "date_to": "2026-06-30",
             "source_company_ids": [1],
+            "use_exact_imported_moves": False,
             **(options or {}),
         }
         options["source_company_ids"] = self._source_company_ids(options)
+        use_exact_imported_moves = bool(
+            options.get("use_exact_imported_moves"),
+        )
         self.write({
             "status": "running",
-            "mode": "native_engine_replay",
+            "mode": (
+                "exact_ledger_replay"
+                if use_exact_imported_moves
+                else "native_engine_replay"
+            ),
             "source_database": options["source_database"],
             "source_dump_sha256": options.get("source_dump_sha256"),
             "source_snapshot_id": options["source_snapshot_id"],
@@ -483,12 +534,27 @@ class RebuildAccountImportRun(models.Model):
                 schedules_by_asset[schedule_row["asset_id"]].append(
                     schedule_row,
                 )
+            exact_moves = {}
+            if use_exact_imported_moves:
+                exact_moves = {
+                    move.rebuild_source_id: move
+                    for move in self.env["account.move"].sudo().search([
+                        ("rebuild_source_model", "=", "account.move"),
+                        (
+                            "rebuild_source_snapshot",
+                            "=",
+                            options["source_snapshot_id"],
+                        ),
+                        ("rebuild_source_id", "in", source_move_ids or [0]),
+                    ])
+                }
 
             created_profile_count = 0
             created_asset_count = 0
             created_schedule_line_count = 0
             created_move_count = 0
             reused_move_count = 0
+            linked_move_line_count = 0
             passed_move_count = 0
             blocked = []
             mismatches = []
@@ -560,17 +626,52 @@ class RebuildAccountImportRun(models.Model):
                         options["date_to"],
                     ):
                         continue
+                    reused_exact_move = bool(
+                        use_exact_imported_moves
+                        and asset_line.move_id
+                        and asset_line.move_id.rebuild_source_model
+                        == "account.move"
+                    )
+                    if use_exact_imported_moves and not asset_line.move_id:
+                        exact_move = exact_moves.get(
+                            source_row["source_move_id"],
+                        )
+                        if not exact_move:
+                            mismatches.append({
+                                "source_asset_id": source_row["asset_id"],
+                                "source_move_id": (
+                                    source_row["source_move_id"]
+                                ),
+                                "classification": (
+                                    "missing_exact_asset_depreciation_move"
+                                ),
+                            })
+                            continue
+                        asset_line.with_context(
+                            allow_asset_line_update=True,
+                        ).write({"move_id": exact_move.id})
+                        reused_exact_move = True
+                    if reused_exact_move:
+                        asset_line.move_id.line_ids.with_context(
+                            allow_asset=True,
+                        ).write({"asset_id": asset.id})
+                        linked_move_line_count += len(
+                            asset_line.move_id.line_ids,
+                        )
                     if asset_line.move_id:
                         reused_move_count += 1
                     else:
                         asset_line.create_move()
                         created_move_count += 1
-                    self._native_asset_trace_move(
-                        options,
-                        source_row,
-                        source_lines_by_move[source_row["source_move_id"]],
-                        asset_line.move_id,
-                    )
+                    if not reused_exact_move:
+                        self._native_asset_trace_move(
+                            options,
+                            source_row,
+                            source_lines_by_move[
+                                source_row["source_move_id"]
+                            ],
+                            asset_line.move_id,
+                        )
                     checks = self._native_asset_move_check(
                         source_row,
                         source_lines_by_move[source_row["source_move_id"]],
@@ -626,7 +727,14 @@ class RebuildAccountImportRun(models.Model):
                 else "failed"
             )
             stats = {
-                "classification": "NATIVE_VALIDATION_NATIVE_ASSET_DEPRECIATION_REPLAY",
+                "classification": (
+                    "SOURCE_FAITHFUL_NATIVE_ASSET_MATERIALIZATION"
+                    if use_exact_imported_moves
+                    else (
+                        "NATIVE_VALIDATION_NATIVE_ASSET_"
+                        "DEPRECIATION_REPLAY"
+                    )
+                ),
                 "status": status,
                 "date_from": options["date_from"],
                 "date_to": options["date_to"],
@@ -645,6 +753,9 @@ class RebuildAccountImportRun(models.Model):
                 "created_schedule_line_count": created_schedule_line_count,
                 "created_depreciation_move_count": created_move_count,
                 "reused_depreciation_move_count": reused_move_count,
+                "linked_depreciation_move_line_count": (
+                    linked_move_line_count
+                ),
                 "passed_depreciation_move_count": passed_move_count,
                 "blocked_count": len(blocked),
                 "blocked_examples": blocked[:20],
@@ -664,9 +775,18 @@ class RebuildAccountImportRun(models.Model):
                 "warning_count": len(blocked) + len(mismatches),
                 "statistics_json": stats,
                 "notes": (
-                    "Dedicated Track B OCA asset replay. Source asset values and "
-                    "depreciation schedules are reconstructed as native assets; "
-                    "OCA creates and posts the accounting entries."
+                    (
+                        "Source assets and depreciation schedules are restored "
+                        "as normal OCA assets and linked to the exact imported "
+                        "source accounting entries. No additional journal entry "
+                        "is generated."
+                    )
+                    if use_exact_imported_moves
+                    else (
+                        "Dedicated Track B OCA asset replay. Source asset values "
+                        "and depreciation schedules are reconstructed as native "
+                        "assets; OCA creates and posts the accounting entries."
+                    )
                 ),
             })
             return stats

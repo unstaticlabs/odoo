@@ -3503,6 +3503,94 @@ class TestRebuildAccountMigration(TransactionCase):
             ],
         )
 
+    def test_canonical_asset_reports_use_native_assets_and_drill_down(self):
+        asset_account = self._account(
+            "T218399",
+            "Unit native report asset",
+            "asset_fixed",
+        )
+        profile = self.env["account.asset.profile"].create({
+            "name": "T218399 — straight-line, 36 monthly periods",
+            "account_asset_id": asset_account.id,
+            "account_depreciation_id": self._account(
+                "T281899",
+                "Unit native report depreciation",
+                "asset_fixed",
+            ).id,
+            "account_expense_depreciation_id": self._account(
+                "T681199",
+                "Unit native report depreciation expense",
+                "expense_depreciation",
+            ).id,
+            "journal_id": self._journal().id,
+            "company_id": self.company.id,
+            "method": "linear",
+            "method_time": "number",
+            "method_number": 36,
+            "method_period": "month",
+        })
+        asset = self.env["account.asset"].create({
+            "name": "Unit native report asset",
+            "purchase_value": 1200.0,
+            "profile_id": profile.id,
+            "date_start": "2025-01-01",
+            "company_id": self.company.id,
+            "rebuild_source_model": "account.asset",
+            "rebuild_source_id": 991001,
+            "rebuild_source_snapshot": "unit-native-asset-report",
+            "rebuild_source_book_value": 1100.0,
+        })
+        self.env["account.asset.line"].create({
+            "name": "Unit planned depreciation",
+            "asset_id": asset.id,
+            "amount": 100.0,
+            "line_date": "2025-10-31",
+            "type": "depreciate",
+            "rebuild_source_model": (
+                "account.move.asset_depreciation_schedule"
+            ),
+            "rebuild_source_id": 991101,
+            "rebuild_source_snapshot": "unit-native-asset-report",
+        })
+        Report = self.env["rebuild.account.report.export.wizard"]
+        register = Report.report_client_load(
+            "fixed_assets",
+            {
+                "date_from": "2025-10-01",
+                "date_to": "2025-10-31",
+            },
+        )
+        self.assertEqual(len(register["lines"]), 1)
+        self.assertEqual(
+            register["lines"][0]["label"],
+            "Unit native report asset",
+        )
+        register_wizard = Report.browse(register["wizard_id"])
+        register_action = register_wizard._preview_source_action(
+            register_wizard.preview_line_ids,
+        )
+        self.assertEqual(register_action["res_model"], "account.asset")
+        self.assertEqual(register_action["res_id"], asset.id)
+
+        schedule = Report.report_client_load(
+            "depreciation_schedule",
+            {
+                "date_from": "2025-10-01",
+                "date_to": "2025-10-31",
+            },
+        )
+        self.assertEqual(len(schedule["lines"]), 1)
+        self.assertEqual(
+            schedule["lines"][0]["values"]["representation_status"],
+            "Planned",
+        )
+        schedule_wizard = Report.browse(schedule["wizard_id"])
+        schedule_action = schedule_wizard._preview_source_action(
+            schedule_wizard.preview_line_ids,
+        )
+        self.assertEqual(schedule_action["res_model"], "account.asset")
+        self.assertEqual(schedule_action["res_id"], asset.id)
+
     def test_interactive_oca_report_actions_open_on_benchmark_period(self):
         expected_actions = {
             "account_financial_report.action_trial_balance_wizard": ("default_date_to", "default_target_move"),

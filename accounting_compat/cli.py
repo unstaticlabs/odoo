@@ -2856,6 +2856,26 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
                 WHERE expense.company_id = 1
                   AND expense.date BETWEEN DATE '2024-01-10'
                                        AND source_end.date_to
+            ),
+            'source_asset_count', (
+                SELECT count(*)
+                FROM account_asset asset
+                WHERE asset.company_id = 1
+                  AND EXISTS (
+                      SELECT 1
+                      FROM account_move move
+                      WHERE move.asset_id = asset.id
+                        AND move.date >= DATE '2024-01-10'
+                  )
+            ),
+            'source_posted_asset_move_count', (
+                SELECT count(*)
+                FROM account_move move
+                JOIN account_asset asset ON asset.id = move.asset_id
+                WHERE asset.company_id = 1
+                  AND move.state = 'posted'
+                  AND move.date BETWEEN DATE '2024-01-10'
+                                    AND source_end.date_to
             )
         )
         FROM source_end
@@ -2906,6 +2926,27 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             f"    'date_to': {source_date_to!r},",
             "    'source_company_ids': [1],",
             "})",
+            "asset_run = env['rebuild.account.import.run'].create({",
+            "    'name': 'USL source-faithful native assets',",
+            "    'mode': 'exact_ledger_replay',",
+            "    'source_database': 'odoo_online_source_saas_19_2',",
+            f"    'source_dump_sha256': {dump_sha!r},",
+            f"    'source_snapshot_id': {snapshot_id!r},",
+            "    'source_version': 'Odoo Online Enterprise saas~19.2',",
+            f"    'target_database': {DEV_QA_DB!r},",
+            "})",
+            "asset_stats = asset_run.run_native_asset_replay_from_source({",
+            "    'source_database': 'odoo_online_source_saas_19_2',",
+            f"    'source_dump_sha256': {dump_sha!r},",
+            f"    'source_snapshot_id': {snapshot_id!r},",
+            "    'source_version': 'Odoo Online Enterprise saas~19.2',",
+            f"    'target_database': {DEV_QA_DB!r},",
+            f"    'date_from': {USL_BENCHMARK_START!r},",
+            f"    'date_to': {source_date_to!r},",
+            "    'source_company_ids': [1],",
+            "    'opening_depreciation_date': '2025-09-30',",
+            "    'use_exact_imported_moves': True,",
+            "})",
             "cases = env['rebuild.account.document.regeneration.case'].search([",
             "    ('case_status', '=', 'candidate_ready'),",
             "    ('generation_status', '=', 'not_generated'),",
@@ -2925,6 +2966,9 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             "    'expense_run_id': expense_run.id,",
             "    'expense_run_status': expense_run.status,",
             "    'expense_stats': expense_stats,",
+            "    'asset_run_id': asset_run.id,",
+            "    'asset_run_status': asset_run.status,",
+            "    'asset_stats': asset_stats,",
             "    'draft_stats': draft_stats,",
             "}, sort_keys=True, default=str))",
             "",
@@ -2977,12 +3021,20 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
         "source_move_count": source_profile["source_move_count"],
         "imported_move_line_count": source_profile["source_move_line_count"],
         "source_expense_count": source_profile["source_expense_count"],
+        "source_asset_count": source_profile["source_asset_count"],
+        "source_posted_asset_move_count": (
+            source_profile["source_posted_asset_move_count"]
+        ),
         "reused_native_move_representation_count": 0,
     }
     checks = {
         key: stats.get(key) == expected_value
         for key, expected_value in expected.items()
-        if key != "source_expense_count"
+        if key not in {
+            "source_expense_count",
+            "source_asset_count",
+            "source_posted_asset_move_count",
+        }
     }
     checks["sequence_chronology_matches"] = (
         stats.get("sequence_chronology", {}).get(
@@ -3004,6 +3056,16 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
         and payload["expense_stats"]["mismatch_expense_count"] == 0
         and payload["expense_stats"]["blocked_case_count"] == 0
     )
+    checks["native_assets_match"] = (
+        payload["asset_run_status"] == "passed"
+        and payload["asset_stats"]["source_asset_count"]
+        == source_profile["source_asset_count"]
+        and payload["asset_stats"]["passed_depreciation_move_count"]
+        == source_profile["source_posted_asset_move_count"]
+        and payload["asset_stats"]["created_depreciation_move_count"] == 0
+        and payload["asset_stats"]["mismatch_count"] == 0
+        and payload["asset_stats"]["blocked_count"] == 0
+    )
     status = {
         "generated_at": utc_now(),
         "tool_version": TOOL_VERSION,
@@ -3017,10 +3079,13 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
         "run_status": payload["run_status"],
         "expense_run_id": payload["expense_run_id"],
         "expense_run_status": payload["expense_run_status"],
+        "asset_run_id": payload["asset_run_id"],
+        "asset_run_status": payload["asset_run_status"],
         "expected": expected,
         "checks": checks,
         "statistics": stats,
         "expense_statistics": payload["expense_stats"],
+        "asset_statistics": payload["asset_stats"],
         "draft_statistics": payload["draft_stats"],
     }
     write_json(PRIVATE_ARTIFACTS / "dev-import-status.json", status)
@@ -3707,6 +3772,32 @@ def dev_validate(args: argparse.Namespace) -> dict[str, Any]:
                 SELECT count(*)::text
                 FROM account_asset
                 WHERE company_id IN (1, 8)
+            ),
+            'native_asset_count', (
+                SELECT count(*)::text
+                FROM account_asset
+                WHERE company_id = 1
+                  AND EXISTS (
+                      SELECT 1
+                      FROM account_move move
+                      WHERE move.asset_id = account_asset.id
+                        AND move.date >= DATE '2024-01-10'
+                  )
+            ),
+            'native_asset_schedule_line_count', (
+                SELECT count(*)::text
+                FROM account_move move
+                JOIN account_asset asset ON asset.id = move.asset_id
+                WHERE asset.company_id = 1
+                  AND move.date >= DATE '2024-01-10'
+            ),
+            'native_asset_posted_move_link_count', (
+                SELECT count(*)::text
+                FROM account_move move
+                JOIN account_asset asset ON asset.id = move.asset_id
+                WHERE asset.company_id = 1
+                  AND move.state = 'posted'
+                  AND move.date >= DATE '2024-01-10'
             )
         )
         """,
@@ -3836,6 +3927,33 @@ def dev_validate(args: argparse.Namespace) -> dict[str, Any]:
                 SELECT count(*)::text
                 FROM rebuild_account_asset
                 WHERE rebuild_source_id IS NOT NULL
+            ),
+            'native_asset_count', (
+                SELECT count(*)::text
+                FROM account_asset asset
+                JOIN res_company company ON company.id = asset.company_id
+                WHERE company.rebuild_source_id = 1
+                  AND asset.rebuild_source_model = 'account.asset'
+            ),
+            'native_asset_schedule_line_count', (
+                SELECT count(*)::text
+                FROM account_asset_line line
+                JOIN account_asset asset ON asset.id = line.asset_id
+                JOIN res_company company ON company.id = asset.company_id
+                WHERE company.rebuild_source_id = 1
+                  AND line.rebuild_source_model
+                      = 'account.move.asset_depreciation_schedule'
+            ),
+            'native_asset_posted_move_link_count', (
+                SELECT count(*)::text
+                FROM account_asset_line line
+                JOIN account_asset asset ON asset.id = line.asset_id
+                JOIN account_move move ON move.id = line.move_id
+                JOIN res_company company ON company.id = asset.company_id
+                WHERE company.rebuild_source_id = 1
+                  AND line.rebuild_source_model
+                      = 'account.move.asset_depreciation_schedule'
+                  AND move.state = 'posted'
             )
         )
         """,

@@ -998,6 +998,12 @@ class RebuildAccountReportExportWizard(models.TransientModel):
 
     def _draft_entry_warning(self):
         self.ensure_one()
+        if self.report_type in {
+            "fixed_assets",
+            "fixed_asset_group_account",
+            "depreciation_schedule",
+        }:
+            return 0, ""
         domain = [
             ("company_id", "in", self._selected_companies().ids),
             ("date", ">=", self.date_from),
@@ -1289,6 +1295,43 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         self.ensure_one()
         self._validate_filter_scope(for_drilldown=True)
         row = preview_line._row_payload()
+        if self.report_type in {
+            "fixed_assets",
+            "fixed_asset_group_account",
+            "depreciation_schedule",
+        }:
+            source_move_id = self._row_int(row, "source_move_id")
+            if (
+                self.report_type == "depreciation_schedule"
+                and source_move_id
+            ):
+                move = self.env["account.move"].search([
+                    ("rebuild_source_model", "=", "account.move"),
+                    ("rebuild_source_id", "=", source_move_id),
+                ], limit=1)
+                if move:
+                    return {
+                        "type": "ir.actions.act_window",
+                        "name": move.display_name,
+                        "res_model": "account.move",
+                        "res_id": move.id,
+                        "view_mode": "form",
+                        "views": [(False, "form")],
+                    }
+            source_asset_id = self._row_int(row, "source_asset_id")
+            asset = self.env["account.asset"].search([
+                ("rebuild_source_model", "=", "account.asset"),
+                ("rebuild_source_id", "=", source_asset_id),
+            ], limit=1)
+            if asset:
+                return {
+                    "type": "ir.actions.act_window",
+                    "name": asset.display_name,
+                    "res_model": "account.asset",
+                    "res_id": asset.id,
+                    "view_mode": "form",
+                    "views": [(False, "form")],
+                }
         if self.report_type == "analytic_report":
             domain = self._preview_analytic_line_domain(row)
             return {
@@ -3010,9 +3053,9 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             return "", []
         account_ids = tuple(self.account_ids.ids)
         return (
-            "AND (asset.asset_account_id IN %s "
-            "OR asset.depreciation_account_id IN %s "
-            "OR asset.depreciation_expense_account_id IN %s)"
+            "AND (profile.account_asset_id IN %s "
+            "OR profile.account_depreciation_id IN %s "
+            "OR profile.account_expense_depreciation_id IN %s)"
         ), [account_ids, account_ids, account_ids]
 
     def _bank_filter_sql(self):
@@ -4107,22 +4150,27 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             f"""
             SELECT asset.rebuild_source_id::text AS source_asset_id,
                    asset.name,
-                   COALESCE(asset.acquisition_date::text, '') AS acquisition_date,
+                   asset.name AS asset_name,
+                   COALESCE(asset.date_start::text, '') AS acquisition_date,
                    asset.state,
-                   asset.asset_group_name,
-                   round(asset.original_value::numeric, 2)::text AS original_value,
-                   round(asset.already_depreciated_amount_import::numeric, 2)::text AS accumulated_depreciation,
-                   round(asset.imported_period_net_value::numeric, 2)::text AS imported_period_net_value,
-                   round(asset.book_value::numeric, 2)::text AS source_book_value,
+                   ''::text AS asset_group_name,
+                   round(asset.purchase_value::numeric, 2)::text AS original_value,
+                   round(asset.value_depreciated::numeric, 2)::text AS accumulated_depreciation,
+                   round(asset.value_depreciated::numeric, 2)::text AS depreciation_amount,
+                   round(asset.value_residual::numeric, 2)::text AS imported_period_net_value,
+                   round(asset.rebuild_source_book_value::numeric, 2)::text AS source_book_value,
                    COALESCE(asset_account.code_store->>company.rebuild_source_id::text, asset_account.code_store->>'1', asset_account.code_store::text, '') AS asset_account,
+                   COALESCE(asset_account.code_store->>company.rebuild_source_id::text, asset_account.code_store->>'1', asset_account.code_store::text, '') AS account_code,
                    COALESCE(depreciation_account.code_store->>company.rebuild_source_id::text, depreciation_account.code_store->>'1', depreciation_account.code_store::text, '') AS depreciation_account,
                    COALESCE(expense_account.code_store->>company.rebuild_source_id::text, expense_account.code_store->>'1', expense_account.code_store::text, '') AS depreciation_expense_account
-              FROM rebuild_account_asset asset
+              FROM account_asset asset
               JOIN res_company company ON company.id = asset.company_id
-              LEFT JOIN account_account asset_account ON asset_account.id = asset.asset_account_id
-              LEFT JOIN account_account depreciation_account ON depreciation_account.id = asset.depreciation_account_id
-              LEFT JOIN account_account expense_account ON expense_account.id = asset.depreciation_expense_account_id
+              JOIN account_asset_profile profile ON profile.id = asset.profile_id
+              LEFT JOIN account_account asset_account ON asset_account.id = profile.account_asset_id
+              LEFT JOIN account_account depreciation_account ON depreciation_account.id = profile.account_depreciation_id
+              LEFT JOIN account_account expense_account ON expense_account.id = profile.account_expense_depreciation_id
              WHERE asset.company_id = %s
+               AND asset.rebuild_source_model = 'account.asset'
                {filter_sql}
              ORDER BY asset.rebuild_source_id
             """,
@@ -4139,14 +4187,17 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                    COALESCE(asset_account.name->>'fr_FR', asset_account.name->>'en_US', asset_account.name::text, '') AS account_name,
                    count(asset.id)::text AS asset_count,
                    string_agg(asset.name, '; ' ORDER BY asset.rebuild_source_id) AS asset_names,
-                   round(sum(asset.original_value)::numeric, 2)::text AS original_value,
-                   round(sum(asset.already_depreciated_amount_import)::numeric, 2)::text AS accumulated_depreciation,
-                   round(sum(asset.imported_period_net_value)::numeric, 2)::text AS imported_period_net_value,
-                   round(sum(asset.book_value)::numeric, 2)::text AS source_book_value
-              FROM rebuild_account_asset asset
+                   round(sum(asset.purchase_value)::numeric, 2)::text AS original_value,
+                   round(sum(asset.value_depreciated)::numeric, 2)::text AS accumulated_depreciation,
+                   round(sum(asset.value_depreciated)::numeric, 2)::text AS depreciation_amount,
+                   round(sum(asset.value_residual)::numeric, 2)::text AS imported_period_net_value,
+                   round(sum(asset.rebuild_source_book_value)::numeric, 2)::text AS source_book_value
+              FROM account_asset asset
               JOIN res_company company ON company.id = asset.company_id
-              LEFT JOIN account_account asset_account ON asset_account.id = asset.asset_account_id
+              JOIN account_asset_profile profile ON profile.id = asset.profile_id
+              LEFT JOIN account_account asset_account ON asset_account.id = profile.account_asset_id
              WHERE asset.company_id = %s
+               AND asset.rebuild_source_model = 'account.asset'
                {filter_sql}
              GROUP BY asset_account.id,
                       asset_account.rebuild_source_id,
@@ -4162,27 +4213,41 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         filter_sql, filter_params = self._asset_account_filter_sql()
         self.env.cr.execute(
             f"""
-            SELECT schedule.source_asset_id::text AS source_asset_id,
+            SELECT asset.rebuild_source_id::text AS source_asset_id,
                    asset.name AS asset_name,
-                   schedule.depreciation_date::text AS depreciation_date,
-                   schedule.source_move_id::text AS source_move_id,
-                   COALESCE(schedule.source_move_name::text, '') AS source_move_name,
-                   COALESCE(schedule.source_move_state::text, '') AS source_move_state,
-                   schedule.representation_status,
-                   COALESCE(schedule.move_ref::text, '') AS move_ref,
-                   round(schedule.expense_amount::numeric, 2)::text AS expense_amount,
-                   round(schedule.depreciation_amount::numeric, 2)::text AS depreciation_amount,
-                   round(schedule.accumulated_depreciation_amount::numeric, 2)::text AS accumulated_depreciation_amount,
-                   round(schedule.net_book_value_after_line::numeric, 2)::text AS net_book_value_after_line,
+                   schedule.line_date::text AS depreciation_date,
+                   schedule.rebuild_source_id::text AS source_move_id,
+                   COALESCE(schedule.rebuild_source_move_name::text, '') AS source_move_name,
+                   COALESCE(schedule.rebuild_source_state::text, '') AS source_move_state,
+                   CASE
+                       WHEN imported_move.state = 'posted' THEN 'Posted'
+                       WHEN imported_move.id IS NOT NULL THEN 'Draft entry'
+                       ELSE 'Planned'
+                   END AS representation_status,
+                   CASE
+                       WHEN imported_move.state = 'posted' THEN 'Posted'
+                       WHEN imported_move.id IS NOT NULL THEN 'Draft entry'
+                       ELSE 'Planned'
+                   END AS status,
+                   COALESCE(imported_move.ref::text, '') AS move_ref,
+                   round(schedule.amount::numeric, 2)::text AS expense_amount,
+                   round(schedule.amount::numeric, 2)::text AS depreciation_amount,
+                   round((schedule.depreciated_value + schedule.amount)::numeric, 2)::text AS accumulated_depreciation_amount,
+                   round((schedule.depreciated_value + schedule.amount)::numeric, 2)::text AS accumulated_depreciation,
+                   round(schedule.remaining_value::numeric, 2)::text AS net_book_value_after_line,
+                   round(schedule.remaining_value::numeric, 2)::text AS imported_period_net_value,
                    COALESCE(imported_move.name::text, '') AS imported_move_name,
                    COALESCE(imported_move.rebuild_source_id::text, '') AS imported_source_move_id
-              FROM rebuild_account_asset_depreciation_schedule_line schedule
-              JOIN rebuild_account_asset asset ON asset.id = schedule.asset_id
-              LEFT JOIN account_move imported_move ON imported_move.id = schedule.imported_move_id
-             WHERE schedule.company_id = %s
-               AND schedule.depreciation_date BETWEEN %s AND %s
+              FROM account_asset_line schedule
+              JOIN account_asset asset ON asset.id = schedule.asset_id
+              JOIN account_asset_profile profile ON profile.id = asset.profile_id
+              LEFT JOIN account_move imported_move ON imported_move.id = schedule.move_id
+             WHERE asset.company_id = %s
+               AND schedule.rebuild_source_model
+                   = 'account.move.asset_depreciation_schedule'
+               AND schedule.line_date BETWEEN %s AND %s
                {filter_sql}
-             ORDER BY asset.rebuild_source_id, schedule.depreciation_date, schedule.source_move_id
+             ORDER BY asset.rebuild_source_id, schedule.line_date, schedule.rebuild_source_id
             """,
             [self.company_id.id, self.date_from, self.date_to, *filter_params],
         )
