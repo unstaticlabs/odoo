@@ -7,7 +7,9 @@
 3. Check the visible hierarchy and totals.
 4. Select **PDF** or **XLSX**. The file downloads immediately with the current filters.
 
-PDF is for reading and review. XLSX preserves numeric cells, hierarchy and filter metadata for analysis.
+PDF is for reading and review. The readable XLSX `Report` sheet preserves
+numeric cells and the same section/group/subtotal/total hierarchy; `Audit Data`
+retains raw rows and filter metadata for analysis.
 
 ## FEC
 

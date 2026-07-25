@@ -54,6 +54,11 @@ export class AccountingReportAction extends Component {
             this.state.data = data;
             this.state.filters = { ...data.filters };
             this.props.updateActionState({ resId: data.wizard_id });
+        } catch (error) {
+            this.notification.add(
+                error?.data?.message || error?.message || "The report could not be updated.",
+                { type: "danger" },
+            );
         } finally {
             this.state.loading = false;
         }
@@ -103,6 +108,18 @@ export class AccountingReportAction extends Component {
         await this.load({ [fieldName]: emptyValue });
     }
 
+    async clearOptionalFilters() {
+        await this.load({
+            comparison_mode: "none",
+            search_text: false,
+            journal_ids: [],
+            account_ids: [],
+            partner_ids: [],
+            analytic_plan_ids: [],
+            analytic_account_ids: [],
+        });
+    }
+
     optionIsSelected(fieldName, recordId) {
         return (this.state.filters[fieldName] || []).includes(recordId);
     }
@@ -113,6 +130,38 @@ export class AccountingReportAction extends Component {
                 (option) => option.value === recordId,
             )?.label || String(recordId)
         );
+    }
+
+    filterOptionLabel(fieldName, option) {
+        const labels = {
+            period_preset: {
+                custom: "Dates personnalisées",
+                month: "Mois",
+                quarter: "Trimestre",
+                fiscal_year: "Exercice",
+                year_to_date: "Exercice à date",
+            },
+            target_move: {
+                posted: "Écritures comptabilisées",
+                all: "Comptabilisées et brouillons",
+            },
+            comparison_mode: {
+                none: "Aucune comparaison",
+                previous_period: "Période précédente",
+                previous_year: "Même période N-1",
+                custom: "Comparaison personnalisée",
+            },
+            group_by: {
+                none: "Aucun regroupement",
+                section: "Section",
+                account: "Compte",
+                partner: "Partenaire",
+                journal: "Journal",
+                month: "Mois",
+                analytic: "Compte analytique",
+            },
+        };
+        return labels[fieldName]?.[option.value] || option.label;
     }
 
     get activeAdvancedFilterCount() {
@@ -129,37 +178,49 @@ export class AccountingReportAction extends Component {
         );
     }
 
+    get hasOptionalFilters() {
+        return (
+            this.activeAdvancedFilterCount > 0 ||
+            Boolean(this.state.filters.search_text) ||
+            this.state.filters.comparison_mode !== "none"
+        );
+    }
+
+    get showCompanyFilter() {
+        return this.state.data.options.companies.length > 1;
+    }
+
     get advancedFilterGroups() {
         const capabilities = this.state.data.capabilities;
         return [
             {
                 field: "journal_ids",
                 option: "journals",
-                label: "Journals",
+                label: "Journaux",
                 enabled: capabilities.journals,
             },
             {
                 field: "account_ids",
                 option: "accounts",
-                label: "Accounts",
+                label: "Comptes",
                 enabled: capabilities.accounts,
             },
             {
                 field: "partner_ids",
                 option: "partners",
-                label: "Partners",
+                label: "Partenaires",
                 enabled: capabilities.partners,
             },
             {
                 field: "analytic_plan_ids",
                 option: "analytic_plans",
-                label: "Analytic plans",
+                label: "Plans analytiques",
                 enabled: capabilities.analytics,
             },
             {
                 field: "analytic_account_ids",
                 option: "analytic_accounts",
-                label: "Analytic accounts",
+                label: "Comptes analytiques",
                 enabled: capabilities.analytics,
             },
         ].filter((group) => group.enabled);
@@ -197,9 +258,8 @@ export class AccountingReportAction extends Component {
     }
 
     formatAmount(value) {
-        return new Intl.NumberFormat(undefined, {
-            style: "currency",
-            currency: this.state.data.currency.name,
+        return new Intl.NumberFormat(this.state.data.locale || undefined, {
+            minimumFractionDigits: 2,
             maximumFractionDigits: 2,
         }).format(value || 0);
     }
@@ -208,7 +268,7 @@ export class AccountingReportAction extends Component {
         if (!currency) {
             return "";
         }
-        return new Intl.NumberFormat(undefined, {
+        return new Intl.NumberFormat(this.state.data.locale || undefined, {
             style: "currency",
             currency,
             maximumFractionDigits: 2,
@@ -220,7 +280,11 @@ export class AccountingReportAction extends Component {
             return "";
         }
         const [year, month, day] = value.split("-").map(Number);
-        return new Intl.DateTimeFormat(undefined).format(
+        return new Intl.DateTimeFormat(this.state.data.locale || undefined, {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+        }).format(
             new Date(Date.UTC(year, month - 1, day)),
         );
     }
@@ -229,7 +293,7 @@ export class AccountingReportAction extends Component {
         if (!value) {
             return "";
         }
-        return new Intl.DateTimeFormat(undefined, {
+        return new Intl.DateTimeFormat(this.state.data.locale || undefined, {
             dateStyle: "short",
             timeStyle: "short",
         }).format(new Date(`${value.replace(" ", "T")}Z`));
@@ -237,6 +301,49 @@ export class AccountingReportAction extends Component {
 
     isZero(value) {
         return Math.abs(Number(value || 0)) < 0.005;
+    }
+
+    isNegative(value) {
+        return Number(value || 0) < -0.005;
+    }
+
+    amountClass(value, extra = "") {
+        return [
+            "text-end",
+            extra,
+            this.isZero(value) ? "o_usl_report_zero" : "",
+            this.isNegative(value) ? "o_usl_report_negative" : "",
+        ].filter(Boolean).join(" ");
+    }
+
+    rowClass(line) {
+        return [
+            "o_usl_report_row",
+            `o_usl_report_role_${line.presentation_role || "detail"}`,
+            line.is_group ? "o_usl_report_group" : "",
+        ].filter(Boolean).join(" ");
+    }
+
+    get periodLabel() {
+        return `${this.formatDate(this.state.filters.date_from)} — ${this.formatDate(
+            this.state.filters.date_to,
+        )}`;
+    }
+
+    get comparisonLabel() {
+        if (this.state.filters.comparison_mode === "none") {
+            return "";
+        }
+        return `${this.formatDate(
+            this.state.filters.comparison_date_from,
+        )} — ${this.formatDate(this.state.filters.comparison_date_to)}`;
+    }
+
+    get periodPresetLabel() {
+        const option = this.state.data.options.period_preset.find(
+            (candidate) => candidate.value === this.state.filters.period_preset,
+        );
+        return option ? this.filterOptionLabel("period_preset", option) : "";
     }
 
     get capabilities() {
@@ -251,7 +358,7 @@ export class AccountingReportAction extends Component {
             return this.formatAmount(Number(value));
         }
         if (valueType === "number") {
-            return new Intl.NumberFormat(undefined, {
+            return new Intl.NumberFormat(this.state.data.locale || undefined, {
                 maximumFractionDigits: 2,
             }).format(Number(value));
         }
@@ -259,11 +366,14 @@ export class AccountingReportAction extends Component {
             return this.formatDate(value);
         }
         const labels = {
-            open: "In progress",
-            represented: "Represented in accounting",
-            imported_posted_entry: "Posted accounting entry",
-            reconciled: "Reconciled",
-            unreconciled: "Unreconciled",
+            open: "En cours",
+            represented: "Représenté en comptabilité",
+            imported_posted_entry: "Écriture comptabilisée",
+            reconciled: "Lettré",
+            unreconciled: "Non lettré",
+            posted: "Comptabilisé",
+            draft: "Brouillon",
+            planned: "Planifié",
         };
         return labels[value] || String(value).replaceAll("_", " ");
     }

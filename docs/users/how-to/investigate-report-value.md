@@ -6,7 +6,8 @@
 4. Select the line or contextual drill-down to open journal items.
 5. Inspect date, journal, entry, partner, currency, debit, credit, residual, analytic distribution and matching reference.
 6. Open the original bill, invoice, payment, expense or journal entry.
-7. Return with the browser Back button; report filters and open lines should remain.
+7. Return with the browser Back button; the report session preserves its
+   filters and opened lines.
 8. Download PDF or XLSX only after the screen shows the intended scope.
 
 For VAT, declaration and French-statement lines, the displayed source and adjustment classification explains whether a value is ledger-derived or external.

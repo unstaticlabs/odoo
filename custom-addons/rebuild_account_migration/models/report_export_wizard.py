@@ -309,6 +309,21 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             values[field_name] = [
                 Command.set([int(record_id) for record_id in values[field_name]]),
             ]
+        if values.get("comparison_mode") == "custom":
+            current_from = fields.Date.to_date(
+                values.get("date_from") or wizard.date_from,
+            )
+            current_to = fields.Date.to_date(
+                values.get("date_to") or wizard.date_to,
+            )
+            values["comparison_date_from"] = (
+                values.get("comparison_date_from")
+                or wizard._previous_year_date(current_from)
+            )
+            values["comparison_date_to"] = (
+                values.get("comparison_date_to")
+                or wizard._previous_year_date(current_to)
+            )
         if values:
             wizard.write(values)
             if {
@@ -359,6 +374,11 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             row_currency = row.get("currency") or ""
             if row_currency == self.company_id.currency_id.name:
                 row_currency = ""
+            presentation_role = self._report_presentation_role(
+                row,
+                is_group=line.is_group,
+                level=line.level,
+            )
             lines.append({
                 "id": line.id,
                 "date": fields.Date.to_string(line.date) if line.date else "",
@@ -380,6 +400,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 "record_count": line.record_count,
                 "is_group": line.is_group,
                 "level": line.level,
+                "presentation_role": presentation_role,
                 "group_key": line.group_key or "",
                 "collapsed": bool(
                     line.is_group
@@ -405,6 +426,11 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         return {
             "wizard_id": self.id,
             "title": self._report_type_label(),
+            "company_name": self.company_id.display_name,
+            # Accounting statements follow the French presentation contract
+            # independently from the user's general Odoo interface language.
+            "locale": "fr-FR",
+            "label_column": self._report_client_label_column(),
             "report_type": self.report_type,
             "currency": {
                 "id": self.company_id.currency_id.id,
@@ -514,6 +540,100 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             ),
         }
 
+    def _report_client_label_column(self):
+        self.ensure_one()
+        return {
+            "trial_balance": "Compte",
+            "general_ledger": "Libellé",
+            "journal_report": "Journal",
+            "partner_ledger": "Partenaire / écriture",
+            "customer_statement": "Client / écriture",
+            "open_items": "Pièce ouverte",
+            "aged_receivable": "Client",
+            "aged_payable": "Fournisseur",
+            "balance_sheet": "Poste du bilan",
+            "profit_loss": "Poste du compte de résultat",
+            "tax_report": "Rubrique fiscale",
+            "analytic_report": "Dimension analytique",
+            "fixed_assets": "Immobilisation",
+            "depreciation_schedule": "Échéance d'amortissement",
+            "french_annual": "Rubrique",
+            "french_balance_sheet_2024": "Rubrique du bilan",
+            "french_profit_loss_2024": "Rubrique du compte de résultat",
+            "sig_caf_2024": "Solde intermédiaire",
+        }.get(self.report_type, "Rubrique")
+
+    def _report_presentation_role(self, row, *, is_group=None, level=None):
+        """Return one stable hierarchy role shared by screen and exports."""
+        self.ensure_one()
+        explicit = row.get("presentation_role")
+        if explicit in {
+            "section",
+            "group",
+            "detail",
+            "subtotal",
+            "total",
+            "control",
+            "empty",
+        }:
+            return explicit
+        if row.get("empty_report") == "true":
+            return "empty"
+        grouped = (
+            row.get("is_group") in (True, "true")
+            if is_group is None
+            else is_group
+        )
+        row_level = (
+            int(row.get("row_level") or 0)
+            if level is None
+            else level
+        )
+        if grouped:
+            return (
+                "section"
+                if self.group_by == "section" and row_level == 0
+                else "group"
+            )
+        code = str(
+            row.get("line_code")
+            or row.get("field_code")
+            or row.get("account_code")
+            or "",
+        ).upper()
+        label = str(
+            row.get("label")
+            or row.get("line_name")
+            or row.get("field_label")
+            or row.get("account_name")
+            or "",
+        ).strip().upper()
+        final_codes = {
+            "RESULT",
+            "ACTIF_TOTAL",
+            "PASSIF_TOTAL",
+            "CR_RESULTAT_NET",
+            "SIG_RESULTAT_NET",
+            "SIG_CAPACITE_AUTOFINANCEMENT",
+            "CLOSE_STATUS",
+        }
+        if code in final_codes:
+            return "total"
+        if (
+            "CONTROL" in code
+            or "CONTROLE" in code
+            or "ÉCART" in label
+            or "ECART" in label
+        ):
+            return "control"
+        if (
+            code.endswith("_TOTAL")
+            or code.startswith("TOTAL_")
+            or label.startswith(("TOTAL ", "SOUS-TOTAL "))
+        ):
+            return "subtotal"
+        return "detail"
+
     def _report_client_capabilities(self):
         """Describe only controls that make sense for this report."""
         self.ensure_one()
@@ -564,10 +684,14 @@ class RebuildAccountReportExportWizard(models.TransientModel):
     def _report_client_summary(self):
         """Return compact statement controls, not technical calculation logs."""
         self.ensure_one()
+        collapsed_groups = self._collapsed_group_key_set()
         rows = [
             line._row_payload()
             for line in self.preview_line_ids
-            if not line.is_group
+            if (
+                not line.is_group
+                or line.group_key in collapsed_groups
+            )
         ]
 
         def amount_for(code, key="amount"):
@@ -581,6 +705,88 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             )
             return float(_amount(row.get(key)))
 
+        def total_for(key):
+            return float(sum(_amount(row.get(key)) for row in rows))
+
+        if self.report_type == "trial_balance":
+            debit = total_for("debit")
+            credit = total_for("credit")
+            difference = round(debit - credit, 2)
+            return {
+                "cards": [
+                    {"label": "Total débit", "value": debit, "type": "currency"},
+                    {"label": "Total crédit", "value": credit, "type": "currency"},
+                    {
+                        "label": "Contrôle d'équilibre",
+                        "value": difference,
+                        "type": "currency",
+                        "status": (
+                            "success"
+                            if abs(difference) < 0.01
+                            else "danger"
+                        ),
+                    },
+                ],
+            }
+        if self.report_type in {"general_ledger", "journal_report"}:
+            debit = total_for("debit")
+            credit = total_for("credit")
+            return {
+                "cards": [
+                    {"label": "Mouvements débit", "value": debit, "type": "currency"},
+                    {"label": "Mouvements crédit", "value": credit, "type": "currency"},
+                    {
+                        "label": "Variation nette",
+                        "value": debit - credit,
+                        "type": "currency",
+                    },
+                ],
+            }
+        if self.report_type in {"aged_receivable", "aged_payable"}:
+            return {
+                "cards": [{
+                    "label": (
+                        "Créances ouvertes"
+                        if self.report_type == "aged_receivable"
+                        else "Dettes ouvertes"
+                    ),
+                    "value": total_for("total"),
+                    "type": "currency",
+                }],
+            }
+        if self.report_type == "balance_sheet":
+            assets = float(sum(
+                _amount(row.get("amount"))
+                for row in rows
+                if str(row.get("section") or "").endswith("assets")
+            ))
+            liabilities = float(sum(
+                _amount(row.get("amount"))
+                for row in rows
+                if not str(row.get("section") or "").endswith("assets")
+            ))
+            difference = round(assets - liabilities, 2)
+            return {
+                "cards": [
+                    {"label": "Total actif", "value": assets, "type": "currency"},
+                    {
+                        "label": "Capitaux propres et passif",
+                        "value": liabilities,
+                        "type": "currency",
+                    },
+                    {
+                        "label": "Contrôle d'équilibre",
+                        "value": difference,
+                        "type": "currency",
+                        "status": (
+                            "success"
+                            if abs(difference) < 0.01
+                            else "danger"
+                        ),
+                    },
+                ],
+            }
+
         if self.report_type in {
             "french_annual",
             "french_balance_sheet_2024",
@@ -590,14 +796,14 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             difference = round(assets - liabilities, 2)
             return {
                 "cards": [
-                    {"label": "Total assets", "value": assets, "type": "currency"},
+                    {"label": "Total actif", "value": assets, "type": "currency"},
                     {
-                        "label": "Total equity and liabilities",
+                        "label": "Total capitaux propres et passif",
                         "value": liabilities,
                         "type": "currency",
                     },
                     {
-                        "label": "Balance control",
+                        "label": "Contrôle d'équilibre",
                         "value": difference,
                         "type": "currency",
                         "status": "success" if abs(difference) < 0.01 else "danger",
@@ -627,7 +833,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 result = float(_amount(result_row.get("amount")))
             return {
                 "cards": [{
-                    "label": "Net result",
+                    "label": "Résultat net",
                     "value": result,
                     "type": "currency",
                     "status": "success" if result >= 0 else "warning",
@@ -643,42 +849,42 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         text = "text"
         column_map = {
             "journal_report": [
-                ("move_count", "Entries", number),
-                ("move_line_count", "Journal items", number),
-                ("debit", "Debit", currency),
-                ("credit", "Credit", currency),
-                ("balance", "Balance", currency),
+                ("move_count", "Écritures", number),
+                ("move_line_count", "Lignes comptables", number),
+                ("debit", "Débit", currency),
+                ("credit", "Crédit", currency),
+                ("balance", "Solde", currency),
             ],
             "open_items": [
                 ("date", "Date", date),
-                ("due_date", "Due date", date),
-                ("move_name", "Entry", text),
-                ("presented_residual", "Residual", currency),
-                ("matching_number", "Matching", text),
+                ("due_date", "Échéance", date),
+                ("move_name", "Écriture", text),
+                ("presented_residual", "Résiduel", currency),
+                ("matching_number", "Lettrage", text),
             ],
             "aged_receivable": [
-                ("not_due", "Not due", currency),
-                ("bucket_1_30", "1–30 days", currency),
-                ("bucket_31_60", "31–60 days", currency),
-                ("bucket_61_90", "61–90 days", currency),
-                ("bucket_over_90", "Over 90 days", currency),
+                ("not_due", "Non échu", currency),
+                ("bucket_1_30", "1–30 jours", currency),
+                ("bucket_31_60", "31–60 jours", currency),
+                ("bucket_61_90", "61–90 jours", currency),
+                ("bucket_over_90", "Plus de 90 jours", currency),
                 ("total", "Total", currency),
             ],
             "aged_payable": [
-                ("not_due", "Not due", currency),
-                ("bucket_1_30", "1–30 days", currency),
-                ("bucket_31_60", "31–60 days", currency),
-                ("bucket_61_90", "61–90 days", currency),
-                ("bucket_over_90", "Over 90 days", currency),
+                ("not_due", "Non échu", currency),
+                ("bucket_1_30", "1–30 jours", currency),
+                ("bucket_31_60", "31–60 jours", currency),
+                ("bucket_61_90", "61–90 jours", currency),
+                ("bucket_over_90", "Plus de 90 jours", currency),
                 ("total", "Total", currency),
             ],
-            "balance_sheet": [("amount", "Balance", currency)],
-            "profit_loss": [("amount", "Amount", currency)],
+            "balance_sheet": [("amount", "Solde", currency)],
+            "profit_loss": [("amount", "Montant", currency)],
             "tax_report": [
-                ("tax_name", "Tax line", text),
-                ("presented_tax_base", "Taxable base", currency),
-                ("presented_tax_amount", "Tax amount", currency),
-                ("balance", "Ledger balance", currency),
+                ("tax_name", "Ligne de taxe", text),
+                ("presented_tax_base", "Base taxable", currency),
+                ("presented_tax_amount", "Montant de taxe", currency),
+                ("balance", "Solde comptable", currency),
             ],
             "bank_reconciliation": [
                 ("date", "Date", date),
@@ -740,20 +946,20 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 ("review_status", "Status", text),
             ],
             "french_annual": [
-                ("gross_amount", "Gross", currency),
-                ("depreciation_amount", "Depreciation", currency),
+                ("gross_amount", "Brut", currency),
+                ("depreciation_amount", "Amortissements / provisions", currency),
                 ("net_amount", "Net", currency),
-                ("amount", "Amount", currency),
+                ("amount", "Montant", currency),
             ],
             "french_balance_sheet_2024": [
-                ("gross_amount", "Gross", currency),
-                ("depreciation_amount", "Depreciation", currency),
+                ("gross_amount", "Brut", currency),
+                ("depreciation_amount", "Amortissements / provisions", currency),
                 ("net_amount", "Net", currency),
             ],
             "french_profit_loss_2024": [
-                ("amount", "Amount", currency),
+                ("amount", "Montant", currency),
             ],
-            "sig_caf_2024": [("amount", "Amount", currency)],
+            "sig_caf_2024": [("amount", "Montant", currency)],
             "french_tax_package": [
                 ("quantity", "Quantity", number),
                 ("amount", "Amount", currency),
@@ -1148,16 +1354,20 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         count = self.env["account.move"].search_count(domain)
         if not count:
             return 0, ""
-        treatment = (
-            "included in this report"
-            if self.target_move == "all"
-            else "excluded because Posted Entries Only is selected"
+        if self.target_move == "all":
+            treatment = "est incluse" if count == 1 else "sont incluses"
+        else:
+            treatment = (
+                "est exclue car seules les écritures comptabilisées "
+                "sont sélectionnées"
+                if count == 1
+                else "sont exclues car seules les écritures comptabilisées "
+                "sont sélectionnées"
+            )
+        entry_label = "écriture comptable brouillon" if count == 1 else (
+            "écritures comptables brouillon"
         )
-        entry_grammar = "entry is" if count == 1 else "entries are"
-        return (
-            count,
-            f"{count} draft accounting {entry_grammar} {treatment}.",
-        )
+        return count, f"{count} {entry_label} {treatment}."
 
     def action_open_journal_items(self):
         self.ensure_one()
@@ -2025,7 +2235,15 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         return label
 
     @staticmethod
-    def _xlsx_write_value(worksheet, row, column, value, formats, fieldname):
+    def _xlsx_write_value(
+        worksheet,
+        row,
+        column,
+        value,
+        formats,
+        fieldname,
+        presentation_role="detail",
+    ):
         numeric_fields = {
             "opening_balance", "debit", "credit", "balance", "closing_balance", "movement",
             "amount", "gross_amount", "depreciation_amount", "net_amount", "residual",
@@ -2035,16 +2253,40 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "presented_tax_amount", "period_value",
             "comparison_value", "difference",
         }
+        label_fields = {
+            "label",
+            "line_name",
+            "field_label",
+            "account_name",
+            "partner_name",
+        }
+        body_format = formats.get(
+            (
+                f"{presentation_role}_label"
+                if fieldname in label_fields
+                else f"{presentation_role}_body"
+            ),
+            formats["body"],
+        )
+        number_format = formats.get(
+            f"{presentation_role}_number",
+            formats["number"],
+        )
         if value in (None, "", False):
-            worksheet.write_blank(row, column, None, formats["body"])
+            worksheet.write_blank(row, column, None, body_format)
             return
         if fieldname in numeric_fields:
             try:
-                worksheet.write_number(row, column, float(value), formats["number"])
+                worksheet.write_number(
+                    row,
+                    column,
+                    float(value),
+                    number_format,
+                )
                 return
             except (TypeError, ValueError):
                 pass
-        worksheet.write(row, column, str(value), formats["body"])
+        worksheet.write(row, column, str(value), body_format)
 
     def _xlsx_payload(self, rows):
         try:
@@ -2087,6 +2329,72 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 "align": "right", "valign": "top",
             }),
         }
+        role_styles = {
+            "section": {
+                "bold": True,
+                "font_color": "#FFFFFF",
+                "bg_color": "#274C69",
+                "top": 1,
+                "bottom": 1,
+                "border_color": "#274C69",
+            },
+            "group": {
+                "bold": True,
+                "font_color": "#17324D",
+                "bg_color": "#E8EFF5",
+                "top": 1,
+                "bottom": 1,
+                "border_color": "#B8C7D3",
+            },
+            "subtotal": {
+                "bold": True,
+                "font_color": "#17324D",
+                "top": 1,
+                "bottom": 1,
+                "border_color": "#8395A4",
+            },
+            "total": {
+                "bold": True,
+                "font_color": "#102A43",
+                "top": 1,
+                "bottom": 6,
+                "border_color": "#17324D",
+            },
+            "control": {
+                "bold": True,
+                "font_color": "#17324D",
+                "bg_color": "#F1F7FA",
+                "top": 1,
+                "bottom": 1,
+                "border_color": "#6E93AA",
+            },
+            "detail": {
+                "font_color": "#243B53",
+                "bottom": 1,
+                "border_color": "#E3E8EC",
+            },
+            "empty": {
+                "italic": True,
+                "font_color": "#6B7C8C",
+                "bottom": 1,
+                "border_color": "#E3E8EC",
+            },
+        }
+        for role, style in role_styles.items():
+            base_style = {
+                **style,
+                "valign": "vcenter",
+            }
+            formats[f"{role}_body"] = workbook.add_format(base_style)
+            formats[f"{role}_label"] = workbook.add_format({
+                **base_style,
+                "indent": 1 if role == "detail" else 0,
+            })
+            formats[f"{role}_number"] = workbook.add_format({
+                **base_style,
+                "align": "right",
+                "num_format": "#,##0.00;[Red]-#,##0.00;-",
+            })
         metadata = self._export_metadata(len(rows))
 
         metadata_sheet = workbook.add_worksheet("Metadata")
@@ -2125,6 +2433,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             report_sheet.set_column(column_idx, column_idx, width)
         data_rows = rows or [{"label": "No rows for the selected filters"}]
         for row_idx, row in enumerate(data_rows, start=header_row + 1):
+            presentation_role = self._report_presentation_role(row)
             for column_idx, (fieldname, _label) in enumerate(columns):
                 self._xlsx_write_value(
                     report_sheet,
@@ -2133,6 +2442,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                     self._report_export_row_value(row, fieldname),
                     formats,
                     fieldname,
+                    presentation_role,
                 )
         report_sheet.freeze_panes(header_row + 1, 0)
         report_sheet.autofilter(header_row, 0, header_row + len(data_rows), last_column)
@@ -2153,7 +2463,15 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             raw_sheet.set_column(column_idx, column_idx, width)
         for row_idx, row in enumerate(rows or [{"empty_report": "true"}], start=1):
             for column_idx, fieldname in enumerate(fieldnames):
-                self._xlsx_write_value(raw_sheet, row_idx, column_idx, row.get(fieldname), formats, fieldname)
+                self._xlsx_write_value(
+                    raw_sheet,
+                    row_idx,
+                    column_idx,
+                    row.get(fieldname),
+                    formats,
+                    fieldname,
+                    "raw",
+                )
         raw_sheet.freeze_panes(1, 0)
         raw_sheet.autofilter(0, 0, max(1, len(rows)), max(0, len(fieldnames) - 1))
 
@@ -2359,6 +2677,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             chunk_size,
             status_values=None,
             emphasis_values=None,
+            presentation_roles=None,
             page_break_before=True,
         ):
             chunks = [body_rows[index:index + chunk_size] for index in range(0, len(body_rows), chunk_size)] or [[]]
@@ -2395,6 +2714,41 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                                 ("BACKGROUND", (0, row_index), (-1, row_index), colors.HexColor("#E8EDF2")),
                                 ("FONTNAME", (0, row_index), (-1, row_index), bold_font_name),
                             ])
+                if presentation_roles:
+                    chunk_roles = presentation_roles[
+                        chunk_index * chunk_size:
+                        (chunk_index * chunk_size) + len(chunk)
+                    ]
+                    for row_index, role in enumerate(chunk_roles, start=1):
+                        role_commands = {
+                            "section": [
+                                ("BACKGROUND", (0, row_index), (-1, row_index), colors.HexColor("#274C69")),
+                                ("TEXTCOLOR", (0, row_index), (-1, row_index), colors.white),
+                                ("FONTNAME", (0, row_index), (-1, row_index), bold_font_name),
+                            ],
+                            "group": [
+                                ("BACKGROUND", (0, row_index), (-1, row_index), colors.HexColor("#E8EFF5")),
+                                ("FONTNAME", (0, row_index), (-1, row_index), bold_font_name),
+                            ],
+                            "subtotal": [
+                                ("LINEABOVE", (0, row_index), (-1, row_index), 0.8, colors.HexColor("#8395A4")),
+                                ("FONTNAME", (0, row_index), (-1, row_index), bold_font_name),
+                            ],
+                            "total": [
+                                ("LINEABOVE", (0, row_index), (-1, row_index), 1.0, colors.HexColor("#17324D")),
+                                ("LINEBELOW", (0, row_index), (-1, row_index), 1.5, colors.HexColor("#17324D")),
+                                ("FONTNAME", (0, row_index), (-1, row_index), bold_font_name),
+                            ],
+                            "control": [
+                                ("BACKGROUND", (0, row_index), (-1, row_index), colors.HexColor("#F1F7FA")),
+                                ("LINEABOVE", (0, row_index), (-1, row_index), 0.8, colors.HexColor("#6E93AA")),
+                                ("FONTNAME", (0, row_index), (-1, row_index), bold_font_name),
+                            ],
+                            "detail": [
+                                ("LEFTPADDING", (0, row_index), (0, row_index), 11),
+                            ],
+                        }.get(role, [])
+                        extra_style.extend(role_commands)
                 chunk_table = Table([header, *chunk], colWidths=column_widths, repeatRows=1)
                 chunk_table.setStyle(table_style(extra_style))
                 story.append(chunk_table)
@@ -2575,17 +2929,17 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 ]
                 for row in data_rows
             ]
-            emphasis_values = []
-            for row in data_rows:
-                label = " ".join(str(row.get(key) or "") for key in ("line_code", "label", "line_name", "field_label"))
-                emphasis_values.append("TOTAL" in label.upper() or "RESULT" in label.upper())
+            presentation_roles = [
+                self._report_presentation_role(row)
+                for row in data_rows
+            ]
             append_chunked_table(
-                "Détail du rapport",
+                "État",
                 [label for _field, label in columns],
                 table_rows,
                 column_widths,
                 chunk_size=20,
-                emphasis_values=emphasis_values,
+                presentation_roles=presentation_roles,
                 page_break_before=False,
             )
 
@@ -3552,17 +3906,17 @@ class RebuildAccountReportExportWizard(models.TransientModel):
     @staticmethod
     def _account_class_label(account_code):
         labels = {
-            "1": "Class 1 — Capital and equity",
-            "2": "Class 2 — Fixed assets",
-            "3": "Class 3 — Inventories and work in progress",
-            "4": "Class 4 — Third-party accounts",
-            "5": "Class 5 — Financial accounts",
-            "6": "Class 6 — Expenses",
-            "7": "Class 7 — Income",
-            "8": "Class 8 — Special accounts",
+            "1": "Classe 1 — Comptes de capitaux",
+            "2": "Classe 2 — Comptes d'immobilisations",
+            "3": "Classe 3 — Comptes de stocks et en-cours",
+            "4": "Classe 4 — Comptes de tiers",
+            "5": "Classe 5 — Comptes financiers",
+            "6": "Classe 6 — Comptes de charges",
+            "7": "Classe 7 — Comptes de produits",
+            "8": "Classe 8 — Comptes spéciaux",
         }
         code = str(account_code or "")
-        return labels.get(code[:1], "Other accounts")
+        return labels.get(code[:1], "Autres comptes")
 
     def _general_ledger_rows(self):
         filter_sql, filter_params = self._line_filter_sql()

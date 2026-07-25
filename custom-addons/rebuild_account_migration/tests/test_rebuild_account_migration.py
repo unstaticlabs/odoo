@@ -4623,10 +4623,13 @@ class TestRebuildAccountMigration(TransactionCase):
             {
                 "date_from": "2099-01-01",
                 "date_to": "2099-12-31",
+                "search_text": "__usl_empty_report_test__",
             },
         )
 
         self.assertEqual(trial["report_type"], "trial_balance")
+        self.assertEqual(trial["label_column"], "Compte")
+        self.assertEqual(trial["locale"], "fr-FR")
         self.assertEqual(trial["filters"]["group_by"], "section")
         self.assertEqual(
             trial["filters"]["company_id"],
@@ -4642,6 +4645,15 @@ class TestRebuildAccountMigration(TransactionCase):
             "No rows for the selected report filters",
         )
         self.assertFalse(trial["lines"][0]["can_drilldown"])
+        self.assertEqual(trial["lines"][0]["presentation_role"], "empty")
+        self.assertEqual(
+            [card["label"] for card in trial["summary"]["cards"]],
+            ["Total débit", "Total crédit", "Contrôle d'équilibre"],
+        )
+        self.assertEqual(
+            trial["summary"]["cards"][-1]["status"],
+            "success",
+        )
 
         journal = self._journal()
         filtered = Report.report_client_load(
@@ -4649,12 +4661,50 @@ class TestRebuildAccountMigration(TransactionCase):
             {
                 "journal_ids": [journal.id],
                 "target_move": "all",
+                "search_text": "",
             },
             trial["wizard_id"],
         )
         self.assertEqual(filtered["filters"]["journal_ids"], [journal.id])
         self.assertEqual(filtered["filters"]["target_move"], "all")
         filtered_wizard = Report.browse(filtered["wizard_id"])
+        group_line = filtered_wizard.preview_line_ids.filtered("is_group")[:1]
+        if group_line:
+            summary_before_fold = filtered["summary"]
+            group_key = group_line.group_key
+            folded = Report.report_client_toggle_group(
+                filtered_wizard.id,
+                group_line.id,
+            )
+            self.assertEqual(folded["summary"], summary_before_fold)
+            folded_group_line = filtered_wizard.preview_line_ids.filtered(
+                lambda line: line.group_key == group_key,
+            )[:1]
+            filtered = Report.report_client_toggle_group(
+                filtered_wizard.id,
+                folded_group_line.id,
+            )
+        self.assertEqual(
+            filtered_wizard._report_presentation_role({
+                "is_group": "true",
+                "row_level": 0,
+            }),
+            "section",
+        )
+        self.assertEqual(
+            filtered_wizard._report_presentation_role({
+                "line_code": "ACTIF_TOTAL",
+                "label": "Total actif",
+            }),
+            "total",
+        )
+        self.assertEqual(
+            filtered_wizard._report_presentation_role({
+                "line_code": "PASSIF_TOTAL_DETTES",
+                "label": "Total dettes",
+            }),
+            "subtotal",
+        )
         source_action = Report.report_client_open_sources(
             filtered_wizard.id,
             filtered_wizard.preview_line_ids[0].id,
@@ -4682,6 +4732,24 @@ class TestRebuildAccountMigration(TransactionCase):
             self.assertTrue(
                 base64.b64decode(wizard.export_file).startswith(signature),
             )
+
+        compared = Report.report_client_load(
+            "trial_balance",
+            {
+                "comparison_mode": "custom",
+                "comparison_date_from": "",
+                "comparison_date_to": "",
+            },
+            filtered["wizard_id"],
+        )
+        self.assertEqual(
+            compared["filters"]["comparison_date_from"],
+            "2098-01-01",
+        )
+        self.assertEqual(
+            compared["filters"]["comparison_date_to"],
+            "2098-12-31",
+        )
 
         aged = Report.report_client_load(
             "aged_receivable",
@@ -4723,10 +4791,30 @@ class TestRebuildAccountMigration(TransactionCase):
         control = next(
             card
             for card in french_balance["summary"]["cards"]
-            if card["label"] == "Balance control"
+            if card["label"] == "Contrôle d'équilibre"
         )
         self.assertAlmostEqual(control["value"], 0.0, places=2)
         self.assertEqual(control["status"], "success")
+        self.assertIn(
+            "total",
+            {
+                line["presentation_role"]
+                for line in french_balance["lines"]
+            },
+        )
+        for export_format, signature in (
+            ("pdf", b"%PDF"),
+            ("xlsx", b"PK"),
+        ):
+            download = Report.report_client_export(
+                french_balance["wizard_id"],
+                export_format,
+            )
+            wizard = Report.browse(french_balance["wizard_id"])
+            self.assertEqual(download["field"], "export_file")
+            self.assertTrue(
+                base64.b64decode(wizard.export_file).startswith(signature),
+            )
 
     def test_canonical_asset_reports_use_native_assets_and_drill_down(self):
         asset_account = self._account(
