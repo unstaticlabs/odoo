@@ -3749,7 +3749,7 @@
         <field name="name">rebuild.account.revenue.spending.month.list</field>
         <field name="model">rebuild.account.revenue.spending.month</field>
         <field name="arch" type="xml">
-            <list string="Monthly Revenue versus Spending" create="0" edit="0" delete="0">
+            <list string="Revenue vs Spending" create="0" edit="0" delete="0">
                 <field name="company_id" groups="base.group_multi_company"/>
                 <field name="month"/>
                 <field name="metric"/>
@@ -3764,7 +3764,7 @@
         <field name="name">rebuild.account.revenue.spending.month.graph</field>
         <field name="model">rebuild.account.revenue.spending.month</field>
         <field name="arch" type="xml">
-            <graph string="Monthly Revenue versus Spending" type="line">
+            <graph string="Revenue vs Spending" type="line">
                 <field name="month" interval="month"/>
                 <field name="metric" type="col"/>
                 <field name="amount" type="measure"/>
@@ -3776,7 +3776,7 @@
         <field name="name">rebuild.account.revenue.spending.month.pivot</field>
         <field name="model">rebuild.account.revenue.spending.month</field>
         <field name="arch" type="xml">
-            <pivot string="Monthly Revenue versus Spending">
+            <pivot string="Revenue vs Spending">
                 <field name="metric" type="row"/>
                 <field name="month" interval="month" type="col"/>
                 <field name="amount" type="measure"/>
@@ -3788,7 +3788,7 @@
         <field name="name">rebuild.account.revenue.spending.month.search</field>
         <field name="model">rebuild.account.revenue.spending.month</field>
         <field name="arch" type="xml">
-            <search string="Monthly Revenue versus Spending">
+            <search string="Revenue vs Spending">
                 <field name="company_id"/>
                 <field name="month"/>
                 <field name="metric"/>
@@ -3806,7 +3806,7 @@
     </record>
 
     <record id="action_rebuild_account_revenue_spending_month" model="ir.actions.act_window">
-        <field name="name">Revenue versus Spending Trend</field>
+        <field name="name">Revenue vs Spending</field>
         <field name="res_model">rebuild.account.revenue.spending.month</field>
         <field name="view_mode">graph,pivot,list</field>
         <field name="context">{'search_default_replacement_period': 1}</field>
@@ -5014,22 +5014,22 @@
         <field name="context">{'report_type': 'profit_loss'}</field>
     </record>
     <record id="action_rebuild_interactive_french_annual" model="ir.actions.client">
-        <field name="name">French Annual Statements</field>
+        <field name="name">États financiers français</field>
         <field name="tag">rebuild_accounting_report</field>
         <field name="context">{'report_type': 'french_annual'}</field>
     </record>
     <record id="action_rebuild_interactive_french_balance_sheet_2024" model="ir.actions.client">
-        <field name="name">French Balance Sheet (2024 PCG)</field>
+        <field name="name">Bilan détaillé (PCG 2024)</field>
         <field name="tag">rebuild_accounting_report</field>
         <field name="context">{'report_type': 'french_balance_sheet_2024'}</field>
     </record>
     <record id="action_rebuild_interactive_french_profit_loss_2024" model="ir.actions.client">
-        <field name="name">French Profit and Loss (2024 PCG)</field>
+        <field name="name">Compte de résultat détaillé (PCG 2024)</field>
         <field name="tag">rebuild_accounting_report</field>
         <field name="context">{'report_type': 'french_profit_loss_2024'}</field>
     </record>
     <record id="action_rebuild_interactive_sig_caf_2024" model="ir.actions.client">
-        <field name="name">SIG and CAF (2024 PCG)</field>
+        <field name="name">SIG et CAF (PCG 2024)</field>
         <field name="tag">rebuild_accounting_report</field>
         <field name="context">{'report_type': 'sig_caf_2024'}</field>
     </record>
@@ -5146,28 +5146,28 @@
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_french_annual_launcher"
-        name="French Annual Statements"
+        name="États financiers français"
         parent="account.account_reports_legal_statements_menu"
         action="action_rebuild_interactive_french_annual"
         sequence="6"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_french_balance_sheet_2024_launcher"
-        name="French Balance Sheet (2024 PCG)"
+        name="Bilan détaillé (PCG 2024)"
         parent="account.account_reports_legal_statements_menu"
         action="action_rebuild_interactive_french_balance_sheet_2024"
         sequence="7"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_french_profit_loss_2024_launcher"
-        name="French Profit and Loss (2024 PCG)"
+        name="Compte de résultat détaillé (PCG 2024)"
         parent="account.account_reports_legal_statements_menu"
         action="action_rebuild_interactive_french_profit_loss_2024"
         sequence="8"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_sig_caf_2024_launcher"
-        name="SIG and CAF (2024 PCG)"
+        name="SIG et CAF (PCG 2024)"
         parent="account.account_reports_legal_statements_menu"
         action="action_rebuild_interactive_sig_caf_2024"
         sequence="9"
@@ -5479,10 +5479,10 @@
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_revenue_spending_reporting"
-        name="Revenue versus Spending Trend"
-        parent="account.account_reports_legal_statements_menu"
+        name="Revenue vs Spending"
+        parent="account.account_reports_management_menu"
         action="action_rebuild_account_revenue_spending_month"
-        sequence="91"
+        sequence="4"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_analytic_reporting"
@@ -5626,6 +5626,27 @@
         <field name="active" eval="False"/>
     </record>
     <record id="menu_rebuild_account_external_report_value_tax_reporting" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="account.menu_action_analytic_reporting" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="menu_rebuild_account_report_fixed_asset_group_account_launcher" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="menu_rebuild_account_report_tax_group_account_tax_launcher" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="menu_rebuild_account_report_tax_group_tax_account_launcher" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="menu_rebuild_account_report_ec_sales_launcher" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="menu_rebuild_account_report_oss_sales_launcher" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="menu_rebuild_account_report_oss_imports_launcher" model="ir.ui.menu">
         <field name="active" eval="False"/>
     </record>
 </odoo>

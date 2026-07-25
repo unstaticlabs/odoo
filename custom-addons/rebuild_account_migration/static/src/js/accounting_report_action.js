@@ -64,7 +64,11 @@ export class AccountingReportAction extends Component {
         if (name === "company_id") {
             value = Number(value);
         }
-        await this.load({ [name]: value || false });
+        const changes = { [name]: value || false };
+        if (["date_from", "date_to"].includes(name)) {
+            changes.period_preset = "custom";
+        }
+        await this.load(changes);
     }
 
     async onSearch(event) {
@@ -125,33 +129,39 @@ export class AccountingReportAction extends Component {
     }
 
     get advancedFilterGroups() {
+        const capabilities = this.state.data.capabilities;
         return [
             {
                 field: "journal_ids",
                 option: "journals",
                 label: "Journals",
+                enabled: capabilities.journals,
             },
             {
                 field: "account_ids",
                 option: "accounts",
                 label: "Accounts",
+                enabled: capabilities.accounts,
             },
             {
                 field: "partner_ids",
                 option: "partners",
                 label: "Partners",
+                enabled: capabilities.partners,
             },
             {
                 field: "analytic_plan_ids",
                 option: "analytic_plans",
                 label: "Analytic plans",
+                enabled: capabilities.analytics,
             },
             {
                 field: "analytic_account_ids",
                 option: "analytic_accounts",
                 label: "Analytic accounts",
+                enabled: capabilities.analytics,
             },
-        ];
+        ].filter((group) => group.enabled);
     }
 
     async exportReport(format) {
@@ -212,6 +222,24 @@ export class AccountingReportAction extends Component {
         return new Intl.DateTimeFormat(undefined).format(
             new Date(Date.UTC(year, month - 1, day)),
         );
+    }
+
+    formatTimestamp(value) {
+        if (!value) {
+            return "";
+        }
+        return new Intl.DateTimeFormat(undefined, {
+            dateStyle: "short",
+            timeStyle: "short",
+        }).format(new Date(`${value.replace(" ", "T")}Z`));
+    }
+
+    isZero(value) {
+        return Math.abs(Number(value || 0)) < 0.005;
+    }
+
+    get capabilities() {
+        return this.state.data.capabilities;
     }
 
     formatCell(value, valueType) {

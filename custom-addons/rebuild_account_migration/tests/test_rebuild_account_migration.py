@@ -3701,6 +3701,9 @@ class TestRebuildAccountMigration(TransactionCase):
         )
         self.assertTrue(trial["options"]["journals"])
         self.assertIn("analytic_accounts", trial["options"])
+        self.assertTrue(trial["capabilities"]["period_presets"])
+        self.assertTrue(trial["capabilities"]["comparison"])
+        self.assertTrue(trial["capabilities"]["analytics"])
         self.assertEqual(
             trial["lines"][0]["label"],
             "No rows for the selected report filters",
@@ -3752,6 +3755,31 @@ class TestRebuildAccountMigration(TransactionCase):
                 "total",
             ],
         )
+        self.assertFalse(aged["capabilities"]["comparison"])
+        self.assertFalse(aged["capabilities"]["group_by"])
+        self.assertEqual(
+            Report._tax_tag_display_name("08_base_rc"),
+            "08 - taxable base (reverse charge)",
+        )
+        self.assertEqual(
+            Report._tax_tag_display_name("I1_taxe"),
+            "I1 - tax amount",
+        )
+
+        french_balance = Report.report_client_load(
+            "french_balance_sheet_2024",
+            {
+                "date_from": "2099-01-01",
+                "date_to": "2099-12-31",
+            },
+        )
+        control = next(
+            card
+            for card in french_balance["summary"]["cards"]
+            if card["label"] == "Balance control"
+        )
+        self.assertAlmostEqual(control["value"], 0.0, places=2)
+        self.assertEqual(control["status"], "success")
 
     def test_canonical_asset_reports_use_native_assets_and_drill_down(self):
         asset_account = self._account(
@@ -3896,6 +3924,17 @@ class TestRebuildAccountMigration(TransactionCase):
                 "account_financial_report.menu_oca_reports",
             ).active,
         )
+        hidden_competitors = [
+            "account.menu_action_analytic_reporting",
+            "rebuild_account_migration.menu_rebuild_account_report_fixed_asset_group_account_launcher",
+            "rebuild_account_migration.menu_rebuild_account_report_tax_group_account_tax_launcher",
+            "rebuild_account_migration.menu_rebuild_account_report_tax_group_tax_account_launcher",
+            "rebuild_account_migration.menu_rebuild_account_report_ec_sales_launcher",
+            "rebuild_account_migration.menu_rebuild_account_report_oss_sales_launcher",
+            "rebuild_account_migration.menu_rebuild_account_report_oss_imports_launcher",
+        ]
+        for menu_xmlid in hidden_competitors:
+            self.assertFalse(self.env.ref(menu_xmlid).active)
 
     def test_legal_statement_menu_uses_canonical_interactive_reports(self):
         balance_export_menu = self.env.ref("rebuild_account_migration.menu_rebuild_account_report_balance_sheet_launcher")

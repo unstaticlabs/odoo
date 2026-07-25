@@ -69,10 +69,13 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             ("fixed_asset_group_account", "Fixed Asset Register by Account"),
             ("depreciation_schedule", "Depreciation Schedule"),
             ("deferred_schedule", "Deferred Expense and Revenue Schedule"),
-            ("french_annual", "French Annual Statements"),
-            ("french_balance_sheet_2024", "French Balance Sheet (2024 PCG)"),
-            ("french_profit_loss_2024", "French Profit and Loss (2024 PCG)"),
-            ("sig_caf_2024", "SIG and CAF (2024 PCG)"),
+            ("french_annual", "États financiers français"),
+            ("french_balance_sheet_2024", "Bilan détaillé (PCG 2024)"),
+            (
+                "french_profit_loss_2024",
+                "Compte de résultat détaillé (PCG 2024)",
+            ),
+            ("sig_caf_2024", "SIG et CAF (PCG 2024)"),
             ("french_tax_package", "French Tax Package Mapping"),
             ("closing_package", "Closing Review Package"),
             ("fec", "FEC"),
@@ -333,6 +336,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
 
         columns = self._report_client_columns()
         lines = []
+        collapsed_groups = self._collapsed_group_key_set()
         for line in self.preview_line_ids.sorted("sequence"):
             row = line._row_payload()
             display_label = line.label or ""
@@ -377,6 +381,10 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 "is_group": line.is_group,
                 "level": line.level,
                 "group_key": line.group_key or "",
+                "collapsed": bool(
+                    line.is_group
+                    and line.group_key in collapsed_groups
+                ),
                 "journal_code": row.get("journal_code") or "",
                 "move_ref": row.get("move_ref") or "",
                 "currency": row_currency,
@@ -499,10 +507,133 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "truncated": self.preview_truncated,
             "warning": self.preview_warning or "",
             "draft_entry_count": self.draft_entry_count,
+            "capabilities": self._report_client_capabilities(),
+            "summary": self._report_client_summary(),
             "generated_at": fields.Datetime.to_string(
                 self.preview_generated_at,
             ),
         }
+
+    def _report_client_capabilities(self):
+        """Describe only controls that make sense for this report."""
+        self.ensure_one()
+        asset_reports = {
+            "fixed_assets",
+            "fixed_asset_group_account",
+            "depreciation_schedule",
+        }
+        analytic_reports = {
+            "trial_balance",
+            "general_ledger",
+            "journal_report",
+            "balance_sheet",
+            "profit_loss",
+            "tax_report",
+            "analytic_report",
+        }
+        comparison_reports = {
+            "trial_balance",
+            "balance_sheet",
+            "profit_loss",
+            "french_annual",
+            "french_balance_sheet_2024",
+            "french_profit_loss_2024",
+            "sig_caf_2024",
+            "analytic_report",
+            "cash_flow",
+            "executive_summary",
+        }
+        return {
+            "period_presets": True,
+            "comparison": self.report_type in comparison_reports,
+            "group_by": self.report_type not in {
+                "aged_receivable",
+                "aged_payable",
+                "french_tax_package",
+            },
+            "journals": self.report_type not in asset_reports | {
+                "french_tax_package",
+            },
+            "accounts": self.report_type != "bank_reconciliation",
+            "partners": self.report_type not in asset_reports | {
+                "french_tax_package",
+            },
+            "analytics": self.report_type in analytic_reports,
+        }
+
+    def _report_client_summary(self):
+        """Return compact statement controls, not technical calculation logs."""
+        self.ensure_one()
+        rows = [
+            line._row_payload()
+            for line in self.preview_line_ids
+            if not line.is_group
+        ]
+
+        def amount_for(code, key="amount"):
+            row = next(
+                (
+                    candidate
+                    for candidate in rows
+                    if candidate.get("line_code") == code
+                ),
+                {},
+            )
+            return float(_amount(row.get(key)))
+
+        if self.report_type in {
+            "french_annual",
+            "french_balance_sheet_2024",
+        }:
+            assets = amount_for("ACTIF_TOTAL", "net_amount")
+            liabilities = amount_for("PASSIF_TOTAL")
+            difference = round(assets - liabilities, 2)
+            return {
+                "cards": [
+                    {"label": "Total assets", "value": assets, "type": "currency"},
+                    {
+                        "label": "Total equity and liabilities",
+                        "value": liabilities,
+                        "type": "currency",
+                    },
+                    {
+                        "label": "Balance control",
+                        "value": difference,
+                        "type": "currency",
+                        "status": "success" if abs(difference) < 0.01 else "danger",
+                    },
+                ],
+            }
+        if self.report_type in {
+            "profit_loss",
+            "french_profit_loss_2024",
+            "sig_caf_2024",
+        }:
+            result_code = (
+                "SIG_RESULTAT_NET"
+                if self.report_type == "sig_caf_2024"
+                else "CR_RESULTAT_NET"
+            )
+            result = amount_for(result_code)
+            if self.report_type == "profit_loss":
+                result_row = next(
+                    (
+                        row
+                        for row in rows
+                        if row.get("account_code") == "RESULT"
+                    ),
+                    {},
+                )
+                result = float(_amount(result_row.get("amount")))
+            return {
+                "cards": [{
+                    "label": "Net result",
+                    "value": result,
+                    "type": "currency",
+                    "status": "success" if result >= 0 else "warning",
+                }],
+            }
+        return {"cards": []}
 
     def _report_client_columns(self):
         self.ensure_one()
@@ -544,9 +675,10 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "balance_sheet": [("amount", "Balance", currency)],
             "profit_loss": [("amount", "Amount", currency)],
             "tax_report": [
-                ("debit", "Debit", currency),
-                ("credit", "Credit", currency),
-                ("balance", "Balance", currency),
+                ("tax_name", "Tax line", text),
+                ("presented_tax_base", "Taxable base", currency),
+                ("presented_tax_amount", "Tax amount", currency),
+                ("balance", "Ledger balance", currency),
             ],
             "bank_reconciliation": [
                 ("date", "Date", date),
@@ -1076,9 +1208,10 @@ class RebuildAccountReportExportWizard(models.TransientModel):
     def _report_variant_basis(self):
         if self._report_variant_key():
             return (
-                "ANC regulation 2022-06 is applicable to financial years opened from 2025-01-01, "
-                "with early application possible. USL's benchmark year opened on 2024-01-10, so "
-                "the pre-2025 French statement family remains an explicit review variant."
+                "Le règlement ANC 2022-06 s’applique aux exercices ouverts "
+                "à compter du 01/01/2025, avec application anticipée "
+                "possible. L’exercice de référence ouvert le 10/01/2024 "
+                "conserve donc explicitement la présentation antérieure."
             )
         return ""
 
@@ -1095,6 +1228,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 or row.get("name")
                 or row.get("payment_ref")
                 or row.get("source_original_name")
+                or row.get("tax_tag_name")
                 or row.get("account_name")
                 or row.get("partner_name")
                 or row.get("move_name")
@@ -1717,6 +1851,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "gross_amount": "Gross",
             "depreciation_amount": "Depreciation",
             "net_amount": "Net",
+            "tax_base_amount": "Taxable base",
             "residual": "Residual",
             "presented_residual": "Residual",
             "amount_residual": "Residual",
@@ -1749,7 +1884,14 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "profit_loss": ["section", "line_code", "label", "amount"],
             "cash_flow": ["section", "line_code", "label", "amount", "statement_balance"],
             "executive_summary": ["section", "line_code", "label", "amount", "details"],
-            "tax_report": ["account_code", "account_name", "tax_name", "debit", "credit", "balance"],
+            "tax_report": [
+                "account_code",
+                "account_name",
+                "tax_name",
+                "presented_tax_base",
+                "presented_tax_amount",
+                "balance",
+            ],
             "tax_report_group_account_tax": ["account_code", "account_name", "tax_name", "debit", "credit", "balance"],
             "tax_report_group_tax_account": ["tax_name", "account_code", "account_name", "debit", "credit", "balance"],
             "bank_reconciliation": ["date", "journal_code", "payment_ref", "partner_name", "amount", "residual", "status"],
@@ -1776,14 +1918,43 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             ],
             "closing_package": ["section", "line_code", "label", "status", "validation", "record_count", "amount", "details", "next_action", "evidence"],
         }.get(self.report_type, [])
+        if self.report_type in {
+            "french_annual",
+            "french_balance_sheet_2024",
+            "french_profit_loss_2024",
+            "sig_caf_2024",
+        }:
+            labels.update({
+                "report_company_name": "Société",
+                "label": "Libellé",
+                "gross_amount": "Brut",
+                "depreciation_amount": "Amortissements / provisions",
+                "net_amount": "Net",
+                "amount": "Montant",
+            })
         if self.group_by != "none":
+            structural_fields = {
+                "statement_name",
+                "section",
+                "account_name",
+                "line_name",
+                "line_code",
+            }
             chosen = [
                 key
                 for key in (
-                    "report_company_name",
+                    *(
+                        ("report_company_name",)
+                        if len(self._selected_companies()) > 1
+                        else ()
+                    ),
                     "label",
-                    "record_count",
-                    "period_value",
+                    *(
+                        fieldname
+                        for fieldname in preferred
+                        if fieldname not in structural_fields
+                        and fieldname != "label"
+                    ),
                     "comparison_value",
                     "difference",
                 )
@@ -1814,13 +1985,35 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         return [(key, labels.get(key, key.replace("_", " ").title())) for key in chosen]
 
     @staticmethod
+    def _report_export_row_value(row, fieldname):
+        value = row.get(fieldname)
+        if fieldname != "label" or value not in (None, "", False):
+            return value
+        label = (
+            row.get("line_name")
+            or row.get("field_label")
+            or row.get("asset_name")
+            or row.get("tax_tag_name")
+            or row.get("account_name")
+            or row.get("partner_name")
+            or row.get("move_name")
+            or row.get("report_section")
+            or ""
+        )
+        if row.get("is_group") not in (True, "true"):
+            label = f"  {label}"
+        return label
+
+    @staticmethod
     def _xlsx_write_value(worksheet, row, column, value, formats, fieldname):
         numeric_fields = {
             "opening_balance", "debit", "credit", "balance", "closing_balance", "movement",
             "amount", "gross_amount", "depreciation_amount", "net_amount", "residual",
             "presented_residual", "amount_residual", "imported_period_net_value", "original_value",
             "amount_currency", "rounded_amount", "statement_balance", "record_count",
-            "quantity", "period_value", "comparison_value", "difference",
+            "quantity", "tax_base_amount", "presented_tax_base",
+            "presented_tax_amount", "period_value",
+            "comparison_value", "difference",
         }
         if value in (None, "", False):
             worksheet.write_blank(row, column, None, formats["body"])
@@ -1913,7 +2106,14 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         data_rows = rows or [{"label": "No rows for the selected filters"}]
         for row_idx, row in enumerate(data_rows, start=header_row + 1):
             for column_idx, (fieldname, _label) in enumerate(columns):
-                self._xlsx_write_value(report_sheet, row_idx, column_idx, row.get(fieldname), formats, fieldname)
+                self._xlsx_write_value(
+                    report_sheet,
+                    row_idx,
+                    column_idx,
+                    self._report_export_row_value(row, fieldname),
+                    formats,
+                    fieldname,
+                )
         report_sheet.freeze_panes(header_row + 1, 0)
         report_sheet.autofilter(header_row, 0, header_row + len(data_rows), last_column)
         report_sheet.set_landscape()
@@ -2084,6 +2284,8 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "amount", "gross_amount", "depreciation_amount", "net_amount", "residual",
             "presented_residual", "amount_residual", "imported_period_net_value", "original_value",
             "amount_currency", "rounded_amount", "statement_balance",
+            "tax_base_amount", "presented_tax_base",
+            "presented_tax_amount",
             "period_value", "comparison_value", "difference",
         }
         status_labels = {
@@ -2137,10 +2339,12 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             chunk_size,
             status_values=None,
             emphasis_values=None,
+            page_break_before=True,
         ):
             chunks = [body_rows[index:index + chunk_size] for index in range(0, len(body_rows), chunk_size)] or [[]]
             for chunk_index, chunk in enumerate(chunks):
-                story.append(PageBreak())
+                if page_break_before or chunk_index:
+                    story.append(PageBreak())
                 continuation = " (suite)" if chunk_index else ""
                 story.append(Paragraph(clean_text(section_title + continuation), styles["USLSection"]))
                 header = [Paragraph(clean_text(label), styles["USLHeaderCell"]) for label in header_labels]
@@ -2197,12 +2401,27 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             canvas.restoreState()
 
         title = "Dossier de clôture" if self.report_type == "closing_package" else self._report_type_label()
+        french_statement = self.report_type in {
+            "french_annual",
+            "french_balance_sheet_2024",
+            "french_profit_loss_2024",
+            "sig_caf_2024",
+        }
+        target_move_display = (
+            "écritures comptabilisées"
+            if french_statement and metadata["target_move"] == "posted"
+            else (
+                "brouillons inclus"
+                if french_statement
+                else metadata["target_move"]
+            )
+        )
         story = [
             Paragraph(clean_text(title), styles["USLTitle"]),
             Paragraph(
                 clean_text(
                     f"{metadata['company']} - Exercice du {date_from_display} au {date_to_display} - "
-                    f"Monnaie {metadata['currency']} - {metadata['target_move']}",
+                    f"Monnaie {metadata['currency']} - {target_move_display}",
                 ),
                 styles["USLSubtitle"],
             ),
@@ -2211,7 +2430,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             [Paragraph("Société", styles["USLHeaderCell"]), cell(metadata["legal_name"]),
              Paragraph("Identifiant", styles["USLHeaderCell"]), cell(metadata["company_registry"] or metadata["vat_number"] or "Non renseigné")],
             [Paragraph("Adresse", styles["USLHeaderCell"]), cell(metadata["address"] or "Non renseignée"),
-             Paragraph("Périmètre", styles["USLHeaderCell"]), cell(f"{len(rows)} ligne(s), {metadata['target_move']}")],
+             Paragraph("Périmètre", styles["USLHeaderCell"]), cell(f"{len(rows)} ligne(s), {target_move_display}")],
         ]
         identity_value_width = (document.width - (49 * mm)) / 2
         identity_table = Table(identity_data, colWidths=[24 * mm, identity_value_width, 25 * mm, identity_value_width])
@@ -2310,7 +2529,9 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             long_fields = {"label", "line_name", "field_label", "account_name", "partner_name", "details", "source_reference"}
             fixed_widths = []
             for fieldname, _label in columns:
-                if fieldname in numeric_fields or fieldname in {
+                if fieldname == "depreciation_amount":
+                    fixed_widths.append(29 * mm)
+                elif fieldname in numeric_fields or fieldname in {
                     "date", "due_date", "depreciation_date", "acquisition_date",
                     "account_code", "journal_code", "line_code", "field_code", "form_code",
                     "currency", "status", "review_status",
@@ -2325,7 +2546,13 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             column_widths = [width or (remaining / flexible_count) for width in fixed_widths]
             data_rows = rows or [{"label": "Aucune ligne pour les filtres sélectionnés"}]
             table_rows = [
-                [cell(row.get(fieldname), fieldname) for fieldname, _label in columns]
+                [
+                    cell(
+                        self._report_export_row_value(row, fieldname),
+                        fieldname,
+                    )
+                    for fieldname, _label in columns
+                ]
                 for row in data_rows
             ]
             emphasis_values = []
@@ -2339,6 +2566,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 column_widths,
                 chunk_size=20,
                 emphasis_values=emphasis_values,
+                page_break_before=False,
             )
 
         document.addPageTemplates([PageTemplate(
@@ -2591,12 +2819,27 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             )
             value = str(value or "Not specified")
         if self.group_by == "section":
-            value = {
-                "bilan_actif": "Balance Sheet — Assets",
-                "bilan_passif": "Balance Sheet — Liabilities",
-                "compte_resultat": "Profit and Loss",
-                "sig_caf": "SIG and CAF",
-            }.get(value, value)
+            french_statement = self.report_type in {
+                "french_annual",
+                "french_balance_sheet_2024",
+                "french_profit_loss_2024",
+                "sig_caf_2024",
+            }
+            value = (
+                {
+                    "bilan_actif": "Bilan - Actif",
+                    "bilan_passif": "Bilan - Passif",
+                    "compte_resultat": "Compte de résultat",
+                    "sig_caf": "SIG et CAF",
+                }
+                if french_statement
+                else {
+                    "bilan_actif": "Balance Sheet - Assets",
+                    "bilan_passif": "Balance Sheet - Liabilities",
+                    "compte_resultat": "Profit and Loss",
+                    "sig_caf": "SIG and CAF",
+                }
+            ).get(value, value)
         group_key = f"{company_key}|{self.group_by}|{value}"
         label = (
             f"{company_name} — {value}"
@@ -2645,6 +2888,8 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "allocated_debit",
             "allocated_credit",
             "allocated_balance",
+            "presented_tax_base",
+            "presented_tax_amount",
         }
 
     def _attach_comparison_values(self, current_rows, comparison_rows):
@@ -3585,19 +3830,56 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         return "Other"
 
     def _tax_report_rows(self):
-        return [
-            {
-                "report_section": "VAT accounts",
-                "account_code": row["account_code"],
-                "account_name": row["account_name"],
-                "debit": row["debit"],
-                "credit": row["credit"],
-                "balance": row["balance"],
-                "move_line_count": row["move_line_count"],
-            }
-            for row in self._trial_balance_rows()
-            if (row.get("account_code") or "").startswith("445")
-        ]
+        rows = self._tax_report_group_rows("account_tax")
+        for row in rows:
+            raw_tag = row.get("tax_tag_name") or ""
+            is_ledger = row.get("report_section") == "VAT accounts"
+            row["report_section"] = (
+                "VAT ledger accounts"
+                if is_ledger
+                else "Statutory tax grid"
+            )
+            row["tax_name"] = (
+                "VAT ledger account"
+                if is_ledger
+                else self._tax_tag_display_name(raw_tag)
+            )
+            if not is_ledger:
+                row["tax_tag_name"] = row["tax_name"]
+            balance = _amount(row.get("balance"))
+            tax_base = _amount(row.get("tax_base_amount"))
+            base_tag = "_base" in raw_tag.casefold() or (
+                raw_tag[:1].isalpha()
+                and "_taxe" not in raw_tag.casefold()
+            )
+            row["presented_tax_base"] = _amount_text(
+                abs(balance) if base_tag else abs(tax_base),
+            )
+            row["presented_tax_amount"] = _amount_text(
+                Decimal("0.00") if base_tag else abs(balance),
+            )
+        return rows
+
+    @staticmethod
+    def _tax_tag_display_name(raw_name):
+        raw_name = str(raw_name or "").strip()
+        if not raw_name:
+            return "Unlabelled tax grid line"
+        normalized = raw_name.replace("_", " ").strip()
+        suffixes = {
+            " base rc": " - taxable base (reverse charge)",
+            " base": " - taxable base",
+            " taxe": " - tax amount",
+        }
+        lowered = normalized.casefold()
+        for suffix, label in suffixes.items():
+            if lowered.endswith(suffix):
+                return normalized[: -len(suffix)].strip() + label
+        if normalized.isdigit():
+            return f"Line {normalized}"
+        if normalized[:1].isalpha() and normalized[1:].isdigit():
+            return f"Form line {normalized}"
+        return normalized
 
     def _tax_report_group_rows(self, group_mode):
         filter_sql, filter_params = self._line_filter_sql()
@@ -4314,6 +4596,35 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 count += int(row.get("move_line_count") or 0)
             return total, count
 
+        def sum_types(
+            account_types,
+            prefixes=None,
+            excluded_prefixes=None,
+            positive=None,
+            negative=None,
+        ):
+            total = Decimal("0.00")
+            count = 0
+            for item in tb:
+                code = item.get("account_code") or ""
+                if item.get("account_type") not in account_types:
+                    continue
+                if prefixes and not any(code.startswith(prefix) for prefix in prefixes):
+                    continue
+                if excluded_prefixes and any(
+                    code.startswith(prefix)
+                    for prefix in excluded_prefixes
+                ):
+                    continue
+                balance = _amount(item["balance"])
+                if positive and balance <= 0:
+                    continue
+                if negative and balance >= 0:
+                    continue
+                total += balance
+                count += int(item.get("move_line_count") or 0)
+            return total, count
+
         def row(statement_key, line_code, line_name, amount, formula, prefixes, count=0, gross=0, depreciation=0):
             return {
                 "statement_key": statement_key,
@@ -4328,27 +4639,77 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 "amount": _amount_text(amount),
             }
 
-        fixed_gross, fixed_gross_count = sum_bal(["21"])
-        fixed_depr_balance, fixed_depr_count = sum_bal(["28"])
-        other_receivables, other_receivable_count = sum_bal(["4"], ["asset_current", "asset_receivable"], positive=True)
-        cash, cash_count = sum_bal(["5"], ["asset_cash"])
-        fixed_net = fixed_gross + fixed_depr_balance
+        fixed_types = {"asset_fixed", "asset_non_current"}
+        fixed_net, fixed_count = sum_types(fixed_types)
+        fixed_gross, fixed_gross_count = sum_types(
+            fixed_types,
+            excluded_prefixes=["28", "29"],
+        )
+        fixed_depr_balance, fixed_depr_count = sum_types(
+            fixed_types,
+            prefixes=["28", "29"],
+        )
+        current_asset_debits, current_asset_debit_count = sum_types(
+            {"asset_current", "asset_receivable"},
+            positive=True,
+        )
+        liability_debits, liability_debit_count = sum_types(
+            {
+                "liability_payable",
+                "liability_current",
+                "liability_non_current",
+            },
+            positive=True,
+        )
+        other_receivables = current_asset_debits + liability_debits
+        other_receivable_count = (
+            current_asset_debit_count + liability_debit_count
+        )
+        cash, cash_count = sum_types({"asset_cash"}, positive=True)
         total_assets = fixed_net + other_receivables + cash
         depreciation = -fixed_depr_balance
 
         capital, capital_count = sum_bal(["101"])
+        other_equity_balance, other_equity_count = sum_types(
+            {"equity", "equity_unaffected"},
+            excluded_prefixes=["101"],
+        )
         result_balance, result_count = sum_bal(["6", "7"])
-        shareholder_debt, shareholder_count = sum_bal(["455"], negative=True)
-        tax_social_debt, tax_social_count = sum_bal(["42", "43", "44"], negative=True)
+        trade_payables, trade_payable_count = sum_types(
+            {"liability_payable"},
+            negative=True,
+        )
+        tax_social_debt, tax_social_count = sum_types(
+            {"liability_current", "liability_non_current"},
+            prefixes=["42", "43", "44"],
+            negative=True,
+        )
+        other_liability_credits, other_liability_credit_count = sum_types(
+            {"liability_current", "liability_non_current"},
+            excluded_prefixes=["42", "43", "44"],
+            negative=True,
+        )
+        asset_credits, asset_credit_count = sum_types(
+            {"asset_current", "asset_receivable", "asset_cash"},
+            negative=True,
+        )
+        other_debt = other_liability_credits + asset_credits
+        other_debt_count = (
+            other_liability_credit_count + asset_credit_count
+        )
         current_result = -result_balance
-        equity = -capital + current_result
-        total_debt = -shareholder_debt - tax_social_debt
+        equity = -capital - other_equity_balance + current_result
+        total_debt = -trade_payables - tax_social_debt - other_debt
         total_passif = equity + total_debt
 
         goods_sales, goods_sales_count = sum_bal(["701"])
         service_sales, service_sales_count = sum_bal(["706"])
-        turnover = -sum_bal(["70"])[0]
-        operating_income = -sum_bal(["70", "758"])[0]
+        turnover_balance, turnover_count = sum_bal(["70"])
+        turnover = -turnover_balance
+        operating_income_balance, operating_income_count = sum_bal(
+            ["70", "71", "72", "74", "75"],
+        )
+        operating_income = -operating_income_balance
         goods_purchases, goods_purchases_count = sum_bal(["607"])
         external_charges, external_charges_count = sum_bal(["606", "61", "62"])
         taxes, taxes_count = sum_bal(["631", "633"])
@@ -4356,35 +4717,46 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         social_charges, social_charges_count = sum_bal(["645"])
         depreciation_expense, depreciation_expense_count = sum_bal(["681"])
         other_expenses, other_expenses_count = sum_bal(["658"])
-        operating_expenses = sum_bal(["60", "61", "62", "63", "64", "658", "681"])[0]
+        operating_expenses, operating_expense_count = sum_bal(
+            ["60", "61", "62", "63", "64", "65", "68"],
+        )
         operating_result = operating_income - operating_expenses
         financial_income, financial_income_count = sum_bal(["76"])
         financial_charges, financial_charges_count = sum_bal(["66"])
         financial_result = -financial_income - financial_charges
+        exceptional_income, exceptional_income_count = sum_bal(["77"])
+        exceptional_charges, exceptional_charges_count = sum_bal(["67"])
+        exceptional_result = -exceptional_income - exceptional_charges
         current_result_before_tax = operating_result + financial_result
         income_tax, income_tax_count = sum_bal(["695"])
-        net_result = current_result_before_tax - income_tax
+        net_result = (
+            current_result_before_tax
+            + exceptional_result
+            - income_tax
+        )
 
         value_added = operating_income - goods_purchases - external_charges - other_expenses
         ebe = value_added - taxes - salaries - social_charges
         caf = net_result + depreciation_expense
 
         rows = [
-            row("bilan_actif", "ACTIF_IMMO_CORP", "Immobilisations corporelles", fixed_net, "21 - 28", ["21", "28"], fixed_gross_count + fixed_depr_count, fixed_gross, depreciation),
-            row("bilan_actif", "ACTIF_AUTRES_CREANCES", "Autres créances", other_receivables, "Débiteurs de classe 4", ["4"], other_receivable_count),
-            row("bilan_actif", "ACTIF_DISPONIBILITES", "Disponibilités", cash, "Trésorerie 5", ["5"], cash_count),
-            row("bilan_actif", "ACTIF_TOTAL", "Total actif", total_assets, "Immobilisations nettes + créances + disponibilités", ["21", "28", "4", "5"], fixed_gross_count + fixed_depr_count + other_receivable_count + cash_count, fixed_gross + other_receivables + cash, depreciation),
+            row("bilan_actif", "ACTIF_IMMO_CORP", "Immobilisations", fixed_net, "Comptes d’actif immobilisé, nets des amortissements et provisions", ["2"], fixed_count, fixed_gross, depreciation),
+            row("bilan_actif", "ACTIF_AUTRES_CREANCES", "Stocks, créances et autres actifs courants", other_receivables, "Soldes débiteurs des comptes d’actif courant, de créances et de dettes", ["3", "4"], other_receivable_count),
+            row("bilan_actif", "ACTIF_DISPONIBILITES", "Disponibilités", cash, "Comptes classés en trésorerie", ["5"], cash_count),
+            row("bilan_actif", "ACTIF_TOTAL", "Total actif", total_assets, "Tous les comptes d’actif selon leur type comptable", ["2", "3", "4", "5"], fixed_count + other_receivable_count + cash_count, fixed_gross + other_receivables + cash, depreciation),
             row("bilan_passif", "PASSIF_CAPITAL", "Capital social", -capital, "101", ["101"], capital_count),
+            row("bilan_passif", "PASSIF_RESERVES_REPORT", "Réserves, report à nouveau et autres capitaux propres", -other_equity_balance, "Autres comptes classés en capitaux propres", ["10", "11", "12", "13", "14"], other_equity_count),
             row("bilan_passif", "PASSIF_RESULTAT", "Résultat de l’exercice", current_result, "6 et 7", ["6", "7"], result_count),
-            row("bilan_passif", "PASSIF_CAPITAUX_PROPRES", "Capitaux propres", equity, "101 + résultat", ["101", "6", "7"], capital_count + result_count),
-            row("bilan_passif", "PASSIF_COMPTE_COURANT_ASSOCIE", "Compte courant d’associé", -shareholder_debt, "455 créditeurs", ["455"], shareholder_count),
-            row("bilan_passif", "PASSIF_DETTES_FISCALES_SOCIALES", "Dettes fiscales et sociales", -tax_social_debt, "42/43/44 créditeurs", ["42", "43", "44"], tax_social_count),
-            row("bilan_passif", "PASSIF_TOTAL_DETTES", "Total dettes", total_debt, "455 + 42/43/44", ["455", "42", "43", "44"], shareholder_count + tax_social_count),
-            row("bilan_passif", "PASSIF_TOTAL", "Total passif", total_passif, "Capitaux propres + dettes", ["101", "6", "7", "455", "42", "43", "44"], capital_count + result_count + shareholder_count + tax_social_count),
+            row("bilan_passif", "PASSIF_CAPITAUX_PROPRES", "Capitaux propres", equity, "Tous les comptes de capitaux propres + résultat", ["1", "6", "7"], capital_count + other_equity_count + result_count),
+            row("bilan_passif", "PASSIF_DETTES_FOURNISSEURS", "Dettes fournisseurs", -trade_payables, "Soldes créditeurs des comptes fournisseurs", ["40"], trade_payable_count),
+            row("bilan_passif", "PASSIF_DETTES_FISCALES_SOCIALES", "Dettes fiscales et sociales", -tax_social_debt, "Soldes créditeurs 42/43/44", ["42", "43", "44"], tax_social_count),
+            row("bilan_passif", "PASSIF_AUTRES_DETTES", "Emprunts, découverts et autres dettes", -other_debt, "Autres soldes créditeurs classés en passif", ["1", "4", "5"], other_debt_count),
+            row("bilan_passif", "PASSIF_TOTAL_DETTES", "Total dettes", total_debt, "Toutes les dettes selon leur type comptable", ["1", "4", "5"], trade_payable_count + tax_social_count + other_debt_count),
+            row("bilan_passif", "PASSIF_TOTAL", "Total passif", total_passif, "Capitaux propres + résultat + dettes", ["1", "4", "5", "6", "7"], capital_count + other_equity_count + result_count + trade_payable_count + tax_social_count + other_debt_count),
             row("compte_resultat", "CR_VENTES_PRODUITS", "Ventes de biens et produits", -goods_sales, "701", ["701"], goods_sales_count),
             row("compte_resultat", "CR_SERVICES", "Prestations de services", -service_sales, "706", ["706"], service_sales_count),
-            row("compte_resultat", "CR_CHIFFRE_AFFAIRES", "Chiffre d’affaires net", turnover, "70", ["70"], goods_sales_count + service_sales_count),
-            row("compte_resultat", "CR_TOTAL_PRODUITS_EXPLOITATION", "Total produits d’exploitation", operating_income, "70 + 758", ["70", "758"]),
+            row("compte_resultat", "CR_CHIFFRE_AFFAIRES", "Chiffre d’affaires net", turnover, "70", ["70"], turnover_count),
+            row("compte_resultat", "CR_TOTAL_PRODUITS_EXPLOITATION", "Total produits d’exploitation", operating_income, "70/71/72/74/75", ["70", "71", "72", "74", "75"], operating_income_count),
             row("compte_resultat", "CR_ACHATS_MARCHANDISES", "Achats de marchandises", goods_purchases, "607", ["607"], goods_purchases_count),
             row("compte_resultat", "CR_CHARGES_EXTERNES", "Autres achats et charges externes", external_charges, "606 + 61 + 62", ["606", "61", "62"], external_charges_count),
             row("compte_resultat", "CR_IMPOTS_TAXES", "Impôts, taxes et versements assimilés", taxes, "631 + 633", ["631", "633"], taxes_count),
@@ -4392,12 +4764,13 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             row("compte_resultat", "CR_CHARGES_SOCIALES", "Charges sociales", social_charges, "645", ["645"], social_charges_count),
             row("compte_resultat", "CR_DOTATIONS_AMORTISSEMENTS", "Dotations aux amortissements", depreciation_expense, "681", ["681"], depreciation_expense_count),
             row("compte_resultat", "CR_AUTRES_CHARGES_EXPLOITATION", "Autres charges d’exploitation", other_expenses, "658", ["658"], other_expenses_count),
-            row("compte_resultat", "CR_TOTAL_CHARGES_EXPLOITATION", "Total charges d’exploitation", operating_expenses, "60/61/62/63/64/658/681", ["60", "61", "62", "63", "64", "658", "681"]),
-            row("compte_resultat", "CR_RESULTAT_EXPLOITATION", "Résultat d’exploitation", operating_result, "Produits d’exploitation - charges d’exploitation", ["70", "758", "60", "61", "62", "63", "64", "658", "681"]),
+            row("compte_resultat", "CR_TOTAL_CHARGES_EXPLOITATION", "Total charges d’exploitation", operating_expenses, "60 à 65 et 68", ["60", "61", "62", "63", "64", "65", "68"], operating_expense_count),
+            row("compte_resultat", "CR_RESULTAT_EXPLOITATION", "Résultat d’exploitation", operating_result, "Produits d’exploitation - charges d’exploitation", ["70", "71", "72", "74", "75", "60", "61", "62", "63", "64", "65", "68"]),
             row("compte_resultat", "CR_PRODUITS_FINANCIERS", "Produits financiers", -financial_income, "76", ["76"], financial_income_count),
             row("compte_resultat", "CR_CHARGES_FINANCIERES", "Charges financières", financial_charges, "66", ["66"], financial_charges_count),
             row("compte_resultat", "CR_RESULTAT_FINANCIER", "Résultat financier", financial_result, "76 - 66", ["76", "66"], financial_income_count + financial_charges_count),
             row("compte_resultat", "CR_RESULTAT_COURANT_AVANT_IMPOT", "Résultat courant avant impôts", current_result_before_tax, "Résultat exploitation + résultat financier", ["70", "758", "60", "61", "62", "63", "64", "658", "681", "76", "66"]),
+            row("compte_resultat", "CR_RESULTAT_EXCEPTIONNEL", "Résultat exceptionnel", exceptional_result, "77 - 67", ["77", "67"], exceptional_income_count + exceptional_charges_count),
             row("compte_resultat", "CR_IMPOTS_BENEFICES", "Impôts sur les bénéfices", income_tax, "695", ["695"], income_tax_count),
             row("compte_resultat", "CR_RESULTAT_NET", "Résultat net comptable", net_result, "Solde 6 et 7", ["6", "7"], result_count),
             row("sig_caf", "SIG_VALEUR_AJOUTEE", "Valeur ajoutée", value_added, "Produits - achats - charges externes", ["70", "758", "607", "606", "61", "62", "658"]),

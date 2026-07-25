@@ -7,7 +7,7 @@
                     <h1 t-esc="state.data.title"/>
                     <div class="o_usl_report_subtitle">
                         <t t-esc="state.data.row_count"/> lines ·
-                        updated <t t-esc="state.data.generated_at"/>
+                        updated <t t-esc="formatTimestamp(state.data.generated_at)"/>
                     </div>
                 </div>
                 <div class="o_usl_report_exports">
@@ -30,6 +30,18 @@
                     </select>
                 </label>
                 <label>
+                    <span>Period</span>
+                    <select name="period_preset" t-on-change="onFilterChange">
+                        <t t-foreach="state.data.options.period_preset" t-as="option" t-key="option.value">
+                            <option t-att-value="option.value" t-att-selected="option.value === state.filters.period_preset" t-esc="option.label"/>
+                        </t>
+                    </select>
+                </label>
+                <label t-if="state.filters.period_preset !== 'custom'">
+                    <span>Containing date</span>
+                    <input type="date" name="period_anchor_date" t-att-value="state.filters.period_anchor_date" t-on-change="onFilterChange"/>
+                </label>
+                <label>
                     <span>From</span>
                     <input type="date" name="date_from" t-att-value="state.filters.date_from" t-on-change="onFilterChange"/>
                 </label>
@@ -45,7 +57,7 @@
                         </t>
                     </select>
                 </label>
-                <label>
+                <label t-if="capabilities.comparison">
                     <span>Comparison</span>
                     <select name="comparison_mode" t-on-change="onFilterChange">
                         <t t-foreach="state.data.options.comparison_mode" t-as="option" t-key="option.value">
@@ -53,7 +65,7 @@
                         </t>
                     </select>
                 </label>
-                <label>
+                <label t-if="capabilities.group_by">
                     <span>Group by</span>
                     <select name="group_by" t-on-change="onFilterChange">
                         <t t-foreach="state.data.options.group_by" t-as="option" t-key="option.value">
@@ -102,7 +114,7 @@
 
             <div class="o_usl_report_pills">
                 <span class="badge rounded-pill text-bg-light">
-                    <t t-esc="state.filters.date_from"/> → <t t-esc="state.filters.date_to"/>
+                    <t t-esc="formatDate(state.filters.date_from)"/> → <t t-esc="formatDate(state.filters.date_to)"/>
                 </span>
                 <span class="badge rounded-pill text-bg-light" t-if="state.filters.target_move === 'posted'">Posted entries</span>
                 <span class="badge rounded-pill text-bg-light" t-else="">Drafts included</span>
@@ -142,6 +154,14 @@
                 PDF and XLSX exports still include the complete result.
             </div>
 
+            <div class="o_usl_report_summary" t-if="state.data.summary.cards.length">
+                <div t-foreach="state.data.summary.cards" t-as="card" t-key="card.label"
+                     t-att-class="'o_usl_report_summary_card ' + (card.status ? 'o_usl_report_summary_' + card.status : '')">
+                    <span t-esc="card.label"/>
+                    <strong t-esc="formatCell(card.value, card.type)"/>
+                </div>
+            </div>
+
             <div class="o_usl_report_table_wrap">
                 <table class="table table-hover o_usl_report_table">
                     <thead>
@@ -171,7 +191,7 @@
                         <tr t-foreach="state.data.lines" t-as="line" t-key="line.id" t-att-class="line.is_group ? 'o_usl_report_group' : ''">
                             <td class="o_usl_report_label" t-att-style="'padding-left:' + (0.75 + line.level * 1.25) + 'rem'">
                                 <button t-if="line.is_group" class="btn btn-sm btn-link o_usl_report_fold" t-on-click="() => this.toggleGroup(line)" title="Expand or collapse">
-                                    <i class="fa fa-chevron-down"/>
+                                    <i t-att-class="'fa ' + (line.collapsed ? 'fa-chevron-right' : 'fa-chevron-down')"/>
                                 </button>
                                 <span class="o_usl_report_code" t-if="line.account_code" t-esc="line.account_code"/>
                                 <span t-esc="line.label"/>
@@ -187,9 +207,9 @@
                                 t-esc="line.opening_balance ? formatAmount(line.opening_balance) : ''"/>
                             <td class="text-end text-nowrap" t-if="isDetailedLedger"
                                 t-esc="line.currency ? formatForeignAmount(line.amount_currency, line.currency) : ''"/>
-                            <td class="text-end" t-if="isTrialBalance" t-esc="formatAmount(line.opening_balance)"/>
-                            <td class="text-end" t-if="isTrialBalance or isDetailedLedger" t-esc="formatAmount(line.debit)"/>
-                            <td class="text-end" t-if="isTrialBalance or isDetailedLedger" t-esc="formatAmount(line.credit)"/>
+                            <td t-att-class="'text-end ' + (isZero(line.opening_balance) ? 'o_usl_report_zero' : '')" t-if="isTrialBalance" t-esc="formatAmount(line.opening_balance)"/>
+                            <td t-att-class="'text-end ' + (isZero(line.debit) ? 'o_usl_report_zero' : '')" t-if="isTrialBalance or isDetailedLedger" t-esc="formatAmount(line.debit)"/>
+                            <td t-att-class="'text-end ' + (isZero(line.credit) ? 'o_usl_report_zero' : '')" t-if="isTrialBalance or isDetailedLedger" t-esc="formatAmount(line.credit)"/>
                             <td class="text-end fw-semibold" t-if="isDetailedLedger" t-esc="formatAmount(line.running_balance)"/>
                             <td class="text-end fw-semibold" t-if="isTrialBalance" t-esc="formatAmount(line.closing_balance)"/>
                             <td class="text-end fw-semibold" t-if="isDetailedLedger and showResidual" t-esc="formatAmount(line.residual)"/>
@@ -200,7 +220,7 @@
                             </td>
                             <td t-if="isDynamicReport" t-foreach="state.data.columns" t-as="column"
                                 t-key="column.key"
-                                t-att-class="column.type === 'currency' or column.type === 'number' ? 'text-end' : ''"
+                                t-att-class="(column.type === 'currency' or column.type === 'number' ? 'text-end ' : '') + (column.type === 'currency' and isZero(line.values[column.key]) ? 'o_usl_report_zero' : '')"
                                 t-esc="formatCell(line.values[column.key], column.type)"/>
                             <td class="text-end" t-if="isTrialBalance and showComparison" t-esc="formatAmount(line.comparison_value)"/>
                             <td class="text-end">
