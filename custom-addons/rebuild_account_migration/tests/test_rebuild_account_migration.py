@@ -827,6 +827,8 @@ class TestRebuildAccountMigration(TransactionCase):
             "account.menu_finance_payables": ("Vendors", 3),
             "account.menu_finance_entries": ("Accounting", 4),
             "account.account_audit_menu": ("Review", 7),
+            "rebuild_account_migration.menu_rebuild_account_analysis":
+                ("Analysis", 15),
             "account.menu_finance_reports": ("Reporting", 20),
             "account.menu_finance_configuration": ("Configuration", 35),
         }
@@ -853,6 +855,164 @@ class TestRebuildAccountMigration(TransactionCase):
                 "rebuild_account_migration.menu_rebuild_account_closing_root",
             ).active,
         )
+
+    def test_native_analytic_reporting_is_dynamic_and_reconciles(self):
+        plan = self.env["account.analytic.plan"].create({
+            "name": "Unit Analytic Reporting Plan",
+        })
+        analytic_account = self.env["account.analytic.account"].create({
+            "name": "Unit Analytic Reporting Activity",
+            "plan_id": plan.id,
+            "company_id": self.company.id,
+        })
+        revenue_account = self._account(
+            "T707410",
+            "Unit analytic reporting revenue",
+            "income",
+        )
+        spending_account = self._account(
+            "T607410",
+            "Unit analytic reporting spending",
+            "expense",
+        )
+        clearing_account = self._account(
+            "T467410",
+            "Unit analytic reporting clearing",
+            "asset_current",
+        )
+        plan_field = plan._column_name()
+        move = self.env["account.move"].create({
+            "move_type": "entry",
+            "date": "2026-07-01",
+            "journal_id": self._journal().id,
+            "company_id": self.company.id,
+            "line_ids": [
+                Command.create({
+                    "name": "Unit analytic revenue",
+                    "account_id": revenue_account.id,
+                    "credit": 250.0,
+                    "analytic_distribution": {
+                        str(analytic_account.id): 100.0,
+                    },
+                }),
+                Command.create({
+                    "name": "Unit analytic spending",
+                    "account_id": spending_account.id,
+                    "debit": 90.0,
+                    "analytic_distribution": {
+                        str(analytic_account.id): 100.0,
+                    },
+                }),
+                Command.create({
+                    "name": "Unit analytic clearing",
+                    "account_id": clearing_account.id,
+                    "debit": 160.0,
+                }),
+            ],
+        })
+        move.action_post()
+        accounting_lines = move.line_ids.filtered(
+            lambda line: line.account_id in (
+                revenue_account | spending_account
+            ),
+        )
+        lines = self.env["account.analytic.line"].search([
+            ("move_line_id", "in", accounting_lines.ids),
+        ])
+
+        self.assertEqual(len(lines), 2)
+        self.assertEqual(sum(lines.mapped("rebuild_revenue")), 250.0)
+        self.assertEqual(sum(lines.mapped("rebuild_spending")), 90.0)
+        self.assertEqual(
+            sum(lines.mapped("rebuild_net_contribution")),
+            160.0,
+        )
+        self.assertEqual(
+            sum(lines.mapped("amount")),
+            -sum(accounting_lines.mapped("balance")),
+        )
+        self.assertEqual(
+            lines.mapped(plan_field),
+            analytic_account,
+        )
+        [totals] = self.env["account.analytic.line"]._read_group(
+            [("id", "in", lines.ids)],
+            aggregates=[
+                "amount:sum",
+                "rebuild_revenue:sum",
+                "rebuild_spending:sum",
+                "rebuild_net_contribution:sum",
+            ],
+        )
+        amount, revenue, spending, net_contribution = totals
+        self.assertEqual(amount, 160.0)
+        self.assertEqual(revenue, 250.0)
+        self.assertEqual(spending, 90.0)
+        self.assertEqual(net_contribution, 160.0)
+        self.assertEqual(
+            revenue - spending,
+            net_contribution,
+        )
+
+        action = self.env.ref(
+            "rebuild_account_migration.action_rebuild_analytic_reporting",
+        )
+        self.assertEqual(action.view_mode, "pivot,list,graph,form")
+        self.assertEqual(
+            action.view_ids.sorted("sequence").mapped("view_mode"),
+            ["pivot", "list", "graph", "form"],
+        )
+        context = safe_eval(action.context)
+        self.assertEqual(context["pivot_row_groupby"], ["account_id"])
+        self.assertEqual(context["pivot_column_groupby"], ["date:month"])
+        self.assertEqual(
+            context["pivot_measures"],
+            ["rebuild_net_contribution"],
+        )
+        self.assertEqual(context["search_default_current_fiscal_year"], 1)
+        self.assertEqual(context["search_default_profit_loss_accounts"], 1)
+
+        pivot_arch, _view = self.env[
+            "account.analytic.line"
+        ]._get_view(
+            view_id=self.env.ref(
+                "rebuild_account_migration."
+                "view_rebuild_analytic_reporting_pivot",
+            ).id,
+            view_type="pivot",
+        )
+        self.assertTrue(
+            pivot_arch.xpath(f"//field[@name='{plan_field}']"),
+        )
+        self.assertTrue(
+            pivot_arch.xpath(
+                "//field[@name='rebuild_net_contribution' "
+                "and @type='measure']",
+            ),
+        )
+        for measure_name in (
+            "rebuild_revenue",
+            "rebuild_spending",
+            "amount",
+            "unit_amount",
+        ):
+            measure_nodes = pivot_arch.xpath(
+                f"//field[@name='{measure_name}' and @type='measure']",
+            )
+            self.assertTrue(measure_nodes)
+            self.assertNotEqual(measure_nodes[0].get("invisible"), "1")
+        menu = self.env.ref(
+            "rebuild_account_migration.menu_rebuild_analytic_reporting",
+        )
+        self.assertEqual(
+            menu.parent_id,
+            self.env.ref(
+                "rebuild_account_migration.menu_rebuild_account_analysis",
+            ),
+        )
+        self.assertEqual(menu.action, action)
+
+    def test_accounting_configuration_and_review_navigation(self):
         self.assertFalse(
             self.env.ref(
                 "rebuild_account_migration.menu_rebuild_account_declaration_schedule",

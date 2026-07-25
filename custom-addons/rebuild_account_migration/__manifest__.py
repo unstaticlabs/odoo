@@ -1,7 +1,7 @@
 {
     "name": "USL Accounting Migration",
     "summary": "Source-trace, import-run and discrepancy records for USL accounting reconstruction.",
-    "version": "saas~19.2.1.3.0",
+    "version": "saas~19.2.1.4.0",
     "category": "Accounting/Accounting",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
@@ -30,6 +30,7 @@
         "views/rebuild_account_migration_views.xml",
         "views/account_closing_declaration_views.xml",
         "views/accounting_framework_views.xml",
+        "views/analytic_reporting_views.xml",
     ],
     "assets": {
         "web.assets_backend": [
