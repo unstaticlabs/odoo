@@ -45,5 +45,8 @@ Valentin and the accountant must be able to:
   whitelisted module extensions rather than arbitrary code.
 - A technical control failure is not reported as an accounting failure and
   cannot produce a false Ready conclusion.
+- Interactive reports are statement-first: one shared filter and interaction
+  system presents explicit sections, groups, details, subtotals, totals and
+  controls consistently on screen, in PDF and in the readable XLSX sheet.
 
 Detailed invariants and parity standards live under `docs/accounting/`.

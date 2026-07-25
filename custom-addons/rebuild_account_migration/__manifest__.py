@@ -1,7 +1,7 @@
 {
     "name": "USL Accounting Migration",
     "summary": "Source-trace, import-run and discrepancy records for USL accounting reconstruction.",
-    "version": "saas~19.2.1.1.0",
+    "version": "saas~19.2.1.2.0",
     "category": "Accounting/Accounting",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
