@@ -920,7 +920,7 @@ class RebuildAccountReviewSummary(models.Model):
                                    AND line.reconciled IS FALSE
                                    AND abs(line.amount_residual) > 0.004
                              )::integer AS open_receivable_count,
-                             round(COALESCE(sum(abs(line.amount_residual)) FILTER (
+                             round(COALESCE(sum(line.amount_residual) FILTER (
                                  WHERE account.account_type = 'asset_receivable'
                                    AND line.reconciled IS FALSE
                                    AND abs(line.amount_residual) > 0.004
@@ -930,7 +930,7 @@ class RebuildAccountReviewSummary(models.Model):
                                    AND line.reconciled IS FALSE
                                    AND abs(line.amount_residual) > 0.004
                              )::integer AS open_payable_count,
-                             round(COALESCE(sum(abs(line.amount_residual)) FILTER (
+                             round(COALESCE(sum(line.amount_residual) FILTER (
                                  WHERE account.account_type = 'liability_payable'
                                    AND line.reconciled IS FALSE
                                    AND abs(line.amount_residual) > 0.004

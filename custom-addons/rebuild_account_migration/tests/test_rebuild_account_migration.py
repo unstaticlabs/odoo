@@ -4956,6 +4956,52 @@ class TestRebuildAccountMigration(TransactionCase):
             "type": "purchase",
             "company_id": home_company.id,
         })
+        general_journal = self.env["account.journal"].create({
+            "name": "Home Signed Aggregates",
+            "code": "HSA",
+            "type": "general",
+            "company_id": home_company.id,
+        })
+        receivable_account = self.env["account.account"].create({
+            "code": "411HSA",
+            "name": "Home signed receivables",
+            "account_type": "asset_receivable",
+            "reconcile": True,
+            "company_ids": [Command.set([home_company.id])],
+        })
+        offset_account = self.env["account.account"].create({
+            "code": "471HSA",
+            "name": "Home aggregate offset",
+            "account_type": "asset_current",
+            "company_ids": [Command.set([home_company.id])],
+        })
+        customer = self.env["res.partner"].create({
+            "name": "Home Aggregate Customer",
+            "company_id": home_company.id,
+        })
+        for amount in (3442.0, -2500.0):
+            move = self.env["account.move"].create({
+                "move_type": "entry",
+                "journal_id": general_journal.id,
+                "company_id": home_company.id,
+                "date": "2026-07-25",
+                "line_ids": [
+                    Command.create({
+                        "name": "Open customer item",
+                        "account_id": receivable_account.id,
+                        "partner_id": customer.id,
+                        "debit": max(amount, 0.0),
+                        "credit": max(-amount, 0.0),
+                    }),
+                    Command.create({
+                        "name": "Aggregate test offset",
+                        "account_id": offset_account.id,
+                        "debit": max(-amount, 0.0),
+                        "credit": max(amount, 0.0),
+                    }),
+                ],
+            })
+            move.action_post()
         self.env["account.move"].create({
             "move_type": "out_invoice",
             "journal_id": sales_journal.id,
@@ -4974,7 +5020,9 @@ class TestRebuildAccountMigration(TransactionCase):
             ("company_id", "=", home_company.id),
         ])
         self.assertTrue(home)
-        self.assertGreaterEqual(home.journal_count, 2)
+        self.assertGreaterEqual(home.journal_count, 3)
+        self.assertEqual(home.open_receivable_count, 2)
+        self.assertEqual(home.open_receivable_amount, 942.0)
         self.assertEqual(home.draft_customer_document_count, 1)
         self.assertEqual(home.draft_vendor_document_count, 1)
         self.assertEqual(home.incomplete_document_count, 2)
