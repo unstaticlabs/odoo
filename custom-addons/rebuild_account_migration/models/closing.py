@@ -56,6 +56,25 @@ CLOSING_CONTROL_DEFINITIONS = (
     ("lock_dates", "locks", "Lock-date readiness", "Checks the current lock dates and whether they protect the reviewed period.", "Unlocked reviewed periods can be changed inadvertently after sign-off.", "accounting_manager"),
 )
 
+CANONICAL_CLOSING_REPORT_ACTIONS = (
+    "action_rebuild_interactive_trial_balance",
+    "action_rebuild_interactive_general_ledger",
+    "action_rebuild_interactive_journal_report",
+    "action_rebuild_interactive_partner_ledger",
+    "action_rebuild_interactive_open_items",
+    "action_rebuild_interactive_aged_receivable",
+    "action_rebuild_interactive_aged_payable",
+    "action_rebuild_interactive_balance_sheet",
+    "action_rebuild_interactive_profit_loss",
+    "action_rebuild_interactive_french_balance_sheet_2024",
+    "action_rebuild_interactive_french_profit_loss_2024",
+    "action_rebuild_interactive_tax_report",
+    "action_rebuild_interactive_fixed_assets",
+    "action_rebuild_interactive_depreciation_schedule",
+    "action_rebuild_interactive_sig_caf_2024",
+    "action_rebuild_interactive_analytic_report",
+)
+
 
 class IrAttachment(models.Model):
     _inherit = "ir.attachment"
@@ -443,12 +462,17 @@ class RebuildAccountClosingPeriod(models.Model):
             *base,
             ("state", "=", "posted"),
             ("message_main_attachment_id", "=", False),
+            ("rebuild_source_id", "=", False),
         ])
         status = "block" if drafts else "warning" if missing_evidence else "pass"
         return self._control_values(
             "document_completeness", "documents", "Document completeness", status,
             drafts + missing_evidence, 0.0,
-            f"{drafts} draft business document(s); {missing_evidence} posted document(s) without a main attachment.",
+            (
+                f"{drafts} draft business document(s); {missing_evidence} "
+                "new posted document(s) without a main attachment. Imported "
+                "history is excluded because attachments were outside dump parity."
+            ),
             "Resolve draft documents and attach or explicitly document missing source evidence.",
         )
 
@@ -675,30 +699,57 @@ class RebuildAccountClosingPeriod(models.Model):
         )
 
     def _control_reports(self):
-        reports = self.env["rebuild.account.source.report"].search([
-            ("active", "=", True),
-            ("parity_level", "!=", "level_4_accepted"),
-        ])
-        status = "block" if self.period_type == "annual" and reports else "warning" if reports else "pass"
+        missing = [
+            action_name
+            for action_name in CANONICAL_CLOSING_REPORT_ACTIONS
+            if not self.env.ref(
+                f"rebuild_account_migration.{action_name}",
+                raise_if_not_found=False,
+            )
+        ]
         return self._control_values(
-            "reports", "reports", "Report readiness", status, len(reports), 0.0,
-            f"{len(reports)} active source report(s) have technical evidence but no recorded professional acceptance.",
-            "Review report packages and record accountant-authorized parity decisions without fabricating acceptance.",
+            "reports", "reports", "Closing reports",
+            "block" if missing else "pass", len(missing), 0.0,
+            (
+                f"{len(CANONICAL_CLOSING_REPORT_ACTIONS) - len(missing)} of "
+                f"{len(CANONICAL_CLOSING_REPORT_ACTIONS)} required "
+                "interactive report actions are available."
+            ),
+            (
+                "Repair the missing canonical report actions before closing."
+                if missing
+                else "Open the required reports, review the period, and download the current PDF/XLSX evidence."
+            ),
         )
 
     def _control_fec(self):
-        accepted = self.env["rebuild.account.review.decision"].search_count([
+        fec_action = self.env.ref(
+            "rebuild_account_migration.action_rebuild_account_report_export_fec",
+            raise_if_not_found=False,
+        )
+        posted_moves = self.env["account.move"].search_count([
             ("company_id", "=", self.company_id.id),
-            ("gate", "=", "fec_validation"),
-            ("period_key", "=", f"{self.date_from}:{self.date_to}"),
-            ("state", "=", "recorded"),
-            ("conclusion", "in", ["accepted", "accepted_with_difference"]),
+            ("state", "=", "posted"),
+            ("date", ">=", self.date_from),
+            ("date", "<=", self.date_to),
         ])
-        status = "pass" if accepted else "block" if self.period_type == "annual" else "warning"
+        available = bool(
+            fec_action and "l10n_fr.fec.export.wizard" in self.env.registry
+        )
         return self._control_values(
-            "fec", "fec", "FEC readiness", status, 0 if accepted else 1, 0.0,
-            "A recorded FEC review decision exists." if accepted else "Technical FEC evidence exists outside this workspace, but no authorized FEC acceptance decision is recorded.",
-            "Generate and validate the FEC, retain its hash/log, and record the authorized review decision.",
+            "fec", "fec", "FEC readiness",
+            "pass" if available else "block", 0 if available else 1, 0.0,
+            (
+                f"FEC export is available for {posted_moves} posted move(s) "
+                "in this closing period."
+                if available
+                else "The normal FEC export action or export model is unavailable."
+            ),
+            (
+                "Generate the FEC from Reporting, then retain it in the closing package."
+                if available
+                else "Restore the normal FEC export action before closing."
+            ),
         )
 
     def _control_lock_dates(self):
@@ -723,6 +774,20 @@ class RebuildAccountClosingPeriod(models.Model):
                 message = "Resolve all blocking closing controls before requesting accountant review."
                 raise UserError(message)
         self.write({"state": "accountant_review", "review_status": "accountant_requested"})
+        return True
+
+    def action_mark_ready_to_close(self):
+        if not self.env.user.has_group("account.group_account_manager"):
+            raise AccessError(
+                "Only an Accounting Manager can approve a workspace as ready to close.",
+            )
+        self.action_refresh_controls()
+        for closing in self:
+            if closing.blocking_count:
+                raise UserError(
+                    "Resolve all blocking controls before approving this workspace as ready to close.",
+                )
+        self.write({"state": "ready", "review_status": "internal_ready"})
         return True
 
     def action_record_review_decision(self):

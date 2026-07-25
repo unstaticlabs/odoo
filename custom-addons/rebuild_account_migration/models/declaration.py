@@ -843,6 +843,15 @@ class RebuildAccountDeclaration(models.Model):
         self.write({"status": "accountant_review", "review_status": "accountant_requested"})
         return True
 
+    def action_mark_ready_to_file(self):
+        if not self.env.user.has_group("account.group_account_manager"):
+            raise AccessError(
+                "Only an Accounting Manager can approve a declaration for filing.",
+            )
+        self.action_mark_internal_ready()
+        self.write({"status": "ready_to_file"})
+        return True
+
     def action_record_review_decision(self):
         self.ensure_one()
         return {
@@ -872,11 +881,14 @@ class RebuildAccountDeclaration(models.Model):
             message = "Only an Accounting Manager can record external filing."
             raise AccessError(message)
         for declaration in self:
+            if declaration.status not in {"ready_to_file", "accountant_reviewed"}:
+                message = (
+                    "Approve the declaration for filing or complete the "
+                    "optional accountant review before recording external filing."
+                )
+                raise UserError(message)
             if not declaration.external_filing_reference and not declaration.evidence_attachment_ids:
                 message = "Attach filing evidence or record the external filing reference before marking a declaration filed."
-                raise UserError(message)
-            if declaration.review_status not in {"accepted", "accepted_with_difference"}:
-                message = "A recorded reviewer decision is required before external filing is marked complete."
                 raise UserError(message)
             declaration.write({
                 "status": "filed",
@@ -939,12 +951,26 @@ class RebuildAccountDeclarationField(models.Model):
     field_label = fields.Char(required=True)
     amount = fields.Monetary(currency_field="currency_id")
     value_text = fields.Char()
-    source_kind = fields.Char(required=True)
+    source_kind = fields.Selection(
+        [
+            ("annual_statement", "Annual Statement Mapping"),
+            ("confirmed_fact", "Confirmed Company Fact"),
+            ("depreciation_schedule", "Depreciation Schedule"),
+            ("external_confirmation", "External Confirmation Needed"),
+            ("fixed_asset_register", "Fixed Asset Register"),
+            ("ledger_control", "Ledger Control"),
+            ("ledger_review_anchor", "Ledger Review Starting Point"),
+            ("manual_required", "External Value Needed"),
+            ("vat_accounts", "VAT Ledger Accounts"),
+        ],
+        required=True,
+        string="Value Source",
+    )
     source_formula = fields.Text(required=True)
     account_prefixes = fields.Char()
     source_reference = fields.Char()
     tax_package_line_id = fields.Many2one("rebuild.account.french.tax.package.line", ondelete="set null")
-    is_unresolved = fields.Boolean(index=True)
+    is_unresolved = fields.Boolean(string="Needs Follow-up", index=True)
     unresolved_reason = fields.Text()
     validation_status = fields.Selection(
         [("matched", "Matched"), ("review", "Review Required"), ("mismatch", "Mismatch")],

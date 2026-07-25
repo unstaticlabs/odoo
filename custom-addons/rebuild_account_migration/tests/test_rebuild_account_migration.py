@@ -2687,6 +2687,8 @@ class TestRebuildAccountMigration(TransactionCase):
         for user in (reviewer, operator):
             Wizard = self.env["l10n_fr.fec.export.wizard"].with_user(user)
             defaults = Wizard.default_get([
+                "date_from",
+                "date_to",
                 "test_file",
                 "export_type",
             ])
@@ -2700,6 +2702,14 @@ class TestRebuildAccountMigration(TransactionCase):
 
             self.assertTrue(defaults["test_file"])
             self.assertEqual(defaults["export_type"], "official")
+            self.assertLessEqual(
+                fields.Date.to_date(defaults["date_from"]),
+                fields.Date.context_today(Wizard),
+            )
+            self.assertGreaterEqual(
+                fields.Date.to_date(defaults["date_to"]),
+                fields.Date.context_today(Wizard),
+            )
             self.assertTrue(wizard.test_file)
             self.assertEqual(wizard.export_type, "official")
             self.assertFalse(wizard.excluded_journal_ids)
@@ -3667,7 +3677,6 @@ class TestRebuildAccountMigration(TransactionCase):
             "action_rebuild_account_report_export_tax_group_account_tax": ("Tax Report by Account then Tax", "tax_report_group_account_tax", "xlsx"),
             "action_rebuild_account_report_export_tax_group_tax_account": ("Tax Report by Tax then Account", "tax_report_group_tax_account", "xlsx"),
             "action_rebuild_account_report_export_french_tax_package": ("French Tax Package and CA12 Mapping", "french_tax_package", "pdf"),
-            "action_rebuild_account_report_export_fec": ("FEC", "fec", "txt"),
             "action_rebuild_account_report_export_french_balance_sheet_2024": ("French Balance Sheet (2024 PCG)", "french_balance_sheet_2024", "pdf"),
             "action_rebuild_account_report_export_french_profit_loss_2024": ("French Profit and Loss (2024 PCG)", "french_profit_loss_2024", "pdf"),
             "action_rebuild_account_report_export_sig_caf_2024": ("SIG and CAF (2024 PCG)", "sig_caf_2024", "pdf"),
@@ -3682,6 +3691,16 @@ class TestRebuildAccountMigration(TransactionCase):
             self.assertEqual(action.target, "current")
             self.assertEqual(context["default_report_type"], report_type)
             self.assertEqual(context["default_export_format"], export_format)
+        fec_action = self.env.ref(
+            "rebuild_account_migration.action_rebuild_account_report_export_fec",
+        )
+        self.assertEqual(fec_action.name, "FEC")
+        self.assertEqual(fec_action.res_model, "l10n_fr.fec.export.wizard")
+        self.assertEqual(fec_action.target, "new")
+        self.assertEqual(
+            fec_action.view_id,
+            self.env.ref("l10n_fr_account.fec_export_wizard_view"),
+        )
 
     def test_canonical_report_client_loads_filters_and_downloads(self):
         Report = self.env["rebuild.account.report.export.wizard"]

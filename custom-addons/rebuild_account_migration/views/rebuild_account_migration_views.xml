@@ -4418,10 +4418,11 @@
 
     <record id="action_rebuild_account_report_export_fec" model="ir.actions.act_window">
         <field name="name">FEC</field>
-        <field name="res_model">rebuild.account.report.export.wizard</field>
+        <field name="res_model">l10n_fr.fec.export.wizard</field>
         <field name="view_mode">form</field>
-        <field name="target">current</field>
-        <field name="context">{'default_report_type': 'fec', 'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_export_format': 'txt', 'default_target_move': 'posted', 'default_fec_test_mode': True}</field>
+        <field name="view_id" ref="l10n_fr_account.fec_export_wizard_view"/>
+        <field name="target">new</field>
+        <field name="context">{'default_test_file': True, 'dialog_size': 'medium'}</field>
     </record>
 
     <record id="action_rebuild_account_report_export_french_annual" model="ir.actions.act_window">

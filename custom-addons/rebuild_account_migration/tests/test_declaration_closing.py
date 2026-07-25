@@ -280,6 +280,43 @@ class TestDeclarationAndClosing(TransactionCase):
         self.assertEqual(closing.package_reference, "New review cycle")
         self.assertEqual(package_attachment.name, "new-review-cycle.pdf")
 
+    def test_accounting_manager_can_complete_internal_approval_without_reviewer(self):
+        company = self._company("Internal Approval Company")
+        declaration = self._declaration(company)
+        declaration.write({
+            "status": "internal_review",
+            "review_status": "internal_ready",
+        })
+        with patch.object(
+            type(declaration),
+            "action_mark_internal_ready",
+            return_value=True,
+        ):
+            declaration.action_mark_ready_to_file()
+        self.assertEqual(declaration.status, "ready_to_file")
+        self.assertEqual(declaration.review_status, "internal_ready")
+
+        closing = self.env["rebuild.account.closing.period"].with_company(
+            company,
+        ).create({
+            "name": "Internally approved close",
+            "company_id": company.id,
+            "period_type": "month",
+            "date_from": "2026-01-01",
+            "date_to": "2026-01-31",
+            "fiscalyear_start": "2025-10-01",
+            "fiscalyear_end": "2026-09-30",
+            "state": "internal_review",
+        })
+        with patch.object(
+            type(closing),
+            "action_refresh_controls",
+            return_value=True,
+        ):
+            closing.action_mark_ready_to_close()
+        self.assertEqual(closing.state, "ready")
+        self.assertEqual(closing.review_status, "internal_ready")
+
     def test_close_applies_soft_locks_and_exports_review_package(self):
         company = self._company("Closing Package Company", profile=False)
         closing = self.env["rebuild.account.closing.period"].with_company(company).create({
@@ -549,6 +586,18 @@ class TestDeclarationAndClosing(TransactionCase):
         self.assertEqual(
             {definition.code for definition in definitions},
             {values[0] for values in CLOSING_CONTROL_DEFINITIONS},
+        )
+        self.assertEqual(
+            closing.control_line_ids.filtered(
+                lambda line: line.code == "reports",
+            ).status,
+            "pass",
+        )
+        self.assertEqual(
+            closing.control_line_ids.filtered(
+                lambda line: line.code == "fec",
+            ).status,
+            "pass",
         )
         bank_definition = definitions.filtered(
             lambda definition: definition.code == "bank_reconciliation",

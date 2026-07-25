@@ -73,7 +73,7 @@
         <field name="arch" type="xml">
             <list create="false" delete="false" decoration-danger="validation_status == 'mismatch'" decoration-warning="validation_status == 'review'" decoration-success="validation_status == 'matched'">
                 <field name="form_code"/>
-                <field name="field_code"/>
+                <field name="field_code" optional="hide"/>
                 <field name="field_label"/>
                 <field name="amount" optional="show"/>
                 <field name="value_text" optional="show"/>
@@ -81,7 +81,7 @@
                 <field name="validation_status" widget="badge"/>
                 <field name="is_unresolved" optional="show"/>
                 <field name="source_reference" optional="hide"/>
-                <button name="action_open_source_items" type="object" string="Source Entries" icon="fa-search"/>
+                <button name="action_open_source_items" type="object" string="View Entries" icon="fa-search"/>
             </list>
         </field>
     </record>
@@ -100,7 +100,6 @@
                         <group>
                             <field name="declaration_id"/>
                             <field name="form_code"/>
-                            <field name="field_code"/>
                             <field name="amount"/>
                             <field name="value_text"/>
                         </group>
@@ -155,9 +154,9 @@
                 <field name="period_end"/>
                 <field name="status" widget="badge"/>
                 <field name="validation_status" widget="badge"/>
-                <field name="review_status" optional="show"/>
-                <field name="filing_status" optional="show"/>
-                <field name="payment_status" optional="show"/>
+                <field name="review_status" optional="hide"/>
+                <field name="filing_status" optional="hide"/>
+                <field name="payment_status" optional="hide"/>
                 <field name="unresolved_count"/>
                 <field name="is_overdue" optional="hide"/>
                 <button name="action_open_prefilled_fields" type="object" string="Fields" icon="fa-list"/>
@@ -186,7 +185,8 @@
                 <header>
                     <button name="action_refresh_preparation" type="object" string="Refresh from Ledger" icon="fa-refresh" groups="account.group_account_manager"/>
                     <button name="action_mark_internal_ready" type="object" string="Internal Review Ready" groups="account.group_account_manager" invisible="status not in ['to_prepare', 'data_missing', 'internal_review', 'blocked']"/>
-                    <button name="action_request_accountant_review" type="object" string="Request Accountant Review" class="oe_highlight" groups="account.group_account_manager" invisible="status not in ['internal_review']"/>
+                    <button name="action_mark_ready_to_file" type="object" string="Approve for Filing" class="oe_highlight" groups="account.group_account_manager" invisible="status != 'internal_review'" title="Confirm the internal review is complete and allow external filing. Accountant review remains optional."/>
+                    <button name="action_request_accountant_review" type="object" string="Request Optional Accountant Review" groups="account.group_account_manager" invisible="status not in ['internal_review']"/>
                     <button name="action_record_review_decision" type="object" string="Record Review Decision" groups="rebuild_account_migration.group_rebuild_accountant_reviewer,account.group_account_manager" invisible="status not in ['accountant_review', 'accountant_reviewed', 'ready_to_file']"/>
                     <button name="action_mark_filed" type="object" string="Mark Filed Externally" class="oe_highlight" groups="account.group_account_manager" invisible="status not in ['accountant_reviewed', 'ready_to_file']"/>
                     <button name="action_mark_paid_or_refunded" type="object" string="Complete Payment / Refund" groups="account.group_account_manager" invisible="status != 'filed'"/>
@@ -201,6 +201,10 @@
                         <button name="action_open_portal" type="object" class="oe_stat_button" icon="fa-external-link" string="Tax Portal"/>
                     </div>
                     <widget name="web_ribbon" title="Overdue" bg_color="text-bg-danger" invisible="not is_overdue"/>
+                    <div class="alert alert-info" role="alert">
+                        Ledger-derived values and unresolved external facts are kept separate.
+                        Internal approval is sufficient to continue; accountant review is available but optional.
+                    </div>
                     <div class="oe_title"><h1><field name="name"/></h1></div>
                     <group>
                         <group>
@@ -228,14 +232,14 @@
                             <field name="field_line_ids" nolabel="1" readonly="1">
                                 <list create="false" delete="false" decoration-danger="validation_status == 'mismatch'" decoration-warning="validation_status == 'review'" decoration-success="validation_status == 'matched'">
                                     <field name="form_code"/>
-                                    <field name="field_code"/>
+                                    <field name="field_code" column_invisible="True"/>
                                     <field name="field_label"/>
                                     <field name="amount"/>
                                     <field name="value_text" optional="show"/>
                                     <field name="source_kind"/>
                                     <field name="validation_status" widget="badge"/>
                                     <field name="is_unresolved"/>
-                                    <button name="action_open_source_items" type="object" string="Source" icon="fa-search"/>
+                                    <button name="action_open_source_items" type="object" string="View Entries" icon="fa-search"/>
                                 </list>
                             </field>
                         </page>
@@ -445,7 +449,8 @@
                 <header>
                     <button name="action_refresh_controls" type="object" string="Refresh Readiness" icon="fa-refresh" groups="account.group_account_manager" title="Recalculate the enabled closing controls from the current accounting records. This does not post or modify accounting entries."/>
                     <button name="action_prepare" type="object" string="Prepare Review" groups="account.group_account_manager" invisible="state not in ['open', 'preparing', 'blocked', 'internal_review']" title="Refresh readiness and move the workspace toward internal review when no blocking control remains."/>
-                    <button name="action_request_accountant_review" type="object" string="Request Accountant Review" class="oe_highlight" groups="account.group_account_manager" invisible="state != 'internal_review'"/>
+                    <button name="action_mark_ready_to_close" type="object" string="Approve as Ready to Close" class="oe_highlight" groups="account.group_account_manager" invisible="state != 'internal_review'" title="Confirm internal review is complete and allow lock dates to be applied. Accountant review remains optional."/>
+                    <button name="action_request_accountant_review" type="object" string="Request Optional Accountant Review" groups="account.group_account_manager" invisible="state != 'internal_review'"/>
                     <button name="action_record_review_decision" type="object" string="Record Review Decision" groups="rebuild_account_migration.group_rebuild_accountant_reviewer,account.group_account_manager" invisible="state not in ['accountant_review', 'ready']"/>
                     <button name="action_capture_accepted_snapshots" type="object" string="Capture Accepted Snapshots" groups="account.group_account_manager" invisible="review_status not in ['accepted', 'accepted_with_difference']"/>
                     <button name="action_close_and_apply_lock_dates" type="object" string="Close and Apply Standard Lock Dates" class="oe_highlight" groups="account.group_account_manager" invisible="state != 'ready'" confirm="This applies Odoo's fiscal, tax, sales and purchase lock dates through the period end. Continue?"/>

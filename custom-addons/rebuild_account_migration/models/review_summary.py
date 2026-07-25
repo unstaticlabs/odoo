@@ -294,6 +294,7 @@ class RebuildAccountReviewSummary(models.Model):
                 ),
                 ("state", "!=", "cancel"),
                 ("message_main_attachment_id", "=", False),
+                ("rebuild_source_id", "=", False),
             ],
         )
 
@@ -303,6 +304,7 @@ class RebuildAccountReviewSummary(models.Model):
             [
                 ("state", "!=", "refused"),
                 ("message_main_attachment_id", "=", False),
+                ("rebuild_source_id", "=", False),
             ],
         )
 
@@ -944,6 +946,7 @@ class RebuildAccountReviewSummary(models.Model):
                                        'in_receipt'
                                    )
                                    AND move.message_main_attachment_id IS NULL
+                                   AND move.rebuild_source_id IS NULL
                              )::integer AS missing_vendor_attachment_count,
                              count(*) FILTER (
                                  WHERE move.state = 'draft'
@@ -971,6 +974,7 @@ class RebuildAccountReviewSummary(models.Model):
                              count(*) FILTER (
                                  WHERE expense.state != 'refused'
                                    AND expense.message_main_attachment_id IS NULL
+                                   AND expense.rebuild_source_id IS NULL
                              )::integer AS missing_expense_attachment_count,
                              count(*) FILTER (
                                  WHERE expense.state IN (
@@ -1042,7 +1046,17 @@ class RebuildAccountReviewSummary(models.Model):
                              'archived',
                              'not_applicable'
                          )
-                       ORDER BY declaration.deadline_date, declaration.id
+                       ORDER BY
+                             (declaration.deadline_date < CURRENT_DATE),
+                             CASE
+                                 WHEN declaration.deadline_date >= CURRENT_DATE
+                                 THEN declaration.deadline_date
+                             END ASC NULLS LAST,
+                             CASE
+                                 WHEN declaration.deadline_date < CURRENT_DATE
+                                 THEN declaration.deadline_date
+                             END DESC NULLS LAST,
+                             declaration.id
                        LIMIT 1
                   ) next_declaration ON TRUE
                   LEFT JOIN LATERAL (
