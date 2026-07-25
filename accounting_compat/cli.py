@@ -2804,6 +2804,14 @@ def dev_reset(args: argparse.Namespace) -> dict[str, Any]:
 def dev_import(args: argparse.Namespace) -> dict[str, Any]:
     """Import the complete source snapshot into the clean product database."""
     ensure_dirs()
+    manager_password = os.environ.get(
+        "USL_DEV_ACCOUNTING_MANAGER_PASSWORD",
+        "admin",
+    )
+    reviewer_password = os.environ.get(
+        "USL_DEV_ACCOUNTANT_PASSWORD",
+        "admin",
+    )
     validation = validate_source(args)
     dump_sha = validation["dump"]["sha256"] or "unknown"
     snapshot_id = f"source-{dump_sha[:12]}"
@@ -2958,6 +2966,56 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             "    'rebuild_account_migration.ir_cron_rebuild_currency_rate_provider',",
             ")",
             "currency_rate_cron.active = True",
+            "Users = env['res.users'].sudo().with_context(",
+            "    no_reset_password=True,",
+            "    mail_create_nosubscribe=True,",
+            "    tracking_disable=True,",
+            ")",
+            "companies = env['res.company'].search([",
+            "    ('rebuild_source_id', 'in', [1, 8]),",
+            "], order='rebuild_source_id')",
+            "main_company = companies.filtered(",
+            "    lambda company: company.rebuild_source_id == 1",
+            ")[:1]",
+            "base_group = env.ref('base.group_user')",
+            "manager_group = env.ref('account.group_account_manager')",
+            "expense_manager_group = env.ref('hr_expense.group_hr_expense_manager')",
+            "reviewer_group = env.ref(",
+            "    'rebuild_account_migration.group_rebuild_accountant_reviewer',",
+            ")",
+            "def provision_user(login, name, password, company, allowed_companies, groups):",
+            "    values = {",
+            "        'name': name,",
+            "        'login': login,",
+            "        'active': True,",
+            "        'share': False,",
+            "        'company_id': company.id,",
+            "        'company_ids': [(6, 0, allowed_companies.ids)],",
+            "        'group_ids': [(6, 0, [group.id for group in groups])],",
+            "        'password': password,",
+            "    }",
+            "    user = Users.search([('login', '=', login)], limit=1)",
+            "    if user:",
+            "        user.write(values)",
+            "    else:",
+            "        user = Users.create(values)",
+            "    return user",
+            "manager_user = provision_user(",
+            "    'valentin',",
+            "    'Valentin',",
+            f"    {manager_password!r},",
+            "    main_company,",
+            "    companies,",
+            "    base_group | manager_group | expense_manager_group,",
+            ")",
+            "reviewer_user = provision_user(",
+            "    'prosper',",
+            "    'Prosper',",
+            f"    {reviewer_password!r},",
+            "    main_company,",
+            "    main_company,",
+            "    base_group | reviewer_group,",
+            ")",
             "env.cr.commit()",
             "print('REBUILD_REPLACEMENT_IMPORT_RESULT=' + json.dumps({",
             "    'run_id': run.id,",
@@ -2970,6 +3028,30 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             "    'asset_run_status': asset_run.status,",
             "    'asset_stats': asset_stats,",
             "    'draft_stats': draft_stats,",
+            "    'users': {",
+            "        'manager': {",
+            "            'id': manager_user.id,",
+            "            'login': manager_user.login,",
+            "            'company_ids': manager_user.company_ids.ids,",
+            "            'account_manager': manager_user.has_group(",
+            "                'account.group_account_manager',",
+            "            ),",
+            "            'expense_manager': manager_user.has_group(",
+            "                'hr_expense.group_hr_expense_manager',",
+            "            ),",
+            "        },",
+            "        'accountant': {",
+            "            'id': reviewer_user.id,",
+            "            'login': reviewer_user.login,",
+            "            'company_ids': reviewer_user.company_ids.ids,",
+            "            'reviewer': reviewer_user.has_group(",
+            "                'rebuild_account_migration.group_rebuild_accountant_reviewer',",
+            "            ),",
+            "            'account_manager': reviewer_user.has_group(",
+            "                'account.group_account_manager',",
+            "            ),",
+            "        },",
+            "    },",
             "}, sort_keys=True, default=str))",
             "",
         ]),
@@ -3066,6 +3148,14 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
         and payload["asset_stats"]["mismatch_count"] == 0
         and payload["asset_stats"]["blocked_count"] == 0
     )
+    checks["product_users_match"] = (
+        payload["users"]["manager"]["login"] == "valentin"
+        and payload["users"]["manager"]["account_manager"] is True
+        and payload["users"]["manager"]["expense_manager"] is True
+        and payload["users"]["accountant"]["login"] == "prosper"
+        and payload["users"]["accountant"]["reviewer"] is True
+        and payload["users"]["accountant"]["account_manager"] is False
+    )
     status = {
         "generated_at": utc_now(),
         "tool_version": TOOL_VERSION,
@@ -3087,6 +3177,7 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
         "expense_statistics": payload["expense_stats"],
         "asset_statistics": payload["asset_stats"],
         "draft_statistics": payload["draft_stats"],
+        "users": payload["users"],
     }
     write_json(PRIVATE_ARTIFACTS / "dev-import-status.json", status)
     if status["status"] != "passed":

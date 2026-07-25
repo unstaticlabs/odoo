@@ -208,8 +208,15 @@ http://localhost:8069/web/login?db=odoo_dev
 Login:
 
 ```text
-admin / admin
+valentin / admin
+prosper / admin
 ```
+
+`valentin` is the Accounting Manager and Expense Manager across the imported
+companies. `prosper` has the company-scoped USL Accountant Review role: normal
+accounting remains read-only, while marking a bank transaction for review is
+allowed. Override the local development passwords before rebuilding with
+`USL_DEV_ACCOUNTING_MANAGER_PASSWORD` and `USL_DEV_ACCOUNTANT_PASSWORD`.
 
 ### Refresh the UI after a change
 

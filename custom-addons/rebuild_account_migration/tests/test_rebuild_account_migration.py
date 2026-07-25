@@ -187,6 +187,11 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(menu.name, "Accounting")
         self.assertEqual(menu.action, home_client_action)
         self.assertEqual(home_client_action.tag, "rebuild_accounting_home")
+        self.assertFalse(
+            self.env.ref(
+                "rebuild_account_migration.menu_rebuild_accounting_overview",
+            ).active,
+        )
         self.assertEqual(dashboard_menu.action, dashboard_action)
         self.assertEqual(dashboard_action.path, "accounting")
 
@@ -197,7 +202,7 @@ class TestRebuildAccountMigration(TransactionCase):
             ("company_id", "=", self.company.id),
         ])
         self.assertTrue(home)
-        self.assertEqual(home.name, f"{self.company.name} — Accounting Overview")
+        self.assertEqual(home.name, "Overview")
         self.assertEqual(home_action["res_model"], "rebuild.account.review.summary")
         self.assertEqual(home_action["res_id"], home.id)
         self.assertEqual(
@@ -252,6 +257,28 @@ class TestRebuildAccountMigration(TransactionCase):
                 "@name='accountant_action_count']",
             ),
         )
+        self.assertFalse(
+            home_arch.xpath(
+                "//button[@name='action_open_accounting_settings']",
+            ),
+        )
+        review_buttons = home_arch.xpath(
+            "//button[@name='action_open_bank_review']",
+        )
+        self.assertEqual(len(review_buttons), 1)
+        self.assertEqual(
+            review_buttons[0].get("invisible"),
+            "bank_review_count == 0",
+        )
+
+        customer_action = home.action_open_customer_documents()
+        vendor_action = home.action_open_vendor_documents()
+        for action in (customer_action, vendor_action):
+            self.assertIn(("state", "=", "draft"), action["domain"])
+            self.assertEqual(action["context"]["search_default_draft"], 1)
+        expense_action = home.action_open_expenses()
+        self.assertEqual(expense_action["view_mode"], "list,form,graph,pivot")
+        self.assertEqual(expense_action["views"][0], (False, "list"))
 
     def test_bank_statement_import_is_contextual_and_supports_real_formats(self):
         bank_journal = self._journal("bank")
@@ -284,25 +311,12 @@ class TestRebuildAccountMigration(TransactionCase):
             "rebuild_account_migration."
             "view_rebuild_bank_statement_import_journal_action",
         )._get_combined_arch()
-        import_buttons = import_arch.xpath(
-            "//button[@name='import_account_statement']",
-        )
-        self.assertEqual(len(import_buttons), 1)
-        self.assertEqual(
-            [button.get("t-if") for button in import_buttons],
-            ["journal_type == 'bank'"],
-        )
-        self.assertEqual(
-            [button.getparent().get("t-if") for button in import_buttons],
-            ["journal_type == 'bank'"],
-        )
-        self.assertEqual(
+        self.assertFalse(
             import_arch.xpath(
-                "normalize-space(//button[@name='import_account_statement']/span)",
+                "//button[@name='import_account_statement'] | "
+                "//a[@name='import_account_statement']",
             ),
-            "Import Statement",
         )
-        self.assertNotIn("(OCA)", etree.tostring(import_arch, encoding="unicode"))
         import_dialog_arch = self.env.ref(
             "rebuild_account_migration."
             "view_rebuild_bank_statement_import_dialog",
@@ -1070,11 +1084,17 @@ class TestRebuildAccountMigration(TransactionCase):
         )
         self.assertTrue(mutation_buttons)
         for button in mutation_buttons:
-            self.assertEqual(button.get("groups"), "account.group_account_user")
+            expected_groups = "account.group_account_user"
+            if button.get("name") == "action_to_check":
+                expected_groups += (
+                    ",rebuild_account_migration."
+                    "group_rebuild_accountant_reviewer"
+                )
+            self.assertEqual(button.get("groups"), expected_groups)
 
         self.assertEqual(
             combined_arch.xpath("//notebook/page/@name"),
-            ["reconcile_line", "chatter", "narration", "manual"],
+            ["reconcile_line", "manual", "narration", "chatter"],
         )
         expected_labels = {
             "unreconcile_bank_line": "Undo Match",
@@ -1109,6 +1129,35 @@ class TestRebuildAccountMigration(TransactionCase):
             "action_rebuild_account_reconcile_bank_transactions",
         )
         self.assertFalse(safe_eval(bank_matching_action.context)["create"])
+
+        reviewer = self.env["res.users"].with_context(
+            no_reset_password=True,
+        ).create({
+            "name": "Bank Review Accountant",
+            "login": "bank.review.accountant@example.invalid",
+            "company_id": self.company.id,
+            "company_ids": [Command.set(self.company.ids)],
+            "group_ids": [Command.set([
+                self.env.ref("base.group_user").id,
+                self.env.ref(
+                    "rebuild_account_migration."
+                    "group_rebuild_accountant_reviewer",
+                ).id,
+            ])],
+        })
+        bank_line = self.env["account.bank.statement.line"].with_context(
+            _test_account_reconcile_oca=True,
+        ).create({
+            "journal_id": self._journal("bank").id,
+            "date": fields.Date.today(),
+            "payment_ref": "Accountant review flag",
+            "amount": 25.0,
+        })
+        bank_line.move_id.checked = True
+        bank_line.with_user(reviewer).action_to_check()
+        self.assertFalse(bank_line.move_id.checked)
+        with self.assertRaises(AccessError):
+            bank_line.move_id.with_user(reviewer).write({"ref": "forbidden"})
 
     def test_bank_matching_candidates_default_to_closest_amount_and_date_ranking(self):
         receivable = self._account(
@@ -1230,7 +1279,7 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(len(closest_date_filter), 1)
         self.assertEqual(closest_date_filter[0].get("string"), "Closest date")
 
-    def test_transactions_list_explains_status_residual_and_linked_entry(self):
+    def test_transactions_list_explains_match_residual_and_linked_entry(self):
         bank_journal = self._journal("bank")
         bank_line = self.env["account.bank.statement.line"].with_context(
             _test_account_reconcile_oca=True,
@@ -1320,7 +1369,6 @@ class TestRebuildAccountMigration(TransactionCase):
             "partner_id",
             "amount",
             "journal_id",
-            "rebuild_transaction_status",
             "rebuild_matching_reference",
             "rebuild_linked_document",
             "rebuild_remaining_amount",
@@ -1328,6 +1376,36 @@ class TestRebuildAccountMigration(TransactionCase):
             self.assertTrue(
                 transaction_arch.xpath(f"//field[@name='{field_name}']"),
             )
+        self.assertFalse(
+            transaction_arch.xpath(
+                "//field[@name='rebuild_transaction_status']",
+            ),
+        )
+
+        transaction_action = bank_journal.action_rebuild_open_transactions()
+        matching_action = bank_journal.action_rebuild_open_bank_matching()
+        self.assertEqual(bank_journal.open_action(), transaction_action)
+        self.assertIn(bank_journal.display_name, transaction_action["name"])
+        self.assertEqual(
+            transaction_action["domain"],
+            [("journal_id", "=", bank_journal.id)],
+        )
+        self.assertEqual(
+            transaction_action["context"]["search_default_journal_id"],
+            bank_journal.id,
+        )
+        self.assertIn(bank_journal.display_name, matching_action["name"])
+        self.assertEqual(
+            matching_action["domain"],
+            [
+                ("journal_id", "=", bank_journal.id),
+                ("is_reconciled", "=", False),
+            ],
+        )
+        self.assertEqual(
+            matching_action["context"]["search_default_not_reconciled"],
+            1,
+        )
 
     def test_native_expenses_are_available_from_accounting_payables(self):
         expenses_menu = self.env.ref("hr_expense.menu_hr_expense_account_employee_expenses")

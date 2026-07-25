@@ -205,27 +205,12 @@
         </field>
     </record>
     <record id="view_rebuild_bank_statement_import_journal_action" model="ir.ui.view">
-        <field name="name">account.journal.dashboard.statement.import</field>
+        <field name="name">account.journal.dashboard.hide.statement.import</field>
         <field name="model">account.journal</field>
         <field name="inherit_id" ref="account_statement_import_file.journal_dashboard_view_inherit"/>
         <field name="arch" type="xml">
-            <xpath expr="//button[@name='import_account_statement']/parent::t" position="attributes">
-                <attribute name="t-if">journal_type == 'bank'</attribute>
-            </xpath>
-            <xpath expr="//button[@name='import_account_statement']" position="attributes">
-                <attribute name="t-if">journal_type == 'bank'</attribute>
-                <attribute name="title">Upload a bank statement file and review the imported transactions before matching them.</attribute>
-            </xpath>
-            <xpath expr="//button[@name='import_account_statement']/span" position="replace">
-                <span>Import Statement</span>
-            </xpath>
-            <xpath expr="//a[@name='import_account_statement']" position="replace">
-                <a
-                    type="object"
-                    name="import_account_statement"
-                    title="Upload a bank statement file and review the imported transactions before matching them."
-                >Import Statement</a>
-            </xpath>
+            <xpath expr="//button[@name='import_account_statement']/parent::t" position="replace"/>
+            <xpath expr="//a[@name='import_account_statement']/parent::div" position="replace"/>
         </field>
     </record>
     <record id="view_rebuild_account_journal_dashboard_readonly" model="ir.ui.view">
@@ -247,10 +232,16 @@
         <field name="inherit_id" ref="account_reconcile_oca.account_journal_dashboard_kanban_view"/>
         <field name="arch" type="xml">
             <xpath expr="//button[@name='%(account_reconcile_oca.action_bank_statement_line_reconcile)d']" position="attributes">
+                <attribute name="type">object</attribute>
+                <attribute name="name">action_rebuild_open_bank_matching</attribute>
                 <attribute name="groups">account.group_account_user</attribute>
             </xpath>
             <xpath expr="//a[@name='%(account_reconcile_oca.action_bank_statement_line_reconcile_to_check)d']" position="attributes">
                 <attribute name="groups">account.group_account_user</attribute>
+            </xpath>
+            <xpath expr="//a[@name='%(account_reconcile_oca.action_bank_statement_line_reconcile_all)d']" position="attributes">
+                <attribute name="type">object</attribute>
+                <attribute name="name">action_rebuild_open_transactions</attribute>
             </xpath>
         </field>
     </record>
@@ -270,7 +261,8 @@
         parent="account.menu_finance"
         action="action_rebuild_accounting_home"
         sequence="0"
-        groups="account.group_account_readonly"/>
+        groups="account.group_account_readonly"
+        active="False"/>
     <record id="account.menu_finance_payables" model="ir.ui.menu">
         <field name="name">Vendors</field>
         <field name="sequence">3</field>
@@ -497,7 +489,7 @@
                 <attribute name="title">Discard the currently prepared counterparts without changing posted accounting.</attribute>
             </xpath>
             <xpath expr="//button[@name='action_to_check']" position="attributes">
-                <attribute name="groups">account.group_account_user</attribute>
+                <attribute name="groups">account.group_account_user,rebuild_account_migration.group_rebuild_accountant_reviewer</attribute>
                 <attribute name="string">Mark for Review</attribute>
                 <attribute name="title">Flag this transaction so it remains visible in the review queue.</attribute>
             </xpath>
@@ -514,13 +506,13 @@
                 <attribute name="context">{'search_default_partner_id': partner_id, 'search_default_reconcile_closest_amount': 1, 'search_default_reconcile_closest_date': 1, 'reconcile_statement_line_id': id, 'list_view_ref': 'account_reconcile_oca.account_move_line_tree_reconcile_view', 'search_view_ref': 'account_reconcile_oca.account_move_line_search_reconcile_view'}</attribute>
             </xpath>
             <xpath expr="//page[@name='reconcile_line']" position="after">
-                <xpath expr="//page[@name='chatter']" position="move"/>
+                <xpath expr="//page[@name='manual']" position="move"/>
             </xpath>
-            <xpath expr="//page[@name='chatter']" position="attributes">
-                <attribute name="autofocus">autofocus</attribute>
+            <xpath expr="//page[@name='manual']" position="after">
+                <xpath expr="//page[@name='narration']" position="move"/>
             </xpath>
             <xpath expr="//page[@name='narration']" position="after">
-                <xpath expr="//page[@name='manual']" position="move"/>
+                <xpath expr="//page[@name='chatter']" position="move"/>
             </xpath>
             <xpath expr="//page[@name='manual']" position="attributes">
                 <attribute name="string">Manual Operation</attribute>
@@ -683,13 +675,6 @@
                     optional="hide"/>
                 <field name="journal_id" optional="show"/>
                 <field
-                    name="rebuild_transaction_status"
-                    string="Status"
-                    widget="badge"
-                    decoration-success="rebuild_transaction_status == 'matched'"
-                    decoration-warning="rebuild_transaction_status == 'review'"
-                    decoration-info="rebuild_transaction_status == 'open'"/>
-                <field
                     name="rebuild_matching_reference"
                     widget="badge"
                     options="{'color_field': 'rebuild_matching_color'}"
@@ -717,6 +702,27 @@
                     type="object"
                     title="Open the journal entry generated by this bank transaction."/>
             </list>
+        </field>
+    </record>
+    <record id="view_rebuild_bank_transaction_search" model="ir.ui.view">
+        <field name="name">account.bank.statement.line.transactions.search</field>
+        <field name="model">account.bank.statement.line</field>
+        <field name="inherit_id" ref="account_statement_base.account_bank_statement_line_search"/>
+        <field name="arch" type="xml">
+            <field name="journal_id" position="attributes">
+                <attribute name="string">Journal</attribute>
+            </field>
+            <field name="journal_id" position="after">
+                <filter
+                    name="to_review"
+                    string="Pending Review"
+                    domain="[('checked', '=', False)]"
+                    help="Show bank transactions marked for review."/>
+                <filter
+                    name="group_by_journal"
+                    string="Journal"
+                    context="{'group_by': 'journal_id'}"/>
+            </field>
         </field>
     </record>
     <record id="account_statement_base.account_bank_statement_line_action" model="ir.actions.act_window">
@@ -825,11 +831,6 @@
                         groups="account.group_account_manager"
                         title="Re-run deterministic Hygiene and closing controls from the current accounting records. No accounting entry is posted or changed."/>
                     <button name="action_open_user_guide" type="object" string="User Guide"/>
-                    <button
-                        name="action_open_accounting_settings"
-                        type="object"
-                        string="Accounting Settings"
-                        groups="account.group_account_manager"/>
                 </header>
                 <sheet>
                     <field name="currency_id" invisible="1"/>
@@ -855,23 +856,31 @@
                         A closing control or declaration deadline needs attention.
                     </div>
                     <div class="oe_button_box" name="button_box">
+                        <button
+                            name="action_open_bank_review"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-flag"
+                            invisible="bank_review_count == 0">
+                            <field name="bank_review_count" widget="statinfo" string="Pending Review"/>
+                        </button>
                         <button name="action_open_bank_transactions" type="object" class="oe_stat_button" icon="fa-bank">
-                            <field name="bank_transaction_count" widget="statinfo" string="Bank Transactions"/>
+                            <field name="bank_transaction_count" widget="statinfo" string="Transactions"/>
                         </button>
                         <button name="action_open_bank_matching" type="object" class="oe_stat_button" icon="fa-random">
                             <field name="unmatched_bank_transaction_count" widget="statinfo" string="To Match"/>
                         </button>
                         <button name="action_open_customer_documents" type="object" class="oe_stat_button" icon="fa-file-text-o">
-                            <field name="draft_customer_document_count" widget="statinfo" string="Draft Customer Docs"/>
+                            <field name="draft_customer_document_count" widget="statinfo" string="Draft Invoices"/>
                         </button>
                         <button name="action_open_vendor_documents" type="object" class="oe_stat_button" icon="fa-file-text">
-                            <field name="draft_vendor_document_count" widget="statinfo" string="Draft Vendor Docs"/>
+                            <field name="draft_vendor_document_count" widget="statinfo" string="Draft Bills"/>
                         </button>
                         <button name="action_open_expenses" type="object" class="oe_stat_button" icon="fa-credit-card">
-                            <field name="draft_expense_count" widget="statinfo" string="Expenses to Process"/>
+                            <field name="draft_expense_count" widget="statinfo" string="Expenses"/>
                         </button>
                         <button name="action_open_hygiene_issues" type="object" class="oe_stat_button" icon="fa-exclamation-triangle">
-                            <field name="hygiene_issue_count" widget="statinfo" string="Hygiene Issues"/>
+                            <field name="hygiene_issue_count" widget="statinfo" string="Issues"/>
                         </button>
                     </div>
                     <div class="o_usl_accounting_overview">

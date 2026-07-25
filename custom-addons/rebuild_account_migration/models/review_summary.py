@@ -1,6 +1,7 @@
 from odoo import api, fields, models, tools
 from odoo.exceptions import AccessError, UserError
 from odoo.tools import date_utils
+from odoo.tools.safe_eval import safe_eval
 
 
 class RebuildAccountReviewSummary(models.Model):
@@ -38,6 +39,10 @@ class RebuildAccountReviewSummary(models.Model):
     )
     bank_transaction_count = fields.Integer(readonly=True)
     unmatched_bank_transaction_count = fields.Integer(readonly=True)
+    bank_review_count = fields.Integer(
+        string="Pending Review",
+        readonly=True,
+    )
     draft_customer_document_count = fields.Integer(readonly=True)
     draft_vendor_document_count = fields.Integer(readonly=True)
     draft_expense_count = fields.Integer(
@@ -259,6 +264,22 @@ class RebuildAccountReviewSummary(models.Model):
             [],
         )
 
+    def action_open_bank_review(self):
+        action = self._standard_company_action(
+            "account_statement_base.account_bank_statement_line_action",
+            [("checked", "=", False)],
+        )
+        action["name"] = "Pending Review"
+        context = action.get("context") or {}
+        if isinstance(context, str):
+            context = safe_eval(context)
+        action["context"] = {
+            **context,
+            "search_default_to_review": 1,
+            "create": False,
+        }
+        return action
+
     def action_open_bank_matching(self):
         return self._standard_company_action(
             "rebuild_account_migration.action_rebuild_account_reconcile_bank_transactions",
@@ -266,22 +287,49 @@ class RebuildAccountReviewSummary(models.Model):
         )
 
     def action_open_customer_documents(self):
-        return self._standard_company_action(
+        action = self._standard_company_action(
             "account.action_move_out_invoice_type",
-            [("move_type", "in", ["out_invoice", "out_refund", "out_receipt"])],
+            [
+                ("move_type", "in", ["out_invoice", "out_refund", "out_receipt"]),
+                ("state", "=", "draft"),
+            ],
         )
+        context = action.get("context") or {}
+        if isinstance(context, str):
+            context = safe_eval(context)
+        action["context"] = {
+            **context,
+            "search_default_draft": 1,
+        }
+        return action
 
     def action_open_vendor_documents(self):
-        return self._standard_company_action(
+        action = self._standard_company_action(
             "account.action_move_in_invoice_type",
-            [("move_type", "in", ["in_invoice", "in_refund", "in_receipt"])],
+            [
+                ("move_type", "in", ["in_invoice", "in_refund", "in_receipt"]),
+                ("state", "=", "draft"),
+            ],
         )
+        context = action.get("context") or {}
+        if isinstance(context, str):
+            context = safe_eval(context)
+        action["context"] = {
+            **context,
+            "search_default_draft": 1,
+        }
+        return action
 
     def action_open_expenses(self):
-        return self._standard_company_action(
+        action = self._standard_company_action(
             "hr_expense.hr_expense_actions_all",
             [],
         )
+        action.update({
+            "view_mode": "list,form,graph,pivot",
+            "views": [(False, "list"), (False, "form"), (False, "graph"), (False, "pivot")],
+        })
+        return action
 
     def action_open_missing_vendor_attachments(self):
         return self._standard_company_action(
@@ -703,7 +751,7 @@ class RebuildAccountReviewSummary(models.Model):
             f"""
             CREATE OR REPLACE VIEW {self._table} AS (
                 SELECT company.id AS id,
-                       company.name || ' — Accounting Overview' AS name,
+                       'Overview' AS name,
                        company.id AS company_id,
                        company.rebuild_source_id AS source_company_id,
                        company.currency_id,
@@ -723,6 +771,7 @@ class RebuildAccountReviewSummary(models.Model):
                        COALESCE(operational.bank_balance, 0.00) AS bank_balance,
                        COALESCE(bank_activity.bank_transaction_count, 0) AS bank_transaction_count,
                        COALESCE(bank_activity.unmatched_bank_transaction_count, 0) AS unmatched_bank_transaction_count,
+                       COALESCE(bank_activity.bank_review_count, 0) AS bank_review_count,
                        COALESCE(documents.draft_customer_document_count, 0) AS draft_customer_document_count,
                        COALESCE(documents.draft_vendor_document_count, 0) AS draft_vendor_document_count,
                        COALESCE(expenses.draft_expense_count, 0) AS draft_expense_count,
@@ -896,8 +945,12 @@ class RebuildAccountReviewSummary(models.Model):
                       SELECT count(*)::integer AS bank_transaction_count,
                              count(*) FILTER (
                                  WHERE statement_line.is_reconciled IS NOT TRUE
-                             )::integer AS unmatched_bank_transaction_count
+                             )::integer AS unmatched_bank_transaction_count,
+                             count(*) FILTER (
+                                 WHERE move.checked IS FALSE
+                             )::integer AS bank_review_count
                         FROM account_bank_statement_line statement_line
+                        JOIN account_move move ON move.id = statement_line.move_id
                        WHERE statement_line.company_id = company.id
                   ) bank_activity ON TRUE
                   LEFT JOIN LATERAL (

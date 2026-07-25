@@ -1,4 +1,5 @@
 from odoo import _, api, fields, models
+from odoo.tools.safe_eval import safe_eval
 
 
 class AccountAccountReconcile(models.Model):
@@ -361,3 +362,64 @@ class AccountBankStatementLine(models.Model):
             ),
         }
         return action
+
+    def action_to_check(self):
+        reviewer_only = (
+            self.env.user.has_group(
+                "rebuild_account_migration.group_rebuild_accountant_reviewer",
+            )
+            and not self.env.user.has_group("account.group_account_user")
+        )
+        if not reviewer_only:
+            return super().action_to_check()
+        self.check_access("read")
+        self.sudo().move_id.write({"checked": False})
+
+
+class AccountJournal(models.Model):
+    _inherit = "account.journal"
+
+    def open_action(self):
+        self.ensure_one()
+        if self.type in {"bank", "cash"}:
+            return self.action_rebuild_open_transactions()
+        return super().open_action()
+
+    def _rebuild_statement_line_action(self, *, matching=False):
+        self.ensure_one()
+        xmlid = (
+            "rebuild_account_migration."
+            "action_rebuild_account_reconcile_bank_transactions"
+            if matching
+            else "account_statement_base.account_bank_statement_line_action"
+        )
+        action = self.env["ir.actions.actions"]._for_xml_id(xmlid)
+        action["name"] = _(
+            "%(action)s — %(journal)s",
+            action="Bank Matching" if matching else "Transactions",
+            journal=self.display_name,
+        )
+        action["domain"] = [
+            ("journal_id", "=", self.id),
+            *([("is_reconciled", "=", False)] if matching else []),
+        ]
+        context = action.get("context") or {}
+        if isinstance(context, str):
+            context = safe_eval(context)
+        action["context"] = {
+            **context,
+            "active_id": self.id,
+            "active_ids": self.ids,
+            "active_model": self._name,
+            "default_journal_id": self.id,
+            "search_default_journal_id": self.id,
+            "create": False,
+            **({"search_default_not_reconciled": 1} if matching else {}),
+        }
+        return action
+
+    def action_rebuild_open_transactions(self):
+        return self._rebuild_statement_line_action()
+
+    def action_rebuild_open_bank_matching(self):
+        return self._rebuild_statement_line_action(matching=True)
