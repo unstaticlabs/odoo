@@ -1,7 +1,7 @@
 import hashlib
 
 from odoo import _, api, fields, models
-from odoo.exceptions import UserError
+from odoo.exceptions import AccessError, UserError
 
 EINVOICE_CRON_XMLIDS = (
     "account_peppol.ir_cron_peppol_get_new_documents",
@@ -257,13 +257,19 @@ class ResCompany(models.Model):
 
     def _compute_rebuild_einvoice_exchange_enabled(self):
         crons = [
-            cron
+            cron.sudo()
             for xmlid in EINVOICE_CRON_XMLIDS
             if (cron := self.env.ref(xmlid, raise_if_not_found=False))
         ]
         for company in self:
             company.rebuild_einvoice_exchange_enabled = any(
                 cron.active for cron in crons
+            )
+
+    def _check_rebuild_einvoice_manager_access(self):
+        if not self.env.user.has_group("account.group_account_manager"):
+            raise AccessError(
+                _("Only an Accounting Manager can govern electronic-invoice activation."),
             )
 
     def _check_rebuild_einvoice_activation_ready(self):
@@ -281,6 +287,7 @@ class ResCompany(models.Model):
 
     def action_rebuild_approve_einvoice_activation(self):
         self.ensure_one()
+        self._check_rebuild_einvoice_manager_access()
         if self.rebuild_einvoice_environment != "production":
             raise UserError(
                 _("Approval is available only on the deployed production Accounting system."),
@@ -291,15 +298,16 @@ class ResCompany(models.Model):
                 _("Complete the configuration before approval:\n%s")
                 % "\n".join(f"• {blocker}" for blocker in blockers),
             )
-        self.write({
+        self.sudo().write({
             "rebuild_einvoice_activation_approved": True,
             "rebuild_einvoice_approved_by_id": self.env.user.id,
             "rebuild_einvoice_approved_at": fields.Datetime.now(),
         })
 
     def action_rebuild_revoke_einvoice_activation(self):
+        self._check_rebuild_einvoice_manager_access()
         self._rebuild_set_einvoice_crons(False)
-        self.write({
+        self.sudo().write({
             "rebuild_einvoice_activation_approved": False,
             "rebuild_einvoice_approved_by_id": False,
             "rebuild_einvoice_approved_at": False,
@@ -308,10 +316,11 @@ class ResCompany(models.Model):
     def _rebuild_set_einvoice_crons(self, active):
         for xmlid in EINVOICE_CRON_XMLIDS:
             if cron := self.env.ref(xmlid, raise_if_not_found=False):
-                cron.active = active
+                cron.sudo().write({"active": active})
 
     def action_rebuild_enable_einvoice_exchange(self):
         self.ensure_one()
+        self._check_rebuild_einvoice_manager_access()
         self._check_rebuild_einvoice_activation_ready()
         if self.account_peppol_proxy_state != "receiver":
             raise UserError(
@@ -336,6 +345,7 @@ class ResCompany(models.Model):
         self._rebuild_set_einvoice_crons(True)
 
     def action_rebuild_suspend_einvoice_exchange(self):
+        self._check_rebuild_einvoice_manager_access()
         self._rebuild_set_einvoice_crons(False)
 
 

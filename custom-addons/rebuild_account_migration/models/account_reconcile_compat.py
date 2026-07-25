@@ -514,19 +514,6 @@ class AccountBankStatementLine(models.Model):
         }
         return action
 
-    def action_to_check(self):
-        reviewer_only = (
-            self.env.user.has_group(
-                "rebuild_account_migration.group_rebuild_accountant_reviewer",
-            )
-            and not self.env.user.has_group("account.group_account_user")
-        )
-        if not reviewer_only:
-            return super().action_to_check()
-        self.check_access("read")
-        self.sudo().move_id.write({"review_state": "todo"})
-
-
 class AccountJournal(models.Model):
     _inherit = "account.journal"
 

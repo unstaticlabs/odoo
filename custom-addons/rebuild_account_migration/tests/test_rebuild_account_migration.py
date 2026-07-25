@@ -145,6 +145,7 @@ class TestRebuildAccountMigration(TransactionCase):
         })
         self.company.write({
             "country_id": self.env.ref("base.fr").id,
+            "account_fiscal_country_id": self.env.ref("base.fr").id,
             "vat": "FR48983982950",
             "company_registry": "98398295000021",
             "peppol_eas": "0225",
@@ -375,6 +376,41 @@ class TestRebuildAccountMigration(TransactionCase):
             self.company.rebuild_einvoice_readiness_status,
             "configuration_required",
         )
+        manager = self.env["res.users"].with_context(
+            no_reset_password=True,
+        ).create({
+            "name": "Unit electronic invoicing manager",
+            "login": "unit.einvoice.manager@example.invalid",
+            "email": "unit.einvoice.manager@example.invalid",
+            "company_id": self.company.id,
+            "company_ids": [Command.set([self.company.id])],
+            "group_ids": [Command.set([
+                self.env.ref("base.group_user").id,
+                self.env.ref("account.group_account_manager").id,
+            ])],
+        })
+        self.company.with_user(manager).read([
+            "rebuild_einvoice_exchange_enabled",
+        ])
+        reviewer = self.env["res.users"].with_context(
+            no_reset_password=True,
+        ).create({
+            "name": "Unit electronic invoicing reviewer",
+            "login": "unit.einvoice.reviewer@example.invalid",
+            "email": "unit.einvoice.reviewer@example.invalid",
+            "company_id": self.company.id,
+            "company_ids": [Command.set([self.company.id])],
+            "group_ids": [Command.set([
+                self.env.ref("base.group_user").id,
+                self.readonly_group.id,
+                self.reviewer_group.id,
+            ])],
+        })
+        with self.assertRaisesRegex(
+            AccessError,
+            "Only an Accounting Manager",
+        ):
+            self.company.with_user(reviewer).action_rebuild_suspend_einvoice_exchange()
 
         self.company.write({
             "account_peppol_contact_email": "accounting@example.invalid",
@@ -382,7 +418,7 @@ class TestRebuildAccountMigration(TransactionCase):
             "rebuild_einvoice_provider": "odoo_pdp",
             "rebuild_einvoice_environment": "production",
         })
-        self.company.action_rebuild_approve_einvoice_activation()
+        self.company.with_user(manager).action_rebuild_approve_einvoice_activation()
         self.assertTrue(self.company.rebuild_einvoice_activation_approved)
         self.assertEqual(
             self.company.rebuild_einvoice_readiness_status,
@@ -398,7 +434,7 @@ class TestRebuildAccountMigration(TransactionCase):
             "Complete approved-platform registration",
         ):
             self.company.action_rebuild_enable_einvoice_exchange()
-        self.company.action_rebuild_revoke_einvoice_activation()
+        self.company.with_user(manager).action_rebuild_revoke_einvoice_activation()
         self.assertFalse(self.company.rebuild_einvoice_activation_approved)
 
     def test_native_email_gateway_creates_employee_expense_with_receipt(self):
@@ -1660,13 +1696,10 @@ class TestRebuildAccountMigration(TransactionCase):
         )
         self.assertTrue(mutation_buttons)
         for button in mutation_buttons:
-            expected_groups = "account.group_account_user"
-            if button.get("name") == "action_to_check":
-                expected_groups += (
-                    ",rebuild_account_migration."
-                    "group_rebuild_accountant_reviewer"
-                )
-            self.assertEqual(button.get("groups"), expected_groups)
+            self.assertEqual(
+                button.get("groups"),
+                "account.group_account_user",
+            )
 
         self.assertEqual(
             combined_arch.xpath("//notebook/page/@name"),
@@ -1730,8 +1763,9 @@ class TestRebuildAccountMigration(TransactionCase):
             "amount": 25.0,
         })
         bank_line.move_id.review_state = "reviewed"
-        bank_line.with_user(reviewer).action_to_check()
-        self.assertEqual(bank_line.move_id.review_state, "todo")
+        with self.assertRaises(AccessError):
+            bank_line.with_user(reviewer).action_to_check()
+        self.assertEqual(bank_line.move_id.review_state, "reviewed")
         with self.assertRaises(AccessError):
             bank_line.move_id.with_user(reviewer).write({"ref": "forbidden"})
 
@@ -4907,7 +4941,7 @@ class TestRebuildAccountMigration(TransactionCase):
             "2025-01-31",
         )
         self.assertEqual(wizard.draft_entry_count, 1)
-        self.assertIn("excluded", wizard.preview_warning)
+        self.assertIn("est exclue", wizard.preview_warning)
         expense_group = wizard.preview_line_ids.filtered(
             lambda line: line.is_group
             and line.account_code == "T625100",
@@ -4935,7 +4969,7 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertAlmostEqual(expense_group.movement, 150.0)
         self.assertAlmostEqual(expense_group.closing_balance, 230.0)
         self.assertAlmostEqual(expense_group.balance, 230.0)
-        self.assertIn("included", wizard.preview_warning)
+        self.assertIn("est incluse", wizard.preview_warning)
 
         wizard.write({
             "target_move": "posted",

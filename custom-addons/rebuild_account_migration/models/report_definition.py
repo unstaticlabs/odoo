@@ -25,7 +25,7 @@ ACCOUNTING_REPORT_TYPES = [
     ("currency_report", "Currency Gain, Loss and Exposure"),
     ("cash_flow", "Cash Flow Statement"),
     ("executive_summary", "Executive Summary"),
-    ("analytic_report", "Analytic Distribution"),
+    ("analytic_report", "Analytic Profit and Loss"),
     ("analytic_pivot", "Analytic Reporting"),
     ("fixed_assets", "Fixed Asset Register"),
     ("fixed_asset_group_account", "Fixed Asset Register by Account"),

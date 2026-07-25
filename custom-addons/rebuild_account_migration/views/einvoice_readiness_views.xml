@@ -32,7 +32,7 @@
                         type="object" string="Approve Production Activation"
                         class="oe_highlight"
                         groups="account.group_account_manager"
-                        invisible="rebuild_einvoice_activation_approved"/>
+                        invisible="rebuild_einvoice_activation_approved or rebuild_einvoice_environment != 'production'"/>
                     <button name="action_rebuild_revoke_einvoice_activation"
                         type="object" string="Revoke Approval and Suspend"
                         groups="account.group_account_manager"
