@@ -1,0 +1,14 @@
+# Create and Collect a Customer Invoice
+
+1. Open **Customers > Invoices** and select **New**.
+2. Choose the customer, invoice and due dates, currency and payment terms.
+3. Add business lines, income accounts, taxes and analytic distribution.
+4. Preview the invoice, then post it.
+5. Send or download the customer document.
+6. When money arrives, register or identify the payment.
+7. In the bank journal, open **Bank Matching** and match the receipt to the payment or invoice.
+8. For a partial collection, confirm the remaining residual and keep it open.
+9. Check payment state and residual on the invoice.
+10. Inspect Partner Ledger, Aged Receivable and Profit and Loss.
+
+Create a credit note from the original invoice when correcting billed revenue. This preserves the document chain.
