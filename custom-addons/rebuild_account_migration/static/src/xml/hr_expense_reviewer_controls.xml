@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="rebuild_account_migration.ExpenseListCreateControls"
+       t-inherit="hr_expense.ListView"
+       t-inherit-mode="extension">
+        <xpath expr="//button[hasclass('o_button_upload_expense') and @t-if='!env.isSmall']" position="attributes">
+            <attribute name="t-if">activeActions.create and !env.isSmall</attribute>
+        </xpath>
+        <xpath expr="//button[hasclass('o_button_upload_expense') and @t-if='env.isSmall']" position="attributes">
+            <attribute name="t-if">activeActions.create and env.isSmall</attribute>
+        </xpath>
+    </t>
+
+    <t t-name="rebuild_account_migration.ExpenseKanbanCreateControls"
+       t-inherit="hr_expense.KanbanView"
+       t-inherit-mode="extension">
+        <xpath expr="//button[hasclass('o_button_upload_expense') and @t-if='!env.isSmall']" position="attributes">
+            <attribute name="t-if">canCreate and !env.isSmall</attribute>
+        </xpath>
+        <xpath expr="//button[hasclass('o_button_upload_expense') and @t-if='env.isSmall']" position="attributes">
+            <attribute name="t-if">canCreate and env.isSmall</attribute>
+        </xpath>
+    </t>
+</templates>
