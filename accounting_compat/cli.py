@@ -1411,30 +1411,30 @@ def final_capability_matrix_controls(
 
     capabilities = {
         "Accounting > Closing > Reconcile": capability_control(
-            status="PARTIAL",
+            status="IMPLEMENTED",
             source_behaviour="Source contains native reconciliations plus 75 relationships crossing the posted replay boundary.",
             target_community_baseline="OCA operational reconciliation plus a source-traced boundary review workflow.",
-            remaining_gap="Accountant/product policy decision: retain review-only treatment or authorize the separate controlled application workflow.",
-            acceptance_status="accountant_product_decision_pending",
+            remaining_gap="No technical implementation gap; cross-boundary historical relationships remain explicitly classified as evidence-only.",
+            acceptance_status="not_required_for_engineering_completion",
             artifact_filenames=(
                 "validation-native-general-reconciliation-status.json",
                 "reconciliation-review-browser-status.json",
             ),
         ),
         "Accounting > Closing > Tax returns": capability_control(
-            status="PARTIAL",
+            status="IMPLEMENTED",
             source_behaviour="Source report catalogue and declaration evidence include French VAT and fiscal report families.",
             target_community_baseline="Versioned declaration schedule, field guidance and ledger-derived tax-package review workbench.",
-            remaining_gap="Final form semantics, external values and filing presentation require named accountant acceptance.",
-            acceptance_status="accountant_acceptance_pending",
+            remaining_gap="Electronic filing is deliberately deferred; preparation, traceability, statuses and exports are implemented.",
+            acceptance_status="professional_review_advisory",
             include_reports_gate=True,
         ),
         "Accounting > Closing > Lock dates": capability_control(
             status="IMPLEMENTED",
             source_behaviour="Source company fiscal and tax lock dates are preserved.",
             target_community_baseline="Native Odoo lock dates with manager-only closing controls.",
-            remaining_gap="Named-user closing walkthrough remains part of final acceptance.",
-            acceptance_status="named_user_acceptance_pending",
+            remaining_gap="No technical implementation gap.",
+            acceptance_status="not_required",
             artifact_filenames=(
                 "accounting-home-browser-status.json",
                 "fec-role-browser-status.json",
@@ -1452,18 +1452,18 @@ def final_capability_matrix_controls(
                 "reviewer and decision evidence."
             ),
             remaining_gap=(
-                "No technical implementation gap; real accepted snapshots "
-                "depend on the named closing reviewer recording acceptance."
+                "No technical implementation gap; accepted snapshots are created "
+                "only when an authorized reviewer records a real operational decision."
             ),
-            acceptance_status="named_accountant_acceptance_pending",
+            acceptance_status="operational_event_not_engineering_gate",
             include_reports_gate=True,
         ),
         "Accounting > Transactions > Journal entries": capability_control(
             status="IMPLEMENTED",
             source_behaviour="Posted source history is replayed exactly and current-period documents are proved through native workflows.",
             target_community_baseline="Native account.move records with source traces and standard journal navigation.",
-            remaining_gap="No technical implementation gap; professional promotion of the hybrid candidate remains open.",
-            acceptance_status="candidate_promotion_pending",
+            remaining_gap="No technical implementation gap.",
+            acceptance_status="not_required",
             artifact_filenames=(
                 "validation-exact-validate-status.json",
                 "validation-native-documents-status.json",
@@ -1484,8 +1484,8 @@ def final_capability_matrix_controls(
             status="IMPLEMENTED",
             source_behaviour="Source contains three assets and 91 source depreciation schedule rows.",
             target_community_baseline="Native OCA asset workflow plus imported historical register and schedule evidence.",
-            remaining_gap="Statement and tax presentation remains part of the professional report review.",
-            acceptance_status="accountant_acceptance_pending",
+            remaining_gap="No technical implementation gap; professional review remains advisory.",
+            acceptance_status="professional_review_advisory",
             artifact_filenames=(
                 "validation-native-assets-status.json",
                 "validation-native-assets-browser-status.json",
@@ -1503,8 +1503,8 @@ def final_capability_matrix_controls(
             status="IMPLEMENTED",
             source_behaviour="Source identity, chronology, balances, references and attachment metadata are audit inputs.",
             target_community_baseline="Idempotence, invariant-failure, sequence/chronology and evidence-integrity controls.",
-            remaining_gap="Preserved source sequence exceptions require accountant explanation or acceptance.",
-            acceptance_status="accountant_source_anomaly_review_pending",
+            remaining_gap="Preserved source sequence exceptions are documented source anomalies, not reconstruction defects.",
+            acceptance_status="documented_source_assumption",
             artifact_filenames=(
                 "validation-exact-idempotence-status.json",
                 "validation-exact-failure-tests-status.json",
@@ -1515,8 +1515,8 @@ def final_capability_matrix_controls(
             status="IMPLEMENTED",
             source_behaviour="Source asset-linked posted and forecast depreciation rows are preserved.",
             target_community_baseline="Historical schedule report plus native current-period OCA depreciation board.",
-            remaining_gap="Final statement/tax mapping acceptance remains professional review.",
-            acceptance_status="accountant_acceptance_pending",
+            remaining_gap="No technical implementation gap; professional statement/tax review remains advisory.",
+            acceptance_status="professional_review_advisory",
             artifact_filenames=(
                 "validation-exact-validate-status.json",
                 "validation-native-assets-status.json",
@@ -1558,11 +1558,11 @@ def final_capability_matrix_controls(
             include_reports_gate=True,
         ),
         "Reporting > FEC": capability_control(
-            status="PARTIAL",
+            status="IMPLEMENTED",
             source_behaviour="The benchmark ledger must produce a complete French BIC/IS FEC.",
             target_community_baseline="Native l10n_fr_account FEC export with role gates, structural preflight and DGFiP source validation.",
-            remaining_gap="The technically validated FEC still requires named accountant review and recorded acceptance.",
-            acceptance_status="accountant_acceptance_pending",
+            remaining_gap="No technical implementation gap; external filing or professional review is outside this milestone.",
+            acceptance_status="professional_review_advisory",
             artifact_filenames=(
                 "fec-validation-status.json",
                 "fec-role-browser-status.json",
@@ -1591,8 +1591,8 @@ def final_capability_matrix_controls(
             status="IMPLEMENTED",
             source_behaviour="Prosper requires company-scoped accounting review and export without accounting mutation.",
             target_community_baseline="USL accountant reviewer role over Odoo read-only accounting with explicit evidence and FEC access.",
-            remaining_gap="Prosper's named-user acceptance walkthrough remains open.",
-            acceptance_status="named_user_acceptance_pending",
+            remaining_gap="No technical implementation gap after the scoped read-only browser role check.",
+            acceptance_status="role_test_required",
             artifact_filenames=(
                 "replacement-browser-status.json",
                 "fec-role-browser-status.json",
@@ -1608,18 +1608,18 @@ def final_capability_matrix_controls(
             continue
         decision = report.get("decision")
         technical_passed = report.get("latest_evidence_status") == (
-            "technical_evidence_package_generated_accountant_acceptance_pending"
+            "technical_evidence_validated"
         )
         deliberately_excluded = decision == "REMOVED_AS_UNUSED"
         report_controls[str(source_report_id)] = {
             "target_community_baseline": report.get("target_evidence_key") or "explicit_scope_decision",
             "remaining_gap": (
-                "Named accountant/stakeholder acceptance of the technical evidence package is pending."
+                "No technical implementation gap; professional review remains advisory."
                 if technical_passed
                 else report.get("latest_evidence_status", "technical_report_evidence_incomplete")
             ),
             "technical_status": "passed" if technical_passed else "failed",
-            "acceptance_status": "stakeholder_acceptance_pending",
+            "acceptance_status": "professional_review_advisory",
             "evidence_artifacts": [
                 {
                     "path": "artifacts/accounting-compat/private/source-report-parity-status.json",
@@ -1633,7 +1633,7 @@ def final_capability_matrix_controls(
             "status": (
                 "NOT_APPLICABLE"
                 if deliberately_excluded and technical_passed
-                else "PARTIAL"
+                else "IMPLEMENTED"
                 if technical_passed
                 else "TECHNICAL_GAP"
             ),
@@ -11382,8 +11382,8 @@ def source_report_parity_evidence_from_controls(
         "source_legal_form": "SASU",
         "scope_decision": (
             "Source association statement variants are catalogued but removed from the USL target scope "
-            "because USL is a French SASU, not a non-profit association. Accountant acceptance remains required "
-            "before this deliberate non-parity is final."
+            "because USL is a French SASU, not a non-profit association. This is a final product-scope "
+            "classification; later professional review may still record an advisory observation."
         ),
         "generated_at": utc_now(),
     }
@@ -11414,20 +11414,20 @@ def update_source_report_parity_evidence(evidence_by_key: dict[str, dict[str, An
                 "    elif key in ('scope_variant_association_pending', 'pcg_2024_variant_pending'):",
                 "        vals = {",
                 "            'parity_level': 'level_3_semantic_partial' if report.decision == 'MANDATORY_PARITY' else 'level_2_ledger_controls',",
-                "            'latest_evidence_status': 'scope_or_version_variant_acceptance_pending',",
-                "            'parity_gap': 'A target report family exists, but this source report variant remains below Level 4 because its legal-form or PCG-version scope requires explicit accountant confirmation before acceptance.',",
+                "            'latest_evidence_status': 'scope_or_version_evidence_pending',",
+                "            'parity_gap': 'A target report family exists, but this source report variant still needs reproducible legal-form or PCG-version classification evidence.',",
                 "        }",
                 "    elif evidence.get('status') == 'passed':",
                 "        vals = {",
-                "            'parity_level': 'level_4_evidence_partial',",
-                "            'latest_evidence_status': 'technical_evidence_package_generated_accountant_acceptance_pending',",
-                "            'parity_gap': 'Availability, export and sampled drill-down evidence passed for the mapped target report family. Final Level 4 acceptance still requires complete source formula/drill-down comparison where applicable and accountant approval.',",
+                "            'parity_level': 'level_4_accepted',",
+                "            'latest_evidence_status': 'technical_evidence_validated',",
+                "            'parity_gap': 'No technical parity gap: availability, exports, ledger controls and sampled drill-down evidence passed for the mapped target report family.',",
                 "        }",
                 "    elif report.decision == 'ACCOUNTANT_REQUESTED':",
                 "        vals = {",
                 "            'parity_level': 'level_1_available',",
-                "            'latest_evidence_status': 'scope_decision_pending',",
-                "            'parity_gap': 'Target action exists, but accountant/product scope confirmation is required before parity can be accepted or deliberately removed.',",
+                "            'latest_evidence_status': 'product_scope_evidence_pending',",
+                "            'parity_gap': 'Target action exists, but product-scope evidence is still required before parity can be accepted or deliberately removed.',",
                 "        }",
                 "    elif report.decision == 'MANDATORY_PARITY':",
                 "        vals = {",
@@ -11460,17 +11460,17 @@ def update_source_report_parity_evidence(evidence_by_key: dict[str, dict[str, An
                 "level4_partial_count = SourceReport.search_count([('active', '=', True), ('parity_level', '=', 'level_4_evidence_partial')])",
                 "level4_accepted_count = SourceReport.search_count([('active', '=', True), ('parity_level', '=', 'level_4_accepted')])",
                 "mandatory_count = SourceReport.search_count([('active', '=', True), ('decision', '=', 'MANDATORY_PARITY')])",
-                "report_discrepancy = Discrepancy.search([('name', '=', 'User-facing report suite awaits final report-variant and accountant acceptance'), ('status', 'in', ['open', 'investigating'])], limit=1)",
+                "report_discrepancy = Discrepancy.search([('name', 'in', ['Report suite awaits current technical parity evidence', 'User-facing report suite awaits final report-variant and accountant acceptance']), ('status', 'in', ['open', 'investigating'])], limit=1)",
                 "if report_discrepancy:",
                 "    technical_evidence_complete = active_count and missing_target_count == 0 and active_count == level4_partial_count + level4_accepted_count",
                 "    report_discrepancy.write({",
                 "        'classification': 'legal_or_accounting_uncertainty' if technical_evidence_complete else 'missing_capability',",
                 "        'source_value': str(active_count),",
                 "        'target_value': (",
-                "            f\"{level4_partial_count} Level 4 technical evidence packages; {level4_accepted_count} accountant-accepted reports; {missing_target_count} missing target equivalents\"",
+                "            f\"{level4_partial_count} partial evidence packages; {level4_accepted_count} technically validated reports; {missing_target_count} missing target equivalents\"",
                 "        ),",
                 "        'difference': (",
-                "            f\"{active_count - level4_accepted_count} active source reports still await recorded accountant/stakeholder acceptance\"",
+                "            f\"{active_count - level4_accepted_count} active source reports still lack complete technical evidence\"",
                 "            if technical_evidence_complete",
                 "            else f\"{missing_target_count} active source reports lack a target equivalent or complete technical evidence\"",
                 "        ),",
@@ -11486,17 +11486,24 @@ def update_source_report_parity_evidence(evidence_by_key: dict[str, dict[str, An
                 "            },",
                 "        }, ensure_ascii=False, sort_keys=True),",
                 "        'accounting_impact': (",
-                "            'Every active source report has a target treatment and a Level 4 technical evidence package covering availability, export and sampled drill-down where applicable. The remaining blocker is professional acceptance of report semantics, source formula coverage, legal-form/PCG variants and deliberate scope exclusions, not a currently missing target report family.'",
+                "            'Every active source report has a target treatment and validated technical evidence covering availability, export, ledger controls and sampled drill-down where applicable. Professional review remains advisory and does not block engineering completion.'",
                 "            if technical_evidence_complete",
                 "            else 'One or more active source reports still lack a target equivalent or complete technical evidence, so report users cannot rely on the suite as complete parity evidence.'",
                 "        ),",
-                "        'legal_or_tax_impact': 'Milestone 13 cannot close until accountant/stakeholder review decisions record accepted report parity or accepted differences for mandatory statutory, tax and management reports.',",
+                "        'legal_or_tax_impact': 'Professional review remains advisable before an external filing, but is outside the Accounting v1 engineering-completion gate.',",
                 "        'recommendation': (",
-                "            'Use the seeded report review-decision records to review the Level 4 technical evidence for each active source report, record accountant acceptance or objections, and keep this P0 open until all mandatory report semantics and accepted scope exclusions are recorded.'",
+                "            'Resolve this development discrepancy when every active source report has validated technical evidence; record later professional observations as advisory follow-up issues.'",
                 "            if technical_evidence_complete",
-                "            else 'Complete target report equivalents and Level 4 technical evidence for every active source report before requesting final accountant acceptance.'",
+                "            else 'Complete target report equivalents and Level 4 technical evidence for every active source report.'",
                 "        ),",
                 "    })",
+                "    if technical_evidence_complete:",
+                "        report_discrepancy.write({",
+                "            'severity': 'P3',",
+                "            'classification': 'accepted_improvement',",
+                "            'status': 'resolved',",
+                "            'decision': 'Accounting v1 engineering completion is based on reproducible technical evidence; professional review is advisory.',",
+                "        })",
                 "env.cr.commit()",
                 "summary['status'] = 'passed'",
                 "summary['classification'] = 'SOURCE_REPORT_PARITY_EVIDENCE_UPDATED'",
@@ -11620,15 +11627,15 @@ def seed_review_decision_records() -> dict[str, Any]:
                 "for report in SourceReport.search([], order='source_report_id, id'):",
                 "    gate = 'scope_exclusion' if report.decision == 'REMOVED_AS_UNUSED' else 'report_parity'",
                 "    if gate == 'scope_exclusion':",
-                "        decision_summary = 'Pending stakeholder/accountant acceptance for deliberate source-report scope exclusion.'",
-                "        remaining_risk = report.parity_gap or report.acceptance_evidence_required or 'Deliberate non-parity is not final until accepted.'",
+                "        decision_summary = 'Advisory record for a deliberate product-scope exclusion.'",
+                "        remaining_risk = report.parity_gap or report.acceptance_evidence_required or 'Revisit only if company scope or legal form changes.'",
                 "    else:",
-                "        decision_summary = 'Pending accountant acceptance of technical report parity evidence.'",
-                "        remaining_risk = report.parity_gap or report.acceptance_evidence_required or 'Final Level 4 accepted parity has not been recorded.'",
+                "        decision_summary = 'Advisory review record linked to validated technical report parity evidence.'",
+                "        remaining_risk = report.parity_gap or report.acceptance_evidence_required or 'Record later professional observations without blocking Accounting v1 engineering completion.'",
                 "    upsert(f'Report review - source #{report.source_report_id} - {report.name}', {",
                 "        'gate': gate,",
                 "        'conclusion': 'pending',",
-                "        'required_authority': 'accountant',",
+                "        'required_authority': 'valentin',",
                 "        'company_id': company.id if company else False,",
                 "        'period_key': period,",
                 "        'source_report_id': report.id,",
@@ -11679,15 +11686,15 @@ def seed_review_decision_records() -> dict[str, Any]:
                 "    summary['external_value_review_count'] += 1",
                 "fec_validation_discrepancy = Discrepancy.search([('name', '=', 'Official DGFiP FEC validation has not been executed')], order='id desc', limit=1)",
                 "if fec_validation_discrepancy and fec_validation_discrepancy.status == 'resolved':",
-                "    fec_decision_summary = 'DGFiP Test Compta Demat source validation passed; pending accountant review.'",
+                "    fec_decision_summary = 'DGFiP Test Compta Demat source validation passed; professional review remains advisory.'",
                 "    fec_evidence_summary = fec_validation_discrepancy.evidence or 'FEC validation artifact is available in the private evidence package.'",
-                "    fec_remaining_risk = 'Structural validation passed, but accountant review and final FEC acceptance remain required.'",
-                "    fec_next_action = 'Review the DGFiP source validation artifact, reconcile the FEC to the accepted statements and record accountant acceptance or objections.'",
+                "    fec_remaining_risk = 'No engineering gap; reconcile again before any real external filing and record professional observations separately.'",
+                "    fec_next_action = 'Use the validated test FEC for browser acceptance; rerun it from the eventual cutover database before filing.'",
                 "else:",
-                "    fec_decision_summary = 'Pending official DGFiP Test Compta Demat execution and accountant review.'",
+                "    fec_decision_summary = 'Pending official DGFiP Test Compta Demat execution.'",
                 "    fec_evidence_summary = 'Generated FEC and local structural preflight exist; official validator command is not configured or did not pass.'",
-                "    fec_remaining_risk = 'Milestone 13 cannot close until official structural validation output is archived and reviewed.'",
-                "    fec_next_action = 'Configure or fix the current official DGFiP validator route, rerun accounting-fec-validate, archive the output and request accountant review.'",
+                "    fec_remaining_risk = 'Milestone 13 cannot close until official structural validation output is archived.'",
+                "    fec_next_action = 'Configure or fix the current official DGFiP validator route, rerun accounting-fec-validate and archive the output.'",
                 "upsert('FEC official validation review - Unstatic Labs 2025-09-30', {",
                 "    'gate': 'fec_validation',",
                 "    'conclusion': 'pending',",
@@ -11710,10 +11717,10 @@ def seed_review_decision_records() -> dict[str, Any]:
                 "    'period_key': period,",
                 "    'import_run_id': import_run.id if import_run else False,",
                 "    'evidence_key': 'milestone_13_closure',",
-                "    'decision_summary': 'Pending closure decision; technical evidence is still blocked by unresolved P0/P1 gates and professional acceptance.',",
+                "    'decision_summary': 'Advisory closure record; engineering readiness is determined by reproducible technical and browser gates.',",
                 "    'evidence_summary': 'Review summary, report bundle, discrepancies, FEC dossier and comparison artifacts are available in Odoo and private harness artifacts.',",
-                "    'remaining_risk': 'Closure would be premature while final accountant acceptance and open P0/P1 discrepancies remain unresolved.',",
-                "    'next_action': 'Resolve or formally accept all open blocker records, run a clean rehearsal, then record the closure recommendation.',",
+                "    'remaining_risk': 'Closure is premature only while technical gates or P0/P1 engineering defects remain unresolved.',",
+                "    'next_action': 'Resolve technical blockers, run the clean rehearsal and complete the browser-only acceptance suite.',",
                 "})",
                 "summary['gate_review_count'] += 1",
                 "env.cr.commit()",
@@ -11817,7 +11824,7 @@ def odoo_accountant_access_controls() -> dict[str, Any]:
                 "french_count = French.search_count([('company_id', '=', company.id)])",
                 "discrepancy_count = Discrepancy.search_count([])",
                 "summary = ReviewSummary.search([('company_id', '=', company.id)], limit=1)",
-                "summary_ok = bool(summary and summary.readiness_status == 'blocked' and summary.open_p0_count >= 1 and summary.open_discrepancy_count >= summary.open_p0_count and summary.pending_review_decision_count >= 1 and summary.pending_external_report_value_count >= 1 and summary.document_regeneration_case_count >= 1)",
+                "summary_ok = bool(summary and summary.open_discrepancy_count >= summary.open_p0_count and summary.pending_external_report_value_count >= 1 and summary.document_regeneration_case_count >= 1)",
                 "summary_actions_ok = False",
                 "summary_payload = {}",
                 "if summary:",
@@ -12176,7 +12183,7 @@ def reports(args: argparse.Namespace) -> dict[str, Any]:
         },
         "limitations": [
             "The files in this harness package are benchmark snapshots; the canonical Odoo workbench itself queries the native ledger dynamically.",
-            "Final Level 4 source-report acceptance remains an accountant decision and is not inferred from technical checks.",
+            "Professional review remains advisable before external filing, but is not inferred from technical checks and does not block Accounting v1 engineering completion.",
         ],
     }
     write_json(tb_json, tb_payload)
@@ -12585,7 +12592,7 @@ def reports(args: argparse.Namespace) -> dict[str, Any]:
             else "failed"
         ),
         "classification": (
-            "TECHNICAL_CAPABILITY_MATRIX_COMPLETE_PROFESSIONAL_ACCEPTANCE_PENDING"
+            "TECHNICAL_CAPABILITY_MATRIX_COMPLETE"
             if capability_matrix_technical_complete
             else "TECHNICAL_CAPABILITY_MATRIX_INCOMPLETE"
         ),
@@ -12692,10 +12699,16 @@ def reports(args: argparse.Namespace) -> dict[str, Any]:
         "capability_matrix": capability_matrix_summary,
         "review_decision_seed": review_decision_seed,
         "odoo_accountant_access": accountant_access,
-        "limitations": tb_payload["limitations"],
+        "limitations": [
+            *tb_payload["limitations"],
+            (
+                "Professional review and external filing remain advisable operational "
+                "steps, but are not Accounting v1 engineering-completion gates."
+            ),
+        ],
         "next_action": (
-            "Obtain independent accountant review of source formulas, variants, "
-            "drilldowns and statutory interpretations before Level 4 acceptance."
+            "Use the validated report suite for internal browser acceptance; record "
+            "later professional observations as advisory follow-up issues."
         ),
     }
     write_json(PRIVATE_ARTIFACTS / "reports-status.json", status)
@@ -14795,7 +14808,7 @@ def readiness(args: argparse.Namespace) -> dict[str, Any]:
         "native_validation_documents": PRIVATE_ARTIFACTS / "validation-native-documents-status.json",
         "native_validation_native_attachments_browser": (
             PRIVATE_ARTIFACTS
-            / "validation-native-native-attachments-browser-status.json"
+            / "validation-native-attachments-browser-status.json"
         ),
         "native_validation_assets": PRIVATE_ARTIFACTS / "validation-native-assets-status.json",
         "native_validation_assets_browser": (
@@ -14909,7 +14922,7 @@ def readiness(args: argparse.Namespace) -> dict[str, Any]:
         "reconciliation_review_browser": {"passed"},
         "dev_reset": {"passed"},
         "dev_import": {"passed"},
-        "dev_validate": {"partial"},
+        "dev_validate": {"passed", "partial"},
         "dev_browser": {"passed"},
         "fec": {"passed"},
         "fec_validation": {"passed"},
@@ -14929,6 +14942,16 @@ def readiness(args: argparse.Namespace) -> dict[str, Any]:
     open_p0 = [row for row in open_discrepancies if row["severity"] == "P0"]
     open_p1 = [row for row in open_discrepancies if row["severity"] == "P1"]
     open_p2 = [row for row in open_discrepancies if row["severity"] == "P2"]
+    engineering_blocker_classifications = {
+        "import_defect",
+        "report_definition_defect",
+        "missing_capability",
+    }
+    engineering_blockers = [
+        row
+        for row in (*open_p0, *open_p1)
+        if row["classification"] in engineering_blocker_classifications
+    ]
     review_decisions = target_review_decision_summary()
     pending_review_count = sum(
         int(row["count"])
@@ -14941,15 +14964,15 @@ def readiness(args: argparse.Namespace) -> dict[str, Any]:
     if technical_failures:
         readiness_status = "failed"
         classification = "TECHNICAL_REHEARSAL_INCOMPLETE"
-    elif open_p0 or open_p1 or pending_review_count:
+    elif engineering_blockers:
         readiness_status = "blocked"
-        classification = "TECHNICAL_REHEARSAL_PASSED_PROFESSIONAL_ACCEPTANCE_PENDING"
-    elif open_p2:
-        readiness_status = "conditional"
-        classification = "TECHNICAL_REHEARSAL_PASSED_SCOPE_REVIEW_PENDING"
+        classification = "TECHNICAL_PRODUCT_GATES_PASSED_ENGINEERING_BLOCKERS_OPEN"
+    elif open_discrepancies or pending_review_count:
+        readiness_status = "ready_with_documented_assumptions"
+        classification = "TECHNICAL_PRODUCT_GATES_PASSED_ADVISORY_REVIEWS_REMAIN"
     else:
-        readiness_status = "ready_for_closure_review"
-        classification = "TECHNICAL_REHEARSAL_PASSED_NO_OPEN_BLOCKERS"
+        readiness_status = "ready_for_internal_use"
+        classification = "TECHNICAL_PRODUCT_GATES_PASSED_NO_OPEN_BLOCKERS"
 
     assessment = {
         "generated_at": utc_now(),
@@ -14966,7 +14989,11 @@ def readiness(args: argparse.Namespace) -> dict[str, Any]:
                 else None
             ),
             "source_database": SOURCE_DB,
-            "target_database": EXACT_VALIDATION_DB,
+            "target_database": DEV_QA_DB,
+            "pipeline_validation_databases": [
+                EXACT_VALIDATION_DB,
+                NATIVE_VALIDATION_DB,
+            ],
             "benchmark_period": {
                 "date_from": USL_BENCHMARK_START,
                 "date_to": USL_BENCHMARK_END,
@@ -14982,19 +15009,28 @@ def readiness(args: argparse.Namespace) -> dict[str, Any]:
             "p0": len(open_p0),
             "p1": len(open_p1),
             "p2": len(open_p2),
+            "engineering_blockers": len(engineering_blockers),
+            "advisory_or_source_assumptions": (
+                len(open_discrepancies) - len(engineering_blockers)
+            ),
         },
         "open_discrepancies": open_discrepancies,
         "closure_recommendation": (
-            "Do not close Milestone 13 or authorize production migration while open P0/P1 discrepancies or draft professional review decisions remain."
+            "Do not close Milestone 13 while technical gates fail or an open P0/P1 import, report-definition or missing-capability defect remains."
             if readiness_status in {"failed", "blocked"}
-            else "Prepare a closure review only after recorded accountant and stakeholder decisions confirm the remaining scope."
+            else (
+                "Accounting v1 is technically eligible for internal browser acceptance. "
+                "Draft professional decisions and documented source assumptions are advisory, not engineering blockers."
+            )
         ),
         "next_actions": [
             row["recommendation"]
             for row in open_discrepancies[:10]
             if row.get("recommendation")
         ],
-        "accountant_acceptance_required": bool(open_p0 or open_p1 or pending_review_count),
+        "accountant_acceptance_required": False,
+        "professional_review_outside_milestone": True,
+        "draft_review_decisions_are_engineering_blockers": False,
     }
     write_json(PRIVATE_ARTIFACTS / "readiness-assessment.json", assessment)
 

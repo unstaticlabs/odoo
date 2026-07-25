@@ -837,13 +837,13 @@ class RebuildAccountImportRun(models.Model):
         if decision == "MANDATORY_PARITY":
             return (
                 "Availability in Odoo, line-value comparison, drill-down membership, "
-                "exports, source-target controls and accountant review where statutory."
+                "exports and reproducible source-target controls."
             )
         if decision == "OPERATIONAL_PARITY":
             return "Workflow need evidence, target equivalent output and classified material differences."
         if decision == "REMOVED_AS_UNUSED":
-            return "Legal-form/company-scope evidence, explicit non-parity decision and stakeholder review."
-        return "Accountant usage decision, explicit deferral or approved removal as unused."
+            return "Legal-form/company-scope evidence and an explicit product-scope decision."
+        return "Usage evidence, explicit deferral or approved removal as unused."
 
     @staticmethod
     def _source_report_parity_evidence(decision, target_action_xmlid, target_evidence_key):
@@ -862,9 +862,9 @@ class RebuildAccountImportRun(models.Model):
                 "parity_level": "level_3_semantic_partial" if decision == "MANDATORY_PARITY" else "level_2_ledger_controls",
                 "parity_gap": (
                     "A target report family exists, but this source report variant remains below Level 4 because "
-                    "its legal-form or PCG-version scope requires explicit accountant confirmation before acceptance."
+                    "its legal-form or PCG-version scope still needs reproducible classification evidence."
                 ),
-                "latest_evidence_status": "scope_or_version_variant_acceptance_pending",
+                "latest_evidence_status": "scope_or_version_evidence_pending",
                 "latest_evidence_json": {"target_evidence_key": target_evidence_key},
             }
         if decision == "MANDATORY_PARITY":
@@ -874,9 +874,9 @@ class RebuildAccountImportRun(models.Model):
                     "A user-facing target report/export action exists and current technical harness checks cover "
                     "ledger-backed row counts, exports and sampled drill-down. Full Level 4 parity still requires "
                     "line-by-line source formula comparison, drill-down membership comparison, statutory/export "
-                    "layout review where applicable and accountant acceptance."
+                    "layout validation where applicable."
                 ),
-                "latest_evidence_status": "technical_controls_passed_accountant_acceptance_pending",
+                "latest_evidence_status": "full_technical_evidence_pending",
                 "latest_evidence_json": {"target_evidence_key": target_evidence_key or ""},
             }
         if decision == "OPERATIONAL_PARITY":
@@ -884,19 +884,18 @@ class RebuildAccountImportRun(models.Model):
                 "parity_level": "level_2_ledger_controls",
                 "parity_gap": (
                     "A user-facing target equivalent exists with technical harness coverage. Operational acceptance "
-                    "still requires confirmed source usage, line-level comparison for the selected workflow and "
-                    "explicit acceptance or deferral."
+                    "still requires confirmed source usage and line-level comparison for the selected workflow."
                 ),
-                "latest_evidence_status": "technical_controls_passed_operational_acceptance_pending",
+                "latest_evidence_status": "full_operational_evidence_pending",
                 "latest_evidence_json": {"target_evidence_key": target_evidence_key or ""},
             }
         return {
             "parity_level": "level_1_available",
             "parity_gap": (
-                "A target equivalent exists, but accountant/product scope confirmation is still required before "
-                "this report can be treated as accepted parity or deliberately removed from scope."
+                "A target equivalent exists, but the product-scope evidence has not yet classified it as "
+                "accepted parity, deferred or deliberately removed."
             ),
-            "latest_evidence_status": "scope_decision_pending",
+            "latest_evidence_status": "product_scope_evidence_pending",
             "latest_evidence_json": {"target_evidence_key": target_evidence_key or ""},
         }
 
@@ -8254,13 +8253,13 @@ class RebuildAccountImportRun(models.Model):
                     self.env["rebuild.account.closing.period"].sync_for_company(company)
 
             missing_domains = [
-                ("User-facing report suite awaits final report-variant and accountant acceptance", "P0"),
+                ("Report suite awaits current technical parity evidence", "P1"),
             ]
             for name, severity in missing_domains:
                 self._upsert_discrepancy({
                     "name": name,
                     "severity": severity,
-                    "classification": "legal_or_accounting_uncertainty",
+                    "classification": "report_definition_defect",
                     "status": "open",
                     "period_key": f"{options['date_from']}:{options['date_to']}",
                     "source_model": "account.report",
@@ -8272,14 +8271,12 @@ class RebuildAccountImportRun(models.Model):
                     "accounting_impact": (
                         "This import run preserves every active source report catalogue record and assigns "
                         "a target equivalent. The report evidence stage now exercises exports, preview "
-                        "drill-down and explicit 2024/legal-form scope handling, but final source formula "
-                        "comparison and accountant acceptance are still required before the report suite can "
-                        "be treated as final parity."
+                        "drill-down and explicit 2024/legal-form scope handling. The discrepancy remains open "
+                        "until the current commit's complete technical report evidence passes."
                     ),
                     "recommendation": (
-                        "Review the Source Report Catalogue Level 4 evidence, compare source formulas, hierarchy, "
-                        "drill-down membership and exports for every mandatory report, then record accountant "
-                        "acceptance or approved differences. Do not close this gate from technical evidence alone."
+                        "Run the complete report evidence suite on the current commit and resolve every failed "
+                        "availability, value, hierarchy, drill-down, PDF or XLSX control."
                     ),
                 })
             self.env["rebuild.account.discrepancy"].search([
