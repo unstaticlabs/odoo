@@ -1,6 +1,12 @@
 import { registry } from "@web/core/registry";
 
-registry.category("actions").add("rebuild_accounting_home", async (env) => {
+registry.category("actions").add("rebuild_accounting_home", async (env, clientAction) => {
+    const accountingApp = env.services.menu
+        .getApps()
+        .find((app) => app.actionID === clientAction.id);
+    if (accountingApp) {
+        env.services.menu.setCurrentMenu(accountingApp);
+    }
     const action = await env.services.orm.call(
         "rebuild.account.review.summary",
         "action_open_accounting_home",
