@@ -34,6 +34,7 @@
             "rebuild_account_migration/static/src/js/account_move_upload_controls.js",
             "rebuild_account_migration/static/src/js/accounting_home_action.js",
             "rebuild_account_migration/static/src/js/accounting_report_action.js",
+            "rebuild_account_migration/static/src/js/expense_upload_navigation.js",
             "rebuild_account_migration/static/src/js/reconcile_navigation.js",
             "rebuild_account_migration/static/src/scss/accounting_overview.scss",
             "rebuild_account_migration/static/src/scss/accounting_report.scss",

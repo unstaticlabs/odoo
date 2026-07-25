@@ -1,7 +1,7 @@
 from lxml import etree
 
 from odoo import _, api, fields, models
-from odoo.exceptions import AccessError
+from odoo.exceptions import AccessError, UserError
 
 
 class RebuildSourceTraceMixin(models.AbstractModel):
@@ -132,6 +132,171 @@ class HrExpense(models.Model):
     _name = "hr.expense"
     _inherit = ["hr.expense", "rebuild.source.trace.mixin"]
 
+    rebuild_receipt_state = fields.Selection(
+        selection=[
+            ("received", "Receipt attached"),
+            ("missing", "Receipt missing"),
+            ("not_required", "Receipt not required"),
+        ],
+        compute="_compute_rebuild_expense_guidance",
+        search="_search_rebuild_receipt_state",
+        string="Receipt",
+    )
+    rebuild_next_step = fields.Selection(
+        selection=[
+            ("category", "Choose category"),
+            ("receipt", "Attach receipt"),
+            ("submit", "Submit"),
+            ("approve", "Approve"),
+            ("post", "Post"),
+            ("payment", "Record reimbursement"),
+            ("processing", "Payment processing"),
+            ("done", "Complete"),
+            ("refused", "Refused"),
+        ],
+        compute="_compute_rebuild_expense_guidance",
+        string="Next step",
+    )
+
+    @api.depends(
+        "state",
+        "product_id",
+        "product_id.rebuild_receipt_required",
+        "message_main_attachment_id",
+        "payment_mode",
+    )
+    def _compute_rebuild_expense_guidance(self):
+        for expense in self:
+            has_receipt = bool(expense.message_main_attachment_id)
+            receipt_required = (
+                not expense.product_id
+                or expense.product_id.rebuild_receipt_required
+            )
+            if has_receipt:
+                expense.rebuild_receipt_state = "received"
+            elif receipt_required:
+                expense.rebuild_receipt_state = "missing"
+            else:
+                expense.rebuild_receipt_state = "not_required"
+            if expense.state == "draft":
+                if not expense.product_id:
+                    expense.rebuild_next_step = "category"
+                elif receipt_required and not has_receipt:
+                    expense.rebuild_next_step = "receipt"
+                else:
+                    expense.rebuild_next_step = "submit"
+            elif expense.state == "submitted":
+                expense.rebuild_next_step = (
+                    "receipt"
+                    if receipt_required and not has_receipt
+                    else "approve"
+                )
+            elif expense.state == "approved":
+                expense.rebuild_next_step = (
+                    "receipt"
+                    if receipt_required and not has_receipt
+                    else "post"
+                )
+            elif (
+                expense.state == "posted"
+                and expense.payment_mode == "own_account"
+            ):
+                expense.rebuild_next_step = "payment"
+            elif expense.state == "in_payment":
+                expense.rebuild_next_step = "processing"
+            elif expense.state == "refused":
+                expense.rebuild_next_step = "refused"
+            else:
+                expense.rebuild_next_step = "done"
+
+    @api.model
+    def _search_rebuild_receipt_state(self, operator, value):
+        if operator not in ("=", "!=") or value not in (
+            "received",
+            "missing",
+            "not_required",
+        ):
+            raise NotImplementedError
+        if value == "not_required":
+            domain = [
+                ("message_main_attachment_id", "=", False),
+                ("product_id.rebuild_receipt_required", "=", False),
+            ]
+            if operator == "!=":
+                return [
+                    "|",
+                    ("message_main_attachment_id", "!=", False),
+                    ("product_id.rebuild_receipt_required", "=", True),
+                ]
+            return domain
+        if value == "missing":
+            domain = [
+                ("message_main_attachment_id", "=", False),
+                ("product_id.rebuild_receipt_required", "=", True),
+            ]
+            if operator == "!=":
+                return [
+                    "|",
+                    ("message_main_attachment_id", "!=", False),
+                    ("product_id.rebuild_receipt_required", "=", False),
+                ]
+            return domain
+        has_receipt = value == "received"
+        if operator == "!=":
+            has_receipt = not has_receipt
+        return [
+            (
+                "message_main_attachment_id",
+                "!=" if has_receipt else "=",
+                False,
+            ),
+        ]
+
+    def _can_be_autovalidated(self):
+        self.ensure_one()
+        auto_validate = super()._can_be_autovalidated()
+        if (
+            auto_validate
+            and self.manager_id == self.env.user
+            and self.env.user.has_group(
+                "hr_expense.group_hr_expense_manager",
+            )
+        ):
+            return False
+        return auto_validate
+
+    def _check_rebuild_required_receipt(self):
+        # The deterministic source materializer restores the native workflow
+        # state before copying source attachments. Its own parity controls
+        # validate the restored evidence immediately afterwards.
+        if self.env.context.get("rebuild_source_materialization"):
+            return
+        missing = self.filtered(
+            lambda expense: (
+                expense.product_id.rebuild_receipt_required
+                and not expense.message_main_attachment_id
+            ),
+        )
+        if missing:
+            raise UserError(
+                _(
+                    "Attach a receipt before continuing with: %s",
+                    ", ".join(missing.mapped("name")),
+                ),
+            )
+
+    def action_submit(self):
+        self._check_rebuild_required_receipt()
+        return super().action_submit()
+
+    def action_approve(self):
+        self._check_rebuild_required_receipt()
+        return super().action_approve()
+
+    def action_post(self):
+        self._check_rebuild_required_receipt()
+        return super().action_post()
+
     def _check_rebuild_reviewer_expense_mutation(self):
         if (
             not self.env.su
@@ -179,6 +344,15 @@ class HrExpense(models.Model):
 class ProductProduct(models.Model):
     _name = "product.product"
     _inherit = ["product.product", "rebuild.source.trace.mixin"]
+
+    rebuild_receipt_required = fields.Boolean(
+        string="Receipt required",
+        default=True,
+        help=(
+            "Require supporting evidence before an expense using this "
+            "category can be submitted, approved or posted."
+        ),
+    )
 
 
 class AccountAccount(models.Model):

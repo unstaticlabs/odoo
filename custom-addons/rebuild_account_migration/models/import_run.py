@@ -6417,6 +6417,7 @@ class RebuildAccountImportRun(models.Model):
             Expense = self.env["hr.expense"].sudo().with_context(
                 tracking_disable=True,
                 mail_create_nolog=True,
+                rebuild_source_materialization=True,
             )
             created_count = 0
             reused_count = 0

@@ -1279,6 +1279,113 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(len(closest_date_filter), 1)
         self.assertEqual(closest_date_filter[0].get("string"), "Closest date")
 
+    def test_general_reconciliation_requires_opposite_sides_and_explains_partial_match(self):
+        clearing = self._account(
+            "T471991",
+            "General reconciliation clearing",
+            "asset_receivable",
+        )
+        clearing.reconcile = True
+        partner = self.env["res.partner"].create({
+            "name": "General reconciliation partner",
+        })
+        offset = self._account(
+            "T580991",
+            "General reconciliation offset",
+            "asset_current",
+        )
+        journal = self._journal()
+        lines = self.env["account.move.line"]
+        for amount, label in ((100.0, "Debit item"), (-70.0, "Credit item")):
+            move = self.env["account.move"].create({
+                "journal_id": journal.id,
+                "date": fields.Date.today(),
+                "line_ids": [
+                    Command.create({
+                        "name": label,
+                        "account_id": clearing.id,
+                        "partner_id": partner.id,
+                        "debit": max(amount, 0.0),
+                        "credit": max(-amount, 0.0),
+                    }),
+                    Command.create({
+                        "name": f"{label} offset",
+                        "account_id": offset.id,
+                        "debit": max(-amount, 0.0),
+                        "credit": max(amount, 0.0),
+                    }),
+                ],
+            })
+            move.action_post()
+            lines |= move.line_ids.filtered(
+                lambda line: line.account_id == clearing,
+            )
+
+        action = lines[:1].action_reconcile_manually()
+        self.assertEqual(
+            action["context"]["default_account_move_lines"],
+            lines[:1].ids,
+        )
+        workspace = self.env["account.account.reconcile"].with_context(
+            default_account_move_lines=lines.ids,
+            active_test=False,
+        ).search(action["domain"], limit=1)
+        self.assertTrue(workspace)
+        self.assertEqual(workspace.selected_count, 2)
+        self.assertEqual(workspace.selection_outcome, "partial")
+        self.assertAlmostEqual(workspace.selection_difference, 30.0)
+        self.assertTrue(workspace.can_reconcile)
+
+        result = workspace.reconcile()
+        lines.invalidate_recordset([
+            "amount_residual",
+            "reconciled",
+            "matched_debit_ids",
+            "matched_credit_ids",
+        ])
+        self.assertEqual(result["res_model"], "account.move.line")
+        self.assertEqual(set(safe_eval(str(result["domain"]))[0][2]), set(lines.ids))
+        self.assertAlmostEqual(sum(lines.mapped("amount_residual")), 30.0)
+        self.assertTrue(any(lines.mapped("matched_debit_ids")))
+
+        lone_workspace = self.env["account.account.reconcile"].with_context(
+            default_account_move_lines=lines.filtered(
+                lambda line: line.amount_residual,
+            ).ids,
+        ).with_context(active_test=False).search(
+            [
+                ("account_id", "=", clearing.id),
+                ("partner_id", "=", partner.id),
+            ],
+            limit=1,
+        )
+        with self.assertRaisesRegex(
+            UserError,
+            "at least two|debit and one credit",
+        ):
+            lone_workspace.reconcile()
+
+        combined_arch = self.env.ref(
+            "account_reconcile_oca.account_account_reconcile_form_view",
+        )._get_combined_arch()
+        candidate = combined_arch.xpath(
+            "//field[@name='add_account_move_line_id']",
+        )
+        self.assertEqual(len(candidate), 1)
+        self.assertIn(
+            "('id', 'not in', selected_move_line_ids)",
+            candidate[0].get("domain"),
+        )
+        self.assertIn(
+            "search_default_general_closest_amount",
+            candidate[0].get("context"),
+        )
+        self.assertTrue(
+            combined_arch.xpath(
+                "//button[@name='reconcile' and @string='Confirm match']",
+            ),
+        )
+
     def test_transactions_list_explains_match_residual_and_linked_entry(self):
         bank_journal = self._journal("bank")
         bank_line = self.env["account.bank.statement.line"].with_context(
@@ -1409,9 +1516,126 @@ class TestRebuildAccountMigration(TransactionCase):
 
     def test_native_expenses_are_available_from_accounting_payables(self):
         expenses_menu = self.env.ref("hr_expense.menu_hr_expense_account_employee_expenses")
+        expense_action = self.env.ref("hr_expense.action_hr_expense_account")
+        expense_list = self.env.ref(
+            "rebuild_account_migration.view_rebuild_accounting_expense_list",
+        )
 
         self.assertEqual(expenses_menu.parent_id, self.env.ref("account.menu_finance_payables"))
-        self.assertEqual(expenses_menu.action, self.env.ref("hr_expense.action_hr_expense_account"))
+        self.assertEqual(expenses_menu.name, "Expenses")
+        self.assertEqual(expenses_menu.action, expense_action)
+        self.assertEqual(expense_action.name, "Expenses")
+        self.assertEqual(expense_action.view_id, expense_list)
+        self.assertTrue(
+            safe_eval(expense_action.context)["search_default_needs_action"],
+        )
+        expense_arch = etree.fromstring(expense_list.arch_db)
+        self.assertEqual(expense_arch.get("js_class"), "hr_expense_tree")
+        for field_name in (
+            "rebuild_receipt_state",
+            "rebuild_next_step",
+            "analytic_distribution",
+            "total_amount",
+        ):
+            self.assertTrue(
+                expense_arch.xpath(f"//field[@name='{field_name}']"),
+            )
+
+    def test_expense_manager_gets_explicit_review_step_and_guidance(self):
+        manager = self.env["res.users"].with_context(
+            no_reset_password=True,
+        ).create({
+            "name": "Unit Expense Manager",
+            "login": "unit.expense.manager@example.invalid",
+            "email": "unit.expense.manager@example.invalid",
+            "company_id": self.company.id,
+            "company_ids": [Command.set([self.company.id])],
+            "group_ids": [Command.set([
+                self.env.ref("base.group_user").id,
+                self.env.ref(
+                    "hr_expense.group_hr_expense_manager",
+                ).id,
+                self.env.ref("account.group_account_manager").id,
+            ])],
+        })
+        employee = self.env["hr.employee"].create({
+            "name": manager.name,
+            "user_id": manager.id,
+            "expense_manager_id": manager.id,
+            "company_id": self.company.id,
+        })
+        expense_account = self._account(
+            "T625991",
+            "Unit expense account",
+            "expense",
+        )
+        category = self.env["product.product"].create({
+            "name": "Unit expense journey",
+            "can_be_expensed": True,
+            "property_account_expense_id": expense_account.id,
+        })
+        expense = self.env["hr.expense"].with_user(manager).create({
+            "name": "Unit receipt journey",
+            "employee_id": employee.id,
+            "product_id": category.id,
+            "company_id": self.company.id,
+            "payment_mode": "own_account",
+            "total_amount_currency": 42.0,
+        })
+        self.assertEqual(expense.rebuild_next_step, "receipt")
+        with self.assertRaisesRegex(UserError, "Attach a receipt"):
+            expense.with_user(manager).action_submit()
+        restored_expense = self.env["hr.expense"].with_user(manager).create({
+            "name": "Source materialization receipt sequencing",
+            "employee_id": employee.id,
+            "product_id": category.id,
+            "company_id": self.company.id,
+            "payment_mode": "own_account",
+            "total_amount_currency": 1.0,
+        })
+        restored_expense.with_user(manager).with_context(
+            rebuild_source_materialization=True,
+        ).action_submit()
+        self.assertEqual(restored_expense.state, "submitted")
+        receipt = self.env["ir.attachment"].sudo().create({
+            "name": "unit-receipt.pdf",
+            "type": "binary",
+            "datas": base64.b64encode(b"unit receipt"),
+            "res_model": "hr.expense",
+            "res_id": expense.id,
+        })
+        expense.with_user(manager).message_main_attachment_id = receipt
+        expense.invalidate_recordset([
+            "message_main_attachment_id",
+            "rebuild_receipt_state",
+            "rebuild_next_step",
+        ])
+        self.assertEqual(expense.rebuild_receipt_state, "received")
+        self.assertEqual(expense.rebuild_next_step, "submit")
+
+        expense.with_user(manager).action_submit()
+        self.assertEqual(expense.state, "submitted")
+        self.assertEqual(expense.rebuild_next_step, "approve")
+        expense.with_user(manager).action_approve()
+        self.assertEqual(expense.state, "approved")
+        self.assertEqual(expense.rebuild_next_step, "post")
+        category_view = self.env.ref(
+            "hr_expense.product_product_expense_form_view",
+        )._get_combined_arch()
+        self.assertTrue(
+            category_view.xpath(
+                "//field[@name='rebuild_receipt_required']",
+            ),
+        )
+        expense_form = self.env.ref(
+            "hr_expense.hr_expense_view_form",
+        )._get_combined_arch()
+        self.assertTrue(
+            expense_form.xpath(
+                "//button[@name='action_pay' "
+                "and @string='Record Reimbursement']",
+            ),
+        )
 
     def test_accountant_reviewer_can_read_native_expenses_but_not_change_them(self):
         reviewer = self.env["res.users"].with_context(

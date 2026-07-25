@@ -3016,6 +3016,23 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             "    main_company,",
             "    base_group | reviewer_group,",
             ")",
+            "manager_employee = env['hr.employee'].search([",
+            "    ('company_id', '=', main_company.id),",
+            "    ('name', 'ilike', 'Valentin'),",
+            "], order='id', limit=1)",
+            "if not manager_employee:",
+            "    manager_employee = env['hr.employee'].create({",
+            "        'name': manager_user.name,",
+            "        'company_id': main_company.id,",
+            "    })",
+            "manager_employee.write({",
+            "        'user_id': manager_user.id,",
+            "        'expense_manager_id': manager_user.id,",
+            "    })",
+            "env['product.product'].search([",
+            "    ('can_be_expensed', '=', True),",
+            "    ('default_code', '=', 'TELETRAVAIL FORFAIT'),",
+            "]).write({'rebuild_receipt_required': False})",
             "env.cr.commit()",
             "print('REBUILD_REPLACEMENT_IMPORT_RESULT=' + json.dumps({",
             "    'run_id': run.id,",
@@ -3038,6 +3055,10 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             "            ),",
             "            'expense_manager': manager_user.has_group(",
             "                'hr_expense.group_hr_expense_manager',",
+            "            ),",
+            "            'employee_id': manager_employee.id,",
+            "            'employee_linked': (",
+            "                manager_employee.user_id == manager_user",
             "            ),",
             "        },",
             "        'accountant': {",
@@ -3152,6 +3173,7 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
         payload["users"]["manager"]["login"] == "valentin"
         and payload["users"]["manager"]["account_manager"] is True
         and payload["users"]["manager"]["expense_manager"] is True
+        and payload["users"]["manager"]["employee_linked"] is True
         and payload["users"]["accountant"]["login"] == "prosper"
         and payload["users"]["accountant"]["reviewer"] is True
         and payload["users"]["accountant"]["account_manager"] is False

@@ -1,4 +1,5 @@
 from odoo import _, api, fields, models
+from odoo.exceptions import UserError
 from odoo.tools.safe_eval import safe_eval
 
 
@@ -6,11 +7,103 @@ class AccountAccountReconcile(models.Model):
     _inherit = "account.account.reconcile"
     _description = "General Reconciliation"
 
+    selected_move_line_ids = fields.Many2many(
+        "account.move.line",
+        compute="_compute_rebuild_selection_summary",
+        string="Selected items",
+    )
+    selected_count = fields.Integer(
+        compute="_compute_rebuild_selection_summary",
+    )
+    selected_debit = fields.Monetary(
+        compute="_compute_rebuild_selection_summary",
+        currency_field="company_currency_id",
+    )
+    selected_credit = fields.Monetary(
+        compute="_compute_rebuild_selection_summary",
+        currency_field="company_currency_id",
+    )
+    selection_difference = fields.Monetary(
+        compute="_compute_rebuild_selection_summary",
+        currency_field="company_currency_id",
+    )
+    selection_reference_date = fields.Date(
+        compute="_compute_rebuild_selection_summary",
+    )
+    selection_outcome = fields.Selection(
+        selection=[
+            ("choose", "Choose a counterpart"),
+            ("full", "Full match"),
+            ("partial", "Partial match"),
+        ],
+        compute="_compute_rebuild_selection_summary",
+    )
+    can_reconcile = fields.Boolean(
+        compute="_compute_rebuild_selection_summary",
+    )
+
+    @api.depends("reconcile_data_info")
+    def _compute_rebuild_selection_summary(self):
+        for record in self:
+            counterpart_ids = (
+                record.reconcile_data_info or {}
+            ).get("counterparts", [])
+            lines = self.env["account.move.line"].browse(
+                counterpart_ids,
+            ).exists()
+            positive = sum(
+                lines.filtered(
+                    lambda line: line.amount_residual > 0,
+                ).mapped("amount_residual"),
+            )
+            negative = -sum(
+                lines.filtered(
+                    lambda line: line.amount_residual < 0,
+                ).mapped("amount_residual"),
+            )
+            record.selected_move_line_ids = lines
+            record.selected_count = len(lines)
+            record.selected_debit = positive
+            record.selected_credit = negative
+            record.selection_difference = positive - negative
+            record.selection_reference_date = (
+                max(lines.mapped("date")) if lines else False
+            )
+            has_both_sides = bool(positive and negative)
+            record.can_reconcile = len(lines) >= 2 and has_both_sides
+            if not record.can_reconcile:
+                record.selection_outcome = "choose"
+            elif record.company_currency_id.is_zero(
+                record.selection_difference,
+            ):
+                record.selection_outcome = "full"
+            else:
+                record.selection_outcome = "partial"
+
     def reconcile(self):
         self.ensure_one()
         lines = self.env["account.move.line"].browse(
             self.reconcile_data_info["counterparts"],
-        )
+        ).exists()
+        if len(lines) < 2:
+            raise UserError(
+                _("Select at least two journal items before matching."),
+            )
+        if len(lines.account_id) != 1:
+            raise UserError(
+                _("All selected items must use the same account."),
+            )
+        if not (
+            any(lines.mapped("amount_residual"))
+            and any(line.amount_residual > 0 for line in lines)
+            and any(line.amount_residual < 0 for line in lines)
+        ):
+            raise UserError(
+                _(
+                    "Choose at least one debit and one credit. "
+                    "Items on the same side cannot be matched.",
+                ),
+            )
         line_ids = lines.ids
         super().reconcile()
         lines.invalidate_recordset([
@@ -192,6 +285,58 @@ class AccountMoveLine(models.Model):
         order=None,
         count_limit=None,
     ):
+        general_amount = self.env.context.get(
+            "general_reconcile_target_amount",
+        )
+        general_date = self.env.context.get(
+            "general_reconcile_reference_date",
+        )
+        general_closest_amount = self.env.context.get(
+            "general_reconcile_closest_amount",
+        )
+        general_closest_date = self.env.context.get(
+            "general_reconcile_closest_date",
+        )
+        if (
+            (general_closest_amount or general_closest_date)
+            and general_amount
+        ):
+            candidates = self.search(domain, order=order)
+
+            def general_ranking_key(line):
+                key = []
+                if general_closest_amount:
+                    key.append(
+                        abs(
+                            abs(line.amount_residual)
+                            - abs(general_amount)
+                        ),
+                    )
+                if general_closest_date and general_date:
+                    key.append(
+                        abs(
+                            (
+                                line.date
+                                - fields.Date.to_date(general_date)
+                            ).days,
+                        ),
+                    )
+                key.extend([-line.date.toordinal(), line.id])
+                return tuple(key)
+
+            ranked_ids = [
+                line.id
+                for line in sorted(candidates, key=general_ranking_key)
+            ]
+            page_ids = ranked_ids[
+                offset : offset + limit if limit else None
+            ]
+            records = self.browse(page_ids).web_read(specification)
+            length = len(ranked_ids)
+            if count_limit:
+                length = min(length, count_limit)
+            return {"length": length, "records": records}
+
         statement_line_id = self.env.context.get("reconcile_statement_line_id")
         closest_amount = self.env.context.get("reconcile_closest_amount")
         closest_date = self.env.context.get("reconcile_closest_date")
