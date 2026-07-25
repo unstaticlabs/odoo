@@ -55,7 +55,7 @@ Still in the host shell:
 make oca-addons-sync
 ```
 
-Why: Milestone 13 uses pinned OCA 19.0 add-ons for Community financial reports, MIS reports, bank statement support and reconciliation. The command creates local ignored checkouts under `oca-src/` and exposes selected modules through `oca-addons/`.
+Why: Milestone 13 uses pinned OCA 19.0 add-ons for selected Community financial-report foundations, bank statement support, reconciliation and asset schedules. The canonical end-user reports are provided by the unified interactive Accounting experience; the superseded MIS engine is no longer exposed or synchronized. The command creates local ignored checkouts under `oca-src/` and exposes only the selected modules through `oca-addons/`.
 
 If the Dev Container was already open before this step, recreate it before starting Odoo so its environment includes `oca-addons/`.
 

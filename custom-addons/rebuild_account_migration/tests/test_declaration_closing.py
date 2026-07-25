@@ -151,7 +151,7 @@ class TestDeclarationAndClosing(TransactionCase):
             for reference in first_year_is.field_line_ids.mapped("source_reference")
         ))
 
-    def test_reviewer_scope_and_evidence_backed_decisions(self):
+    def test_reviewer_scope_and_manager_evidence_backed_decisions(self):
         company = self._company("Reviewer Scope Company")
         declaration = self._declaration(company)
         closing = self.env["rebuild.account.closing.period"].with_company(company).create({
@@ -188,7 +188,21 @@ class TestDeclarationAndClosing(TransactionCase):
         with self.assertRaises(AccessError):
             closing.with_user(reviewer).write({"state": "ready"})
 
-        missing_evidence = self.env["rebuild.account.review.decision"].with_user(reviewer).create({
+        decision_model = self.env["rebuild.account.review.decision"]
+        self.assertTrue(decision_model.with_user(reviewer).has_access("read"))
+        self.assertFalse(decision_model.with_user(reviewer).has_access("write"))
+        self.assertFalse(decision_model.with_user(reviewer).has_access("create"))
+        with self.assertRaises(AccessError):
+            decision_model.with_user(reviewer).create({
+                "gate": "declaration_review",
+                "conclusion": "accepted",
+                "required_authority": "accountant",
+                "company_id": company.id,
+                "declaration_id": declaration.id,
+                "decision_summary": "Reviewer cannot create decisions.",
+            })
+
+        missing_evidence = decision_model.create({
             "gate": "declaration_review",
             "conclusion": "accepted",
             "required_authority": "accountant",
@@ -197,9 +211,9 @@ class TestDeclarationAndClosing(TransactionCase):
             "decision_summary": "The declaration was reviewed.",
         })
         with self.assertRaisesRegex(UserError, "Record the evidence"):
-            missing_evidence.with_user(reviewer).action_record()
+            missing_evidence.action_record()
 
-        declaration_decision = self.env["rebuild.account.review.decision"].with_user(reviewer).create({
+        declaration_decision = decision_model.create({
             "gate": "declaration_review",
             "conclusion": "accepted_with_difference",
             "required_authority": "accountant",
@@ -208,13 +222,11 @@ class TestDeclarationAndClosing(TransactionCase):
             "decision_summary": "Reviewed with the documented external administrative confirmations.",
             "evidence_summary": "Reviewer package REF-DECL-UNIT and declaration field schedule.",
         })
-        declaration_decision.with_user(reviewer).action_record()
+        declaration_decision.action_record()
         self.assertEqual(declaration.review_status, "accepted_with_difference")
         self.assertEqual(declaration.status, "ready_to_file")
 
-        not_applicable_closing = self.env[
-            "rebuild.account.review.decision"
-        ].with_user(reviewer).create({
+        not_applicable_closing = decision_model.create({
             "gate": "closing_review",
             "conclusion": "not_applicable",
             "required_authority": "accountant",
@@ -223,7 +235,7 @@ class TestDeclarationAndClosing(TransactionCase):
             "decision_summary": "This conclusion does not accept a closing package.",
             "evidence_summary": "No package acceptance was granted.",
         })
-        not_applicable_closing.with_user(reviewer).action_record()
+        not_applicable_closing.action_record()
         self.assertEqual(closing.review_status, "rejected")
         self.assertEqual(closing.state, "blocked")
         self.assertFalse(closing.snapshot_ids)
@@ -238,7 +250,7 @@ class TestDeclarationAndClosing(TransactionCase):
             "res_id": closing.id,
         })
         closing.package_attachment_ids = [Command.link(package_attachment.id)]
-        closing_decision = self.env["rebuild.account.review.decision"].with_user(reviewer).create({
+        closing_decision = decision_model.create({
             "gate": "closing_review",
             "conclusion": "accepted",
             "required_authority": "accountant",
@@ -247,7 +259,7 @@ class TestDeclarationAndClosing(TransactionCase):
             "decision_summary": "The package was reviewed, but the automated blocker still controls closure.",
             "evidence_summary": "Reviewer package REF-CLOSE-UNIT.",
         })
-        closing_decision.with_user(reviewer).action_record()
+        closing_decision.action_record()
         self.assertEqual(closing.review_status, "accepted")
         self.assertEqual(closing.state, "blocked")
         self.assertEqual(closing.snapshot_count, 1)
@@ -272,7 +284,7 @@ class TestDeclarationAndClosing(TransactionCase):
             package_attachment.write({
                 "datas": base64.b64encode(b"changed package"),
             })
-        closing_decision.with_user(reviewer).action_supersede()
+        closing_decision.action_supersede()
         self.assertEqual(closing.review_status, "accountant_requested")
         self.assertEqual(closing.state, "blocked")
         closing.write({"package_reference": "New review cycle"})

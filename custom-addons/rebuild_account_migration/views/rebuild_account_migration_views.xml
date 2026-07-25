@@ -493,6 +493,12 @@
     <record id="account_financial_report.menu_oca_reports" model="ir.ui.menu">
         <field name="active" eval="False"/>
     </record>
+    <record id="account_asset_management.account_asset_report_menu" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="account_tax_balance.menu_tax_balances" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
     <record id="account_financial_report.action_trial_balance_wizard" model="ir.actions.act_window">
         <field name="context">{'default_date_from': '2024-01-10', 'default_date_to': '2025-09-30', 'default_target_move': 'posted'}</field>
     </record>

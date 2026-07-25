@@ -3194,20 +3194,47 @@ class TestRebuildAccountMigration(TransactionCase):
                 "status": "open",
             })
 
-        decision = self.env["rebuild.account.review.decision"].with_user(reviewer).create({
+        with self.assertRaises(AccessError):
+            self.env["rebuild.account.review.decision"].with_user(reviewer).create({
+                "gate": "discrepancy_acceptance",
+                "conclusion": "pending",
+                "required_authority": "accountant",
+                "discrepancy_id": discrepancy.id,
+                "decision_summary": "Reviewer cannot create review decisions.",
+            })
+        decision = self.env["rebuild.account.review.decision"].create({
             "gate": "discrepancy_acceptance",
             "conclusion": "pending",
             "required_authority": "accountant",
             "discrepancy_id": discrepancy.id,
-            "decision_summary": "Reviewer records factual review notes without changing the discrepancy.",
+            "decision_summary": "Prepared for read-only accountant inspection.",
         })
-        self.assertEqual(decision.discrepancy_id, discrepancy)
-        decision.with_user(reviewer).write({
-            "decision_summary": "Reviewer can update the review decision record only.",
-        })
-        self.assertEqual(decision.decision_summary, "Reviewer can update the review decision record only.")
+        self.assertEqual(
+            decision.with_user(reviewer).read(["decision_summary"])[0][
+                "decision_summary"
+            ],
+            "Prepared for read-only accountant inspection.",
+        )
+        with self.assertRaises(AccessError):
+            decision.with_user(reviewer).write({
+                "decision_summary": "Reviewer cannot change review decisions.",
+            })
 
-        external_value = self.env["rebuild.account.external.report.value"].with_user(reviewer).create({
+        external_values = self.env["rebuild.account.external.report.value"]
+        with self.assertRaises(AccessError):
+            external_values.with_user(reviewer).create({
+                "name": "Reviewer cannot create external VAT values",
+                "company_id": self.company.id,
+                "currency_id": self.company.currency_id.id,
+                "period_key": "USL benchmark 2024-01-10 to 2025-09-30",
+                "form_code": "3517-S-SD",
+                "field_code": "3517S_TVA_DEDUCTIBLE_BIENS_SERVICES_445660",
+                "value_kind": "accountant_supplied",
+                "amount": 1960.00,
+                "source_key": "unit-reviewer-forbidden-external-vat",
+                "review_status": "pending_review",
+            })
+        external_value = external_values.create({
             "name": "Reviewer external VAT value",
             "company_id": self.company.id,
             "currency_id": self.company.currency_id.id,
@@ -3219,9 +3246,10 @@ class TestRebuildAccountMigration(TransactionCase):
             "source_key": "unit-reviewer-external-vat",
             "review_status": "pending_review",
         })
-        external_value.with_user(reviewer).write({
-            "evidence": "Reviewer can maintain external declaration evidence without editing posted accounting.",
-        })
+        with self.assertRaises(AccessError):
+            external_value.with_user(reviewer).write({
+                "evidence": "Reviewer cannot change external declaration evidence.",
+            })
         self.assertEqual(external_value.amount, 1960.00)
         other_company = self.env["res.company"].create({
             "name": "USL Media Unit",
@@ -3431,7 +3459,7 @@ class TestRebuildAccountMigration(TransactionCase):
         with self.assertRaises(UserError):
             decision.write({"conclusion": "rejected"})
 
-    def test_reviewer_record_action_updates_discrepancy_without_direct_write(self):
+    def test_reviewer_cannot_record_or_create_review_decisions(self):
         reviewer = self.env["res.users"].with_context(no_reset_password=True).create({
             "name": "Decision Reviewer",
             "login": "decision.reviewer@example.invalid",
@@ -3447,23 +3475,31 @@ class TestRebuildAccountMigration(TransactionCase):
             "status": "open",
             "company_id": self.company.id,
         })
-        decision = self.env["rebuild.account.review.decision"].with_user(reviewer).create({
+        decision_values = {
             "gate": "discrepancy_acceptance",
             "conclusion": "accepted",
             "required_authority": "accountant",
             "company_id": self.company.id,
             "discrepancy_id": discrepancy.id,
             "decision_summary": "Accepted because the excluded source records have no posted accounting effect.",
-        })
+        }
 
         with self.assertRaises(AccessError):
             discrepancy.with_user(reviewer).write({"status": "accepted"})
+        with self.assertRaises(AccessError):
+            self.env["rebuild.account.review.decision"].with_user(reviewer).create(
+                decision_values,
+            )
 
-        decision.with_user(reviewer).action_record()
+        decision = self.env["rebuild.account.review.decision"].create(
+            decision_values,
+        )
+        with self.assertRaises(AccessError):
+            decision.with_user(reviewer).action_record()
 
-        self.assertEqual(discrepancy.status, "accepted")
-        self.assertEqual(discrepancy.approver, "Decision Reviewer")
-        self.assertEqual(decision.state, "recorded")
+        self.assertEqual(discrepancy.status, "open")
+        self.assertFalse(discrepancy.approver)
+        self.assertEqual(decision.state, "draft")
 
     def test_report_export_metadata_and_empty_csv(self):
         wizard = self.env["rebuild.account.report.export.wizard"].create({
@@ -4038,6 +4074,8 @@ class TestRebuildAccountMigration(TransactionCase):
             ).active,
         )
         hidden_competitors = [
+            "account_asset_management.account_asset_report_menu",
+            "account_tax_balance.menu_tax_balances",
             "account.menu_action_analytic_reporting",
             "rebuild_account_migration.menu_rebuild_account_report_fixed_asset_group_account_launcher",
             "rebuild_account_migration.menu_rebuild_account_report_tax_group_account_tax_launcher",
