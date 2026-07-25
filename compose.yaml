@@ -103,8 +103,8 @@ services:
     command:
       - odoo
       - --config=/etc/odoo/odoo.conf
-      - --database=${ODOO_INIT_DB:-odoo_saas_19_2_empty_01}
-      - --init=${ODOO_INIT_MODULES:-base}
+      - --database=${ODOO_INIT_DB:-odoo_dev}
+      - --init=${ODOO_INIT_MODULES:-rebuild_account_migration}
       - --without-demo=true
       - --stop-after-init
     restart: "no"

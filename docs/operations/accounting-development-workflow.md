@@ -18,31 +18,26 @@ This workflow exists to keep accounting development fast, safe and reviewable. D
 
 ## Database roles during development
 
-On `saas-19.2-usl-feat-accounting`, use one candidate database and two
-isolated validation databases in the `usl-odoo-saas-19-2` Compose project:
+Normal development, module updates and browser QA use one disposable database:
+`odoo_dev`.
 
-- `odoo_online_source_saas_19_2`: restored source backup, read-only for extraction.
-- `odoo_saas_19_2_empty_01`: disposable empty-install proof.
-- `odoo_saas_19_2_candidate_01`: initial developer and QA candidate. It
-  combines exact benchmark history with the validated native operating-period
-  replay.
-- `odoo_saas_19_2_validation_exact`: pipeline-only proof of exact historical import parity.
-- `odoo_saas_19_2_validation_native`: pipeline-only proof that current-period business
-  records reproduce their accounting through native Odoo/OCA workflows.
+The reconstruction harness creates `odoo_saas_19_2_validation_exact` and
+`odoo_saas_19_2_validation_native` only when their explicit pipeline stages
+run. They are disposable evidence databases, not alternate development
+environments. The restored `odoo_online_source_saas_19_2` database is isolated
+in the optional `accounting-source-db` service and is used read-only for
+extraction.
 
-Do normal module updates, browser QA and product acceptance on
-`odoo_saas_19_2_candidate_01`. Never point SaaS code at the preserved Odoo 19
-`odoo_dev` database, and never update the read-only source. The canonical
-`odoo_dev` name may be reassigned only after two clean SaaS reconstructions and
-accounting parity acceptance. Do not enter durable business data in any of
-these databases; all target databases are disposable and reproducible.
+Do not enter durable business data in any local database. Recreate `odoo_dev`
+from the harness when import or reconstruction behavior changes; for ordinary
+code and UI work, update it in place.
 
 ## Fast iteration matrix
 
 | Change type | Usually rerun | Avoid unless needed |
 | --- | --- | --- |
 | Markdown docs | `git diff --check` | source restore, target reset |
-| Odoo XML menus/views | `odoo --update=rebuild_account_migration --stop-after-init` on `odoo_saas_19_2_candidate_01` | source restore, extract |
+| Odoo XML menus/views | `scripts/odoo-dev deploy` on `odoo_dev` | source restore, extract |
 | Odoo Python report formatting only | module update, targeted Odoo tests, one report export smoke test | source restore |
 | Native analytic pivot fields/views | module update, targeted measure/view test, aggregate sign/reconciliation query; focused pivot browser smoke only when interaction changed | source restore, native analytic replay |
 | Electronic-invoice readiness/reception | module update, offline UBL reception/deduplication test, cron inactivity query; never register or call a live platform | source restore, live provider activation |
@@ -64,56 +59,29 @@ these databases; all target databases are disposable and reproducible.
 
 ## Normal UI/report development loop
 
-Host shell:
+From the host shell:
 
 ```bash
 cd /Users/valentin/Code/odoo
-docker compose ps
-make oca-addons-sync
+make dev
+make deploy
 ```
 
-Keep these services running:
+`make dev` opens the existing environment. `make deploy` stops Odoo, updates
+`rebuild_account_migration` in `odoo_dev`, recreates the web service and waits
+for it to become healthy. It does not restore source data or rebuild the image.
+
+Use `make rebuild` only after Dockerfile, dependency, system or
+core-source changes. Both commands print the development URL:
 
 ```text
-db
-accounting-source-db
-devcontainer
-```
-
-If only Odoo code changed, update the add-on inside the Dev Container:
-
-```bash
-odoo --config=/etc/odoo/odoo.conf \
-  --addons-path=/workspace/odoo/addons,/workspace/odoo/odoo/addons,/workspace/odoo/custom-addons,/workspace/odoo/oca-addons \
-  --database=odoo_saas_19_2_candidate_01 \
-  --update=rebuild_account_migration \
-  --stop-after-init
-```
-
-Stop any manually started Odoo process for this database before the update.
-The update runs in a separate process: it refreshes database records such as
-views, menus, ACLs and module data, but it cannot replace Python already loaded
-by another running server.
-
-Then run the server:
-
-```bash
-odoo --config=/etc/odoo/odoo.conf \
-  --addons-path=/workspace/odoo/addons,/workspace/odoo/odoo/addons,/workspace/odoo/custom-addons,/workspace/odoo/oca-addons \
-  --database=odoo_saas_19_2_candidate_01 \
-  --dev=reload,xml,qweb
-```
-
-Open:
-
-```text
-http://localhost:8169/web/login?db=odoo_saas_19_2_candidate_01
+http://localhost:8169/web/login?db=odoo_dev
 ```
 
 ## Module and browser refresh contract
 
 Module state is database-specific. Run normal development updates against
-`odoo_saas_19_2_candidate_01`, the database users and QA review. Update a validation database only
+`odoo_dev`, the database users and QA review. Update a validation database only
 while testing that validation stage. Never update the restored source database.
 
 Two alternatives were considered for this loop:

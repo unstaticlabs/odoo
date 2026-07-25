@@ -80,9 +80,11 @@ source package validation
 → evidence index
 ```
 
-The preserved Odoo 19 `odoo_dev` database is not reset or modified by these
-stages. Exact reconstruction uses
-`odoo_saas_19_2_validation_exact`. Native-engine Track B proof uses
+The normal `odoo_dev` database is reset only by explicit development rebuild
+stages. Validation commands use their own temporary databases, so ordinary
+module updates do not require additional development database names.
+Exact reconstruction uses `odoo_saas_19_2_validation_exact`. Native-engine
+Track B proof uses
 `odoo_saas_19_2_validation_native`, so recomputed current-period documents
 cannot alter the exact historical replay.
 
@@ -120,7 +122,7 @@ The important databases are:
 | `odoo_online_source_saas_19_2` | Read-only source database restored from `usl-online-dump/dump.sql`. |
 | `odoo_saas_19_2_validation_exact` | Clean target Odoo database rebuilt from the extracted snapshot. |
 | `odoo_saas_19_2_validation_native` | Separate clean target for native current-period business-document recomputation. |
-| `odoo_saas_19_2_candidate_01` | Initial SaaS developer/QA product candidate. A clean reset and import reproduce the complete source Accounting state here. |
+| `odoo_dev` | Disposable SaaS developer/QA product database. A clean reset and import reproduce the complete source Accounting state here. |
 
 Stage dependencies:
 
@@ -142,7 +144,7 @@ Stage dependencies:
 | `make accounting-validation-native-bank-categorization` | Track B through General Reconciliation plus source bank transactions without external partial endpoints | Native OCA-categorized interest, fees, transfers and account allocations plus source-open transactions retained for review; private proof artifact | It replays the operator's account, partner, analytic and currency inputs for direct categorizations and deliberately leaves source-unreconciled transactions open. |
 | `make accounting-validation-native-bank-external` | Track B through direct categorization plus the remaining source bank/external-reconciliation graph | Exact multi-line OCA bank categorizations, posted payroll/tax/clearing entries, native General Reconciliation and explicit cutoff boundaries; private proof artifact | It completes all current-period bank transactions while keeping draft/post-cutoff documents as prepayments and identifying five aggregates from earlier bounded settlement stages that still need refinement. |
 | `make accounting-validation-native-analytics` | Completed Track B native stages plus source expense decisions, finalized analytic distributions and analytic lines | Explicit analytic-correction audit records and direct source/target reconciliation across both analytic plans; private proof artifact | It runs last, after every posting stage. Native business objects remain the accounting input; the stage applies only source post-posting analytic classifications through Odoo's supported distribution write, then compares both theoretical allocations and actual analytic lines. |
-| `make accounting-dev-reset` | Completed and validated Track B native state | Fresh `odoo_saas_19_2_candidate_01` clone with the current migration add-on upgraded | It refuses to clone incomplete Track B state and preserves both the exact-replay baseline and the isolated native proof. |
+| `make accounting-dev-reset` | Completed and validated Track B native state | Fresh `odoo_dev` clone with the current migration add-on upgraded | It refuses to clone incomplete Track B state and preserves both the exact-replay baseline and the isolated native proof. |
 | `make accounting-dev-import` | Canonical historical snapshot plus the replacement clone | Exact benchmark history in the replacement database, reusing only four checksum/shape-validated native move representations | It adds the locked historical ledger without duplicating the four current native moves that already represent source history. |
 | `make accounting-dev-validate` | Source database and completed replacement candidate | Historical parity, current-period difference decomposition and promotion-gate evidence | It requires exact benchmark parity, balanced/unique native state and a classification for every current journal and account-balance difference. A classified difference can still require professional acceptance. |
 | `make accounting-currency-rate-provider` | Imported target company configuration and the official ECB daily XML feed | Native future-dated `res.currency.rate` rows plus provider, retrieval, cron and idempotence evidence | It runs after historical replay. It must never replace a source-traced historical rate, and its reference rows remain separate from transaction-specific bank or platform conversion evidence. |
@@ -372,7 +374,7 @@ The exact historical target and Track B answer different questions, so neither i
 3. clone the completed Track B state into a third disposable database and exact-import the benchmark history, reusing only native records whose source identity and accounting shape are validated.
 
 Option 3 is selected. `make accounting-dev-reset` creates
-`odoo_saas_19_2_candidate_01` only after Track B proves `284` documents, `325`
+`odoo_dev` only after Track B proves `284` documents, `325`
 expenses, `1,841` bank transactions, zero unbalanced posted moves and zero
 duplicate source move representations. `make accounting-dev-import` then adds
 the `2024-01-10` through `2025-09-30` benchmark. It imports `2,046` moves and
