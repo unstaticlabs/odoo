@@ -776,6 +776,7 @@ class TestRebuildAccountMigration(TransactionCase):
         view = self.env.ref(
             "account_reconcile_oca.bank_statement_line_form_reconcile_view",
         )
+        combined_arch = view._get_combined_arch()
         mutation_button_names = {
             "reconcile_bank_line",
             "unreconcile_bank_line",
@@ -786,7 +787,7 @@ class TestRebuildAccountMigration(TransactionCase):
 
         mutation_buttons = [
             button
-            for button in view._get_combined_arch().xpath("//button")
+            for button in combined_arch.xpath("//button")
             if button.get("name") in mutation_button_names
         ]
         self.assertEqual(
@@ -796,6 +797,44 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertTrue(mutation_buttons)
         for button in mutation_buttons:
             self.assertEqual(button.get("groups"), "account.group_account_user")
+
+        self.assertEqual(
+            combined_arch.xpath("//notebook/page/@name"),
+            ["reconcile_line", "chatter", "narration", "manual"],
+        )
+        expected_labels = {
+            "unreconcile_bank_line": "Undo Match",
+            "clean_reconcile": "Clear Selection",
+            "action_to_check": "Mark for Review",
+            "action_checked": "Mark Reviewed",
+            "action_show_move": "Open Entry",
+        }
+        for button_name, label in expected_labels.items():
+            buttons = combined_arch.xpath(
+                f"//button[@name='{button_name}']",
+            )
+            self.assertTrue(buttons)
+            self.assertEqual(
+                {button.get("string") for button in buttons},
+                {label},
+            )
+            self.assertTrue(all(button.get("title") for button in buttons))
+        complete_match_buttons = combined_arch.xpath(
+            "//button[@name='reconcile_bank_line']",
+        )
+        self.assertEqual(
+            {button.get("string") for button in complete_match_buttons},
+            {"Complete Match"},
+        )
+        self.assertTrue(all(
+            button.get("title")
+            for button in complete_match_buttons
+        ))
+        bank_matching_action = self.env.ref(
+            "rebuild_account_migration."
+            "action_rebuild_account_reconcile_bank_transactions",
+        )
+        self.assertFalse(safe_eval(bank_matching_action.context)["create"])
 
     def test_bank_matching_candidates_default_to_closest_amount_and_date_ranking(self):
         receivable = self._account(
@@ -916,6 +955,105 @@ class TestRebuildAccountMigration(TransactionCase):
         )
         self.assertEqual(len(closest_date_filter), 1)
         self.assertEqual(closest_date_filter[0].get("string"), "Closest date")
+
+    def test_transactions_list_explains_status_residual_and_linked_entry(self):
+        bank_journal = self._journal("bank")
+        bank_line = self.env["account.bank.statement.line"].with_context(
+            _test_account_reconcile_oca=True,
+        ).create({
+            "journal_id": bank_journal.id,
+            "date": fields.Date.today(),
+            "payment_ref": "Transaction list unit match",
+            "amount": 100.0,
+        })
+        counterpart = bank_line.move_id.line_ids.filtered(
+            lambda line: (
+                line.account_id != bank_journal.default_account_id
+            ),
+        )
+        self.assertEqual(len(counterpart), 1)
+        counterpart.account_id.reconcile = True
+        bank_line.invalidate_recordset()
+        self.assertIn(
+            bank_line.rebuild_transaction_status,
+            {"open", "review"},
+        )
+        self.assertEqual(bank_line.rebuild_remaining_amount, 100.0)
+        self.assertFalse(bank_line.rebuild_matching_reference)
+
+        matching_action = bank_line.action_rebuild_open_bank_matching()
+        self.assertEqual(matching_action["domain"], [("id", "=", bank_line.id)])
+        self.assertEqual(
+            matching_action["res_model"],
+            "account.bank.statement.line",
+        )
+
+        offset = self._account(
+            "T580994",
+            "Transaction list match offset",
+            "asset_current",
+        )
+        counterpart_balance = counterpart.balance
+        clearing_move = self.env["account.move"].create({
+            "move_type": "entry",
+            "date": fields.Date.today(),
+            "journal_id": self._journal().id,
+            "line_ids": [
+                Command.create({
+                    "name": "Transaction list counterpart",
+                    "account_id": counterpart.account_id.id,
+                    "debit": max(-counterpart_balance, 0.0),
+                    "credit": max(counterpart_balance, 0.0),
+                }),
+                Command.create({
+                    "name": "Transaction list offset",
+                    "account_id": offset.id,
+                    "debit": max(counterpart_balance, 0.0),
+                    "credit": max(-counterpart_balance, 0.0),
+                }),
+            ],
+        })
+        clearing_move.action_post()
+        clearing_line = clearing_move.line_ids.filtered(
+            lambda line: line.account_id == counterpart.account_id,
+        )
+        (counterpart | clearing_line).reconcile()
+        bank_line.invalidate_recordset()
+
+        self.assertEqual(bank_line.rebuild_transaction_status, "matched")
+        self.assertEqual(bank_line.rebuild_remaining_amount, 0.0)
+        self.assertTrue(bank_line.rebuild_matching_reference)
+        self.assertIn(
+            clearing_move.display_name,
+            bank_line.rebuild_linked_document,
+        )
+
+        action = self.env.ref(
+            "account_statement_base.account_bank_statement_line_action",
+        )
+        transaction_view = self.env.ref(
+            "rebuild_account_migration.view_rebuild_bank_transaction_list",
+        )
+        transaction_arch = etree.fromstring(transaction_view.arch_db)
+        self.assertEqual(action.name, "Transactions")
+        self.assertEqual(action.view_mode, "list,form")
+        self.assertEqual(action.view_ids[0].view_id, transaction_view)
+        self.assertEqual(transaction_arch.get("create"), "0")
+        self.assertEqual(transaction_arch.get("edit"), "0")
+        for field_name in (
+            "date",
+            "payment_ref",
+            "partner_id",
+            "amount",
+            "journal_id",
+            "rebuild_transaction_status",
+            "rebuild_matching_reference",
+            "rebuild_linked_document",
+            "rebuild_remaining_amount",
+        ):
+            self.assertTrue(
+                transaction_arch.xpath(f"//field[@name='{field_name}']"),
+            )
 
     def test_native_expenses_are_available_from_accounting_payables(self):
         expenses_menu = self.env.ref("hr_expense.menu_hr_expense_account_employee_expenses")
@@ -2056,6 +2194,7 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(action.view_mode, "kanban,list")
         self.assertEqual(action.view_ids[0].view_id, reconcile_view)
         self.assertIn("'view_ref': 'account_reconcile_oca.bank_statement_line_form_reconcile_view'", action.context)
+        self.assertEqual(etree.fromstring(reconcile_view.arch_db).get("create"), "0")
         self.assertNotIn("<field ", card_arch)
         self.assertIn("record.payment_ref.value", card_arch)
 

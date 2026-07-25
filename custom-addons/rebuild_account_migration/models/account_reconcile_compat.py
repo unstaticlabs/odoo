@@ -227,3 +227,109 @@ class AccountMoveLine(models.Model):
             "length": length,
             "records": records,
         }
+
+
+class AccountBankStatementLine(models.Model):
+    _inherit = "account.bank.statement.line"
+
+    rebuild_transaction_status = fields.Selection(
+        selection=[
+            ("open", "To match"),
+            ("review", "To review"),
+            ("matched", "Matched"),
+        ],
+        compute="_compute_rebuild_transaction_display",
+        string="Matching status",
+    )
+    rebuild_remaining_amount = fields.Monetary(
+        compute="_compute_rebuild_transaction_display",
+        currency_field="currency_id",
+        string="Remaining",
+    )
+    rebuild_matching_reference = fields.Char(
+        compute="_compute_rebuild_transaction_display",
+        string="Match ref.",
+    )
+    rebuild_matching_color = fields.Integer(
+        compute="_compute_rebuild_transaction_display",
+    )
+    rebuild_linked_document = fields.Char(
+        compute="_compute_rebuild_transaction_display",
+        string="Linked document or entry",
+    )
+
+    @api.depends(
+        "amount",
+        "checked",
+        "is_reconciled",
+        "journal_id.default_account_id",
+        "move_id.line_ids.amount_residual",
+        "move_id.line_ids.matching_number",
+        "move_id.line_ids.matched_debit_ids",
+        "move_id.line_ids.matched_credit_ids",
+    )
+    def _compute_rebuild_transaction_display(self):
+        for statement_line in self:
+            if statement_line.is_reconciled:
+                statement_line.rebuild_transaction_status = "matched"
+            elif not statement_line.checked:
+                statement_line.rebuild_transaction_status = "review"
+            else:
+                statement_line.rebuild_transaction_status = "open"
+
+            move_lines = statement_line.move_id.line_ids
+            liquidity_account = statement_line.journal_id.default_account_id
+            counterpart_lines = move_lines.filtered(
+                lambda line: line.account_id != liquidity_account,
+            )
+            statement_line.rebuild_remaining_amount = abs(sum(
+                counterpart_lines.mapped("amount_residual"),
+            ))
+            matching_references = sorted(
+                set(counterpart_lines.mapped("matching_number")) - {False},
+            )
+            statement_line.rebuild_matching_reference = ", ".join(
+                matching_references,
+            )
+            color = 0
+            for character in statement_line.rebuild_matching_reference:
+                color = ((color * 31) + ord(character)) & 0xFFFFFFFF
+            statement_line.rebuild_matching_color = color % 10
+
+            partials = (
+                counterpart_lines.matched_debit_ids
+                | counterpart_lines.matched_credit_ids
+            )
+            linked_lines = (
+                partials.debit_move_id | partials.credit_move_id
+            ) - move_lines
+            linked_moves = linked_lines.move_id.filtered(
+                lambda move: move != statement_line.move_id,
+            )
+            linked_names = list(dict.fromkeys(
+                linked_moves.mapped("display_name"),
+            ))
+            statement_line.rebuild_linked_document = ", ".join(
+                linked_names[:2],
+            )
+            if len(linked_names) > 2:
+                statement_line.rebuild_linked_document += _(
+                    " and %s more",
+                    len(linked_names) - 2,
+                )
+
+    def action_rebuild_open_bank_matching(self):
+        self.ensure_one()
+        action = self.env["ir.actions.actions"]._for_xml_id(
+            "rebuild_account_migration."
+            "action_rebuild_account_reconcile_bank_transactions",
+        )
+        action["domain"] = [("id", "=", self.id)]
+        action["context"] = {
+            "create": False,
+            "view_ref": (
+                "account_reconcile_oca."
+                "bank_statement_line_form_reconcile_view"
+            ),
+        }
+        return action

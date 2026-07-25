@@ -377,24 +377,54 @@
         <field name="arch" type="xml">
             <xpath expr="(//button[@name='reconcile_bank_line'])[1]" position="attributes">
                 <attribute name="groups">account.group_account_user</attribute>
+                <attribute name="string">Complete Match</attribute>
+                <attribute name="title">Post the prepared counterpart and reconcile this bank transaction.</attribute>
             </xpath>
             <xpath expr="(//button[@name='reconcile_bank_line'])[2]" position="attributes">
                 <attribute name="groups">account.group_account_user</attribute>
+                <attribute name="string">Complete Match</attribute>
+                <attribute name="title">Select or prepare a counterpart before completing the match.</attribute>
             </xpath>
             <xpath expr="//button[@name='unreconcile_bank_line']" position="attributes">
                 <attribute name="groups">account.group_account_user</attribute>
+                <attribute name="string">Undo Match</attribute>
+                <attribute name="title">Remove this bank matching and reopen its journal items.</attribute>
             </xpath>
             <xpath expr="//button[@name='clean_reconcile']" position="attributes">
                 <attribute name="groups">account.group_account_user</attribute>
+                <attribute name="string">Clear Selection</attribute>
+                <attribute name="title">Discard the currently prepared counterparts without changing posted accounting.</attribute>
             </xpath>
             <xpath expr="//button[@name='action_to_check']" position="attributes">
                 <attribute name="groups">account.group_account_user</attribute>
+                <attribute name="string">Mark for Review</attribute>
+                <attribute name="title">Flag this transaction so it remains visible in the review queue.</attribute>
             </xpath>
             <xpath expr="//button[@name='action_checked']" position="attributes">
                 <attribute name="groups">account.group_account_user</attribute>
+                <attribute name="string">Mark Reviewed</attribute>
+                <attribute name="title">Confirm that this transaction no longer requires review.</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_show_move']" position="attributes">
+                <attribute name="string">Open Entry</attribute>
+                <attribute name="title">Open the journal entry generated for this bank transaction.</attribute>
             </xpath>
             <xpath expr="//page[@name='reconcile_line']/field[@name='add_account_move_line_id']" position="attributes">
                 <attribute name="context">{'search_default_partner_id': partner_id, 'search_default_reconcile_closest_amount': 1, 'search_default_reconcile_closest_date': 1, 'reconcile_statement_line_id': id, 'list_view_ref': 'account_reconcile_oca.account_move_line_tree_reconcile_view', 'search_view_ref': 'account_reconcile_oca.account_move_line_search_reconcile_view'}</attribute>
+            </xpath>
+            <xpath expr="//page[@name='reconcile_line']" position="after">
+                <xpath expr="//page[@name='chatter']" position="move"/>
+            </xpath>
+            <xpath expr="//page[@name='narration']" position="after">
+                <xpath expr="//page[@name='manual']" position="move"/>
+            </xpath>
+            <xpath expr="//page[@name='manual']/group" position="before">
+                <div
+                    class="alert alert-info mb-3"
+                    role="status"
+                    invisible="manual_reference">
+                    Choose a prepared operation above, or select a counterpart line, when the match requires an account, partner, fee, transfer, or exchange adjustment.
+                </div>
             </xpath>
             <xpath expr="//page[@name='manual']//label[@for='manual_move_id']" position="attributes">
                 <attribute name="invisible">manual_move_type not in ['in_invoice', 'in_refund', 'out_invoice', 'out_refund'] or manual_original_amount == 0 or is_reconciled</attribute>
@@ -481,7 +511,7 @@
 
     <record id="account_reconcile_oca.bank_statement_line_reconcile_view" model="ir.ui.view">
         <field name="arch" type="xml">
-            <kanban js_class="reconcile">
+            <kanban js_class="reconcile" create="0">
                 <field name="is_reconciled"/>
                 <field name="currency_id"/>
                 <field name="foreign_currency_id"/>
@@ -518,11 +548,76 @@
         </field>
     </record>
 
+    <record id="view_rebuild_bank_transaction_list" model="ir.ui.view">
+        <field name="name">account.bank.statement.line.transactions</field>
+        <field name="model">account.bank.statement.line</field>
+        <field name="arch" type="xml">
+            <list
+                string="Transactions"
+                create="0"
+                edit="0"
+                delete="0"
+                default_order="date desc, id desc"
+                decoration-muted="rebuild_transaction_status == 'matched'">
+                <field name="date"/>
+                <field name="payment_ref" string="Bank description"/>
+                <field name="partner_id" optional="show"/>
+                <field name="amount" sum="Amount"/>
+                <field
+                    name="amount_currency"
+                    widget="monetary"
+                    options="{'currency_field': 'foreign_currency_id'}"
+                    optional="hide"/>
+                <field name="journal_id" optional="show"/>
+                <field
+                    name="rebuild_transaction_status"
+                    string="Status"
+                    widget="badge"
+                    decoration-success="rebuild_transaction_status == 'matched'"
+                    decoration-warning="rebuild_transaction_status == 'review'"
+                    decoration-info="rebuild_transaction_status == 'open'"/>
+                <field
+                    name="rebuild_matching_reference"
+                    widget="badge"
+                    options="{'color_field': 'rebuild_matching_color'}"
+                    optional="show"/>
+                <field name="rebuild_matching_color" column_invisible="True"/>
+                <field name="rebuild_linked_document" optional="show"/>
+                <field
+                    name="rebuild_remaining_amount"
+                    widget="monetary"
+                    options="{'currency_field': 'currency_id'}"
+                    sum="Remaining"/>
+                <field name="currency_id" column_invisible="True"/>
+                <field name="foreign_currency_id" column_invisible="True"/>
+                <button
+                    name="action_rebuild_open_bank_matching"
+                    string="Match"
+                    type="object"
+                    class="btn btn-primary"
+                    groups="account.group_account_user"
+                    invisible="rebuild_transaction_status == 'matched'"
+                    title="Open this transaction in Bank Matching without leaving the accounting application."/>
+                <button
+                    name="action_open_journal_entry"
+                    string="Open Entry"
+                    type="object"
+                    title="Open the journal entry generated by this bank transaction."/>
+            </list>
+        </field>
+    </record>
+    <record id="account_statement_base.account_bank_statement_line_action" model="ir.actions.act_window">
+        <field name="name">Transactions</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'list', 'view_id': ref('view_rebuild_bank_transaction_list')}), (0, 0, {'view_mode': 'form', 'view_id': ref('account_statement_base.account_bank_statement_line_form')})]"/>
+        <field name="context">{'account_bank_statement_line_main_view': True, 'create': False}</field>
+    </record>
+
     <record id="action_rebuild_account_reconcile_bank_transactions" model="ir.actions.act_window">
         <field name="name">Bank Matching</field>
         <field name="res_model">account.bank.statement.line</field>
         <field name="domain">[('is_reconciled', '=', False)]</field>
-        <field name="context">{'search_default_not_reconciled': True, 'view_ref': 'account_reconcile_oca.bank_statement_line_form_reconcile_view'}</field>
+        <field name="context">{'search_default_not_reconciled': True, 'view_ref': 'account_reconcile_oca.bank_statement_line_form_reconcile_view', 'create': False}</field>
         <field name="view_mode">kanban,list</field>
         <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'kanban', 'view_id': ref('account_reconcile_oca.bank_statement_line_reconcile_view')}), (0, 0, {'view_mode': 'list', 'view_id': ref('account_statement_base.account_bank_statement_line_tree')})]"/>
         <field name="help" type="html">
