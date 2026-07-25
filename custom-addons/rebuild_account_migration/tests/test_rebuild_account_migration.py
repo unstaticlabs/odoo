@@ -3146,15 +3146,22 @@ class TestRebuildAccountMigration(TransactionCase):
                 "rebuild_account_migration.menu_rebuild_account_migration",
             ),
         )
-        system_group = self.env.ref("base.group_system")
-        self.assertIn(system_group, menu.parent_id.group_ids)
+        technical_group = self.env.ref("base.group_no_one")
+        ordinary_groups = (
+            self.env.ref("base.group_system")
+            | self.env.ref("account.group_account_readonly")
+        )
+        self.assertFalse(menu.parent_id.active)
+        self.assertIn(technical_group, menu.parent_id.group_ids)
+        self.assertFalse(menu.parent_id.group_ids & ordinary_groups)
         self.assertTrue(menu.parent_id.child_id)
         for audit_menu in menu.parent_id.child_id:
             self.assertIn(
-                system_group,
+                technical_group,
                 audit_menu.group_ids,
                 f"{audit_menu.display_name} must remain a technical-only menu",
             )
+            self.assertFalse(audit_menu.group_ids & ordinary_groups)
         self.assertEqual(
             menu.action.res_model,
             "rebuild.account.analytic.override",

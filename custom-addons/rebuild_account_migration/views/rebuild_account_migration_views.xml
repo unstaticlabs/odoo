@@ -4909,7 +4909,8 @@
         name="Advanced Audit"
         parent="account.account_audit_menu"
         sequence="90"
-        groups="base.group_system,-account.group_account_readonly"/>
+        active="False"
+        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_review_issues_priority"
         name="Accounting Hygiene"
@@ -4930,238 +4931,238 @@
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_review_summary"
         sequence="5"
-        groups="base.group_system,-account.group_account_readonly"/>
+        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_user_guide"
         name="User Guide"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_user_guide"
         sequence="6"
-        groups="base.group_system,-account.group_account_readonly"/>
+        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_import_run"
         name="Import Runs"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_import_run"
         sequence="10"
-        groups="base.group_system,-account.group_account_readonly"/>
+        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_discrepancy"
         name="Discrepancies"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_discrepancy"
         sequence="20"
-        groups="base.group_system,-account.group_account_readonly"/>
+        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_review_decision"
         name="Review Decisions"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_review_decision"
         sequence="22"
-        groups="base.group_system,-account.group_account_readonly"/>
+        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_external_report_value"
         name="External Report Values"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_external_report_value"
         sequence="23"
-        groups="base.group_system,-account.group_account_readonly"/>
+        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_source_report"
         name="Source Report Catalogue"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_source_report"
         sequence="25"
-        groups="base.group_system,-account.group_account_readonly"/>
+        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_source_report_line"
         name="Source Report Lines"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_source_report_line"
         sequence="26"
-        groups="base.group_system,-account.group_account_readonly"/>
+        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_source_report_expression"
         name="Source Report Expressions"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_source_report_expression"
         sequence="27"
-        groups="base.group_system,-account.group_account_readonly"/>
+        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_deferred_schedule_line"
         name="Imported Deferred Schedule"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_deferred_schedule_line"
         sequence="28"
-        groups="base.group_system,-account.group_account_readonly"/>
+        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_analytic_override"
         name="Native Analytic Corrections"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_analytic_override"
         sequence="29"
-        groups="base.group_system,-account.group_account_readonly"/>
+        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_asset"
         name="Fixed Asset Register"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_asset"
         sequence="30"
-        groups="base.group_system,-account.group_account_readonly"/>
+        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_asset_depreciation_schedule_line"
         name="Imported Depreciation Schedule"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_asset_depreciation_schedule_line"
         sequence="35"
-        groups="base.group_system,-account.group_account_readonly"/>
+        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_trial_balance_line"
         name="Imported Trial Balance"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_trial_balance_line"
         sequence="40"
-        groups="base.group_system,-account.group_account_readonly"/>
+        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_general_ledger_line"
         name="Imported General Ledger"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_general_ledger_line"
         sequence="50"
-        groups="base.group_system,-account.group_account_readonly"/>
+        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_journal_report_line"
         name="Imported Journal Report"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_journal_report_line"
         sequence="60"
-        groups="base.group_system,-account.group_account_readonly"/>
+        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_partner_ledger_line"
         name="Imported Partner Ledger"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_partner_ledger_line"
         sequence="70"
-        groups="base.group_system,-account.group_account_readonly"/>
+        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_open_item_line"
         name="Imported Open Items"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_open_item_line"
         sequence="80"
-        groups="base.group_system,-account.group_account_readonly"/>
+        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_balance_sheet_line"
         name="Imported Balance Sheet"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_balance_sheet_line"
         sequence="90"
-        groups="base.group_system,-account.group_account_readonly"/>
+        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_profit_loss_line"
         name="Imported Profit and Loss"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_profit_loss_line"
         sequence="100"
-        groups="base.group_system,-account.group_account_readonly"/>
+        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_tax_report_line"
         name="Imported VAT and Tax Report"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_tax_report_line"
         sequence="110"
-        groups="base.group_system,-account.group_account_readonly"/>
+        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_eu_tax_report_line"
         name="Imported EC/OSS Tax Review"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_eu_tax_report_line"
         sequence="111"
-        groups="base.group_system,-account.group_account_readonly"/>
+        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_move_review"
         name="Source Move Workflow Review"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_move_review"
         sequence="112"
-        groups="base.group_system,-account.group_account_readonly"/>
+        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_document_regeneration_case"
         name="Document Regeneration Cases"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_document_regeneration_case"
         sequence="112"
-        groups="base.group_system,-account.group_account_readonly"/>
+        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_move_line_review"
         name="Source Move Line Workflow Review"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_move_line_review"
         sequence="112"
-        groups="base.group_system,-account.group_account_readonly"/>
+        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_payment_review"
         name="Source Payment Workflow Review"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_payment_review"
         sequence="113"
-        groups="base.group_system,-account.group_account_readonly"/>
+        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_reconciliation_review"
         name="Source Reconciliation Boundary Review"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_reconciliation_review"
         sequence="114"
-        groups="base.group_system,-account.group_account_readonly"/>
+        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_bank_reconciliation_line"
         name="Imported Bank Reconciliation"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_bank_reconciliation_line"
         sequence="115"
-        groups="base.group_system,-account.group_account_readonly"/>
+        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_currency_report_line"
         name="Imported Currency Gain/Loss"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_currency_report_line"
         sequence="114"
-        groups="base.group_system,-account.group_account_readonly"/>
+        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_management_summary_line"
         name="Imported Cash Flow and Executive Summary"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_management_summary_line"
         sequence="115"
-        groups="base.group_system,-account.group_account_readonly"/>
+        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_analytic_distribution_line"
         name="Imported Analytic Distribution"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_analytic_distribution_line"
         sequence="116"
-        groups="base.group_system,-account.group_account_readonly"/>
+        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_french_statement_line"
         name="Imported French Annual Statements"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_french_statement_line"
         sequence="120"
-        groups="base.group_system,-account.group_account_readonly"/>
+        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_french_tax_package_line"
         name="Imported French Tax Package Mapping"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_french_tax_package_line"
         sequence="125"
-        groups="base.group_system,-account.group_account_readonly"/>
+        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_export_wizard_evidence"
         name="Imported Report Export"
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_report_export_wizard"
         sequence="130"
-        groups="base.group_system,-account.group_account_readonly"/>
+        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
 
     <record id="action_rebuild_interactive_trial_balance" model="ir.actions.client">
         <field name="name">Trial Balance</field>
