@@ -1021,7 +1021,11 @@ class RebuildAccountClosingControl(models.Model):
     summary = fields.Text(required=True)
     next_action = fields.Text(required=True)
     owner = fields.Selection(
-        [("valentin", "Valentin"), ("accountant", "Prosper / Accountant"), ("operator", "Finance Operator / Agent")],
+        [
+            ("valentin", "Accounting Manager"),
+            ("accountant", "Accountant Reviewer"),
+            ("operator", "Finance Operator / Agent"),
+        ],
         required=True,
         default="valentin",
     )

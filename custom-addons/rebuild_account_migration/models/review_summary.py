@@ -136,11 +136,11 @@ class RebuildAccountReviewSummary(models.Model):
         readonly=True,
     )
     valentin_action_count = fields.Integer(
-        string="Prepared for Valentin",
+        string="Assigned to Accounting Manager",
         readonly=True,
     )
     accountant_action_count = fields.Integer(
-        string="Prepared for Prosper",
+        string="Assigned to Accountant Reviewer",
         readonly=True,
     )
     hygiene_attention_count = fields.Integer(
@@ -470,7 +470,7 @@ class RebuildAccountReviewSummary(models.Model):
         self.ensure_one()
         return {
             "type": "ir.actions.act_window",
-            "name": "Prepared Decisions for Valentin",
+            "name": "Accounting Manager Decisions",
             "res_model": "rebuild.account.review.decision",
             "view_mode": "list,form,pivot",
             "views": [(False, "list"), (False, "form"), (False, "pivot")],
@@ -488,7 +488,7 @@ class RebuildAccountReviewSummary(models.Model):
         self.ensure_one()
         return {
             "type": "ir.actions.act_window",
-            "name": "Prepared Decisions for Prosper",
+            "name": "Accountant Review Decisions",
             "res_model": "rebuild.account.review.decision",
             "view_mode": "list,form,pivot",
             "views": [(False, "list"), (False, "form"), (False, "pivot")],
@@ -669,7 +669,7 @@ class RebuildAccountReviewSummary(models.Model):
             f"""
             CREATE OR REPLACE VIEW {self._table} AS (
                 SELECT company.id AS id,
-                       company.name || ' — Accounting Home' AS name,
+                       company.name || ' — Accounting Overview' AS name,
                        company.id AS company_id,
                        company.rebuild_source_id AS source_company_id,
                        company.currency_id,

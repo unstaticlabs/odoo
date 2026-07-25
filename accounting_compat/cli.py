@@ -55,7 +55,6 @@ OCA_TARGET_MODULES = [
     "account_financial_report",
     "account_tax_balance",
     "partner_statement",
-    "mis_builder",
     "account_asset_management",
 ]
 TARGET_INIT_MODULES = [

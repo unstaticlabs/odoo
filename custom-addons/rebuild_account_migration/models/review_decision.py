@@ -49,8 +49,8 @@ class RebuildAccountReviewDecision(models.Model):
     )
     required_authority = fields.Selection(
         [
-            ("valentin", "Valentin"),
-            ("accountant", "Accountant"),
+            ("valentin", "Accounting Manager"),
+            ("accountant", "Accountant Reviewer"),
             ("legal_or_compliance", "Legal or Compliance Adviser"),
             ("operator", "Finance Operator"),
             ("joint", "Joint Approval"),

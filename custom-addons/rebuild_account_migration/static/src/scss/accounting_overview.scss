@@ -1,0 +1,75 @@
+.o_form_view .o_usl_accounting_overview {
+    --usl-overview-border: #{rgba(#1f2937, 0.1)};
+    --usl-overview-muted: #667085;
+
+    max-width: 1280px;
+    margin: 0 auto;
+
+    .o_usl_overview_intro {
+        max-width: 760px;
+        color: var(--usl-overview-muted);
+        font-size: 1rem;
+    }
+
+    .o_usl_overview_section {
+        margin-top: 2rem;
+    }
+
+    .o_usl_overview_section_title {
+        margin-bottom: 0.75rem;
+        color: #344054;
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+
+    .o_usl_overview_card {
+        height: 100%;
+        padding: 1.15rem;
+        border: 1px solid var(--usl-overview-border);
+        border-radius: 0.75rem;
+        background: var(--o-view-background-color, #fff);
+        box-shadow: 0 2px 8px rgba(#101828, 0.04);
+    }
+
+    .o_usl_overview_card_title {
+        margin: 0 0 0.25rem;
+        color: #344054;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .o_usl_overview_value {
+        display: block;
+        margin: 0.2rem 0 0.5rem;
+        color: #101828;
+        font-size: 1.55rem;
+        font-weight: 700;
+        line-height: 1.2;
+
+        .o_field_widget {
+            font-size: inherit;
+            font-weight: inherit;
+        }
+    }
+
+    .o_usl_overview_detail {
+        color: var(--usl-overview-muted);
+        font-size: 0.88rem;
+    }
+
+    .o_usl_overview_status {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 0.6rem;
+    }
+
+    .btn-link {
+        padding-left: 0;
+        font-weight: 600;
+        text-decoration: none;
+    }
+}

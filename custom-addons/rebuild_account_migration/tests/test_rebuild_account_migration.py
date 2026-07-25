@@ -197,7 +197,7 @@ class TestRebuildAccountMigration(TransactionCase):
             ("company_id", "=", self.company.id),
         ])
         self.assertTrue(home)
-        self.assertEqual(home.name, f"{self.company.name} — Accounting Home")
+        self.assertEqual(home.name, f"{self.company.name} — Accounting Overview")
         self.assertEqual(home_action["res_model"], "rebuild.account.review.summary")
         self.assertEqual(home_action["res_id"], home.id)
         self.assertEqual(
@@ -449,7 +449,9 @@ class TestRebuildAccountMigration(TransactionCase):
 
     def test_accounting_navigation_matches_the_operating_model(self):
         expected_top_level = {
-            "account.menu_board_journal_1": ("Dashboard", 1),
+            "rebuild_account_migration.menu_rebuild_accounting_overview":
+                ("Overview", 0),
+            "account.menu_board_journal_1": ("Journals", 1),
             "account.menu_finance_receivables": ("Customers", 2),
             "account.menu_finance_payables": ("Vendors", 3),
             "account.menu_finance_entries": ("Accounting", 4),
@@ -464,6 +466,18 @@ class TestRebuildAccountMigration(TransactionCase):
             self.assertEqual(menu.parent_id, finance_menu)
             self.assertEqual(menu.name, name)
             self.assertEqual(menu.sequence, sequence)
+
+        self.assertFalse(
+            self.env.ref(
+                "rebuild_account_migration.menu_rebuild_account_closing_root",
+            ).active,
+        )
+        self.assertEqual(
+            self.env.ref(
+                "account_asset_management.menu_finance_assets",
+            ).parent_id,
+            self.env.ref("account.menu_finance_entries"),
+        )
 
         bank_matching_menu = self.env.ref(
             "rebuild_account_migration.menu_rebuild_account_reconcile_bank_transactions_priority",
@@ -3419,6 +3433,76 @@ class TestRebuildAccountMigration(TransactionCase):
             self.assertEqual(context["default_report_type"], report_type)
             self.assertEqual(context["default_export_format"], export_format)
 
+    def test_canonical_report_client_loads_filters_and_downloads(self):
+        Report = self.env["rebuild.account.report.export.wizard"]
+        trial = Report.report_client_load(
+            "trial_balance",
+            {
+                "date_from": "2099-01-01",
+                "date_to": "2099-12-31",
+            },
+        )
+
+        self.assertEqual(trial["report_type"], "trial_balance")
+        self.assertEqual(trial["filters"]["group_by"], "section")
+        self.assertEqual(
+            trial["filters"]["company_id"],
+            self.env.company.id,
+        )
+        self.assertTrue(trial["options"]["journals"])
+        self.assertIn("analytic_accounts", trial["options"])
+        self.assertEqual(
+            trial["lines"][0]["label"],
+            "No rows for the selected report filters",
+        )
+        self.assertFalse(trial["lines"][0]["can_drilldown"])
+
+        journal = self._journal()
+        filtered = Report.report_client_load(
+            "trial_balance",
+            {
+                "journal_ids": [journal.id],
+                "target_move": "all",
+            },
+            trial["wizard_id"],
+        )
+        self.assertEqual(filtered["filters"]["journal_ids"], [journal.id])
+        self.assertEqual(filtered["filters"]["target_move"], "all")
+
+        for export_format, signature in (
+            ("pdf", b"%PDF"),
+            ("xlsx", b"PK"),
+        ):
+            download = Report.report_client_export(
+                filtered["wizard_id"],
+                export_format,
+            )
+            wizard = Report.browse(filtered["wizard_id"])
+            self.assertEqual(download["field"], "export_file")
+            self.assertTrue(
+                base64.b64decode(wizard.export_file).startswith(signature),
+            )
+
+        aged = Report.report_client_load(
+            "aged_receivable",
+            {
+                "date_from": "2099-01-01",
+                "date_to": "2099-12-31",
+            },
+        )
+        self.assertEqual(aged["filters"]["group_by"], "none")
+        self.assertEqual(
+            [column["key"] for column in aged["columns"]],
+            [
+                "not_due",
+                "bucket_1_30",
+                "bucket_31_60",
+                "bucket_61_90",
+                "bucket_over_90",
+                "total",
+            ],
+        )
+
     def test_interactive_oca_report_actions_open_on_benchmark_period(self):
         expected_actions = {
             "account_financial_report.action_trial_balance_wizard": ("default_date_to", "default_target_move"),
@@ -3453,136 +3537,44 @@ class TestRebuildAccountMigration(TransactionCase):
             self.assertEqual(context["default_receivable_accounts_only"], receivable_only)
             self.assertEqual(context["default_payable_accounts_only"], payable_only)
 
-    def test_primary_report_menus_open_canonical_dynamic_workbench(self):
+    def test_primary_report_menus_open_canonical_interactive_reports(self):
         expected_menus = {
-            "menu_rebuild_account_report_trial_balance_launcher": "rebuild_account_migration.action_rebuild_account_report_export_trial_balance",
-            "menu_rebuild_account_report_general_ledger_launcher": "rebuild_account_migration.action_rebuild_account_report_export_general_ledger",
-            "menu_rebuild_account_report_journal_report_launcher": "rebuild_account_migration.action_rebuild_account_report_export_journal_report",
-            "menu_rebuild_account_report_open_items_launcher": "rebuild_account_migration.action_rebuild_account_report_export_open_items",
-            "menu_rebuild_account_report_aged_receivable_launcher": "rebuild_account_migration.action_rebuild_account_report_export_aged_receivable",
-            "menu_rebuild_account_report_aged_payable_launcher": "rebuild_account_migration.action_rebuild_account_report_export_aged_payable",
-            "menu_rebuild_account_report_tax_launcher": "rebuild_account_migration.action_rebuild_account_report_export_tax_report",
+            "menu_rebuild_account_report_trial_balance_launcher": "rebuild_account_migration.action_rebuild_interactive_trial_balance",
+            "menu_rebuild_account_report_general_ledger_launcher": "rebuild_account_migration.action_rebuild_interactive_general_ledger",
+            "menu_rebuild_account_report_journal_report_launcher": "rebuild_account_migration.action_rebuild_interactive_journal_report",
+            "menu_rebuild_account_report_open_items_launcher": "rebuild_account_migration.action_rebuild_interactive_open_items",
+            "menu_rebuild_account_report_aged_receivable_launcher": "rebuild_account_migration.action_rebuild_interactive_aged_receivable",
+            "menu_rebuild_account_report_aged_payable_launcher": "rebuild_account_migration.action_rebuild_interactive_aged_payable",
+            "menu_rebuild_account_report_tax_launcher": "rebuild_account_migration.action_rebuild_interactive_tax_report",
         }
         for menu_xmlid, action_xmlid in expected_menus.items():
             menu = self.env.ref(f"rebuild_account_migration.{menu_xmlid}")
 
             self.assertEqual(menu.action, self.env.ref(action_xmlid))
-            self.assertEqual(
-                menu.action.res_model,
-                "rebuild.account.report.export.wizard",
-            )
-            self.assertEqual(menu.action.target, "current")
+            self.assertEqual(menu.action.type, "ir.actions.client")
+            self.assertEqual(menu.action.tag, "rebuild_accounting_report")
         self.assertFalse(
             self.env.ref(
                 "account_financial_report.menu_oca_reports",
             ).active,
         )
 
-    def test_interactive_mis_financial_statement_actions_open_previews(self):
-        expected = {
-            "action_rebuild_mis_balance_sheet": (
-                "mis_instance_usl_balance_sheet_2025",
-                "mis_report_usl_balance_sheet",
-                {"assets", "liabilities_recorded", "current_year_result", "liabilities_total", "balance_check"},
-            ),
-            "action_rebuild_mis_profit_loss": (
-                "mis_instance_usl_profit_loss_2025",
-                "mis_report_usl_profit_loss",
-                {"income", "expenses", "net_result"},
-            ),
-        }
-        instance_form_view = self.env.ref("mis_builder.mis_report_instance_view_form")
-        for action_xmlid, (instance_xmlid, report_xmlid, expected_kpis) in expected.items():
-            action = self.env.ref(f"rebuild_account_migration.{action_xmlid}")
-            instance = self.env.ref(f"rebuild_account_migration.{instance_xmlid}")
-            report = self.env.ref(f"rebuild_account_migration.{report_xmlid}")
-
-            self.assertEqual(action.res_model, "mis.report.instance")
-            self.assertEqual(action.res_id, instance.id)
-            self.assertEqual(action.view_id, instance_form_view)
-            self.assertEqual(instance.report_id, report)
-            self.assertEqual(instance.target_move, "posted")
-            self.assertFalse(instance.no_auto_expand_accounts)
-            self.assertEqual(str(instance.date_from), "2024-01-10")
-            self.assertEqual(str(instance.date_to), "2025-09-30")
-            self.assertEqual(set(report.kpi_ids.mapped("name")), expected_kpis)
-
-    def test_mis_account_expansion_includes_archived_historical_accounts(self):
-        expense = self._account("625999", "Archived travel expense", "expense")
-        payable = self._account("401999", "Unit payable counterpart", "liability_payable")
-        move = self.env["account.move"].create({
-            "move_type": "entry",
-            "journal_id": self._journal().id,
-            "date": "2025-09-30",
-            "company_id": self.company.id,
-            "line_ids": [
-                Command.create({
-                    "name": "Archived account MIS detail",
-                    "account_id": expense.id,
-                    "debit": 120.0,
-                    "credit": 0.0,
-                }),
-                Command.create({
-                    "name": "Archived account MIS detail",
-                    "account_id": payable.id,
-                    "debit": 0.0,
-                    "credit": 120.0,
-                }),
-            ],
-        })
-        move.action_post()
-        expense.active = False
-
-        report = self.env["mis.report"].create({"name": "Unit MIS archived account"})
-        self.env["mis.report.kpi"].create({
-            "report_id": report.id,
-            "name": "travel",
-            "description": "Travel",
-            "expression": "balp[625999]",
-            "auto_expand_accounts": True,
-        })
-        instance = self.env["mis.report.instance"].create({
-            "name": "Unit MIS archived account",
-            "report_id": report.id,
-            "company_id": self.company.id,
-            "date_from": "2025-09-30",
-            "date_to": "2025-09-30",
-            "target_move": "posted",
-            "no_auto_expand_accounts": False,
-            "period_ids": [Command.create({
-                "name": "Closing day",
-                "manual_date_from": "2025-09-30",
-                "manual_date_to": "2025-09-30",
-                "mode": "fix",
-                "source": "actuals",
-            })],
-        })
-
-        result = json.dumps(instance.compute())
-
-        self.assertIn("625999", result)
-        self.assertIn("Archived travel expense", result)
-
-    def test_legal_statement_menu_uses_canonical_dynamic_workbench(self):
-        balance_menu = self.env.ref("rebuild_account_migration.menu_rebuild_mis_balance_sheet")
-        profit_menu = self.env.ref("rebuild_account_migration.menu_rebuild_mis_profit_loss")
+    def test_legal_statement_menu_uses_canonical_interactive_reports(self):
         balance_export_menu = self.env.ref("rebuild_account_migration.menu_rebuild_account_report_balance_sheet_launcher")
         profit_export_menu = self.env.ref("rebuild_account_migration.menu_rebuild_account_report_profit_loss_launcher")
 
-        self.assertFalse(balance_menu.active)
-        self.assertFalse(profit_menu.active)
         self.assertEqual(balance_export_menu.name, "Balance Sheet")
         self.assertEqual(profit_export_menu.name, "Profit and Loss")
         self.assertEqual(
             balance_export_menu.action,
             self.env.ref(
-                "rebuild_account_migration.action_rebuild_account_report_export_balance_sheet",
+                "rebuild_account_migration.action_rebuild_interactive_balance_sheet",
             ),
         )
         self.assertEqual(
             profit_export_menu.action,
             self.env.ref(
-                "rebuild_account_migration.action_rebuild_account_report_export_profit_loss",
+                "rebuild_account_migration.action_rebuild_interactive_profit_loss",
             ),
         )
         self.assertEqual(balance_export_menu.sequence, 4)

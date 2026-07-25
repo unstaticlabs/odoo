@@ -1,0 +1,259 @@
+.o_usl_accounting_report {
+    position: relative;
+    overflow: auto;
+    background: var(--o-view-background-color, #fff);
+
+    .o_usl_report_header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1.25rem 1.5rem 0.75rem;
+
+        h1 {
+            margin: 0;
+            font-size: 1.6rem;
+            font-weight: 650;
+        }
+    }
+
+    .o_usl_report_subtitle {
+        margin-top: 0.2rem;
+        color: #667085;
+        font-size: 0.85rem;
+    }
+
+    .o_usl_report_exports {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .o_usl_report_filters {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 0.75rem;
+        padding: 0.75rem 1.5rem;
+        border-block: 1px solid rgba(#1f2937, 0.1);
+        background: #f8fafc;
+
+        label {
+            min-width: 0;
+            margin: 0;
+        }
+
+        label > span {
+            display: block;
+            margin-bottom: 0.2rem;
+            color: #475467;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        input,
+        select {
+            width: 100%;
+            min-height: 2.2rem;
+            padding: 0.35rem 0.55rem;
+            border: 1px solid #d0d5dd;
+            border-radius: 0.4rem;
+            background: #fff;
+        }
+    }
+
+    .o_usl_report_search {
+        min-width: 190px;
+    }
+
+    .o_usl_report_more_filters {
+        align-self: end;
+        min-height: 2.2rem;
+        white-space: nowrap;
+    }
+
+    .o_usl_report_advanced {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 0.75rem;
+        padding: 0.75rem 1.5rem;
+        border-bottom: 1px solid rgba(#1f2937, 0.1);
+        background: #fff;
+    }
+
+    .o_usl_report_filter_group {
+        min-width: 0;
+        overflow: hidden;
+        border: 1px solid #e4e7ec;
+        border-radius: 0.5rem;
+        background: #f9fafb;
+    }
+
+    .o_usl_report_filter_group_title {
+        padding: 0.5rem 0.65rem;
+        border-bottom: 1px solid #e4e7ec;
+        color: #344054;
+        font-size: 0.78rem;
+        font-weight: 700;
+    }
+
+    .o_usl_report_filter_choices {
+        max-height: 12rem;
+        overflow: auto;
+        background: #fff;
+    }
+
+    .o_usl_report_filter_choice {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.45rem;
+        margin: 0;
+        padding: 0.42rem 0.65rem;
+        color: #344054;
+        cursor: pointer;
+        font-size: 0.82rem;
+
+        &:hover {
+            background: #f2f4f7;
+        }
+
+        input {
+            margin-top: 0.15rem;
+        }
+    }
+
+    .o_usl_report_pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        padding: 0.65rem 1.5rem;
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            border: 1px solid #d0d5dd;
+            color: #344054 !important;
+            font-weight: 500;
+        }
+
+        button {
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: #667085;
+            line-height: 1;
+        }
+    }
+
+    .o_usl_report_table_wrap {
+        padding: 0 1.5rem 2rem;
+    }
+
+    .o_usl_report_table {
+        font-variant-numeric: tabular-nums;
+
+        thead {
+            position: sticky;
+            z-index: 2;
+            top: 0;
+            background: var(--o-view-background-color, #fff);
+        }
+
+        th {
+            color: #475467;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .o_usl_report_label {
+            min-width: 320px;
+        }
+
+        .o_usl_report_action {
+            width: 3rem;
+        }
+    }
+
+    .o_usl_report_group {
+        background: #f8fafc;
+        font-weight: 650;
+    }
+
+    .o_usl_report_code {
+        display: inline-block;
+        min-width: 5.5rem;
+        margin-right: 0.5rem;
+        color: #475467;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 0.82rem;
+    }
+
+    .o_usl_report_fold {
+        width: 1.75rem;
+        padding: 0;
+    }
+
+    .o_usl_matching_chip {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.2rem 0.48rem;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 650;
+        white-space: nowrap;
+    }
+
+    $matching-colors: (
+        #e8f1ff #2457a6,
+        #eaf7ef #217a45,
+        #fff4dc #8a5a00,
+        #f4ecff #6f3ba7,
+        #ffecef #a2374d,
+        #e5f8f6 #18736d,
+        #f1f3f5 #4b5563,
+        #fff0e5 #9a4b13,
+        #e9f0ff #4057a9,
+        #f7ebf5 #8a3d75
+    );
+
+    @for $index from 1 through length($matching-colors) {
+        $pair: nth($matching-colors, $index);
+
+        .o_usl_matching_color_#{$index - 1} {
+            background: nth($pair, 1);
+            color: nth($pair, 2);
+        }
+    }
+
+    .o_usl_report_loading {
+        position: absolute;
+        z-index: 5;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
+        background: rgba(#fff, 0.72);
+        color: #475467;
+        font-weight: 600;
+    }
+
+    @media (max-width: 768px) {
+        .o_usl_report_header {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .o_usl_report_exports {
+            width: 100%;
+
+            .btn {
+                flex: 1;
+            }
+        }
+
+        .o_usl_report_table_wrap {
+            padding-inline: 0.5rem;
+        }
+    }
+}

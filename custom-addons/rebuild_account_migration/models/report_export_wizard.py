@@ -9,6 +9,7 @@ from decimal import Decimal
 
 from odoo import Command, api, fields, models
 from odoo.exceptions import AccessError, UserError
+from odoo.tools import date_utils
 
 ACCOUNT_CODE_SQL = (
     "COALESCE("
@@ -210,6 +211,478 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         allowed = self._can_generate_official_fec()
         for wizard in self:
             wizard.can_generate_official_fec = allowed
+
+    @api.model
+    def report_client_load(
+        self,
+        report_type,
+        filters=None,
+        wizard_id=None,
+    ):
+        """Return a user-facing interactive report payload.
+
+        The transient model remains the calculation/export engine. This API
+        keeps its implementation details out of the normal Accounting UI.
+        """
+        filters = filters or {}
+        wizard = self.browse(wizard_id).exists() if wizard_id else self.browse()
+        if not wizard:
+            today = fields.Date.context_today(self)
+            fiscal_from, fiscal_to = date_utils.get_fiscal_year(
+                today,
+                day=self.env.company.fiscalyear_last_day,
+                month=int(self.env.company.fiscalyear_last_month),
+            )
+            default_group = {
+                "trial_balance": "section",
+                "general_ledger": "account",
+                "journal_report": "none",
+                "partner_ledger": "partner",
+                "customer_statement": "partner",
+                "open_items": "partner",
+                "aged_receivable": "none",
+                "aged_payable": "none",
+                "balance_sheet": "section",
+                "profit_loss": "section",
+                "french_annual": "section",
+                "french_balance_sheet_2024": "section",
+                "french_profit_loss_2024": "section",
+                "sig_caf_2024": "section",
+                "tax_report": "section",
+                "analytic_report": "analytic",
+            }.get(report_type, "none")
+            wizard = self.create({
+                "report_type": report_type,
+                "company_id": self.env.company.id,
+                "company_ids": [Command.set([self.env.company.id])],
+                "data_scope": "native",
+                "period_preset": "fiscal_year",
+                "period_anchor_date": today,
+                "date_from": fiscal_from,
+                "date_to": fiscal_to,
+                "target_move": "posted",
+                "comparison_mode": "none",
+                "group_by": default_group,
+                "preview_limit": 1000,
+                "export_format": "xlsx",
+            })
+        elif wizard.report_type != report_type:
+            raise UserError("This report session belongs to another report.")
+
+        allowed_filter_fields = {
+            "company_id",
+            "date_from",
+            "date_to",
+            "period_preset",
+            "period_anchor_date",
+            "target_move",
+            "comparison_mode",
+            "comparison_date_from",
+            "comparison_date_to",
+            "group_by",
+            "search_text",
+            "journal_ids",
+            "account_ids",
+            "partner_ids",
+            "analytic_plan_ids",
+            "analytic_account_ids",
+        }
+        values = {
+            key: value
+            for key, value in filters.items()
+            if key in allowed_filter_fields
+        }
+        if values.get("company_id"):
+            values["company_ids"] = [
+                Command.set([int(values["company_id"])]),
+            ]
+        for field_name in {
+            "journal_ids",
+            "account_ids",
+            "partner_ids",
+            "analytic_plan_ids",
+            "analytic_account_ids",
+        } & values.keys():
+            values[field_name] = [
+                Command.set([int(record_id) for record_id in values[field_name]]),
+            ]
+        if values:
+            wizard.write(values)
+            if {
+                "period_preset",
+                "period_anchor_date",
+            } & values.keys():
+                wizard._apply_period_values()
+        wizard.action_preview_report()
+        return wizard._report_client_payload()
+
+    def _report_client_payload(self):
+        self.ensure_one()
+
+        def selection_options(field_name):
+            field = self._fields[field_name]
+            selection = (
+                field.selection(self)
+                if callable(field.selection)
+                else field.selection
+            )
+            return [
+                {"value": value, "label": label}
+                for value, label in selection
+            ]
+
+        columns = self._report_client_columns()
+        lines = []
+        for line in self.preview_line_ids.sorted("sequence"):
+            row = line._row_payload()
+            display_label = line.label or ""
+            if self.report_type in {"aged_receivable", "aged_payable"}:
+                display_label = row.get("partner_name") or "No partner"
+            if (
+                self.report_type in {
+                    "general_ledger",
+                    "partner_ledger",
+                    "customer_statement",
+                }
+                and not line.is_group
+                and display_label.strip() in {"", "/"}
+            ):
+                display_label = (
+                    row.get("move_ref")
+                    or row.get("partner_name")
+                    or "Journal item"
+                )
+            row_currency = row.get("currency") or ""
+            if row_currency == self.company_id.currency_id.name:
+                row_currency = ""
+            lines.append({
+                "id": line.id,
+                "date": fields.Date.to_string(line.date) if line.date else "",
+                "section": line.section or "",
+                "label": display_label,
+                "account_code": line.account_code or "",
+                "account_name": line.account_name or "",
+                "partner_name": line.partner_name or "",
+                "move_name": line.move_name or "",
+                "opening_balance": line.opening_balance,
+                "debit": line.debit,
+                "credit": line.credit,
+                "movement": line.movement,
+                "closing_balance": line.closing_balance,
+                "balance": line.balance,
+                "residual": line.residual,
+                "comparison_value": line.comparison_value,
+                "difference": line.difference,
+                "record_count": line.record_count,
+                "is_group": line.is_group,
+                "level": line.level,
+                "group_key": line.group_key or "",
+                "journal_code": row.get("journal_code") or "",
+                "move_ref": row.get("move_ref") or "",
+                "currency": row_currency,
+                "amount_currency": _amount(row.get("amount_currency")),
+                "running_balance": _amount(
+                    row.get("running_balance")
+                    or row.get("closing_balance"),
+                ),
+                "matching_number": row.get("matching_number") or "",
+                "payment_status": row.get("payment_status") or "",
+                "due_date": row.get("due_date") or "",
+                "can_drilldown": row.get("empty_report") != "true",
+                "values": {
+                    column["key"]: row.get(column["key"])
+                    for column in columns
+                },
+            })
+        return {
+            "wizard_id": self.id,
+            "title": self._report_type_label(),
+            "report_type": self.report_type,
+            "currency": {
+                "id": self.company_id.currency_id.id,
+                "name": self.company_id.currency_id.name,
+                "symbol": self.company_id.currency_id.symbol,
+                "position": self.company_id.currency_id.position,
+            },
+            "filters": {
+                "company_id": self.company_id.id,
+                "date_from": fields.Date.to_string(self.date_from),
+                "date_to": fields.Date.to_string(self.date_to),
+                "period_preset": self.period_preset,
+                "period_anchor_date": fields.Date.to_string(
+                    self.period_anchor_date,
+                ),
+                "target_move": self.target_move,
+                "comparison_mode": self.comparison_mode,
+                "comparison_date_from": (
+                    fields.Date.to_string(self.comparison_date_from)
+                    if self.comparison_date_from else ""
+                ),
+                "comparison_date_to": (
+                    fields.Date.to_string(self.comparison_date_to)
+                    if self.comparison_date_to else ""
+                ),
+                "group_by": self.group_by,
+                "search_text": self.search_text or "",
+                "journal_ids": self.journal_ids.ids,
+                "account_ids": self.account_ids.ids,
+                "partner_ids": self.partner_ids.ids,
+                "analytic_plan_ids": self.analytic_plan_ids.ids,
+                "analytic_account_ids": self.analytic_account_ids.ids,
+            },
+            "options": {
+                "companies": [
+                    {"value": company.id, "label": company.display_name}
+                    for company in self.env.companies
+                ],
+                "period_preset": selection_options("period_preset"),
+                "target_move": selection_options("target_move"),
+                "comparison_mode": selection_options("comparison_mode"),
+                "group_by": selection_options("group_by"),
+                "journals": [
+                    {
+                        "value": journal.id,
+                        "label": f"{journal.code} — {journal.name}",
+                    }
+                    for journal in self.env["account.journal"].search([
+                        ("company_id", "=", self.company_id.id),
+                    ], order="code, name")
+                ],
+                "accounts": [
+                    {
+                        "value": account.id,
+                        "label": (
+                            f"{account.code} — {account.name}"
+                            if account.code else account.name
+                        ),
+                    }
+                    for account in self.env["account.account"].search([
+                        ("company_ids", "in", self.company_id.id),
+                    ], order="code")
+                ],
+                "partners": [
+                    {"value": partner.id, "label": partner.display_name}
+                    for partner in self.env["res.partner"].search([
+                        "|",
+                        ("company_id", "=", False),
+                        ("company_id", "=", self.company_id.id),
+                        "|",
+                        ("customer_rank", ">", 0),
+                        ("supplier_rank", ">", 0),
+                    ], order="name")
+                ],
+                "analytic_plans": [
+                    {"value": plan.id, "label": plan.display_name}
+                    for plan in self.env["account.analytic.plan"].search(
+                        [],
+                        order="name",
+                    )
+                ],
+                "analytic_accounts": [
+                    {
+                        "value": account.id,
+                        "label": (
+                            f"{account.plan_id.name} — {account.display_name}"
+                            if account.plan_id else account.display_name
+                        ),
+                    }
+                    for account in self.env["account.analytic.account"].search([
+                        "|",
+                        ("company_id", "=", False),
+                        ("company_id", "=", self.company_id.id),
+                    ], order="plan_id, name")
+                ],
+            },
+            "lines": lines,
+            "columns": columns,
+            "row_count": self.preview_row_count,
+            "truncated": self.preview_truncated,
+            "warning": self.preview_warning or "",
+            "draft_entry_count": self.draft_entry_count,
+            "generated_at": fields.Datetime.to_string(
+                self.preview_generated_at,
+            ),
+        }
+
+    def _report_client_columns(self):
+        self.ensure_one()
+        currency = "currency"
+        number = "number"
+        date = "date"
+        text = "text"
+        column_map = {
+            "journal_report": [
+                ("move_count", "Entries", number),
+                ("move_line_count", "Journal items", number),
+                ("debit", "Debit", currency),
+                ("credit", "Credit", currency),
+                ("balance", "Balance", currency),
+            ],
+            "open_items": [
+                ("date", "Date", date),
+                ("due_date", "Due date", date),
+                ("move_name", "Entry", text),
+                ("presented_residual", "Residual", currency),
+                ("matching_number", "Matching", text),
+            ],
+            "aged_receivable": [
+                ("not_due", "Not due", currency),
+                ("bucket_1_30", "1–30 days", currency),
+                ("bucket_31_60", "31–60 days", currency),
+                ("bucket_61_90", "61–90 days", currency),
+                ("bucket_over_90", "Over 90 days", currency),
+                ("total", "Total", currency),
+            ],
+            "aged_payable": [
+                ("not_due", "Not due", currency),
+                ("bucket_1_30", "1–30 days", currency),
+                ("bucket_31_60", "31–60 days", currency),
+                ("bucket_61_90", "61–90 days", currency),
+                ("bucket_over_90", "Over 90 days", currency),
+                ("total", "Total", currency),
+            ],
+            "balance_sheet": [("amount", "Balance", currency)],
+            "profit_loss": [("amount", "Amount", currency)],
+            "tax_report": [
+                ("debit", "Debit", currency),
+                ("credit", "Credit", currency),
+                ("balance", "Balance", currency),
+            ],
+            "bank_reconciliation": [
+                ("date", "Date", date),
+                ("journal_code", "Journal", text),
+                ("amount", "Amount", currency),
+                ("amount_residual", "Residual", currency),
+                ("reconciliation_status", "Status", text),
+            ],
+            "currency_report": [
+                ("currency", "Currency", text),
+                ("amount_currency", "Original amount", number),
+                ("balance", "Company currency", currency),
+                ("amount_residual", "Residual", currency),
+            ],
+            "cash_flow": [
+                ("amount", "Amount", currency),
+                ("statement_balance", "Statement balance", currency),
+            ],
+            "executive_summary": [
+                ("amount", "Amount", currency),
+                ("details", "Details", text),
+            ],
+            "analytic_report": [
+                ("allocated_debit", "Revenue", currency),
+                ("allocated_credit", "Spending", currency),
+                ("allocated_balance", "Net contribution", currency),
+                ("move_line_count", "Journal items", number),
+            ],
+            "fixed_assets": [
+                ("acquisition_date", "Acquired", date),
+                ("original_value", "Original value", currency),
+                (
+                    "accumulated_depreciation",
+                    "Accumulated depreciation",
+                    currency,
+                ),
+                (
+                    "imported_period_net_value",
+                    "Net book value",
+                    currency,
+                ),
+                ("state", "Status", text),
+            ],
+            "depreciation_schedule": [
+                ("depreciation_date", "Date", date),
+                ("depreciation_amount", "Depreciation", currency),
+                (
+                    "accumulated_depreciation_amount",
+                    "Accumulated",
+                    currency,
+                ),
+                ("net_book_value_after_line", "Net book value", currency),
+                ("representation_status", "Status", text),
+            ],
+            "deferred_schedule": [
+                ("deferred_date", "Date", date),
+                ("deferred_account_code", "Deferred account", text),
+                ("amount", "Amount", currency),
+                ("review_status", "Status", text),
+            ],
+            "french_annual": [
+                ("gross_amount", "Gross", currency),
+                ("depreciation_amount", "Depreciation", currency),
+                ("net_amount", "Net", currency),
+                ("amount", "Amount", currency),
+            ],
+            "french_balance_sheet_2024": [
+                ("gross_amount", "Gross", currency),
+                ("depreciation_amount", "Depreciation", currency),
+                ("net_amount", "Net", currency),
+            ],
+            "french_profit_loss_2024": [
+                ("amount", "Amount", currency),
+            ],
+            "sig_caf_2024": [("amount", "Amount", currency)],
+            "french_tax_package": [
+                ("quantity", "Quantity", number),
+                ("amount", "Amount", currency),
+                ("rounded_amount", "Rounded", currency),
+                ("value_text", "Value / note", text),
+                ("review_status", "Review status", text),
+            ],
+        }
+        columns = column_map.get(
+            self.report_type,
+            [("balance", "Balance", currency)],
+        )
+        if self.comparison_mode != "none":
+            columns = [
+                *columns,
+                ("comparison_value", "Comparison", currency),
+                ("difference", "Difference", currency),
+            ]
+        return [
+            {"key": key, "label": label, "type": value_type}
+            for key, label, value_type in columns
+        ]
+
+    @api.model
+    def report_client_export(self, wizard_id, export_format):
+        wizard = self.browse(wizard_id).exists()
+        if not wizard:
+            raise UserError("The report session expired. Reopen the report.")
+        if export_format not in {"pdf", "xlsx"}:
+            raise UserError("Choose PDF or XLSX.")
+        wizard.export_format = export_format
+        wizard.action_generate_export()
+        return {
+            "model": wizard._name,
+            "id": wizard.id,
+            "field": "export_file",
+            "filename_field": "export_filename",
+            "filename": wizard.export_filename,
+            "download": True,
+        }
+
+    @api.model
+    def report_client_open_sources(self, wizard_id, line_id):
+        wizard = self.browse(wizard_id).exists()
+        line = self.env["rebuild.account.report.preview.line"].browse(
+            line_id,
+        ).exists()
+        if not wizard or not line or line.wizard_id != wizard:
+            raise UserError("The selected report line is no longer available.")
+        return wizard._preview_source_action(line)
+
+    @api.model
+    def report_client_toggle_group(self, wizard_id, line_id):
+        wizard = self.browse(wizard_id).exists()
+        line = self.env["rebuild.account.report.preview.line"].browse(
+            line_id,
+        ).exists()
+        if not wizard or not line or line.wizard_id != wizard:
+            raise UserError("The selected report group is no longer available.")
+        line.action_toggle_group()
+        return wizard._report_client_payload()
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -613,6 +1086,9 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 or row.get("line_name")
                 or row.get("field_label")
                 or row.get("asset_name")
+                or row.get("name")
+                or row.get("payment_ref")
+                or row.get("source_original_name")
                 or row.get("account_name")
                 or row.get("partner_name")
                 or row.get("move_name")
@@ -627,7 +1103,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 or self.company_id.id
             ),
             "date": row.get("date") or row.get("due_date") or row.get("deferred_date"),
-            "section": row.get("section") or row.get("statement_name") or row.get("report_section") or row.get("form_code") or row.get("journal_code"),
+            "section": row.get("section") or row.get("statement_name") or row.get("statement_key") or row.get("report_section") or row.get("form_code") or row.get("journal_code"),
             "line_code": row.get("line_code") or row.get("field_code") or row.get("account_code") or row.get("journal_code"),
             "label": label,
             "account_code": row.get("account_code"),
@@ -1965,6 +2441,20 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         result = []
         for group_key, bucket in groups.items():
             children = bucket["rows"]
+            summary_code = {
+                "bilan_actif": "ACTIF_TOTAL",
+                "bilan_passif": "PASSIF_TOTAL",
+                "compte_resultat": "CR_RESULTAT_NET",
+                "sig_caf": "SIG_CAPACITE_AUTOFINANCEMENT",
+            }.get(children[0].get("statement_key") if children else "")
+            summary_row = next(
+                (
+                    row
+                    for row in children
+                    if summary_code and row.get("line_code") == summary_code
+                ),
+                None,
+            )
             group_row = {
                 **bucket["values"],
                 "is_group": "true",
@@ -1974,6 +2464,12 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 "record_count": str(len(children)),
             }
             for field_name in self._summable_report_fields():
+                if (
+                    summary_row
+                    and summary_row.get(field_name) not in (None, "")
+                ):
+                    group_row[field_name] = summary_row[field_name]
+                    continue
                 values = [
                     _amount(row.get(field_name))
                     for row in children
@@ -1981,6 +2477,17 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 ]
                 if values:
                     group_row[field_name] = _amount_text(sum(values))
+            if (
+                self.report_type == "general_ledger"
+                and self.group_by == "account"
+                and children
+            ):
+                group_row["opening_balance"] = (
+                    children[0].get("opening_balance") or "0.00"
+                )
+                group_row["running_balance"] = (
+                    children[-1].get("running_balance") or "0.00"
+                )
             result.append(group_row)
             result.extend([
                 {
@@ -2001,6 +2508,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 "section",
                 row.get("section")
                 or row.get("statement_name")
+                or row.get("statement_key")
                 or row.get("report_section")
                 or row.get("form_code"),
             ),
@@ -2039,6 +2547,13 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 ("section", ""),
             )
             value = str(value or "Not specified")
+        if self.group_by == "section":
+            value = {
+                "bilan_actif": "Balance Sheet — Assets",
+                "bilan_passif": "Balance Sheet — Liabilities",
+                "compte_resultat": "Profit and Loss",
+                "sig_caf": "SIG and CAF",
+            }.get(value, value)
         group_key = f"{company_key}|{self.group_by}|{value}"
         label = (
             f"{company_name} — {value}"
@@ -2054,6 +2569,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         }
         if field_name == "account_code":
             values["account_name"] = row.get("account_name") or ""
+            label = row.get("account_name") or value
         return group_key, label, values
 
     @staticmethod
@@ -2312,14 +2828,6 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         if self.company_id not in companies:
             message = "The primary company must be included in Companies."
             raise UserError(message)
-        if (
-            self.analytic_plan_ids or self.analytic_account_ids
-        ) and self.report_type != "analytic_report":
-            message = (
-                "Analytic plan and account filters are available on the "
-                "Analytic Report."
-            )
-            raise UserError(message)
         if self.report_type == "fec":
             if len(companies) != 1:
                 message = "Generate one FEC per company."
@@ -2446,6 +2954,32 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         if self.partner_ids:
             clauses.append("AND line.partner_id IN %s")
             params.append(tuple(self.partner_ids.ids))
+        if self.analytic_plan_ids:
+            plan_account_ids = self.env["account.analytic.account"].search([
+                ("plan_id", "in", self.analytic_plan_ids.ids),
+            ]).ids
+            clauses.append(
+                "AND EXISTS ("
+                "SELECT 1 FROM jsonb_object_keys("
+                "COALESCE(line.analytic_distribution, '{}'::jsonb)"
+                ") AS analytic_key "
+                "WHERE string_to_array(analytic_key, ',') "
+                "&& %s::text[])",
+            )
+            params.append([str(record_id) for record_id in plan_account_ids])
+        if self.analytic_account_ids:
+            clauses.append(
+                "AND EXISTS ("
+                "SELECT 1 FROM jsonb_object_keys("
+                "COALESCE(line.analytic_distribution, '{}'::jsonb)"
+                ") AS analytic_key "
+                "WHERE string_to_array(analytic_key, ',') "
+                "&& %s::text[])",
+            )
+            params.append([
+                str(record_id)
+                for record_id in self.analytic_account_ids.ids
+            ])
         return "\n               ".join(clauses), params
 
     def _analytic_filter_sql(self):
@@ -2702,7 +3236,25 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 *filter_params,
             ],
         )
-        return [dict(row) for row in self.env.cr.dictfetchall()]
+        rows = [dict(row) for row in self.env.cr.dictfetchall()]
+        for row in rows:
+            row["section"] = self._account_class_label(row["account_code"])
+        return rows
+
+    @staticmethod
+    def _account_class_label(account_code):
+        labels = {
+            "1": "Class 1 — Capital and equity",
+            "2": "Class 2 — Fixed assets",
+            "3": "Class 3 — Inventories and work in progress",
+            "4": "Class 4 — Third-party accounts",
+            "5": "Class 5 — Financial accounts",
+            "6": "Class 6 — Expenses",
+            "7": "Class 7 — Income",
+            "8": "Class 8 — Special accounts",
+        }
+        code = str(account_code or "")
+        return labels.get(code[:1], "Other accounts")
 
     def _general_ledger_rows(self):
         filter_sql, filter_params = self._line_filter_sql()
@@ -2740,7 +3292,25 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             """,
             [self.company_id.id, self.date_from, self.date_to, *filter_params],
         )
-        return [dict(row) for row in self.env.cr.dictfetchall()]
+        rows = [dict(row) for row in self.env.cr.dictfetchall()]
+        opening_by_account = {
+            row["account_code"]: _amount(row["opening_balance"])
+            for row in self._trial_balance_rows()
+        }
+        running_by_account = {}
+        for row in rows:
+            account_code = row["account_code"]
+            opening = opening_by_account.get(account_code, Decimal("0.00"))
+            running = running_by_account.get(account_code, opening)
+            running += _amount(row["balance"])
+            row["opening_balance"] = (
+                _amount_text(opening)
+                if account_code not in running_by_account
+                else ""
+            )
+            row["running_balance"] = _amount_text(running)
+            running_by_account[account_code] = running
+        return rows
 
     def _journal_report_rows(self):
         filter_sql, filter_params = self._line_filter_sql()

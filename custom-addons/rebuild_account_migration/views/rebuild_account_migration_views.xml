@@ -148,7 +148,7 @@
         groups="account.group_account_manager"/>
 
     <record id="action_rebuild_accounting_home" model="ir.actions.client">
-        <field name="name">Accounting Home</field>
+        <field name="name">Overview</field>
         <field name="tag">rebuild_accounting_home</field>
     </record>
 
@@ -159,6 +159,17 @@
     <record id="account.menu_finance_receivables" model="ir.ui.menu">
         <field name="sequence">2</field>
     </record>
+    <record id="account.menu_board_journal_1" model="ir.ui.menu">
+        <field name="name">Journals</field>
+        <field name="sequence">1</field>
+    </record>
+    <menuitem
+        id="menu_rebuild_accounting_overview"
+        name="Overview"
+        parent="account.menu_finance"
+        action="action_rebuild_accounting_home"
+        sequence="0"
+        groups="account.group_account_readonly"/>
     <record id="account.menu_finance_payables" model="ir.ui.menu">
         <field name="name">Vendors</field>
         <field name="sequence">3</field>
@@ -170,6 +181,10 @@
     <record id="account.account_audit_menu" model="ir.ui.menu">
         <field name="name">Review</field>
         <field name="sequence">7</field>
+    </record>
+    <record id="account_asset_management.menu_finance_assets" model="ir.ui.menu">
+        <field name="parent_id" ref="account.menu_finance_entries"/>
+        <field name="sequence">30</field>
     </record>
     <record id="account_reconcile_oca.account_account_reconcile_menu" model="ir.ui.menu">
         <field name="name">General Reconciliation</field>
@@ -443,11 +458,10 @@
         <field name="model">rebuild.account.review.summary</field>
         <field name="priority">1</field>
         <field name="arch" type="xml">
-            <form string="Accounting Home" create="0" edit="0" delete="0">
+            <form string="Accounting Overview" create="0" edit="0" delete="0">
                 <header>
-                    <button name="action_open_journal_dashboard" type="object" string="Journal Dashboard"/>
+                    <button name="action_open_journal_dashboard" type="object" string="Journals"/>
                     <button name="action_open_bank_matching" type="object" string="Bank Matching"/>
-                    <button name="action_open_report_export_wizard" type="object" string="Reports" class="btn-primary"/>
                     <button name="action_open_user_guide" type="object" string="User Guide"/>
                     <button
                         name="action_open_accounting_settings"
@@ -459,8 +473,9 @@
                     <field name="currency_id" invisible="1"/>
                     <field name="latest_closing_period_id" invisible="1"/>
                     <field name="next_declaration_id" invisible="1"/>
+                    <field name="hygiene_status" invisible="1"/>
                     <div class="oe_title">
-                        <h1>Accounting Home</h1>
+                        <h1>Overview</h1>
                         <h2>
                             <field name="company_id" class="oe_inline"/>
                         </h2>
@@ -468,8 +483,8 @@
                     <div
                         class="alert alert-danger"
                         role="alert"
-                        invisible="not open_p0_count and readiness_status != 'blocked'">
-                        A blocking accounting issue requires review before the evidence can be accepted.
+                        invisible="hygiene_status != 'blocked'">
+                        Accounting Hygiene has blocking issues. Review them before continuing normal accounting work.
                     </div>
                     <div
                         class="alert alert-warning"
@@ -497,82 +512,129 @@
                             <field name="open_discrepancy_count" widget="statinfo" string="Open Issues"/>
                         </button>
                     </div>
-                    <group string="Cash and Bank">
-                        <group>
-                            <field name="journal_count"/>
-                            <field name="cash_journal_count"/>
-                        </group>
-                        <group>
-                            <field name="bank_balance" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                            <field name="unmatched_bank_transaction_count"/>
-                        </group>
-                    </group>
-                    <group string="Daily Accounting Work">
-                        <group>
-                            <field name="draft_customer_document_count"/>
-                            <field name="draft_vendor_document_count"/>
-                        </group>
-                        <group>
-                            <field name="draft_expense_count"/>
-                            <field name="incomplete_document_count"/>
-                        </group>
-                    </group>
-                    <group string="Open Balances">
-                        <group>
-                            <field name="open_receivable_count"/>
-                            <field name="open_receivable_amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                            <button name="action_open_open_receivables" type="object" string="Review Open Receivables" class="btn-link"/>
-                        </group>
-                        <group>
-                            <field name="open_payable_count"/>
-                            <field name="open_payable_amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                            <button name="action_open_open_payables" type="object" string="Review Open Payables" class="btn-link"/>
-                        </group>
-                    </group>
-                    <group string="Closing and Declarations">
-                        <group string="Current Closing">
-                            <field name="latest_closing_date_to"/>
-                            <field name="latest_closing_state" widget="badge"/>
-                            <field name="latest_closing_readiness" widget="badge"/>
-                            <field name="latest_closing_blocking_count"/>
-                            <button
-                                name="action_open_latest_closing"
-                                type="object"
-                                string="Open Current Closing"
-                                class="btn-link"
-                                invisible="not latest_closing_period_id"/>
-                            <button name="action_open_closing_workspaces" type="object" string="All Closing Workspaces" class="btn-link"/>
-                        </group>
-                        <group string="Next Declaration">
-                            <field name="next_declaration_deadline"/>
-                            <field name="next_declaration_status" widget="badge"/>
-                            <field name="overdue_declaration_count"/>
-                            <field name="upcoming_declaration_count"/>
-                            <button
-                                name="action_open_next_declaration"
-                                type="object"
-                                string="Open Next Declaration"
-                                class="btn-link"
-                                invisible="not next_declaration_id"/>
-                            <button name="action_open_declarations" type="object" string="All Declarations" class="btn-link"/>
-                        </group>
-                    </group>
-                    <group string="Prepared Actions and Evidence">
-                        <group string="Awaiting a Decision">
-                            <field name="valentin_action_count"/>
-                            <button name="action_open_valentin_actions" type="object" string="Prepared for Valentin" class="btn-link"/>
-                            <field name="accountant_action_count"/>
-                            <button name="action_open_accountant_actions" type="object" string="Prepared for Prosper" class="btn-link"/>
-                        </group>
-                        <group string="Reconstruction Trust">
-                            <field name="readiness_status" widget="badge"/>
-                            <field name="open_p0_count"/>
-                            <field name="open_p1_count"/>
-                            <field name="latest_import_status"/>
-                            <button name="action_open_review_decisions" type="object" string="Review Decisions" class="btn-link"/>
-                            <button name="action_open_imported_journal_items" type="object" string="Imported Journal Items" class="btn-link"/>
-                        </group>
-                    </group>
+                    <div class="o_usl_accounting_overview">
+                        <p class="o_usl_overview_intro">
+                            Start with bank matching and documents waiting for review.
+                            Closing and declaration readiness are shown below when they need attention.
+                        </p>
+
+                        <section class="o_usl_overview_section">
+                            <h3 class="o_usl_overview_section_title">Cash and bank</h3>
+                            <div class="row g-3">
+                                <div class="col-12 col-md-6">
+                                    <div class="o_usl_overview_card">
+                                        <h4 class="o_usl_overview_card_title">Available cash</h4>
+                                        <span class="o_usl_overview_value">
+                                            <field name="bank_balance" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                        </span>
+                                        <div class="o_usl_overview_detail">
+                                            Across <field name="cash_journal_count" nolabel="1"/> bank and cash journals
+                                        </div>
+                                        <button name="action_open_journal_dashboard" type="object" string="Open journals" class="btn-link"/>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <div class="o_usl_overview_card">
+                                        <h4 class="o_usl_overview_card_title">Transactions to match</h4>
+                                        <span class="o_usl_overview_value">
+                                            <field name="unmatched_bank_transaction_count" nolabel="1"/>
+                                        </span>
+                                        <div class="o_usl_overview_detail">Bank transactions still needing a counterpart or category.</div>
+                                        <button name="action_open_bank_matching" type="object" string="Continue bank matching" class="btn-link"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="o_usl_overview_section">
+                            <h3 class="o_usl_overview_section_title">What needs attention</h3>
+                            <div class="row g-3">
+                                <div class="col-12 col-md-4">
+                                    <div class="o_usl_overview_card">
+                                        <h4 class="o_usl_overview_card_title">Vendor documents</h4>
+                                        <span class="o_usl_overview_value"><field name="draft_vendor_document_count" nolabel="1"/></span>
+                                        <div class="o_usl_overview_detail">Draft bills, refunds and receipts waiting for review.</div>
+                                        <button name="action_open_vendor_documents" type="object" string="Review vendor documents" class="btn-link"/>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-4">
+                                    <div class="o_usl_overview_card">
+                                        <h4 class="o_usl_overview_card_title">Open receivables</h4>
+                                        <span class="o_usl_overview_value">
+                                            <field name="open_receivable_amount" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                        </span>
+                                        <div class="o_usl_overview_detail"><field name="open_receivable_count" nolabel="1"/> open customer items.</div>
+                                        <button name="action_open_open_receivables" type="object" string="Review receivables" class="btn-link"/>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-4">
+                                    <div class="o_usl_overview_card">
+                                        <h4 class="o_usl_overview_card_title">Open payables</h4>
+                                        <span class="o_usl_overview_value">
+                                            <field name="open_payable_amount" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                        </span>
+                                        <div class="o_usl_overview_detail"><field name="open_payable_count" nolabel="1"/> open supplier items.</div>
+                                        <button name="action_open_open_payables" type="object" string="Review payables" class="btn-link"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="o_usl_overview_section">
+                            <h3 class="o_usl_overview_section_title">Closing and declarations</h3>
+                            <div class="row g-3">
+                                <div class="col-12 col-md-6">
+                                    <div class="o_usl_overview_card">
+                                        <div class="o_usl_overview_status">
+                                            <h4 class="o_usl_overview_card_title">Current closing workspace</h4>
+                                            <field name="latest_closing_readiness" nolabel="1" widget="badge"/>
+                                        </div>
+                                        <span class="o_usl_overview_value"><field name="latest_closing_date_to" nolabel="1"/></span>
+                                        <div class="o_usl_overview_detail">
+                                            <field name="latest_closing_blocking_count" nolabel="1"/> blocking controls remain.
+                                        </div>
+                                        <button name="action_open_latest_closing" type="object" string="Review closing readiness" class="btn-link" invisible="not latest_closing_period_id"/>
+                                        <button name="action_open_closing_workspaces" type="object" string="All closing workspaces" class="btn-link"/>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <div class="o_usl_overview_card">
+                                        <div class="o_usl_overview_status">
+                                            <h4 class="o_usl_overview_card_title">Declaration follow-up</h4>
+                                            <field name="next_declaration_status" nolabel="1" widget="badge"/>
+                                        </div>
+                                        <span class="o_usl_overview_value"><field name="next_declaration_deadline" nolabel="1"/></span>
+                                        <div class="o_usl_overview_detail">
+                                            <field name="overdue_declaration_count" nolabel="1"/> overdue;
+                                            <field name="upcoming_declaration_count" nolabel="1"/> due within 45 days.
+                                        </div>
+                                        <button name="action_open_next_declaration" type="object" string="Review next declaration" class="btn-link" invisible="not next_declaration_id"/>
+                                        <button name="action_open_declarations" type="object" string="All declarations" class="btn-link"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="o_usl_overview_section">
+                            <h3 class="o_usl_overview_section_title">Prepared decisions</h3>
+                            <div class="row g-3">
+                                <div class="col-12 col-md-6">
+                                    <div class="o_usl_overview_card">
+                                        <h4 class="o_usl_overview_card_title">Accounting manager</h4>
+                                        <span class="o_usl_overview_value"><field name="valentin_action_count" nolabel="1"/></span>
+                                        <button name="action_open_valentin_actions" type="object" string="Review assigned decisions" class="btn-link"/>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <div class="o_usl_overview_card">
+                                        <h4 class="o_usl_overview_card_title">Accountant reviewer</h4>
+                                        <span class="o_usl_overview_value"><field name="accountant_action_count" nolabel="1"/></span>
+                                        <button name="action_open_accountant_actions" type="object" string="Review accountant decisions" class="btn-link"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
                 </sheet>
             </form>
         </field>
@@ -806,9 +868,9 @@
                     <group string="Ownership and Evidence">
                         <group>
                             <field name="valentin_action_count"/>
-                            <button name="action_open_valentin_actions" type="object" string="Prepared for Valentin" class="btn-link"/>
+                            <button name="action_open_valentin_actions" type="object" string="Prepared for Accounting Manager" class="btn-link"/>
                             <field name="accountant_action_count"/>
-                            <button name="action_open_accountant_actions" type="object" string="Prepared for Prosper" class="btn-link"/>
+                            <button name="action_open_accountant_actions" type="object" string="Prepared for Accountant Reviewer" class="btn-link"/>
                         </group>
                         <group>
                             <field name="open_p0_count"/>
@@ -4684,67 +4746,188 @@
         sequence="130"
         groups="account.group_account_readonly"/>
 
+    <record id="action_rebuild_interactive_trial_balance" model="ir.actions.client">
+        <field name="name">Trial Balance</field>
+        <field name="tag">rebuild_accounting_report</field>
+        <field name="context">{'report_type': 'trial_balance'}</field>
+    </record>
+    <record id="action_rebuild_interactive_general_ledger" model="ir.actions.client">
+        <field name="name">General Ledger</field>
+        <field name="tag">rebuild_accounting_report</field>
+        <field name="context">{'report_type': 'general_ledger'}</field>
+    </record>
+    <record id="action_rebuild_interactive_journal_report" model="ir.actions.client">
+        <field name="name">Journal Report</field>
+        <field name="tag">rebuild_accounting_report</field>
+        <field name="context">{'report_type': 'journal_report'}</field>
+    </record>
+    <record id="action_rebuild_interactive_balance_sheet" model="ir.actions.client">
+        <field name="name">Balance Sheet</field>
+        <field name="tag">rebuild_accounting_report</field>
+        <field name="context">{'report_type': 'balance_sheet'}</field>
+    </record>
+    <record id="action_rebuild_interactive_profit_loss" model="ir.actions.client">
+        <field name="name">Profit and Loss</field>
+        <field name="tag">rebuild_accounting_report</field>
+        <field name="context">{'report_type': 'profit_loss'}</field>
+    </record>
+    <record id="action_rebuild_interactive_french_annual" model="ir.actions.client">
+        <field name="name">French Annual Statements</field>
+        <field name="tag">rebuild_accounting_report</field>
+        <field name="context">{'report_type': 'french_annual'}</field>
+    </record>
+    <record id="action_rebuild_interactive_french_balance_sheet_2024" model="ir.actions.client">
+        <field name="name">French Balance Sheet (2024 PCG)</field>
+        <field name="tag">rebuild_accounting_report</field>
+        <field name="context">{'report_type': 'french_balance_sheet_2024'}</field>
+    </record>
+    <record id="action_rebuild_interactive_french_profit_loss_2024" model="ir.actions.client">
+        <field name="name">French Profit and Loss (2024 PCG)</field>
+        <field name="tag">rebuild_accounting_report</field>
+        <field name="context">{'report_type': 'french_profit_loss_2024'}</field>
+    </record>
+    <record id="action_rebuild_interactive_sig_caf_2024" model="ir.actions.client">
+        <field name="name">SIG and CAF (2024 PCG)</field>
+        <field name="tag">rebuild_accounting_report</field>
+        <field name="context">{'report_type': 'sig_caf_2024'}</field>
+    </record>
+    <record id="action_rebuild_interactive_bank_reconciliation" model="ir.actions.client">
+        <field name="name">Bank Reconciliation Report</field>
+        <field name="tag">rebuild_accounting_report</field>
+        <field name="context">{'report_type': 'bank_reconciliation'}</field>
+    </record>
+    <record id="action_rebuild_interactive_currency_report" model="ir.actions.client">
+        <field name="name">Currency Gains, Losses and Exposure</field>
+        <field name="tag">rebuild_accounting_report</field>
+        <field name="context">{'report_type': 'currency_report'}</field>
+    </record>
+    <record id="action_rebuild_interactive_fixed_assets" model="ir.actions.client">
+        <field name="name">Fixed Asset Register</field>
+        <field name="tag">rebuild_accounting_report</field>
+        <field name="context">{'report_type': 'fixed_assets'}</field>
+    </record>
+    <record id="action_rebuild_interactive_depreciation_schedule" model="ir.actions.client">
+        <field name="name">Depreciation Schedule</field>
+        <field name="tag">rebuild_accounting_report</field>
+        <field name="context">{'report_type': 'depreciation_schedule'}</field>
+    </record>
+    <record id="action_rebuild_interactive_deferred_schedule" model="ir.actions.client">
+        <field name="name">Deferred Expense and Revenue Schedule</field>
+        <field name="tag">rebuild_accounting_report</field>
+        <field name="context">{'report_type': 'deferred_schedule'}</field>
+    </record>
+    <record id="action_rebuild_interactive_partner_ledger" model="ir.actions.client">
+        <field name="name">Partner Ledger</field>
+        <field name="tag">rebuild_accounting_report</field>
+        <field name="context">{'report_type': 'partner_ledger'}</field>
+    </record>
+    <record id="action_rebuild_interactive_customer_statement" model="ir.actions.client">
+        <field name="name">Customer Statement</field>
+        <field name="tag">rebuild_accounting_report</field>
+        <field name="context">{'report_type': 'customer_statement'}</field>
+    </record>
+    <record id="action_rebuild_interactive_open_items" model="ir.actions.client">
+        <field name="name">Open Items</field>
+        <field name="tag">rebuild_accounting_report</field>
+        <field name="context">{'report_type': 'open_items'}</field>
+    </record>
+    <record id="action_rebuild_interactive_aged_receivable" model="ir.actions.client">
+        <field name="name">Aged Receivable</field>
+        <field name="tag">rebuild_accounting_report</field>
+        <field name="context">{'report_type': 'aged_receivable'}</field>
+    </record>
+    <record id="action_rebuild_interactive_aged_payable" model="ir.actions.client">
+        <field name="name">Aged Payable</field>
+        <field name="tag">rebuild_accounting_report</field>
+        <field name="context">{'report_type': 'aged_payable'}</field>
+    </record>
+    <record id="action_rebuild_interactive_cash_flow" model="ir.actions.client">
+        <field name="name">Cash Flow Statement</field>
+        <field name="tag">rebuild_accounting_report</field>
+        <field name="context">{'report_type': 'cash_flow'}</field>
+    </record>
+    <record id="action_rebuild_interactive_executive_summary" model="ir.actions.client">
+        <field name="name">Executive Summary</field>
+        <field name="tag">rebuild_accounting_report</field>
+        <field name="context">{'report_type': 'executive_summary'}</field>
+    </record>
+    <record id="action_rebuild_interactive_analytic_report" model="ir.actions.client">
+        <field name="name">Analytical Accounting</field>
+        <field name="tag">rebuild_accounting_report</field>
+        <field name="context">{'report_type': 'analytic_report'}</field>
+    </record>
+    <record id="action_rebuild_interactive_tax_report" model="ir.actions.client">
+        <field name="name">VAT and Tax Report</field>
+        <field name="tag">rebuild_accounting_report</field>
+        <field name="context">{'report_type': 'tax_report'}</field>
+    </record>
+    <record id="action_rebuild_interactive_french_tax_package" model="ir.actions.client">
+        <field name="name">French Tax Package and CA12 Mapping</field>
+        <field name="tag">rebuild_accounting_report</field>
+        <field name="context">{'report_type': 'french_tax_package'}</field>
+    </record>
+
     <menuitem
         id="menu_rebuild_account_report_trial_balance_launcher"
         name="Trial Balance"
         parent="account.account_reports_legal_statements_menu"
-        action="action_rebuild_account_report_export_trial_balance"
+        action="action_rebuild_interactive_trial_balance"
         sequence="1"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_general_ledger_launcher"
         name="General Ledger"
         parent="account.account_reports_legal_statements_menu"
-        action="action_rebuild_account_report_export_general_ledger"
+        action="action_rebuild_interactive_general_ledger"
         sequence="2"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_journal_report_launcher"
         name="Journal Report"
         parent="account.account_reports_legal_statements_menu"
-        action="action_rebuild_account_report_export_journal_report"
+        action="action_rebuild_interactive_journal_report"
         sequence="3"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_balance_sheet_launcher"
         name="Balance Sheet"
         parent="account.account_reports_legal_statements_menu"
-        action="action_rebuild_account_report_export_balance_sheet"
+        action="action_rebuild_interactive_balance_sheet"
         sequence="4"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_profit_loss_launcher"
         name="Profit and Loss"
         parent="account.account_reports_legal_statements_menu"
-        action="action_rebuild_account_report_export_profit_loss"
+        action="action_rebuild_interactive_profit_loss"
         sequence="5"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_french_annual_launcher"
         name="French Annual Statements"
         parent="account.account_reports_legal_statements_menu"
-        action="action_rebuild_account_report_export_french_annual"
+        action="action_rebuild_interactive_french_annual"
         sequence="6"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_french_balance_sheet_2024_launcher"
         name="French Balance Sheet (2024 PCG)"
         parent="account.account_reports_legal_statements_menu"
-        action="action_rebuild_account_report_export_french_balance_sheet_2024"
+        action="action_rebuild_interactive_french_balance_sheet_2024"
         sequence="7"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_french_profit_loss_2024_launcher"
         name="French Profit and Loss (2024 PCG)"
         parent="account.account_reports_legal_statements_menu"
-        action="action_rebuild_account_report_export_french_profit_loss_2024"
+        action="action_rebuild_interactive_french_profit_loss_2024"
         sequence="8"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_sig_caf_2024_launcher"
         name="SIG and CAF (2024 PCG)"
         parent="account.account_reports_legal_statements_menu"
-        action="action_rebuild_account_report_export_sig_caf_2024"
+        action="action_rebuild_interactive_sig_caf_2024"
         sequence="9"
         groups="account.group_account_readonly"/>
     <menuitem
@@ -4758,21 +4941,21 @@
         id="menu_rebuild_account_report_bank_reconciliation_launcher"
         name="Bank Reconciliation Report"
         parent="account.account_reports_legal_statements_menu"
-        action="action_rebuild_account_report_export_bank_reconciliation"
+        action="action_rebuild_interactive_bank_reconciliation"
         sequence="8"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_currency_launcher"
         name="Currency Gains, Losses and Exposure"
         parent="account.account_reports_legal_statements_menu"
-        action="action_rebuild_account_report_export_currency_report"
+        action="action_rebuild_interactive_currency_report"
         sequence="9"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_fixed_assets_launcher"
         name="Fixed Asset Register"
         parent="account.account_reports_legal_statements_menu"
-        action="action_rebuild_account_report_export_fixed_assets"
+        action="action_rebuild_interactive_fixed_assets"
         sequence="10"
         groups="account.group_account_readonly"/>
     <menuitem
@@ -4786,14 +4969,14 @@
         id="menu_rebuild_account_report_depreciation_schedule_launcher"
         name="Depreciation Schedule"
         parent="account.account_reports_legal_statements_menu"
-        action="action_rebuild_account_report_export_depreciation_schedule"
+        action="action_rebuild_interactive_depreciation_schedule"
         sequence="12"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_deferred_schedule_launcher"
         name="Deferred Expense and Revenue Schedule"
         parent="account.account_reports_legal_statements_menu"
-        action="action_rebuild_account_report_export_deferred_schedule"
+        action="action_rebuild_interactive_deferred_schedule"
         sequence="13"
         groups="account.group_account_readonly"/>
 
@@ -4801,35 +4984,35 @@
         id="menu_rebuild_account_report_partner_ledger_launcher"
         name="Partner Ledger"
         parent="account.account_reports_partners_reports_menu"
-        action="action_rebuild_account_report_export_partner_ledger"
+        action="action_rebuild_interactive_partner_ledger"
         sequence="1"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_customer_statement_launcher"
         name="Customer Statement"
         parent="account.account_reports_partners_reports_menu"
-        action="action_rebuild_account_report_export_customer_statement"
+        action="action_rebuild_interactive_customer_statement"
         sequence="2"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_open_items_launcher"
         name="Open Items"
         parent="account.account_reports_partners_reports_menu"
-        action="action_rebuild_account_report_export_open_items"
+        action="action_rebuild_interactive_open_items"
         sequence="3"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_aged_receivable_launcher"
         name="Aged Receivable"
         parent="account.account_reports_partners_reports_menu"
-        action="action_rebuild_account_report_export_aged_receivable"
+        action="action_rebuild_interactive_aged_receivable"
         sequence="4"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_aged_payable_launcher"
         name="Aged Payable"
         parent="account.account_reports_partners_reports_menu"
-        action="action_rebuild_account_report_export_aged_payable"
+        action="action_rebuild_interactive_aged_payable"
         sequence="5"
         groups="account.group_account_readonly"/>
 
@@ -4837,21 +5020,21 @@
         id="menu_rebuild_account_report_cash_flow_launcher"
         name="Cash Flow Statement"
         parent="account.account_reports_management_menu"
-        action="action_rebuild_account_report_export_cash_flow"
+        action="action_rebuild_interactive_cash_flow"
         sequence="1"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_executive_summary_launcher"
         name="Executive Summary"
         parent="account.account_reports_management_menu"
-        action="action_rebuild_account_report_export_executive_summary"
+        action="action_rebuild_interactive_executive_summary"
         sequence="2"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_analytic_launcher"
         name="Analytic Report"
         parent="account.account_reports_management_menu"
-        action="action_rebuild_account_report_export_analytic_report"
+        action="action_rebuild_interactive_analytic_report"
         sequence="3"
         groups="account.group_account_readonly"/>
 
@@ -4859,14 +5042,14 @@
         id="menu_rebuild_account_report_tax_launcher"
         name="VAT and Tax Report"
         parent="account.account_reports_taxes_and_fiscal_menu"
-        action="action_rebuild_account_report_export_tax_report"
+        action="action_rebuild_interactive_tax_report"
         sequence="1"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_french_tax_package_launcher"
         name="French Tax Package and CA12 Mapping"
         parent="account.account_reports_taxes_and_fiscal_menu"
-        action="action_rebuild_account_report_export_french_tax_package"
+        action="action_rebuild_interactive_french_tax_package"
         sequence="2"
         groups="account.group_account_readonly"/>
     <menuitem

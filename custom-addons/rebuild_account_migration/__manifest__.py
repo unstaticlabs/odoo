@@ -16,7 +16,6 @@
         "analytic",
         "hr_expense",
         "l10n_fr_account",
-        "mis_builder",
         "partner_statement",
     ],
     "data": [
@@ -24,7 +23,6 @@
         "security/ir.model.access.csv",
         "data/currency_rate_provider.xml",
         "data/french_declaration_rules.xml",
-        "data/usl_mis_reports.xml",
         "views/rebuild_account_migration_views.xml",
         "views/account_closing_declaration_views.xml",
     ],
@@ -32,6 +30,10 @@
         "web.assets_backend": [
             "rebuild_account_migration/static/src/js/account_move_upload_controls.js",
             "rebuild_account_migration/static/src/js/accounting_home_action.js",
+            "rebuild_account_migration/static/src/js/accounting_report_action.js",
+            "rebuild_account_migration/static/src/scss/accounting_overview.scss",
+            "rebuild_account_migration/static/src/scss/accounting_report.scss",
+            "rebuild_account_migration/static/src/xml/accounting_report_action.xml",
             "rebuild_account_migration/static/src/xml/hr_expense_reviewer_controls.xml",
         ],
     },
