@@ -9,4 +9,3 @@ Evidence explains why a transaction exists: supplier invoices, receipts, contrac
 > evidence → business document → journal entry → reconciliation → report
 
 Accounting Hygiene highlights missing or incomplete preparation without posting on the user’s behalf.
-

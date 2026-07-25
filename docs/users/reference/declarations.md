@@ -20,4 +20,3 @@ Each declaration shows:
 - evidence and references.
 
 **View Entries** opens the journal items behind a ledger-derived value. A manual or externally confirmed value is visibly labelled and never silently replaces the ledger calculation.
-

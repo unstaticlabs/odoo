@@ -30,4 +30,3 @@ Severity is **Blocking**, **Warning**, **Attention** or **Information**.
 ## Declarations and closing
 
 Readiness is separate from filing. A declaration can be prepared and reviewed before it is marked filed, paid, refunded or credited. A closing control can pass, warn or block without locking the period automatically.
-

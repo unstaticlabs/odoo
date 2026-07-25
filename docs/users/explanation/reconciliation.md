@@ -7,4 +7,3 @@ A full reconciliation leaves no residual. A partial reconciliation keeps the lin
 Bank Matching starts from a bank transaction and searches for its likely counterpart. General Reconciliation starts from reconcilable ledger accounts and is useful for receivables, payables, clearing and intermediary accounts.
 
 Rules-based candidate filters prioritize opposite-sign amounts and nearby dates. They are removable aids, not autonomous decisions. Undo removes the selected reconciliation links; it does not delete the underlying documents or journal entries.
-

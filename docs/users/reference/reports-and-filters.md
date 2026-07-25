@@ -39,4 +39,3 @@ Active choices appear as removable pills. French users see dates as `DD/MM/YYYY`
 Use fold/unfold to move from totals to account groups and accounts. Select a line to inspect journal items, then open the original invoice, bill, payment or entry.
 
 Draft warnings mean the displayed period includes unposted accounting that can still change.
-

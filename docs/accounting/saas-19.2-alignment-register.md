@@ -1,9 +1,9 @@
 # SaaS 19.2 alignment register
 
-Status: automated alignment and focused SaaS browser acceptance passed  
-Source: `61f479cb44104bacfeaca927869bc3fd51c48285`  
-Target: `8a44ecc8da96e341ac472fec27352d138ed2edd7`  
-Target branch: `saas-19.2-usl-feat-accounting`  
+Status: automated alignment and focused SaaS browser acceptance passed
+Source: `61f479cb44104bacfeaca927869bc3fd51c48285`
+Target: `8a44ecc8da96e341ac472fec27352d138ed2edd7`
+Target branch: `saas-19.2-usl-feat-accounting`
 Rollback branch: `archive/19-usl-feat-accounting-61f479c`
 
 ## Frozen inputs
