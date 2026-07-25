@@ -1,5 +1,6 @@
-from odoo import fields, models, tools
+from odoo import api, fields, models, tools
 from odoo.exceptions import UserError
+from odoo.tools import date_utils
 
 
 BENCHMARK_PERIOD_KEY = "USL benchmark 2024-01-10 to 2025-09-30"
@@ -78,6 +79,7 @@ def _analytic_lines_action(record, domain, name=None):
         "name": name or "Contributing Analytic Lines",
         "res_model": "account.analytic.line",
         "view_mode": "list,form,pivot",
+        "views": [(False, "list"), (False, "form"), (False, "pivot")],
         "domain": domain,
         "context": {
             "create": False,
@@ -93,6 +95,7 @@ def _journal_items_action(record, domain, name=None):
         "name": name or "Contributing Journal Items",
         "res_model": "account.move.line",
         "view_mode": "list,form,pivot",
+        "views": [(False, "list"), (False, "form"), (False, "pivot")],
         "domain": domain,
         "context": {
             "create": False,
@@ -1880,6 +1883,10 @@ class RebuildAccountRevenueSpendingMonth(models.Model):
         "analytic_account_id",
         readonly=True,
     )
+    is_current_fiscal_year = fields.Boolean(
+        compute="_compute_is_current_fiscal_year",
+        search="_search_is_current_fiscal_year",
+    )
     line_count = fields.Integer(readonly=True)
     revenue = fields.Monetary(
         currency_field="company_currency_id",
@@ -1893,6 +1900,55 @@ class RebuildAccountRevenueSpendingMonth(models.Model):
         currency_field="company_currency_id",
         readonly=True,
     )
+
+    @api.model
+    def _current_fiscal_year_bounds(self, company):
+        today = fields.Date.context_today(self.with_company(company))
+        return date_utils.get_fiscal_year(
+            today,
+            day=company.fiscalyear_last_day,
+            month=int(company.fiscalyear_last_month),
+        )
+
+    def _compute_is_current_fiscal_year(self):
+        bounds_by_company = {
+            company.id: self._current_fiscal_year_bounds(company)
+            for company in self.mapped("company_id")
+        }
+        for row in self:
+            fiscal_from, fiscal_to = bounds_by_company[row.company_id.id]
+            row.is_current_fiscal_year = (
+                fiscal_from <= row.month <= fiscal_to
+            )
+
+    @api.model
+    def _search_is_current_fiscal_year(self, operator, value):
+        if operator in ("in", "not in"):
+            requested = True in value
+            positive = requested if operator == "in" else not requested
+        elif operator in ("=", "==", "!="):
+            requested = bool(value)
+            positive = requested if operator in ("=", "==") else not requested
+        else:
+            return NotImplemented
+        company_domains = []
+        for company in self.env.companies:
+            fiscal_from, fiscal_to = self._current_fiscal_year_bounds(company)
+            company_domains.append(fields.Domain.AND([
+                fields.Domain("company_id", "=", company.id),
+                fields.Domain(
+                    "month",
+                    ">=",
+                    fields.Date.to_string(fiscal_from),
+                ),
+                fields.Domain(
+                    "month",
+                    "<=",
+                    fields.Date.to_string(fiscal_to),
+                ),
+            ]))
+        domain = fields.Domain.OR(company_domains)
+        return list(domain if positive else ~domain)
 
     def action_open_journal_items(self):
         self.ensure_one()

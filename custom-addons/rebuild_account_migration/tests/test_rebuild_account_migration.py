@@ -614,6 +614,10 @@ class TestRebuildAccountMigration(TransactionCase):
         )
 
     def test_monthly_revenue_spending_trend_uses_posted_native_ledger(self):
+        self.company.write({
+            "fiscalyear_last_day": 30,
+            "fiscalyear_last_month": "9",
+        })
         revenue_account = self._account(
             "T707991",
             "Unit monthly revenue",
@@ -677,6 +681,7 @@ class TestRebuildAccountMigration(TransactionCase):
         rows = self.env["rebuild.account.revenue.spending.month"].search([
             ("company_id", "=", self.company.id),
             ("month", "in", ["2026-01-01", "2026-02-01"]),
+            ("account_id", "in", (revenue_account | spending_account).ids),
         ])
         amounts = {}
         for row in rows:
@@ -702,10 +707,27 @@ class TestRebuildAccountMigration(TransactionCase):
                 "2026-02-01": (500.0, 700.0, -200.0, 2),
             },
         )
+        report_model = self.env["rebuild.account.revenue.spending.month"]
         self.assertEqual(
-            self.env["rebuild.account.revenue.spending.month"].search_count([
+            report_model._current_fiscal_year_bounds(self.company),
+            (
+                fields.Date.from_string("2025-10-01"),
+                fields.Date.from_string("2026-09-30"),
+            ),
+        )
+        self.assertEqual(
+            report_model.search_count([
                 ("company_id", "=", self.company.id),
-                ("month", "in", ["2026-01-01", "2026-02-01"]),
+                ("is_current_fiscal_year", "=", True),
+                ("account_id", "in", (revenue_account | spending_account).ids),
+            ]),
+            4,
+        )
+        self.assertEqual(
+            report_model.search_count([
+                ("company_id", "=", self.company.id),
+                ("is_current_fiscal_year", "=", True),
+                ("account_id", "in", (revenue_account | spending_account).ids),
                 ("analytic_plan_ids", "in", analytic_plan.ids),
                 ("analytic_account_ids", "in", analytic_account.ids),
             ]),
@@ -721,6 +743,10 @@ class TestRebuildAccountMigration(TransactionCase):
         drilldown = february_spending.action_open_journal_items()
         self.assertEqual(drilldown["res_model"], "account.move.line")
         self.assertEqual(
+            drilldown["views"],
+            [(False, "list"), (False, "form"), (False, "pivot")],
+        )
+        self.assertEqual(
             self.env["account.move.line"].search_count(drilldown["domain"]),
             1,
         )
@@ -729,6 +755,10 @@ class TestRebuildAccountMigration(TransactionCase):
             "action_rebuild_account_revenue_spending_month",
         )
         self.assertEqual(action.view_mode, "graph,pivot,list")
+        self.assertEqual(
+            safe_eval(action.context),
+            {"search_default_current_fiscal_year": 1},
+        )
         graph_view = self.env.ref(
             "rebuild_account_migration."
             "view_rebuild_account_revenue_spending_month_graph",
