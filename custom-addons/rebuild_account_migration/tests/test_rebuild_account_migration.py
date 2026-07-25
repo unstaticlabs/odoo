@@ -5416,9 +5416,22 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(draft_case.source_line_review_count, 2)
         self.assertEqual(cancelled_case.case_status, "review_only_cancelled_source")
         self.assertEqual(cancelled_case.generation_status, "not_applicable")
+        regeneration_discrepancy = self.env[
+            "rebuild.account.discrepancy"
+        ].create({
+            "name": (
+                "Non-posted source moves have regeneration cases but "
+                "native generation remains incomplete"
+            ),
+            "import_run_id": import_run.id,
+            "severity": "P1",
+            "classification": "missing_capability",
+            "status": "open",
+        })
 
         generated_action = draft_case.action_generate_draft_move()
         generated_move = draft_case.target_move_id
+        completion = import_run.finalize_product_draft_regeneration()
 
         self.assertEqual(generated_action["res_model"], "account.move")
         self.assertEqual(generated_action["res_id"], generated_move.id)
@@ -5431,6 +5444,23 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(draft_case.generated_debit_total, 120.00)
         self.assertEqual(draft_case.generated_credit_total, 120.00)
         self.assertEqual(draft_case.generated_balance_total, 0.00)
+        self.assertEqual(
+            completion,
+            {
+                "candidate_count": 1,
+                "validated_count": 1,
+                "review_only_count": 1,
+                "mismatch_count": 0,
+                "blocked_count": 0,
+                "incomplete_count": 0,
+            },
+        )
+        self.assertEqual(regeneration_discrepancy.status, "resolved")
+        self.assertEqual(
+            regeneration_discrepancy.classification,
+            "period_or_scope_difference",
+        )
+        self.assertEqual(regeneration_discrepancy.severity, "P2")
         self.assertEqual(
             set(generated_move.line_ids.mapped("rebuild_source_model")),
             {"account.move.line.document_regeneration"},

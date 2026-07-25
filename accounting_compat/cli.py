@@ -2953,11 +2953,7 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             "])",
             "for case in cases:",
             "    case.action_generate_draft_move()",
-            "draft_stats = {",
-            "    'candidate_count': len(cases),",
-            "    'validated_count': len(cases.filtered(lambda item: item.generation_status == 'validated')),",
-            "    'mismatch_count': len(cases.filtered(lambda item: item.generation_status == 'mismatch')),",
-            "}",
+            "draft_stats = run.finalize_product_draft_regeneration()",
             "currency_rate_cron = env.ref(",
             "    'rebuild_account_migration.ir_cron_rebuild_currency_rate_provider',",
             ")",
@@ -14678,6 +14674,43 @@ def target_discrepancy_rows() -> list[dict[str, Any]]:
     )
 
 
+PRODUCT_DRAFT_REGENERATION_DISCREPANCY = (
+    "Non-posted source moves have regeneration cases but native generation remains incomplete"
+)
+
+
+def apply_product_import_discrepancy_evidence(
+    discrepancy_rows: list[dict[str, Any]],
+    dev_import: dict[str, Any],
+) -> list[dict[str, Any]]:
+    """Remove an exact-replay draft warning once product-native drafts prove complete.
+
+    The exact validation database deliberately excludes non-posted source moves, while
+    ``odoo_dev`` reconstructs those records as native drafts.  Readiness spans both
+    isolated proofs, so the current product-import artifact is authoritative for this
+    one product-only capability.
+    """
+    draft_statistics = dev_import.get("draft_statistics") or {}
+    checks = dev_import.get("checks") or {}
+    candidate_count = int(draft_statistics.get("candidate_count") or 0)
+    product_drafts_complete = (
+        dev_import.get("status") == "passed"
+        and checks.get("draft_regeneration_matches") is True
+        and candidate_count > 0
+        and int(draft_statistics.get("validated_count") or 0) == candidate_count
+        and int(draft_statistics.get("mismatch_count") or 0) == 0
+        and int(draft_statistics.get("blocked_count") or 0) == 0
+        and int(draft_statistics.get("incomplete_count") or 0) == 0
+    )
+    if not product_drafts_complete:
+        return discrepancy_rows
+    return [
+        row
+        for row in discrepancy_rows
+        if row.get("name") != PRODUCT_DRAFT_REGENERATION_DISCREPANCY
+    ]
+
+
 def target_review_decision_summary() -> list[dict[str, Any]]:
     if not table_exists(EXACT_VALIDATION_DB, "rebuild_account_review_decision"):
         return []
@@ -14927,7 +14960,15 @@ def readiness(args: argparse.Namespace) -> dict[str, Any]:
     if target_import_status not in {"passed", "partial"}:
         technical_failures.append("target_import")
 
-    open_discrepancies = target_discrepancy_rows()
+    dev_import_payload = (
+        read_json(PRIVATE_ARTIFACTS / "dev-import-status.json")
+        if (PRIVATE_ARTIFACTS / "dev-import-status.json").exists()
+        else {}
+    )
+    open_discrepancies = apply_product_import_discrepancy_evidence(
+        target_discrepancy_rows(),
+        dev_import_payload,
+    )
     open_p0 = [row for row in open_discrepancies if row["severity"] == "P0"]
     open_p1 = [row for row in open_discrepancies if row["severity"] == "P1"]
     open_p2 = [row for row in open_discrepancies if row["severity"] == "P2"]

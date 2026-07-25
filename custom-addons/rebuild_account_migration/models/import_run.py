@@ -4110,6 +4110,86 @@ class RebuildAccountImportRun(models.Model):
             "generation_status_counts": dict(sorted(generation_status_counts.items())),
         }
 
+    def finalize_product_draft_regeneration(self):
+        """Close the import discrepancy once every eligible source draft exists."""
+        self.ensure_one()
+        cases = self.env[
+            "rebuild.account.document.regeneration.case"
+        ].with_context(active_test=False).search([
+            ("active", "=", True),
+            ("rebuild_source_snapshot", "=", self.source_snapshot_id),
+        ])
+        candidates = cases.filtered(
+            lambda case: case.case_status == "candidate_ready"
+        )
+        review_only = cases.filtered(
+            lambda case: case.generation_status == "not_applicable"
+        )
+        validated = candidates.filtered(
+            lambda case: case.generation_status == "validated"
+        )
+        mismatches = candidates.filtered(
+            lambda case: case.generation_status == "mismatch"
+        )
+        blocked = candidates.filtered(
+            lambda case: case.generation_status == "blocked"
+        )
+        incomplete = candidates - validated - mismatches - blocked
+        stats = {
+            "candidate_count": len(candidates),
+            "validated_count": len(validated),
+            "review_only_count": len(review_only),
+            "mismatch_count": len(mismatches),
+            "blocked_count": len(blocked),
+            "incomplete_count": len(incomplete),
+        }
+        if (
+            len(validated) == len(candidates)
+            and not mismatches
+            and not blocked
+            and not incomplete
+        ):
+            discrepancy_name = (
+                "Non-posted source moves have regeneration cases but "
+                "native generation remains incomplete"
+            )
+            self.env["rebuild.account.discrepancy"].search([
+                ("name", "=", discrepancy_name),
+                ("status", "!=", "resolved"),
+            ]).write({
+                "import_run_id": self.id,
+                "status": "resolved",
+                "classification": "period_or_scope_difference",
+                "severity": "P2",
+                "target_value": (
+                    f"{len(validated)} candidate drafts validated; "
+                    f"{len(review_only)} review-only cases marked not applicable"
+                ),
+                "difference": (
+                    "No candidate-ready source draft remains ungenerated, "
+                    "unvalidated or blocked."
+                ),
+                "evidence": json.dumps(
+                    stats,
+                    ensure_ascii=False,
+                    sort_keys=True,
+                ),
+                "accounting_impact": (
+                    "Every eligible non-posted source move is represented by "
+                    "a native target draft with matching source line count and "
+                    "debit, credit and balance totals."
+                ),
+                "legal_or_tax_impact": (
+                    "Generated records remain drafts and introduce no posted "
+                    "closed-period ledger effect."
+                ),
+                "recommendation": (
+                    "Use the native drafts in normal product workflows; keep "
+                    "cancelled or empty source records as review-only evidence."
+                ),
+            })
+        return stats
+
     def _import_bank_statement_lines(self, conn, options, companies, partners, journals, currencies):
         rows = self._bank_statement_line_rows(conn, options)
         source_move_ids = [row["move_id"] for row in rows if row["move_id"]]
