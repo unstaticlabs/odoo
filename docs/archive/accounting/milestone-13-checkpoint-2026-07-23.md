@@ -1,4 +1,4 @@
-# Milestone 13 checkpoint - 2026-07-23
+# Archived Milestone 13 checkpoint - 2026-07-23
 
 Status: **technical rehearsal extended; professional acceptance remains pending**.
 

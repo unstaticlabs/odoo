@@ -272,6 +272,36 @@ class TestRebuildAccountMigration(TransactionCase):
 
         self.assertIn(accounting_user_group, manager_group.implied_ids)
 
+    def test_readonly_reviewer_gets_journals_without_upload_or_send_actions(self):
+        journals_menu = self.env.ref("account.menu_board_journal_1")
+
+        self.assertIn(self.readonly_group, journals_menu.group_ids)
+
+        journal_arch = etree.fromstring(
+            self.env.ref(
+                "rebuild_account_migration."
+                "view_rebuild_account_journal_dashboard_readonly",
+            ).arch_db,
+        )
+        restricted_groups = journal_arch.xpath(
+            "//attribute[@name='groups']/text()",
+        )
+        self.assertEqual(
+            restricted_groups,
+            ["account.group_account_invoice", "account.group_account_invoice"],
+        )
+
+        move_arch = etree.fromstring(
+            self.env.ref(
+                "rebuild_account_migration."
+                "view_rebuild_account_move_readonly_actions",
+            ).arch_db,
+        )
+        self.assertEqual(
+            move_arch.xpath("//attribute[@name='groups']/text()"),
+            ["account.group_account_invoice"],
+        )
+
     def test_matched_items_route_uses_native_unreconcile_accounting_effect(self):
         clearing = self._account(
             "T471992",
@@ -4037,11 +4067,11 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(action.target, "self")
 
         rendered = user_docs.render_markdown(
-            "# Guide\n\nOpen [reports](how-to/generate-accounting-reports.md).\n\n| A | B |\n| --- | --- |\n| `one` | two |\n",
+            "# Guide\n\nOpen [reports](reference/reports-and-filters.md).\n\n| A | B |\n| --- | --- |\n| `one` | two |\n",
             "README.md",
         )
         self.assertIn("<h1", rendered)
-        self.assertIn("/usl/user-docs/how-to/generate-accounting-reports.md", rendered)
+        self.assertIn("/usl/user-docs/reference/reports-and-filters.md", rendered)
         self.assertIn("<table>", rendered)
         self.assertIn("<code>one</code>", rendered)
 

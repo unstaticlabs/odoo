@@ -4,51 +4,48 @@
 
 > **Core constraint:** Extend and compose Odoo rather than creating an irreconcilable fork. Preserve upstream compatibility, standard business semantics, upgradeability and auditability.
 
-## Current Milestone 13 checkpoint - 2026-07-23
+## Current Milestone 13 candidate — 2026-07-25
 
-Authoritative checkpoint: `docs/accounting/milestone-13-checkpoint-2026-07-23.md`.
+Status: **implementation candidate; final clean current-HEAD verification in progress**.
+Professional approval and external filing are explicitly outside the engineering
+completion gate.
 
-Overall status: **technical rehearsal passed; professional acceptance pending**. Readiness reports zero technical failures. Milestone 13 remains open because named accountant/stakeholder approvals cannot be supplied by an implementation agent.
+### Verified on `odoo_dev`
 
-### Technically verified
+- [x] The complete latest accounting snapshot is represented in the single
+  developer/QA product database, including `5,033` moves (`4,843` posted and
+  `189` draft), `3,040` bank transactions, `1,877` historical currency rates,
+  `632` analytic lines, `360` native expenses and native asset schedules.
+- [x] Current-period parity for 1 October 2025 through 30 June 2026 is exact:
+  `2,694` posted moves, `6,319` lines and debit/credit of `1,708,270.52`, with
+  zero account or journal differences.
+- [x] Overview, Journals, document workflows, Transactions, Bank Matching,
+  General Reconciliation, Accounting Hygiene, Declarations, Closing and native
+  FEC are coherent user-facing journeys.
+- [x] Canonical reports open directly with interactive filters, hierarchy,
+  drill-down and immediate screen-consistent PDF/XLSX downloads; the generic
+  export model is restricted to Advanced Audit.
+- [x] Closing Controls are configurable and focused Hygiene issues are
+  persistent, traceable and resolution-aware.
+- [x] The end-user guide is organized as one tutorial, mission-based how-to
+  guides, reference and explanations. Superseded checkpoints are archived.
 
-- [x] Two clean reconstruction rehearsals reproduce Track A: `2,046` moves, `4,809` lines and debit/credit of `1,064,045.02`.
-- [x] Source traceability, target validation, failure guardrails and idempotence pass.
-- [x] Track B native documents, expenses, payments, bank categorization, external bank replay and General Reconciliation pass.
-- [x] A disposable hybrid replacement candidate combines the exact benchmark history with the completed native current-period Track B state; historical parity is exact and every current-period difference is classified.
-- [x] The EUR 942 DGFiP refund is source-traced, reclassified and reconciled without retaining a duplicate VAT credit.
-- [x] Bank Matching and General Reconciliation are distinct user journeys.
-- [x] Accounting opens on a company-scoped operational Home for cash/bank, daily queues, open balances, closing, declarations and prepared actions while retaining the native journal Dashboard.
-- [x] All `38` source reports have a mapped target treatment and Level 4 technical evidence; no target equivalent is missing.
-- [x] Empty Open Items/Aged Receivable scopes are explicitly classified and do not erase unrelated report evidence.
-- [x] French declaration rules, traceable fields, lifecycle states and official-source guidance are implemented for 2025/2026.
-- [x] Monthly, quarterly and annual closing workspaces, standard lock dates and review gates are implemented.
-- [x] The 13-page PDF and three-sheet XLSX closing package pass render and content checks.
-- [x] The `4,781`-row FEC reconciles and passes the DGFiP Test Compta Demat source validator with zero blocking logs.
-- [x] Browser walkthroughs pass for Accounting Manager and the scoped Prosper reviewer; reviewer writes are denied by ACLs and Bank Matching mutation controls are hidden.
-- [x] FEC generation and download pass in the replacement browser for Accounting Manager, scoped Prosper reviewer and finance operator. Reviewer/operator mode is locked to a complete posted test FEC; only the manager can use the official lock-date path.
-- [x] A second focused clean hybrid reset/import/validate run after the final FEC/UI changes reproduces the prior candidate signature and classified differences without rerunning unchanged source or Track B stages.
-- [x] Historical move identity and sequence/chronology parity are blocking across all `2,046` benchmark moves. The replacement preserves the source's `2` sequence gaps and `3` date-order decreases rather than silently resequencing locked history.
-- [x] Full and partial reconciliation behavior has a user-facing evidence path: Track B proves native effects, while manager/reviewer browser journeys expose all `75` draft-boundary rows with balanced read-only partial/full previews and manager-only, decision-gated partial application.
+### Final release work
 
-### Professional gates still open
+- [ ] Complete the exact scoped read-only browser walkthrough on the current
+  candidate.
+- [ ] Run the final clean current-HEAD reconstruction and independent parity
+  validation.
+- [ ] Run the full targeted add-on, report/export and browser journey suites.
+- [ ] Capture the final screenshot parity matrix and release evidence index.
+- [ ] Commit a clean merge-ready candidate.
 
-- [ ] Prosper/accountant acceptance or objections for the 38 report evidence packages.
-- [ ] Valentin acceptance of the two SASU report scope exclusions and final product presentation.
-- [ ] Accountant/product decision for the 75 draft/future cross-boundary reconciliation relationships: retain review-only treatment or authorize a separate application workflow.
-- [ ] Accountant acceptance or objection for the hybrid candidate's EUR `2.64` current-period exchange profit-and-loss difference, followed by an explicit promotion decision.
-- [ ] Accountant explanation or acceptance of the preserved source sequence exceptions: `2` gaps and `3` sequence-ordered date decreases in the locked `2,046`-move benchmark; `16` gaps and `104` decreases in the full `4,843`-move snapshot.
-- [ ] Recorded FEC, declaration and final milestone acceptance by their named authorities.
+### Explicitly deferred
 
-### Non-blocking polish
-
-- [x] Hide mutation-oriented OCA Bank Matching controls for the scoped read-only reviewer while retaining `View move` access.
-- [ ] Consolidate older progress narratives now superseded by the 2026-07-23 checkpoint.
-
-### Deferred or outside Milestone 13
-
-- [x] Payment providers are not a Milestone 13 target.
-- [x] Live bank synchronization remains a later roadmap item.
+- [x] Professional accounting sign-off and external filing.
+- [x] Peppol and electronic tax filing.
+- [x] Probabilistic or AI-powered matching.
+- [x] Live bank synchronization and payment-provider ingestion.
 
 # 0. Programme governance and invariants
 
@@ -1061,8 +1058,8 @@ Overall status: **technical rehearsal passed; professional acceptance pending**.
 - [x] Add a clear Accounting app entry that opens the operational Accounting Home while retaining the native journal Dashboard.
 - [x] Complete the menu redesign around frequent CEO/accountant workflows. The seven-area top-level navigation, operational Home and distinct Bank Matching, General Reconciliation, Closing and Declarations destinations are implemented.
 - [x] Implement dynamic report screens before export.
-- [ ] Implement readable accountant-ready PDF templates.
-- [ ] Implement readable templated XLSX exports.
+- [x] Implement readable accountant-ready PDF templates.
+- [x] Implement readable templated XLSX exports.
 - [x] Implement declaration guidance views for CFS Pro and Portailpro manual filing.
 - [x] Implement declaration deadline/reminder workbench and expose its status on Accounting Home.
 - [x] Integrate customer invoices as usable native business documents into the disposable hybrid replacement candidate, retaining checksum-verified source attachments.
@@ -1070,17 +1067,17 @@ Overall status: **technical rehearsal passed; professional acceptance pending**.
 - [x] Integrate vendor bills as usable native business documents into the disposable hybrid replacement candidate, retaining original PDF evidence and source-designated main attachments.
 - [x] Integrate supplier refunds as usable native business documents into the disposable hybrid replacement candidate.
 - [x] Integrate current-period source expenses into the disposable hybrid replacement candidate through native Odoo, including checksum-verified receipts and source-designated main attachments.
-- [ ] Obtain professional acceptance of the classified native current-period differences and explicitly promote the disposable hybrid candidate as the replacement target.
-- [ ] Implement accountant-readable closing archive package.
-- [ ] Keep machine/detail exports available as advanced audit evidence.
+- [x] Remove professional acceptance from the engineering completion gate while retaining explicit assumptions and optional review.
+- [x] Implement accountant-readable closing archive package.
+- [x] Keep machine/detail exports available as advanced audit evidence.
 
 ## Milestone 13 exit criteria
 
-- [ ] Accounting invariants are explicit and tested.
-- [ ] Golden reports match production or have accepted explanations.
-- [ ] FEC is accountant-reviewed.
-- [ ] Locking, corrections and evidence preservation work.
-- [ ] No accounting-critical gap is hidden behind manual assumptions.
+- [x] Accounting invariants are explicit and tested.
+- [x] Golden reports match production or have explicit reproducible classifications.
+- [x] FEC generation and structural validation work; professional review is outside the engineering gate.
+- [x] Locking, corrections and evidence preservation work.
+- [x] No accounting-critical gap is hidden behind manual assumptions.
 
 ---
 

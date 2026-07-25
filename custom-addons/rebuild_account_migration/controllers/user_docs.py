@@ -225,7 +225,6 @@ def _page_html(root, doc_path, title, body_html, records):
         )
         for record in records
     )
-    source_note = html.escape(str(root))
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -279,7 +278,7 @@ def _page_html(root, doc_path, title, body_html, records):
       <div class="subtitle">Accounting help for CEOs, accountants and finance operators.</div>
       <input id="doc-search" type="search" placeholder="Search the guide" aria-label="Search the guide"/>
       <nav id="doc-nav">{nav}</nav>
-      <div class="source-note">Source: {source_note}</div>
+      <div class="source-note">Built-in guide for the active Accounting product.</div>
     </aside>
     <main>
       {body_html}

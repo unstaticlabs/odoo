@@ -1,4 +1,4 @@
-# Milestone 13 checkpoint - 2026-07-22
+# Archived Milestone 13 checkpoint - 2026-07-22
 
 Audience: Odoo Rebuild Product Manager, Valentin, USL finance operators, accountant reviewers, and implementation agents.
 

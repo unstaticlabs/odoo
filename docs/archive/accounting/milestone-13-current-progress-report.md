@@ -1,4 +1,4 @@
-# Milestone 13 current progress report
+# Archived Milestone 13 progress report
 
 Last updated: 2026-07-23
 

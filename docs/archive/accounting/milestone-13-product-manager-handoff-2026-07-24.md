@@ -1,4 +1,4 @@
-# Milestone 13 Accounting v1: Product Manager handoff
+# Archived Milestone 13 Accounting v1 Product Manager handoff
 
 Date: 2026-07-24
 

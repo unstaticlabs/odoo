@@ -10,6 +10,8 @@ They describe the target behaviour and user outcomes. They do not prescribe impl
 - [Experience principles](experience-principles.md)
 - [Structured operational memory](structured-operational-memory.md)
 - [Accounting core](accounting-core.md)
-- [Milestone 13 Accounting v1 Product Manager handoff](milestone-13-product-manager-handoff-2026-07-24.md)
 - [Work management](work-management.md)
 - [System boundaries](system-boundaries.md)
+
+Date-specific delivery handoffs are archived under `docs/archive/accounting/`;
+they are not evergreen product specifications.

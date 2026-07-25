@@ -1,12 +1,13 @@
 # Milestone 13 reporting and closing UX target
 
-Last updated: 2026-07-23
+Last updated: 2026-07-25
 
 Audience: product owner, accountant, finance operator, and implementation agents.
 
 This document records the desired end-user reporting and year-end closing experience for Unstatic Labs. It is based on the supplied reference report samples and on the current Milestone 13 feedback.
 
-It defines the product target before further implementation. It does not authorize hard-coding benchmark values.
+It defines the durable product target and records the implemented interaction
+model. It does not authorize hard-coding benchmark values.
 
 ## Reference material reviewed
 
@@ -62,36 +63,35 @@ The final user experience must support two rhythms:
 - Daily or weekly preparation: reconcile, review, correct drafts, inspect invoices, bills, refunds, expenses, journal entries, tax issues and missing evidence.
 - Period and year-end closing: verify readiness, produce reports, guide declaration fields, export the accountant package, archive evidence and lock the period.
 
-The UI should make the frequent routines easy for Valentin and the accountant. Detailed technical evidence remains available, but it should be behind an "Advanced Audit" area.
+The UI makes frequent routines easy for accounting managers and read-only
+accountants. Detailed technical evidence remains behind **Advanced Audit**.
 
 ## Daily workbench target
 
-The Accounting app now opens directly to a company-scoped Accounting Home. It
+The Accounting app opens directly to the company-scoped **Overview**. It
 combines bank and cash positions, unmatched transactions, daily document queues,
 open balances, closing readiness, declarations and prepared actions. The
-standard Odoo journal dashboard remains available through `Dashboard` and the
-Home header.
+standard Odoo journal dashboard remains available through **Journals**.
 
 Primary paths should be two clicks away:
 
-- Accounting -> Home
-- Accounting -> Dashboard
+- Accounting -> Overview
+- Accounting -> Journals
 - Accounting -> Customers -> Invoices
 - Accounting -> Customers -> Credit Notes
 - Accounting -> Vendors -> Bills
 - Accounting -> Vendors -> Refunds
-- Accounting -> Expenses
-- Accounting -> Bank -> Reconcile
-- Accounting -> Bank -> Bank Statements
-- Accounting -> Journal Entries
-- Accounting -> Review -> Issues
-- Accounting -> Review -> Missing Evidence
-- Accounting -> Reports
-- Accounting -> Tax and Declarations
-- Accounting -> FEC
+- Accounting -> Vendors -> Expenses
+- Accounting -> Journals -> Bank Matching
+- Accounting -> Journals -> Transactions
+- Accounting -> Accounting -> Journal Entries
+- Accounting -> Review -> Accounting Hygiene
+- Accounting -> Reporting
+- Accounting -> Declarations
+- Accounting -> Accounting -> FEC
 
 The Community top-level app label `Invoicing` was not sufficient for Milestone
-13. The implemented `Accounting` entry now opens the operational Home directly,
+13. The implemented `Accounting` entry now opens the operational Overview directly,
 while retaining native journal cards and direct journal access.
 
 ## Reconcile and review target
@@ -108,7 +108,10 @@ Required user outcomes:
 - see write-offs, bank fees, internal transfers and foreign-currency differences
 - understand why an item is blocked
 
-The current implementation preserves reconciliation data as imported evidence, but the bank journal transaction view is not yet a satisfying reconciliation workbench.
+The implemented bank experience separates full-width **Transactions** from the
+focused **Bank Matching** queue. General Reconciliation covers reconcilable
+non-bank accounts with full/partial outcomes, residuals, matching chips and
+Undo while preserving the affected context.
 
 ## Customer, vendor and expense scope
 
@@ -131,7 +134,8 @@ Exact posted ledger replay remains the statutory baseline. Business-document rec
 
 ## Reporting UX target
 
-The current custom wizard is not the final target. It is acceptable as an evidence export, but not as the user-facing report product.
+The generic export wizard remains only as Advanced Audit evidence. Canonical
+reports use a dedicated interactive report client.
 
 Reports must feel like accounting reports:
 

@@ -162,6 +162,30 @@
     <record id="account.menu_board_journal_1" model="ir.ui.menu">
         <field name="name">Journals</field>
         <field name="sequence">1</field>
+        <field name="group_ids" eval="[(4, ref('account.group_account_readonly'))]"/>
+    </record>
+    <record id="view_rebuild_account_journal_dashboard_readonly" model="ir.ui.view">
+        <field name="name">account.journal.dashboard.readonly.controls</field>
+        <field name="model">account.journal</field>
+        <field name="inherit_id" ref="account.account_journal_dashboard_kanban_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//t[@t-name='JournalBodySalePurchase']//widget[@name='account_file_uploader']" position="attributes">
+                <attribute name="groups">account.group_account_invoice</attribute>
+            </xpath>
+            <xpath expr="//t[@t-name='JournalBodySalePurchase']//widget[@name='bill_upload_guide']" position="attributes">
+                <attribute name="groups">account.group_account_invoice</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_rebuild_account_move_readonly_actions" model="ir.ui.view">
+        <field name="name">account.move.readonly.actions</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_invoice_sent']" position="attributes">
+                <attribute name="groups">account.group_account_invoice</attribute>
+            </xpath>
+        </field>
     </record>
     <menuitem
         id="menu_rebuild_accounting_overview"

@@ -1,4 +1,4 @@
-# Milestone 13 repository assessment
+# Archived Milestone 13 repository assessment
 
 Generated for the accounting-core parity implementation slice and updated after the 2026-07-23 future reference-rate rehearsal.
 

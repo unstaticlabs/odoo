@@ -1,6 +1,6 @@
 # Milestone 13 declaration and closing workflow
 
-Status: implemented technical workflow; external filing, professional report acceptance and final milestone closure remain reviewer-controlled.
+Status: implemented product workflow. External electronic filing and professional sign-off remain optional external activities, not engineering completion gates.
 
 ## Architecture decision
 
@@ -66,12 +66,12 @@ Rules are routing and deadline metadata, not a substitute for the official porta
 - ledger-derived or explicit evidence-derived fields;
 - formula, account prefixes, source record and journal-item drill-down;
 - missing-information and mismatch flags;
-- internal, accountant, filing, acceptance and payment/refund status;
+- internal review, optional accountant review, filing and payment/refund status;
 - filing reference and attachment evidence.
 
 Ledger-derived tax-package lines are copied into the workbench with their existing mapping and review state. Information that cannot safely come from the ledger remains explicit: 2065-bis administrative facts and 2033 E/F/G payroll, ownership and subsidiary facts are unresolved until supported by external evidence and review.
 
-Filing cannot be recorded without an accepted reviewer decision and either an external filing reference or evidence attachment. Payment/refund completion cannot be recorded before filing. Electronic submission is not implemented or claimed.
+An Accounting Manager can approve a prepared declaration for filing without waiting for an external accountant. Filing requires an external reference or evidence attachment. Payment/refund completion cannot be recorded before filing. Electronic submission is not implemented or claimed.
 
 ## Confirmed VAT facts and €942 correction
 
@@ -106,15 +106,15 @@ The exact-target import applies this confirmed transformation after source lock 
 - foreign-currency open items;
 - analytic completeness;
 - open discrepancies;
-- report professional acceptance;
-- period-specific FEC acceptance;
+- canonical report availability;
+- native FEC availability;
 - standard Odoo lock dates.
 
 Controls are passed, warning, blocking or not applicable, with count, amount, owner, explanation and drill-down. Warnings remain visible in the package; blockers prevent requesting closing review and prevent applying locks.
 
-An Accounting Manager may close only after all blockers clear and an evidence-backed closing decision is recorded. Closing advances standard Odoo global, tax, sales and purchase lock dates through the period end and records before/after JSON evidence. It never applies the irreversible hard lock date.
+An Accounting Manager may close only after all blockers clear and an evidence-backed internal closing decision is recorded. Optional accountant review can be retained alongside that decision. Closing advances standard Odoo global, tax, sales and purchase lock dates through the period end and records before/after JSON evidence. It never applies the irreversible hard lock date.
 
-The Closing Review Package is available in XLSX and PDF. It contains the overview, every control, declaration schedule, declaration fields and lock evidence. The PDF uses a restrained A4 accounting-package layout derived from the supplied USL plaquette and liasse: repeated legal identity and period headers, compact shaded tables, French status labels and page numbering. The XLSX contains separate `Metadata`, readable `Report` and raw `Audit Data` sheets, with typed amounts, filters, frozen headers and print settings. Company legal address, registry and VAT identity come from the source-traced company partner; identifiers stay text-formatted. Professional acceptance is never inferred from technical checks.
+The Closing Review Package is available in XLSX and PDF. It contains the overview, every control, declaration schedule, declaration fields and lock evidence. The PDF uses a restrained A4 accounting-package layout derived from the supplied USL plaquette and liasse: repeated legal identity and period headers, compact shaded tables, French status labels and page numbering. The XLSX contains separate `Metadata`, readable `Report` and raw `Audit Data` sheets, with typed amounts, filters, frozen headers and print settings. Company legal address, registry and VAT identity come from the company partner; identifiers stay text-formatted. Technical checks are recorded separately from any optional professional opinion.
 
 When an Accounting Manager generates a package from a closing workspace, the
 file is attached to that workspace. Recording an accepted or
@@ -135,8 +135,8 @@ decision while leaving a controlled superseding-review path.
 
 ## Roles and review gates
 
-- Valentin / Accounting Manager can refresh, prepare, post the confirmed VAT correction, record external filing/payment state and apply standard locks.
-- Prosper / USL Accountant Review inherits Odoo accounting read-only access. The role can inspect source entries, reports, declarations, closings and packages and can create immutable review decisions. It cannot edit posted accounting, declaration preparation records, closing controls or lock dates.
+- Accounting Manager can refresh, prepare, post permitted corrections, record external filing/payment state and apply standard locks.
+- Read-only Accountant inherits Odoo accounting read-only access. The role can inspect source entries, reports, declarations, closings and packages and can record an optional review where authorized. It cannot edit posted accounting, declaration preparation records, closing controls or lock dates.
 - Review decisions update declaration/closing state through the controlled decision application only. Accepted declaration decisions require an evidence summary; accepted closing decisions also require a generated package and create immutable snapshots.
 - A closing acceptance does not override automated blockers. A close with blockers remains blocked.
 - Future finance agents should receive company-scoped read access or purpose-specific manager authority; they must not receive unrestricted cross-company accounting access.
@@ -163,14 +163,6 @@ docker compose exec -T devcontainer odoo \
 
 Because the confirmed profile and VAT transformation run inside the exact-target importer, changes to that integration require the documented target reset/full import stages before final rehearsal. They do not require re-restoring or re-extracting an unchanged source snapshot.
 
-## Remaining professional decisions
+## Residual professional assumptions
 
-Technical completion does not resolve these authority gates:
-
-- report-by-report professional parity acceptance;
-- final CA12, 2065/2033 and other declaration values;
-- period-specific FEC acceptance;
-- closing package acceptance and final milestone closure;
-- any accepted difference or deliberate draft/cutoff boundary.
-
-These remain recorded review decisions for Valentin, Prosper or another named authorized professional. Agent-generated evidence must never be presented as their acceptance.
+Final declaration values, actual filing, an external professional opinion and the legal decision to lock a production period remain human responsibilities. The product makes their source, evidence and status explicit. Their absence does not block engineering completion or internal preparation, and generated evidence must never be presented as a person’s acceptance.

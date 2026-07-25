@@ -16,32 +16,29 @@ plugins:
 nav:
   - Home: README.md
   - Tutorial:
-      - First Accounting Review: tutorials/first-accounting-review.md
-      - Run and Test the Accounting Delivery: tutorials/test-accounting-delivery.md
-      - Prosper Acceptance Walkthrough: tutorials/prosper-accounting-acceptance.md
+      - Guided Accounting Tour: tutorials/accounting-application.md
   - How-To Guides:
-      - Check Reconstruction Status: how-to/check-reconstruction-status.md
+      - Process a Supplier Bill: how-to/process-vendor-bill.md
+      - Process an Expense: how-to/process-expense.md
+      - Create and Collect a Customer Invoice: how-to/process-customer-invoice.md
+      - Match a Bank Transaction: how-to/reconcile-bank-transaction.md
+      - Reconcile a Non-Bank Account: how-to/reconcile-clearing-account.md
+      - Investigate a Report Value: how-to/investigate-report-value.md
       - Review Accounting Hygiene: how-to/review-accounting-hygiene.md
-      - Generate Accounting Reports: how-to/generate-accounting-reports.md
-      - Review Customer and Supplier Accounting: how-to/review-customer-and-supplier-accounting.md
-      - Drill Down to Sources: how-to/drill-down-to-sources.md
-      - Review Discrepancies and Decisions: how-to/review-discrepancies-and-decisions.md
-      - Review Source Report Evidence: how-to/review-source-report-evidence.md
-      - Review French Tax and CA12: how-to/review-french-tax-and-ca12.md
-      - Review Management Reports: how-to/review-management-reports.md
-      - Generate and Review FEC: how-to/generate-and-review-fec.md
-      - Review Assets and Deferred Schedules: how-to/review-assets-and-deferred.md
-      - Review Reconciliation Boundaries: how-to/review-reconciliation-boundaries.md
-      - Route Bills and Expenses by Email: how-to/route-bills-and-expenses-by-email.md
-      - Manage Currency Rate Automation: how-to/manage-currency-rate-automation.md
-      - Use Accountant Access: how-to/use-accountant-access.md
+      - Prepare a Declaration: how-to/prepare-declaration.md
+      - Run a Monthly Review: how-to/run-monthly-review.md
+      - Export Reports and FEC: how-to/export-reports-and-fec.md
+      - Provide Accountant Access: how-to/provide-accountant-access.md
   - Reference:
-      - Accounting Screens: reference/accounting-screens.md
-      - Reports: reference/reports.md
-      - Review Statuses: reference/review-statuses.md
-      - Access Roles: reference/access-roles.md
+      - Menus and Screens: reference/menus-and-screens.md
+      - Reports and Filters: reference/reports-and-filters.md
+      - Statuses: reference/statuses.md
+      - Roles and Permissions: reference/roles-and-permissions.md
+      - Configuration: reference/configuration.md
+      - French Declarations: reference/declarations.md
   - Explanation:
-      - Rebuilt Accounting Evidence: explanation/rebuilt-accounting-evidence.md
-      - Imported vs Generated Accounting: explanation/imported-vs-generated-accounting.md
-      - Accountant Review Boundaries: explanation/accountant-review-boundaries.md
-      - French SASU Accounting Context: explanation/french-sasu-accounting-context.md
+      - Posting and Evidence: explanation/posting-and-evidence.md
+      - Reconciliation and Residuals: explanation/reconciliation.md
+      - Analytical Accounting: explanation/analytical-accounting.md
+      - VAT and Declarations: explanation/vat-and-declarations.md
+      - Closing and Lock Dates: explanation/closing-and-locks.md

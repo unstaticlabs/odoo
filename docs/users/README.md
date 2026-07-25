@@ -1,143 +1,38 @@
-# USL Odoo User Guide
+# USL Accounting
 
-This guide is for people who use the USL Odoo fork to inspect accounting, review migration evidence, generate reports, and prepare accountant-ready exports.
+USL Accounting is the daily workspace for invoices, bills, expenses, bank transactions, reconciliation, management analysis, declarations and closing preparation.
 
-The main readers are:
+Start with [the guided Accounting tutorial](tutorials/accounting-application.md). It follows a normal day from Overview to source documents, matching, reports and review.
 
-- Valentin, as CEO of Unstatic Labs, who needs to understand whether the accounting state is trustworthy and what still needs a decision.
-- USL's accountant, who needs to inspect ledgers, reports, tax evidence, FEC output, supporting documents, discrepancies, and review decisions.
-- Finance operators, who need to navigate accounting records and produce review packages without using developer tools.
+## Complete a task
 
-This is user documentation. It explains what to do in Odoo and what the screens mean. It does not explain how to restore databases, run the migration harness, or change code.
-
-## How to Open This Guide
-
-From Odoo, open:
-
-```text
-Accounting > Review > Advanced Audit > User Guide
-```
-
-You can also open the guide from the `User Guide` button on the Accounting Reconstruction Review screen.
-The same button is available in the header of Accounting Home.
-
-The Odoo guide opens in the browser with a navigation sidebar and search field. It uses the same Markdown source files as this `docs/users` directory.
-
-When a dedicated documentation site is running, the same guide can also be viewed through the MkDocs site used by the project team.
-
-## Current Scope
-
-The implemented user-facing accounting features are centered on reconstructed accounting evidence imported from the Odoo Online backup. In Odoo, authorized users can currently:
-
-- open Accounting directly from the application menu onto a company-scoped Accounting Home;
-- review bank and cash balances, unmatched transactions, daily document queues, open receivables and payables, closing readiness, declaration deadlines, and prepared actions from that Home;
-- use the seven accounting areas: Dashboard, Customers, Vendors, Accounting, Review, Reporting and Configuration;
-- open Review > Control > Accounting Hygiene to review daily queues, missing evidence, current controls and assigned decisions;
-- open Accounting > Transactions > Bank Matching to review imported bank statement lines in the bank workbench;
-- open Accounting > Closing > General Reconciliation to reconcile open accounting items independently of bank matching;
-- open Accounting > Closing > Matched Items and Undo to inspect reconciled journal items and invoke Odoo's native Unreconcile action;
-- open the native Expenses workspace from the supplier accounting area;
-- route supplier bills and employee receipts through native email aliases after the self-hosted inbound domain and mail server have been configured;
-- use one canonical Accounting Report Workbench for Trial Balance, General Ledger, partner, statement, tax, management, asset and analytic reports;
-- compare posted monthly revenue, spending and net contribution in the native graph, pivot and exportable list;
-- open a reconstruction summary for each imported company;
-- inspect imported posted journal items;
-- inspect source-traced accounting reports and report evidence;
-- filter, compare, group, search, fold, drill down and export supported accounting reports;
-- generate a FEC export for the benchmark period;
-- inspect French annual statement and tax-package mappings;
-- inspect fixed assets, depreciation schedules, deferred schedules, bank reconciliation, currency exposure, analytic reporting, EC/OSS evidence and tax reports;
-- inspect discrepancies and pending review decisions;
-- record review decisions where accountant or stakeholder approval is required;
-- inspect source report lines and expressions used as parity evidence;
-- inspect non-posted source workflow records and document-regeneration cases;
-- inspect cross-boundary reconciliation reviews before any native reconciliation decision is applied.
-- retain accepted closing XLSX/PDF packages as immutable, checksum-backed snapshots before lock dates advance;
-- let Accounting Managers retrieve daily ECB reference rates without changing source-traced historical rates.
-
-The system deliberately distinguishes technical evidence from professional acceptance. A report can have technical evidence and still require accountant approval before Milestone 13 can close.
-
-Expense reconstruction status: the native validation pipeline reconstructs all
-`325` source expenses from `2025-10-01` through `2026-06-30` as source-traced
-native `hr.expense` records and validates their approval/refusal states and
-accounting effects without mismatches. This includes `97` company payments and
-`79` grouped receipts for `95` employee-paid expenses. Its settlement stages
-replay `106` expense-related bank transactions and `181` source allocations
-plus all `233` bank transactions directly linked to current commercial
-documents and their `339` source reconciliation edges. The canonical
-`odoo_dev` database combines these native current workflows with exact
-benchmark history. Automated report, role and browser journeys pass. Its
-classified EUR `2.64` current-period exchange profit-and-loss difference still
-requires professional acceptance, but product development and QA now use this
-single combined database rather than a competing historical target.
-
-## Documentation Structure
-
-These docs use the Diataxis framework: tutorials for learning, how-to guides for tasks, reference for lookup, and explanation for background. Diataxis describes four documentation needs: tutorials, how-to guides, reference, and explanation. See [diataxis.fr](https://diataxis.fr/).
-
-### Start Here
-
-- [Tutorial: First Accounting Review](tutorials/first-accounting-review.md)
-- [Run and Test the Accounting Delivery](tutorials/test-accounting-delivery.md)
-
-Use this if this is your first time opening the rebuilt accounting evidence in Odoo.
-
-### How-To Guides
-
-- [Check the Reconstruction Status](how-to/check-reconstruction-status.md)
+- [Process a supplier bill](how-to/process-vendor-bill.md)
+- [Process an expense](how-to/process-expense.md)
+- [Create and collect a customer invoice](how-to/process-customer-invoice.md)
+- [Match a bank transaction](how-to/reconcile-bank-transaction.md)
+- [Reconcile a non-bank account](how-to/reconcile-clearing-account.md)
+- [Investigate a report value](how-to/investigate-report-value.md)
 - [Review Accounting Hygiene](how-to/review-accounting-hygiene.md)
-- [Generate, Preview and Export Accounting Reports](how-to/generate-accounting-reports.md)
-- [Review Customer and Supplier Accounting](how-to/review-customer-and-supplier-accounting.md)
-- [Drill Down from a Report to Accounting Sources](how-to/drill-down-to-sources.md)
-- [Review Discrepancies and Record Decisions](how-to/review-discrepancies-and-decisions.md)
-- [Review Source Report Evidence](how-to/review-source-report-evidence.md)
-- [Review French VAT, CA12 and Tax-Package Values](how-to/review-french-tax-and-ca12.md)
-- [Review Management Reports](how-to/review-management-reports.md)
-- [Generate and Review the FEC](how-to/generate-and-review-fec.md)
-- [Review Fixed Assets, Depreciation and Deferred Schedules](how-to/review-assets-and-deferred.md)
-- [Review Reconciliation Boundary Cases](how-to/review-reconciliation-boundaries.md)
-- [Route Bills and Expenses by Email](how-to/route-bills-and-expenses-by-email.md)
-- [Manage Currency Rate Automation](how-to/manage-currency-rate-automation.md)
-- [Use Accountant Access Safely](how-to/use-accountant-access.md)
+- [Prepare a declaration](how-to/prepare-declaration.md)
+- [Run a monthly review](how-to/run-monthly-review.md)
+- [Export reports and FEC](how-to/export-reports-and-fec.md)
+- [Provide read-only accountant access](how-to/provide-accountant-access.md)
 
-### Reference
+## Look something up
 
-- [Accounting Menu and Screen Reference](reference/accounting-screens.md)
-- [Report Reference](reference/reports.md)
-- [Review Status and Decision Reference](reference/review-statuses.md)
-- [Access and Role Reference](reference/access-roles.md)
+- [Menus and screens](reference/menus-and-screens.md)
+- [Reports and filters](reference/reports-and-filters.md)
+- [Statuses](reference/statuses.md)
+- [Roles and permissions](reference/roles-and-permissions.md)
+- [Configuration](reference/configuration.md)
+- [French declarations](reference/declarations.md)
 
-### Explanations
+## Understand the accounting
 
-- [How the Rebuilt Accounting Evidence Works](explanation/rebuilt-accounting-evidence.md)
-- [Imported Ledger, Draft Regeneration and Review-Only Records](explanation/imported-vs-generated-accounting.md)
-- [Why Some Items Still Require Accountant Review](explanation/accountant-review-boundaries.md)
-- [French SASU Accounting Context](explanation/french-sasu-accounting-context.md)
+- [Posting and evidence](explanation/posting-and-evidence.md)
+- [Reconciliation and residuals](explanation/reconciliation.md)
+- [Analytical accounting](explanation/analytical-accounting.md)
+- [VAT and declarations](explanation/vat-and-declarations.md)
+- [Closing and lock dates](explanation/closing-and-locks.md)
 
-## Important Safety Notes
-
-- Do not treat technical parity evidence as accountant approval.
-- Do not manually change imported posted accounting entries unless an authorized correction process exists.
-- Do not record acceptance decisions unless you have reviewed the evidence and have the authority to approve.
-- Do not apply native cross-boundary reconciliations without an accepted review decision.
-- Do not replace an actual bank or platform conversion with an ECB reference rate when the actual conversion defines the transaction.
-- Do not treat access to the reconciliation workbench as professional acceptance of every source boundary. Native match, partial-match and undo effects are tested, while historical boundary decisions still require the named accountant.
-- Do not publish an email alias until the controlled inbound domain, provider routing and incoming server have passed a real delivery smoke test.
-- Do not use synthetic bootstrap data as production accounting evidence.
-
-## Normal Starting Point in Odoo
-
-Open the Accounting app. It lands on Accounting Home for the active company and
-shows the operational state before you choose a workflow.
-
-For reconstruction controls and technical evidence, open:
-
-```text
-Accounting > Review > Control > Accounting Hygiene
-```
-
-Accounting Hygiene shows unmatched bank work, incomplete or stale documents and
-expenses, missing evidence, unusual account balances, closing/declaration
-warnings and prepared decisions.
-For source-backup and import details, open
-`Review > Advanced Audit > Accounting Reconstruction Review`.
+The active company controls the documents and values you see. Use the company switcher in the top bar before starting a task for another company.
