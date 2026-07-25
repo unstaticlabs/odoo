@@ -1,0 +1,37 @@
+diff --git a/account_reconcile_oca/models/account_bank_statement_line.py b/account_reconcile_oca/models/account_bank_statement_line.py
+index 03443ef..7c61b11 100644
+--- a/account_reconcile_oca/models/account_bank_statement_line.py
++++ b/account_reconcile_oca/models/account_bank_statement_line.py
+@@ -10,7 +10,8 @@ from dateutil.relativedelta import relativedelta
+ 
+ from odoo import Command, api, fields, models, tools
+ from odoo.exceptions import UserError
+-from odoo.tools import SQL, Query, float_compare, float_is_zero
++from odoo.models import Query
++from odoo.tools import SQL, float_compare, float_is_zero
+ 
+ 
+ class AccountBankStatementLine(models.Model):
+
+diff --git a/account_reconcile_oca/models/account_reconcile_model.py b/account_reconcile_oca/models/account_reconcile_model.py
+index 0320a70..e08296a 100644
+--- a/account_reconcile_oca/models/account_reconcile_model.py
++++ b/account_reconcile_oca/models/account_reconcile_model.py
+@@ -3,7 +3,8 @@
+ import re
+ 
+ from odoo import Command, fields, models
+-from odoo.tools import SQL, Query
++from odoo.models import Query
++from odoo.tools import SQL
+ 
+ 
+ class AccountReconcileModel(models.Model):
+@@ -183,6 +184,6 @@ class AccountReconcileModel(models.Model):
+         )
+         query.add_where(SQL("%s = %s", SQL.identifier(self._table, "trigger"), trigger))
+-        query.order = SQL.identifier(self._table, "sequence").code
++        query.order = SQL.identifier(self._table, "sequence")
+         return query
+ 
+     # After this code comes from odoo old versions. It is necessary to remove it...

@@ -1,0 +1,27 @@
+diff --git a/account_statement_import_base/models/account_journal.py b/account_statement_import_base/models/account_journal.py
+index 1618511..23ef98c 100644
+--- a/account_statement_import_base/models/account_journal.py
++++ b/account_statement_import_base/models/account_journal.py
+@@ -4,7 +4,7 @@
+ 
+ from odoo import api, models
+ 
+-from odoo.addons.base.models.res_bank import sanitize_account_number
++from odoo.addons.base.models.res_partner_bank import sanitize_account_number
+ 
+ 
+ class AccountJournal(models.Model):
+
+diff --git a/account_statement_import_file/wizard/account_statement_import.py b/account_statement_import_file/wizard/account_statement_import.py
+index 7631fa1..d293112 100644
+--- a/account_statement_import_file/wizard/account_statement_import.py
++++ b/account_statement_import_file/wizard/account_statement_import.py
+@@ -7,7 +7,7 @@ import logging
+ from odoo import api, fields, models
+ from odoo.exceptions import UserError
+ 
+-from odoo.addons.base.models.res_bank import sanitize_account_number
++from odoo.addons.base.models.res_partner_bank import sanitize_account_number
+ 
+ logger = logging.getLogger(__name__)
+ 
