@@ -15215,6 +15215,7 @@ def evidence(args: argparse.Namespace) -> dict[str, Any]:
         },
         "public_docs": [
             "docs/accounting/accounting-compat-harness.md",
+            "docs/accounting/milestone-13-final-candidate.md",
             "docs/accounting/milestone-13-screenshot-parity-matrix.md",
             "docs/accounting/milestone-13-repository-assessment.md",
         ],

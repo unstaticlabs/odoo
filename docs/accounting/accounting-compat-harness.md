@@ -100,7 +100,7 @@ make accounting-reports
 
 Run these commands from the host shell, not from inside the Dev Container. The harness currently calls `docker compose`; the Dev Container runs Odoo but does not include the Docker CLI.
 
-`make oca-addons-sync` fetches pinned OCA 19.0 add-ons into ignored local directories. The target reset stage requires these add-ons because the disposable imported target now initializes the OCA reporting, MIS, bank statement and reconciliation foundation.
+`make oca-addons-sync` fetches pinned OCA 19.0 add-ons into ignored local directories. The target reset stage requires these add-ons because the product and validation databases use maintained OCA reporting, bank-statement and reconciliation components. MIS is no longer installed or exposed: the canonical custom report workbench covers the retained USL reporting requirements without a second report engine.
 
 The sequence has two live PostgreSQL services:
 
@@ -116,7 +116,7 @@ The important databases are:
 | `odoo_online_source_saas_19_2` | Read-only source database restored from `usl-online-dump/dump.sql`. |
 | `odoo_validation_exact` | Clean target Odoo database rebuilt from the extracted snapshot. |
 | `odoo_validation_native` | Separate clean target for native current-period business-document recomputation. |
-| `odoo_dev` | Normal local demo/development database. It is not the imported accounting target. |
+| `odoo_dev` | The sole developer/QA product database. A clean reset and import reproduce the complete source Accounting state here. |
 
 Stage dependencies:
 
@@ -125,7 +125,7 @@ Stage dependencies:
 | `make accounting-source-restore` | `usl-online-dump/dump.sql`, `usl-online-dump/filestore/` | `odoo_online_source_saas_19_2` in `accounting-source-db`; source restore status artifacts | It creates the source database that every later source read depends on. |
 | `make accounting-extract` | Restored source database through read-only SQL | Private canonical snapshot and extraction artifacts | It converts the physical SaaS database into the durable transfer package used by the target importer. |
 | `make accounting-validation-exact-reset` | Compose target PostgreSQL service `db` | Fresh `odoo_validation_exact` database | It removes old target state so the import is deterministic and not mixed with previous attempts. |
-| `make accounting-validation-exact-import` | Canonical snapshot; source database for source metadata; clean target database | Target Odoo records and source-trace metadata | It reconstructs accounting evidence through the target Odoo ORM. |
+| `make accounting-validation-exact-import` | Canonical snapshot; source database for source metadata; clean target database | Target Odoo records and source-trace metadata | It reconstructs the complete source Accounting state through the target Odoo ORM. |
 | `make accounting-validation-exact-validate` | Imported target database | Target validation artifacts and discrepancy records | It proves the imported target is internally consistent before report checks run. |
 | `make accounting-validation-native-reset` | Installed target/OCA add-ons | Fresh `odoo_validation_native` database | It creates a clean, neutralized proof environment without touching the exact replay target. |
 | `make accounting-validation-native-expenses` | Read-only restored source expense/business fields, verified source filestore binaries and Track B configuration | Native employees, products, expenses, company payments, employee receipts and source-traced receipt attachments in the Track B database; private proof artifact | It uses normal expense submission, approval/refusal, receipt preparation and payment posting APIs, then compares every expense and generated accounting effect to source. It verifies every source receipt checksum/size and preserves the source-designated main attachment. Run it before the document stage so expense-generated receipts can be reused. |
@@ -399,18 +399,20 @@ decreases. This broader profile is not interchangeable with the locked
 `2,046`-move benchmark profile above. Both prove exact preservation, and both
 remain covered by the same accountant-owned P2 explanation/acceptance gate.
 
-Current-period reconstruction remains native rather than exact-line replay. Relative to the source, it contains `199` fewer moves, `401` fewer lines and EUR `8,866.06` less gross debit/credit. Every difference is classified: Odoo's `EXCH` journal aggregates exchange effects differently; `CABA` uses native cash-basis timing and aggregation; and `SHINE`, `REVEU` and `REVUS` segment OCA bank allocations differently. The `12` differing account balances net to EUR `0.00`, with no unclassified journal or account difference. The remaining profit-and-loss balance difference is EUR `2.64`, attributable to native exchange timing.
+The final product database is an exact source-state reconstruction; Track B is
+an isolated native-engine proof and is not mixed into `odoo_dev`. The clean
+`odoo_dev` run beginning at `2026-07-25T07:26:43Z` completed import at
+`07:29:37Z` and final validation at `07:50:03Z`. For
+`2025-10-01` through `2026-06-30`, source and product contain `2,694` posted
+moves and `6,319` journal items with debit and credit both
+EUR `1,708,270.52`; account and journal differences are zero.
 
-The focused clean replacement sequence was repeated after the final FEC role
-and UI refresh changes without restoring or re-extracting the unchanged
-source. The runs beginning at `2026-07-23T10:57:27Z` and
-`2026-07-23T12:01:40Z` reproduced the same Track B clone signature, exact
-historical counts and totals, combined posted counts, four native aliases,
-12 classified account differences, zero net account difference, zero
-unclassified difference and EUR `2.64` profit-and-loss difference. This is the
-deterministic comparison required for the second clean hybrid reconstruction.
-
-The validation status is deliberately `partial`, classified as `DEV_QA_TARGET_EXPLAINED_NATIVE_DIFFERENCES`. Manager/reviewer report, bill and expense browser journeys now pass on the combined candidate. Professional acceptance of the EUR `2.64` difference and an explicit promotion decision remain required. The disposable candidate does not replace `odoo_validation_exact` or authorize production migration.
+The isolated Track B run completed every native stage for the same period:
+`325` expenses, `284` commercial documents, `3` assets, deferrals, document
+and expense settlements, general reconciliation, direct bank transactions,
+external-endpoint reconciliation and analytic distributions. It is supporting
+engine evidence, not a hybrid product candidate or an alternative product
+database.
 
 `make accounting-validation-exact-validate` also proves:
 
@@ -482,7 +484,13 @@ These read-only views are the audit/evidence layer formerly grouped under `Revie
 
 The local Community code keeps the licensing boundary explicit: `addons/account/models/account_report.py` provides the shared `account.report` data model and tax-report expression machinery, while `addons/account/views/res_config_settings_views.xml` exposes `module_account_reports` as an `upgrade_boolean` labelled Dynamic Reports. There is no `account_reports` addon in the current Community fork. Three alternatives were assessed: expose OCA report wizards directly, depend on the absent proprietary Enterprise application, or build an original Community-compatible workbench while retaining OCA as a maintained accounting foundation. The third option is implemented. No Enterprise code is copied, and importing source `account.report` rows remains evidence preservation rather than executable-code reconstruction.
 
-The addon exposes normal Accounting > Reporting launcher actions for the mandatory report families. The latest validation database update created `32` `rebuild.account.report.export.wizard` launch actions and `31` launcher menus under Odoo's standard legal statement, partner, management and tax/fiscal reporting menu groups. These actions preselect the relevant report type, benchmark dates and export format for Trial Balance, General Ledger, Journal Report, Partner Ledger, Customer Statement, Open Items, Aged Receivable, Aged Payable, Balance Sheet, Profit and Loss, VAT/Tax Report, tax grouping by account/tax, tax grouping by tax/account, French tax package/CA12 mapping, FEC, French annual statements, French Balance Sheet (2024 PCG), French Profit and Loss (2024 PCG), SIG and CAF (2024 PCG), bank reconciliation, currency report, cash flow, executive summary, analytic report, fixed assets, fixed assets by account, depreciation schedule, deferred schedule, EC Sales List, OSS Sales and OSS Imports. All primary launchers open the same full-page workbench with `target=current`; competing OCA/MIS report menus are hidden from normal navigation but their technical actions are retained.
+The addon exposes dedicated interactive Accounting report pages for every
+mandatory report family. Each menu opens the report immediately with its
+relevant defaults, dynamic filters, hierarchy, drill-down and direct PDF/XLSX
+downloads. The generic `rebuild.account.report.export.wizard` is retained only
+as an Advanced Audit implementation detail and is not a normal report
+experience. Duplicate OCA launchers are hidden from normal navigation and MIS
+has been removed from the dependency/runtime surface.
 
 `action_preview_report()` materializes transient `rebuild.account.report.preview.line` rows inside the full-page workbench. The workbench supports:
 
@@ -593,11 +601,30 @@ The diagnostics area also exposes `rebuild.account.review.decision` records to s
 
 The reports stage now seeds pending review-decision records after generating the technical report evidence. The current seed artifact, `artifacts/accounting-compat/private/review-decision-seed-status.json`, records `38` linked source-report review records, `3` linked open-discrepancy review records, `2` linked external-value review records, one FEC official-validation review record and one Milestone 13 closure review record. It also supersedes stale draft decisions linked to resolved discrepancy records while preserving any recorded decisions. The refreshed exact target has no superseded review-decision rows and surfaces `45` active pending records. They create a durable review queue and do not constitute accountant or stakeholder acceptance.
 
-The report-suite blocker is now refreshed from post-export evidence rather than import-time catalogue counts. When every active source report has a target equivalent and Level 4 technical evidence, the open P0 is classified as `legal_or_accounting_uncertainty`, with target value `38 Level 4 technical evidence packages; 0 accountant-accepted reports; 0 missing target equivalents`. This keeps closure blocked while accurately stating that the remaining report-suite gate is accountant/stakeholder acceptance of semantics, PCG/legal-form variants and deliberate scope exclusions rather than a currently missing target report family.
+The report-suite status is refreshed from post-export evidence rather than
+import-time catalogue counts. Every active source report has a target
+equivalent and Level 4 technical evidence: `38` evidence packages and
+`0` missing target equivalents. Professional review remains an operational
+follow-up, not an engineering completion gate.
 
-The discrepancy importer is idempotent for recurring end-of-run blockers. Re-running `make accounting-validation-exact-import` upserts the current blocker record and marks stale duplicates as `resolved`. The current exact target contains `3` open discrepancies (`1` P0, `1` P1 and `1` accountant-owned P2) plus resolved DGFiP FEC-validation, VAT CA12-clearing and document-regeneration discrepancies. The VAT CA12-clearing evidence now reconciles in a clean run and does not create a source-to-target discrepancy. Review decisions linked to resolved discrepancies are automatically superseded by the report-seed stage while recorded decisions are preserved.
+The discrepancy importer is idempotent for recurring end-of-run controls.
+Re-running the import upserts current records and marks stale duplicates
+resolved. The final readiness assessment has zero technical failures and zero
+engineering blockers. It retains two transparent advisories: `75`
+cross-boundary reconciliation references whose unavailable or draft endpoints
+are review-only, and the `16` source sequence gaps plus `104` source
+date-order decreases preserved exactly from the source.
 
-`make accounting-readiness` now writes a durable Milestone 13 readiness assessment after comparison and before the evidence index. The JSON and Markdown artifacts summarize technical gate status, source and target identities, open discrepancies, review-decision queues, source-report parity evidence and the closure recommendation. The encoded final gates now include the hybrid reset/import/validation/browser chain, FEC manager/reviewer/operator browser proof and the reconciliation manager/reviewer browser proof; `make accounting-evidence` indexes the same artifacts. Omitting the hybrid candidate would let readiness ignore the selected integration architecture, while requiring its validation to say `passed` would erase the deliberately classified native differences. The selected contract therefore requires `partial` only for `replacement_validate`, requires the other final artifacts to pass, and still leaves candidate promotion to the named professionals. The current readiness assessment has `0` technical failures and remains `blocked` with `1` P0, `1` P1, `1` P2 and `45` draft decisions; it is a closure-control artifact, not a way to mark professional acceptance.
+`make accounting-readiness` writes the durable Milestone 13 readiness
+assessment after comparison and before the evidence index. The JSON and
+Markdown artifacts summarize technical gates, source and target identities,
+advisories, review-decision records, source-report parity evidence and the
+release recommendation. The final assessment is
+`ready_with_documented_assumptions`, with zero technical failures and zero
+engineering blockers. The `45` draft decisions are audit/acceptance records
+(`36` report, `3` discrepancy, `2` scope, `2` external tax value, `1` FEC and
+`1` closure); they are not accounting records and do not block engineering
+completion.
 
 `parity-matrix-v1.json` now has an explicit two-stage lifecycle. Source
 inspection writes the discovery baseline, and the reports stage must replace
@@ -810,21 +837,23 @@ The run mounted `/private/tmp/Test-Compta-Demat-1.00.10b/src/testeur` read-only,
 
 The container uses runtime-only compatibility shims because the official source is GUI-oriented and old: it installs Perl/Tk dependencies and patches Debian `PDF::Table` so a missing `text_opt` option defaults to an empty hash during PDF rendering. The DGFiP source tree is mounted read-only and not modified. This is structural validator evidence and still does not replace accountant review or ledger reconciliation.
 
-## Remaining blockers
+## Documented assumptions and deferred items
 
-The target import deliberately remains `partial` while these items are open:
+The final engineering assessment has no P0 or P1 blocker. The remaining
+boundaries are explicit:
 
-- the canonical Community-compatible workbench is technically validated for native-ledger filters, comparisons, grouping, folding, drilldowns and screen-consistent CSV/XLSX/PDF output, but it is not the proprietary Enterprise `account_reports` application and its accounting semantics still require independent acceptance;
-- the source report catalogue and source report line/expression/column structure are now represented in Odoo and all `38` active source reports have Level 4 evidence-partial technical packages or explicit legal-form scope-exclusion evidence, but no report has Level 4 accepted parity and the 2024 PCG/accountant/legal-form decisions still need final acceptance;
-- `3` accountant-requested source grouping reports now have target grouped actions, export packages and preview source-action evidence, but still need stakeholder acceptance before final parity;
-- non-posted source moves and their source lines are represented as workflow review records, and all `189` candidate-ready cases are regenerated as target draft moves with matching preserved accounting lines; the remaining `5` cancelled or line-incomplete cases need review-only acceptance or explicit scope decisions;
-- source payment records without journal entries are represented as workflow review records and are deliberately not replayed as accounting effects;
-- some reconciliation relationships cross the selected replay boundary and are represented as review records with generated draft endpoint coverage, but are not yet applied to the native target reconciliation graph while those endpoints remain draft records;
-- the locked `2,046`-move benchmark profile has `2` source sequence gaps and `3` date-order decreases, while the full `4,843`-move replay-through-snapshot profile has `16` gaps and `104` decreases; both profiles match their target exactly, but the source exceptions still require accountant explanation or acceptance;
-- repeated exact-ledger import no longer duplicates accounting consequences, and rollback-only duplicate source-trace, unbalanced posted-move, missing-account FK, missing-tax FK, incomplete-reconciliation FK, imported attachment checksum-metadata corruption detection and source-metadata-driven missing-file discrepancy creation are covered; malformed source filestore directory detection is also covered;
-- French tax-package mapping is still a ledger-derived review surface; exact official box mapping, reduced-rate IS eligibility/ceiling, reintegrations, deductions, deficits and external declaration values remain open.
-- FEC structural validation now passes through the DGFiP source validator route, but the FEC still needs accountant review and final professional acceptance;
-- accountant access is technically checked for read-only accounting review and sampled attachment privacy, but real external-accountant onboarding and accountant workflow acceptance remain open.
+- `75` reconciliation references crossing the selected draft/scope boundary
+  remain review-only; posted accounting totals and the imported reconciliation
+  graph are exact;
+- source chronology anomalies (`16` sequence gaps and `104` date-order
+  decreases) are preserved rather than silently repaired;
+- professional review, production cutover and real external-accountant
+  onboarding are later operational activities, not Milestone 13 engineering
+  gates;
+- electronic filing, Peppol, probabilistic suggestions, autonomous
+  reconciliation and autonomous posting are explicitly deferred;
+- the official DGFiP source validator passes structurally; actual filing and
+  professional use remain company operations.
 
 ## Current authoritative checks
 

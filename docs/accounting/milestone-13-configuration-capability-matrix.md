@@ -44,7 +44,7 @@ separate from technical availability.
 | Incoterms | Native `account.incoterms` with an explicit manager route; no custom semantic fork. | Implemented | `Configuration > Invoicing > Incoterms`; clean add-on navigation test. |
 | Financial Budgets | The restored source does not have `account_budget` installed and no retained USL budget records exist. | Not applicable | Reassess only when an approved budgeting operating model and source dataset exist. |
 | Multi-company | Both scoped source companies are reconstructed and accounting evidence is company-scoped. | Implemented | Exact company mapping, company record rules and reviewer scope tests. |
-| Multi-ledger | OCA/MIS-ledger configuration supplies the retained Community mechanism where separate ledger views are needed. | Replaced | Manager configuration remains available; no duplicate general-ledger engine is introduced. |
+| Multi-ledger | Company, journal and analytic dimensions provide the retained Community separation required by USL; no second MIS ledger engine is installed. | Replaced | Manager configuration remains available; no duplicate general-ledger engine is introduced. |
 | Electronic declaration submission | Accurate preparation, validation, portal guidance and external filing tracking are retained without an electronic filing client. | Deferred | Accounting v1 explicitly does not require electronic submission. |
 
 ## Alternatives retained

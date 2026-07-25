@@ -6,7 +6,8 @@
 
 ## Current Milestone 13 candidate — 2026-07-25
 
-Status: **implementation candidate; final clean current-HEAD verification in progress**.
+Status: **Accounting v1 engineering complete; ready for internal daily use with
+documented source/scope assumptions**.
 Professional approval and external filing are explicitly outside the engineering
 completion gate.
 
@@ -32,13 +33,16 @@ completion gate.
 
 ### Final release work
 
-- [ ] Complete the exact scoped read-only browser walkthrough on the current
+- [x] Complete the exact scoped read-only browser walkthrough on the current
   candidate.
-- [ ] Run the final clean current-HEAD reconstruction and independent parity
+- [x] Run the final clean current-HEAD reconstruction and independent parity
   validation.
-- [ ] Run the full targeted add-on, report/export and browser journey suites.
-- [ ] Capture the final screenshot parity matrix and release evidence index.
-- [ ] Commit a clean merge-ready candidate.
+- [x] Run the full targeted add-on, report/export and browser journey suites.
+- [x] Capture the final screenshot parity matrix and release evidence index.
+- [x] Commit a clean merge-ready candidate.
+
+Final evidence and residual advisories are recorded in
+`docs/accounting/milestone-13-final-candidate.md`.
 
 ### Explicitly deferred
 
