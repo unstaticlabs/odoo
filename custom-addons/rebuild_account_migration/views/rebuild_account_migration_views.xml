@@ -727,7 +727,7 @@
                 <attribute name="title">Discard the currently prepared counterparts without changing posted accounting.</attribute>
             </xpath>
             <xpath expr="//button[@name='action_to_check']" position="attributes">
-                <attribute name="groups">account.group_account_user,rebuild_account_migration.group_rebuild_accountant_reviewer</attribute>
+                <attribute name="groups">account.group_account_user</attribute>
                 <attribute name="string">Mark for Review</attribute>
                 <attribute name="title">Flag this transaction so it remains visible in the review queue.</attribute>
             </xpath>
@@ -4921,7 +4921,7 @@
     </record>
 
     <record id="action_rebuild_account_report_export_analytic_report" model="ir.actions.act_window">
-        <field name="name">Analytic Report</field>
+        <field name="name">Analytic Profit and Loss</field>
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">current</field>
@@ -5670,7 +5670,7 @@
         <field name="context">{'report_type': 'executive_summary'}</field>
     </record>
     <record id="action_rebuild_interactive_analytic_report" model="ir.actions.client">
-        <field name="name">Analytical Accounting</field>
+        <field name="name">Analytic Profit and Loss</field>
         <field name="tag">rebuild_accounting_report</field>
         <field name="context">{'report_type': 'analytic_report'}</field>
     </record>
@@ -5850,7 +5850,7 @@
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_analytic_launcher"
-        name="Analytic Report"
+        name="Analytic Profit and Loss"
         parent="account.account_reports_management_menu"
         action="action_rebuild_interactive_analytic_report"
         sequence="3"
