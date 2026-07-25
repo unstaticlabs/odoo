@@ -1,4 +1,5 @@
 from collections import defaultdict
+import traceback
 
 from odoo import fields, models
 
@@ -462,6 +463,7 @@ class RebuildAccountImportRun(models.Model):
             StatementLine = self.env["account.bank.statement.line"].sudo().with_context(
                 tracking_disable=True,
                 mail_create_nolog=True,
+                rebuild_skip_auto_reconcile=True,
             )
             Partial = self.env["account.partial.reconcile"].sudo()
             created_bank_line_count = 0
@@ -621,7 +623,7 @@ class RebuildAccountImportRun(models.Model):
                                 "account_number": row["account_number"],
                                 "partner_name": row["partner_name"],
                                 "transaction_type": row["transaction_type"],
-                                "payment_ref": False,
+                                "payment_ref": row["payment_ref"],
                                 "transaction_details": row["transaction_details"],
                                 "amount": self._amount(row["amount"]),
                                 "amount_currency": effective_amount_currency,
@@ -639,7 +641,6 @@ class RebuildAccountImportRun(models.Model):
                             bank_line = StatementLine.with_company(
                                 journal.company_id,
                             ).create(vals)
-                            bank_line.payment_ref = row["payment_ref"]
                             for edge in source_edges:
                                 self._native_expense_settlement_add_edge(
                                     bank_line,
@@ -690,6 +691,7 @@ class RebuildAccountImportRun(models.Model):
                             "classification": "native_document_bank_matching_error",
                             "exception_type": type(exc).__name__,
                             "exception_message": str(exc),
+                            "exception_traceback": traceback.format_exc(),
                         })
                         continue
 

@@ -3111,6 +3111,35 @@ class RebuildAccountImportRun(models.Model):
             ("rebuild_source_id", "not in", list(seen_source_ids) or [0]),
         ])
         stale_lines.unlink()
+        # When business-document fields are preserved, posting the imported
+        # moves correctly creates native analytic items from each journal
+        # item's distribution.  The source analytic items imported above are
+        # the authoritative historical records, so retaining both sets would
+        # double management reporting.  Remove only untraced native items
+        # attached to this snapshot's traced journal items.  The context keeps
+        # their distributions intact for normal document usability.
+        generated_duplicate_lines = AnalyticLine.search([
+            ("rebuild_source_model", "=", False),
+            (
+                "move_line_id.rebuild_source_model",
+                "=",
+                "account.move.line",
+            ),
+            (
+                "move_line_id.rebuild_source_snapshot",
+                "=",
+                options.get("source_snapshot_id"),
+            ),
+            (
+                "company_id",
+                "in",
+                [company.id for company in companies.values()],
+            ),
+        ])
+        generated_duplicate_count = len(generated_duplicate_lines)
+        generated_duplicate_lines.with_context(
+            skip_analytic_sync=True,
+        ).unlink()
         if skipped_missing_account:
             self.env["rebuild.account.discrepancy"].create({
                 "name": "Source analytic lines could not be imported because analytic accounts are missing",
@@ -3132,6 +3161,9 @@ class RebuildAccountImportRun(models.Model):
             "linked_to_move_line_count": linked_to_move_line_count,
             "unlinked_source_analytic_line_count": len(rows) - linked_to_move_line_count - len(skipped_missing_account),
             "skipped_missing_account_count": len(skipped_missing_account),
+            "removed_generated_duplicate_count": (
+                generated_duplicate_count
+            ),
         }
 
     @staticmethod
@@ -6541,7 +6573,16 @@ class RebuildAccountImportRun(models.Model):
                     source_link["source_expense_id"],
                 )
                 if line and expense:
-                    line.expense_id = expense
+                    # The exact source analytic items have already been
+                    # imported.  Linking a posted journal item to an expense
+                    # normally synchronizes the business model and recreates
+                    # analytic items from ``analytic_distribution``.  That is
+                    # correct for daily operations, but would duplicate the
+                    # imported source truth during reconstruction.
+                    line.with_context(
+                        skip_analytic_sync=True,
+                        tracking_disable=True,
+                    ).write({"expense_id": expense.id})
                     linked_line_count += 1
 
             attachment_stats = self._import_attachments(

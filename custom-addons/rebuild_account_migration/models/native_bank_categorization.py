@@ -362,6 +362,7 @@ class RebuildAccountImportRun(models.Model):
             StatementLine = self.env["account.bank.statement.line"].sudo().with_context(
                 tracking_disable=True,
                 mail_create_nolog=True,
+                rebuild_skip_auto_reconcile=True,
             )
             created_bank_line_count = 0
             reused_bank_line_count = 0
@@ -463,7 +464,7 @@ class RebuildAccountImportRun(models.Model):
                                 "account_number": row["account_number"],
                                 "partner_name": row["partner_name"],
                                 "transaction_type": row["transaction_type"],
-                                "payment_ref": False,
+                                "payment_ref": row["payment_ref"],
                                 "transaction_details": row["transaction_details"],
                                 "amount": self._amount(row["amount"]),
                                 "amount_currency": effective_amount_currency,
@@ -482,7 +483,6 @@ class RebuildAccountImportRun(models.Model):
                             if bank_line.is_reconciled:
                                 bank_line.unreconcile_bank_line()
                                 auto_reconcile_undo += 1
-                            bank_line.payment_ref = row["payment_ref"]
                         if row["is_reconciled"] and not bank_line.is_reconciled:
                             self._native_bank_categorization_apply(
                                 bank_line,

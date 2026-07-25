@@ -3868,6 +3868,19 @@ class TestRebuildAccountMigration(TransactionCase):
             "rebuild_source_book_value": 1100.0,
         })
         self.env["account.asset.line"].create({
+            "name": "Depreciation before migration",
+            "asset_id": asset.id,
+            "amount": 100.0,
+            "line_date": "2025-09-30",
+            "type": "depreciate",
+            "init_entry": True,
+            "rebuild_source_model": (
+                "account.asset.imported_depreciation"
+            ),
+            "rebuild_source_id": 991001,
+            "rebuild_source_snapshot": "unit-native-asset-report",
+        })
+        self.env["account.asset.line"].create({
             "name": "Unit planned depreciation",
             "asset_id": asset.id,
             "amount": 100.0,
@@ -3891,6 +3904,14 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(
             register["lines"][0]["label"],
             "Unit native report asset",
+        )
+        self.assertEqual(
+            register["lines"][0]["values"]["accumulated_depreciation"],
+            "100.00",
+        )
+        self.assertEqual(
+            register["lines"][0]["values"]["imported_period_net_value"],
+            "1100.00",
         )
         register_wizard = Report.browse(register["wizard_id"])
         register_action = register_wizard._preview_source_action(

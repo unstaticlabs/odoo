@@ -232,6 +232,15 @@ class AccountMoveLine(models.Model):
 class AccountBankStatementLine(models.Model):
     _inherit = "account.bank.statement.line"
 
+    def _auto_reconcile(self):
+        if self.env.context.get("rebuild_skip_auto_reconcile"):
+            for statement_line in self:
+                statement_line.reconcile_data_info = (
+                    statement_line._default_reconcile_data()
+                )
+            return
+        return super()._auto_reconcile()
+
     rebuild_transaction_status = fields.Selection(
         selection=[
             ("open", "To match"),

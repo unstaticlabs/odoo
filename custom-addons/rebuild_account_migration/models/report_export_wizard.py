@@ -4430,6 +4430,26 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         filter_sql, filter_params = self._asset_account_filter_sql()
         self.env.cr.execute(
             f"""
+            WITH asset_values AS (
+                SELECT asset.id,
+                       COALESCE(
+                           sum(schedule.amount) FILTER (
+                               WHERE schedule.type = 'depreciate'
+                                 AND schedule.line_date <= %s
+                                 AND (
+                                     schedule.init_entry
+                                     OR depreciation_move.state = 'posted'
+                                 )
+                           ),
+                           0
+                       ) AS accumulated_depreciation
+                  FROM account_asset asset
+                  LEFT JOIN account_asset_line schedule
+                    ON schedule.asset_id = asset.id
+                  LEFT JOIN account_move depreciation_move
+                    ON depreciation_move.id = schedule.move_id
+                 GROUP BY asset.id
+            )
             SELECT asset.rebuild_source_id::text AS source_asset_id,
                    asset.name,
                    asset.name AS asset_name,
@@ -4437,9 +4457,12 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                    asset.state,
                    ''::text AS asset_group_name,
                    round(asset.purchase_value::numeric, 2)::text AS original_value,
-                   round(asset.value_depreciated::numeric, 2)::text AS accumulated_depreciation,
-                   round(asset.value_depreciated::numeric, 2)::text AS depreciation_amount,
-                   round(asset.value_residual::numeric, 2)::text AS imported_period_net_value,
+                   round(asset_values.accumulated_depreciation::numeric, 2)::text AS accumulated_depreciation,
+                   round(asset_values.accumulated_depreciation::numeric, 2)::text AS depreciation_amount,
+                   round((
+                       asset.purchase_value
+                       - asset_values.accumulated_depreciation
+                   )::numeric, 2)::text AS imported_period_net_value,
                    round(asset.rebuild_source_book_value::numeric, 2)::text AS source_book_value,
                    COALESCE(asset_account.code_store->>company.rebuild_source_id::text, asset_account.code_store->>'1', asset_account.code_store::text, '') AS asset_account,
                    COALESCE(asset_account.code_store->>company.rebuild_source_id::text, asset_account.code_store->>'1', asset_account.code_store::text, '') AS account_code,
@@ -4448,15 +4471,22 @@ class RebuildAccountReportExportWizard(models.TransientModel):
               FROM account_asset asset
               JOIN res_company company ON company.id = asset.company_id
               JOIN account_asset_profile profile ON profile.id = asset.profile_id
+              JOIN asset_values ON asset_values.id = asset.id
               LEFT JOIN account_account asset_account ON asset_account.id = profile.account_asset_id
               LEFT JOIN account_account depreciation_account ON depreciation_account.id = profile.account_depreciation_id
               LEFT JOIN account_account expense_account ON expense_account.id = profile.account_expense_depreciation_id
              WHERE asset.company_id = %s
                AND asset.rebuild_source_model = 'account.asset'
+               AND asset.date_start <= %s
                {filter_sql}
              ORDER BY asset.rebuild_source_id
             """,
-            [self.company_id.id, *filter_params],
+            [
+                self.date_to,
+                self.company_id.id,
+                self.date_to,
+                *filter_params,
+            ],
         )
         return [dict(row) for row in self.env.cr.dictfetchall()]
 
@@ -4464,22 +4494,47 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         filter_sql, filter_params = self._asset_account_filter_sql()
         self.env.cr.execute(
             f"""
+            WITH asset_values AS (
+                SELECT asset.id,
+                       COALESCE(
+                           sum(schedule.amount) FILTER (
+                               WHERE schedule.type = 'depreciate'
+                                 AND schedule.line_date <= %s
+                                 AND (
+                                     schedule.init_entry
+                                     OR depreciation_move.state = 'posted'
+                                 )
+                           ),
+                           0
+                       ) AS accumulated_depreciation
+                  FROM account_asset asset
+                  LEFT JOIN account_asset_line schedule
+                    ON schedule.asset_id = asset.id
+                  LEFT JOIN account_move depreciation_move
+                    ON depreciation_move.id = schedule.move_id
+                 GROUP BY asset.id
+            )
             SELECT asset_account.rebuild_source_id::text AS source_account_id,
                    COALESCE(asset_account.code_store->>company.rebuild_source_id::text, asset_account.code_store->>'1', asset_account.code_store::text, '') AS account_code,
                    COALESCE(asset_account.name->>'fr_FR', asset_account.name->>'en_US', asset_account.name::text, '') AS account_name,
                    count(asset.id)::text AS asset_count,
                    string_agg(asset.name, '; ' ORDER BY asset.rebuild_source_id) AS asset_names,
                    round(sum(asset.purchase_value)::numeric, 2)::text AS original_value,
-                   round(sum(asset.value_depreciated)::numeric, 2)::text AS accumulated_depreciation,
-                   round(sum(asset.value_depreciated)::numeric, 2)::text AS depreciation_amount,
-                   round(sum(asset.value_residual)::numeric, 2)::text AS imported_period_net_value,
+                   round(sum(asset_values.accumulated_depreciation)::numeric, 2)::text AS accumulated_depreciation,
+                   round(sum(asset_values.accumulated_depreciation)::numeric, 2)::text AS depreciation_amount,
+                   round(sum(
+                       asset.purchase_value
+                       - asset_values.accumulated_depreciation
+                   )::numeric, 2)::text AS imported_period_net_value,
                    round(sum(asset.rebuild_source_book_value)::numeric, 2)::text AS source_book_value
               FROM account_asset asset
               JOIN res_company company ON company.id = asset.company_id
               JOIN account_asset_profile profile ON profile.id = asset.profile_id
+              JOIN asset_values ON asset_values.id = asset.id
               LEFT JOIN account_account asset_account ON asset_account.id = profile.account_asset_id
              WHERE asset.company_id = %s
                AND asset.rebuild_source_model = 'account.asset'
+               AND asset.date_start <= %s
                {filter_sql}
              GROUP BY asset_account.id,
                       asset_account.rebuild_source_id,
@@ -4487,7 +4542,12 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                       COALESCE(asset_account.name->>'fr_FR', asset_account.name->>'en_US', asset_account.name::text, '')
              ORDER BY account_code
             """,
-            [self.company_id.id, *filter_params],
+            [
+                self.date_to,
+                self.company_id.id,
+                self.date_to,
+                *filter_params,
+            ],
         )
         return [dict(row) for row in self.env.cr.dictfetchall()]
 

@@ -719,6 +719,7 @@ class RebuildAccountImportRun(models.Model):
             StatementLine = self.env["account.bank.statement.line"].sudo().with_context(
                 tracking_disable=True,
                 mail_create_nolog=True,
+                rebuild_skip_auto_reconcile=True,
             )
             Partial = self.env["account.partial.reconcile"].sudo()
             created_bank_line_count = 0
