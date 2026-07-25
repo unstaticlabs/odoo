@@ -7,6 +7,7 @@ These documents define the accounting truths that implementations and migrations
 - [Evidence catalogue](parity-evidence.md)
 - [Migration and release gates](migration-gates.md)
 - [Configurable Accounting Controls](configurable-accounting-controls.md)
+- [Configurable Accounting Framework](configurable-accounting-framework.md)
 - [Accounting report presentation](accounting-report-presentation.md)
 - [Milestone 13 reporting and closing UX target](milestone-13-reporting-and-closing-ux-target.md)
 - [Milestone 13 declaration and closing workflow](milestone-13-declaration-closing-workflow.md)

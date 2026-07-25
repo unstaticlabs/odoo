@@ -7,6 +7,8 @@ from odoo import api, fields, models
 from odoo.exceptions import AccessError, UserError
 from odoo.tools import date_utils, float_compare
 
+from .configurable_definition import ACCOUNTING_DEFINITION_ORIGINS
+
 BENCHMARK_START = date(2024, 1, 10)
 BENCHMARK_END = date(2025, 9, 30)
 CURRENT_START = date(2025, 10, 1)
@@ -85,6 +87,7 @@ class ResCompany(models.Model):
 class RebuildAccountDeclarationRule(models.Model):
     _name = "rebuild.account.declaration.rule"
     _description = "USL French Declaration Rule"
+    _inherit = ["rebuild.account.configurable.definition.mixin"]
     _order = "sequence, code, effective_from desc"
 
     _unique_rule_version = models.Constraint(
@@ -94,6 +97,20 @@ class RebuildAccountDeclarationRule(models.Model):
 
     name = fields.Char(required=True)
     code = fields.Char(required=True, index=True)
+    company_id = fields.Many2one(
+        "res.company",
+        index=True,
+        help=(
+            "Leave empty for a localization definition. A company definition "
+            "overrides shared versions with the same code and effective dates."
+        ),
+    )
+    origin = fields.Selection(
+        ACCOUNTING_DEFINITION_ORIGINS,
+        required=True,
+        default="localization",
+        readonly=True,
+    )
     sequence = fields.Integer(default=10)
     active = fields.Boolean(default=True)
     country_id = fields.Many2one("res.country", required=True, default=lambda self: self.env.ref("base.fr"))
@@ -143,10 +160,182 @@ class RebuildAccountDeclarationRule(models.Model):
     applicability_guidance = fields.Text(required=True)
     filing_guidance = fields.Text(required=True)
     deadline_guidance = fields.Text(required=True)
+    customization_of_id = fields.Many2one(
+        "rebuild.account.declaration.rule",
+        readonly=True,
+        ondelete="restrict",
+    )
+    declaration_count = fields.Integer(compute="_compute_declaration_count")
+
+    @api.depends("code")
+    def _compute_declaration_count(self):
+        groups = self.env["rebuild.account.declaration"]._read_group(
+            [("rule_id", "in", self.ids)],
+            ["rule_id"],
+            ["__count"],
+        ) if self.ids else []
+        counts = {rule.id: count for rule, count in groups}
+        for rule in self:
+            rule.declaration_count = counts.get(rule.id, 0)
+
+    def _definition_snapshot(self):
+        values = super()._definition_snapshot()
+        values.update({
+            "definition_version": self.version,
+            "category": self.category,
+            "cadence": self.cadence,
+            "form_code": self.form_code,
+            "tax_form_codes": self.tax_form_codes or "",
+            "country_id": self.country_id.id,
+            "country_code": self.country_id.code,
+            "conditional": self.conditional,
+            "official_source_label": self.official_source_label,
+            "official_url": self.official_url,
+            "portal_url": self.portal_url,
+            "applicability_guidance": self.applicability_guidance,
+            "filing_guidance": self.filing_guidance,
+            "deadline_guidance": self.deadline_guidance,
+        })
+        return values
+
+    def action_customize_for_company(self):
+        self.ensure_one()
+        if self.company_id:
+            customized = self
+        else:
+            customized = self.with_context(active_test=False).search([
+                ("customization_of_id", "=", self.id),
+                ("company_id", "=", self.env.company.id),
+            ], limit=1)
+            if not customized:
+                customized = self.copy({
+                    "company_id": self.env.company.id,
+                    "origin": "company",
+                    "version": f"{self.version}-company-{self.env.company.id}",
+                    "definition_version": (
+                        f"{self.version}-company-{self.env.company.id}"
+                    ),
+                    "customization_of_id": self.id,
+                })
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Company Declaration Definition",
+            "res_model": self._name,
+            "res_id": customized.id,
+            "view_mode": "form",
+            "target": "current",
+        }
+
+    def action_open_declarations(self):
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Declaration Instances",
+            "res_model": "rebuild.account.declaration",
+            "view_mode": "list,calendar,form",
+            "domain": [("rule_id", "in", self.ids)],
+            "context": {"create": False, "delete": False},
+        }
+
+    @api.model
+    def _ensure_governance_metadata(self):
+        rules = self.with_context(active_test=False).search([])
+        for rule in rules:
+            values = {}
+            if not rule.company_id and rule.origin == "company":
+                values["origin"] = "localization"
+            if rule.definition_version != rule.version:
+                values["definition_version"] = rule.version
+            if not rule.business_purpose:
+                values["business_purpose"] = (
+                    rule.applicability_guidance
+                    or f"Govern the {rule.form_code} declaration obligation."
+                )
+            if not rule.expected_outcome:
+                values["expected_outcome"] = (
+                    "The applicable company and fiscal period receive a "
+                    "traceable declaration instance using this exact version."
+                )
+            if not rule.technical_model:
+                values["technical_model"] = "rebuild.account.declaration"
+            if not rule.technical_summary:
+                values["technical_summary"] = (
+                    "Versioned declaration scheduler with whitelisted "
+                    "ledger-derived field resolvers and explicit external facts."
+                )
+            if values:
+                rule.with_context(
+                    accounting_definition_seed=True,
+                ).write(values)
+            self.env["rebuild.account.declaration"].search([
+                ("rule_id", "=", rule.id),
+                ("definition_snapshot", "=", False),
+            ]).write({
+                "definition_snapshot": rule._definition_snapshot(),
+            })
+        return True
 
     def action_open_official_source(self):
         self.ensure_one()
         return {"type": "ir.actions.act_url", "url": self.official_url, "target": "new"}
+
+    def write(self, vals):
+        business_fields = {
+            "active",
+            "name",
+            "sequence",
+            "category",
+            "cadence",
+            "form_code",
+            "tax_form_codes",
+            "version",
+            "lifecycle",
+            "business_purpose",
+            "expected_outcome",
+            "effective_from",
+            "effective_to",
+            "corporate_tax_required",
+            "profit_tax_regime",
+            "vat_regime",
+            "conditional",
+            "official_source_label",
+            "official_url",
+            "official_updated_on",
+            "portal_url",
+            "applicability_guidance",
+            "filing_guidance",
+            "deadline_guidance",
+        }
+        if (
+            business_fields & set(vals)
+            and not self.env.context.get("accounting_definition_seed")
+            and not self.env.context.get("install_mode")
+            and self.filtered(lambda rule: not rule.company_id)
+        ):
+            raise UserError(
+                "Localization Declaration definitions are upgrade-managed. "
+                "Use Customize for Company and edit the company definition."
+            )
+        if "version" in vals:
+            vals = {**vals, "definition_version": vals["version"]}
+        if (
+            business_fields & set(vals)
+            and not self.env.context.get("accounting_definition_seed")
+            and not self.env.context.get("install_mode")
+        ):
+            vals = {**vals, "origin": "company"}
+        return super().write(vals)
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for values in vals_list:
+            if values.get("version") and not values.get("definition_version"):
+                values["definition_version"] = values["version"]
+            if (
+                values.get("company_id")
+                and not self.env.context.get("accounting_definition_seed")
+            ):
+                values["origin"] = "company"
+        return super().create(vals_list)
 
 
 class RebuildAccountDeclaration(models.Model):
@@ -166,6 +355,7 @@ class RebuildAccountDeclaration(models.Model):
     category = fields.Selection(related="rule_id.category", store=True, readonly=True)
     form_code = fields.Char(related="rule_id.form_code", store=True, readonly=True)
     rule_version = fields.Char(related="rule_id.version", store=True, readonly=True)
+    definition_snapshot = fields.Json(readonly=True)
     official_source_label = fields.Char(related="rule_id.official_source_label", readonly=True)
     official_url = fields.Char(related="rule_id.official_url", readonly=True)
     portal_url = fields.Char(related="rule_id.portal_url", readonly=True)
@@ -308,10 +498,6 @@ class RebuildAccountDeclaration(models.Model):
         company.ensure_one()
         if not company.rebuild_declaration_profile_active:
             return self.browse()
-        rules = self.env["rebuild.account.declaration.rule"].search([
-            ("active", "=", True),
-            ("country_id", "=", company.account_fiscal_country_id.id or company.country_id.id),
-        ])
         today = fields.Date.context_today(self)
         current_start, current_end = date_utils.get_fiscal_year(
             today,
@@ -331,12 +517,41 @@ class RebuildAccountDeclaration(models.Model):
                 periods.insert(0, (locked_start, locked_end))
         declarations = self.browse()
         for fiscal_start, fiscal_end in periods:
-            for rule in rules:
+            for rule in self._rules_for_period(company, fiscal_end):
                 if not self._rule_applies_to_profile(rule, company, fiscal_end):
                     continue
                 declarations |= self._sync_rule_instances(company, rule, fiscal_start, fiscal_end)
         declarations.action_refresh_preparation()
         return declarations
+
+    @api.model
+    def _rules_for_period(self, company, fiscal_end):
+        country = (
+            company.account_fiscal_country_id
+            or company.country_id
+        )
+        candidates = self.env[
+            "rebuild.account.declaration.rule"
+        ].with_context(active_test=False).search([
+            ("country_id", "=", country.id),
+            ("company_id", "in", [False, company.id]),
+            ("effective_from", "<=", fiscal_end),
+            "|",
+            ("effective_to", "=", False),
+            ("effective_to", ">=", fiscal_end),
+        ], order="sequence, code, company_id desc, effective_from desc")
+        selected = self.env["rebuild.account.declaration.rule"]
+        for code in candidates.mapped("code"):
+            matching = candidates.filtered(lambda rule: rule.code == code)
+            company_rule = matching.filtered(
+                lambda rule: rule.company_id == company,
+            )[:1]
+            rule = company_rule or matching.filtered(
+                lambda item: not item.company_id,
+            )[:1]
+            if rule and rule.active and rule.lifecycle == "current":
+                selected |= rule
+        return selected.sorted(lambda rule: (rule.sequence, rule.code))
 
     @api.model
     def _rule_applies_to_profile(self, rule, company, fiscal_end):
@@ -421,7 +636,10 @@ class RebuildAccountDeclaration(models.Model):
         if declaration:
             declaration.write(vals)
         else:
-            declaration = self.create(vals)
+            declaration = self.create({
+                **vals,
+                "definition_snapshot": rule._definition_snapshot(),
+            })
         return declaration
 
     @api.model

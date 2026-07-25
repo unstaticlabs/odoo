@@ -1,3 +1,4 @@
+from . import configurable_definition
 from . import source_trace
 from . import currency_rate_provider
 from . import asset
@@ -25,6 +26,7 @@ from . import native_analytic_replay
 from . import discrepancy
 from . import review_decision
 from . import report_views
+from . import report_definition
 from . import report_export_wizard
 from . import review_summary
 from . import oca_report_defaults

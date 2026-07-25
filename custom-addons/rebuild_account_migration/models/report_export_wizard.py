@@ -11,6 +11,8 @@ from odoo import Command, api, fields, models
 from odoo.exceptions import AccessError, UserError
 from odoo.tools import date_utils
 
+from .report_definition import ACCOUNTING_REPORT_TYPES
+
 ACCOUNT_CODE_SQL = (
     "COALESCE("
     "account.code_store->>company.rebuild_source_id::text, "
@@ -43,43 +45,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
     _description = "USL Dynamic Accounting Report Workbench"
 
     report_type = fields.Selection(
-        [
-            ("trial_balance", "Trial Balance"),
-            ("general_ledger", "General Ledger"),
-            ("journal_report", "Journal Report"),
-            ("partner_ledger", "Partner Ledger"),
-            ("customer_statement", "Customer Statement"),
-            ("open_items", "Open Items"),
-            ("aged_receivable", "Aged Receivable"),
-            ("aged_payable", "Aged Payable"),
-            ("balance_sheet", "Balance Sheet"),
-            ("profit_loss", "Profit and Loss"),
-            ("tax_report", "VAT and Tax Report"),
-            ("tax_report_group_account_tax", "Tax Report by Account then Tax"),
-            ("tax_report_group_tax_account", "Tax Report by Tax then Account"),
-            ("ec_sales_list", "EC Sales List"),
-            ("oss_sales", "OSS Sales"),
-            ("oss_imports", "OSS Imports"),
-            ("bank_reconciliation", "Bank Reconciliation"),
-            ("currency_report", "Currency Gain, Loss and Exposure"),
-            ("cash_flow", "Cash Flow Statement"),
-            ("executive_summary", "Executive Summary"),
-            ("analytic_report", "Analytic Distribution"),
-            ("fixed_assets", "Fixed Asset Register"),
-            ("fixed_asset_group_account", "Fixed Asset Register by Account"),
-            ("depreciation_schedule", "Depreciation Schedule"),
-            ("deferred_schedule", "Deferred Expense and Revenue Schedule"),
-            ("french_annual", "États financiers français"),
-            ("french_balance_sheet_2024", "Bilan détaillé (PCG 2024)"),
-            (
-                "french_profit_loss_2024",
-                "Compte de résultat détaillé (PCG 2024)",
-            ),
-            ("sig_caf_2024", "SIG et CAF (PCG 2024)"),
-            ("french_tax_package", "French Tax Package Mapping"),
-            ("closing_package", "Closing Review Package"),
-            ("fec", "FEC"),
-        ],
+        ACCOUNTING_REPORT_TYPES,
         required=True,
         default="trial_balance",
     )
@@ -205,6 +171,13 @@ class RebuildAccountReportExportWizard(models.TransientModel):
     preview_metadata = fields.Text(readonly=True)
     draft_entry_count = fields.Integer(readonly=True)
     preview_warning = fields.Text(readonly=True)
+    report_definition_id = fields.Many2one(
+        "rebuild.account.report.definition",
+        readonly=True,
+        ondelete="restrict",
+    )
+    report_definition_version = fields.Char(readonly=True)
+    report_definition_snapshot = fields.Json(readonly=True)
 
     def _can_generate_official_fec(self):
         return self.env.user.has_group("account.group_account_manager")
@@ -229,6 +202,18 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         """
         filters = filters or {}
         wizard = self.browse(wizard_id).exists() if wizard_id else self.browse()
+        requested_company = (
+            self.env["res.company"].browse(filters.get("company_id")).exists()
+            or wizard.company_id
+            or self.env.company
+        )
+        definition = self.env[
+            "rebuild.account.report.definition"
+        ]._resolve(
+            report_type,
+            requested_company,
+            filters.get("date_to") or wizard.date_to,
+        )
         if not wizard:
             today = fields.Date.context_today(self)
             fiscal_from, fiscal_to = date_utils.get_fiscal_year(
@@ -236,24 +221,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 day=self.env.company.fiscalyear_last_day,
                 month=int(self.env.company.fiscalyear_last_month),
             )
-            default_group = {
-                "trial_balance": "section",
-                "general_ledger": "account",
-                "journal_report": "none",
-                "partner_ledger": "partner",
-                "customer_statement": "partner",
-                "open_items": "partner",
-                "aged_receivable": "none",
-                "aged_payable": "none",
-                "balance_sheet": "section",
-                "profit_loss": "section",
-                "french_annual": "section",
-                "french_balance_sheet_2024": "section",
-                "french_profit_loss_2024": "section",
-                "sig_caf_2024": "section",
-                "tax_report": "section",
-                "analytic_report": "analytic",
-            }.get(report_type, "none")
+            default_group = definition.default_group_by
             wizard = self.create({
                 "report_type": report_type,
                 "company_id": self.env.company.id,
@@ -268,9 +236,18 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 "group_by": default_group,
                 "preview_limit": 1000,
                 "export_format": "xlsx",
+                "report_definition_id": definition.id,
+                "report_definition_version": definition.definition_version,
+                "report_definition_snapshot": definition._definition_snapshot(),
             })
         elif wizard.report_type != report_type:
             raise UserError("This report session belongs to another report.")
+        elif wizard.report_definition_id != definition:
+            wizard.write({
+                "report_definition_id": definition.id,
+                "report_definition_version": definition.definition_version,
+                "report_definition_snapshot": definition._definition_snapshot(),
+            })
 
         allowed_filter_fields = {
             "company_id",
@@ -295,6 +272,24 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             for key, value in filters.items()
             if key in allowed_filter_fields
         }
+        if not definition.supports_comparison:
+            values.update({
+                "comparison_mode": "none",
+                "comparison_date_from": False,
+                "comparison_date_to": False,
+            })
+        for supported, field_name in (
+            (definition.supports_journals, "journal_ids"),
+            (definition.supports_accounts, "account_ids"),
+            (definition.supports_partners, "partner_ids"),
+        ):
+            if not supported:
+                values[field_name] = []
+        if not definition.supports_analytics:
+            values.update({
+                "analytic_plan_ids": [],
+                "analytic_account_ids": [],
+            })
         if values.get("company_id"):
             values["company_ids"] = [
                 Command.set([int(values["company_id"])]),
@@ -430,6 +425,16 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             # Accounting statements follow the French presentation contract
             # independently from the user's general Odoo interface language.
             "locale": "fr-FR",
+            "definition": {
+                "id": self.report_definition_id.id,
+                "code": self.report_definition_id.code,
+                "version": self.report_definition_version,
+                "origin": self.report_definition_id.origin,
+                "company_id": self.report_definition_id.company_id.id,
+                "business_purpose": (
+                    self.report_definition_id.business_purpose or ""
+                ),
+            },
             "label_column": self._report_client_label_column(),
             "report_type": self.report_type,
             "currency": {
@@ -663,7 +668,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "cash_flow",
             "executive_summary",
         }
-        return {
+        capabilities = {
             "period_presets": True,
             "comparison": self.report_type in comparison_reports,
             "group_by": self.report_type not in {
@@ -680,6 +685,33 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             },
             "analytics": self.report_type in analytic_reports,
         }
+        definition = self.report_definition_id
+        if definition:
+            capabilities.update({
+                "comparison": (
+                    capabilities["comparison"]
+                    and definition.supports_comparison
+                ),
+                "journals": (
+                    capabilities["journals"]
+                    and definition.supports_journals
+                ),
+                "accounts": (
+                    capabilities["accounts"]
+                    and definition.supports_accounts
+                ),
+                "partners": (
+                    capabilities["partners"]
+                    and definition.supports_partners
+                ),
+                "analytics": (
+                    capabilities["analytics"]
+                    and definition.supports_analytics
+                ),
+                "pdf": definition.supports_pdf,
+                "xlsx": definition.supports_xlsx,
+            })
+        return capabilities
 
     def _report_client_summary(self):
         """Return compact statement controls, not technical calculation logs."""
@@ -990,6 +1022,18 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             raise UserError("The report session expired. Reopen the report.")
         if export_format not in {"pdf", "xlsx"}:
             raise UserError("Choose PDF or XLSX.")
+        definition = wizard.report_definition_id
+        if (
+            definition
+            and (
+                export_format == "pdf" and not definition.supports_pdf
+                or export_format == "xlsx" and not definition.supports_xlsx
+            )
+        ):
+            raise UserError(
+                f"{export_format.upper()} is disabled by the active "
+                f"{definition.name} definition."
+            )
         wizard.export_format = export_format
         wizard.action_generate_export()
         return {
@@ -1024,15 +1068,35 @@ class RebuildAccountReportExportWizard(models.TransientModel):
 
     @api.model_create_multi
     def create(self, vals_list):
-        if not self._can_generate_official_fec():
-            for values in vals_list:
-                report_type = (
-                    values.get("report_type")
-                    or self.env.context.get("default_report_type")
-                    or "trial_balance"
+        can_generate_official_fec = self._can_generate_official_fec()
+        for values in vals_list:
+            report_type = (
+                values.get("report_type")
+                or self.env.context.get("default_report_type")
+                or "trial_balance"
+            )
+            if not can_generate_official_fec and report_type == "fec":
+                values["fec_test_mode"] = True
+            if not values.get("report_definition_id"):
+                company = self.env["res.company"].browse(
+                    values.get("company_id"),
+                ).exists() or self.env.company
+                definition = self.env[
+                    "rebuild.account.report.definition"
+                ]._resolve(
+                    report_type,
+                    company,
+                    values.get("date_to"),
                 )
-                if report_type == "fec":
-                    values["fec_test_mode"] = True
+                values.update({
+                    "report_definition_id": definition.id,
+                    "report_definition_version": (
+                        definition.definition_version
+                    ),
+                    "report_definition_snapshot": (
+                        definition._definition_snapshot()
+                    ),
+                })
         return super().create(vals_list)
 
     def write(self, values):
@@ -1418,7 +1482,12 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         )
 
     def _report_type_label(self):
-        return dict(self._fields["report_type"].selection).get(self.report_type, self.report_type)
+        if self.report_definition_id:
+            return self.report_definition_id.name
+        return dict(self._fields["report_type"].selection).get(
+            self.report_type,
+            self.report_type,
+        )
 
     def _report_variant_key(self):
         if self.report_type in {"french_balance_sheet_2024", "french_profit_loss_2024", "sig_caf_2024"}:
@@ -1972,6 +2041,8 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "format": self.export_format,
             "report_variant": self._report_variant_key(),
             "report_variant_basis": self._report_variant_basis(),
+            "report_definition": self.report_definition_snapshot or {},
+            "report_definition_version": self.report_definition_version or "",
             "fec_test_mode": self.fec_test_mode if self.report_type == "fec" else None,
             "journal_filter": [
                 {

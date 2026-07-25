@@ -60,3 +60,8 @@ Draft warnings mean the displayed period includes unposted accounting that can s
 The screen, PDF and readable XLSX `Report` sheet share the resolved period,
 filters, grouping, hierarchy, calculations and totals. XLSX also contains a raw
 `Audit Data` sheet for analysis; it is not the presentation reference.
+
+Each report resolves a governed definition for the selected company and period.
+Its version and origin are retained in the report session and export metadata.
+Accounting Managers inspect or adapt these definitions under **Configuration >
+Accounting > Accounting Framework > Reports**.

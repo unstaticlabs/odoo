@@ -31,6 +31,7 @@ French obligations, periods, deadlines, calculated fields, external confirmation
 ## Configuration
 
 Accounting settings, journals, accounts, taxes, analytic dimensions and the
-shared Accounting Controls catalogue. Accounting Managers configure business
-policy, read-only accountants inspect it, and Technical Administrators can see
-advanced evaluator details.
+shared Accounting Framework. Accounting Managers govern Controls, Reports and
+Declarations from one discoverable area. Read-only accountants inspect the
+operational results, while Technical Administrators can see installed engine
+keys and implementation boundaries.
