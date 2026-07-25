@@ -1,5 +1,6 @@
 from . import configurable_definition
 from . import analytic_reporting
+from . import einvoice_readiness
 from . import source_trace
 from . import currency_rate_provider
 from . import asset

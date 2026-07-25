@@ -20,6 +20,9 @@ Journal entries, journal items, payments, assets, general reconciliation and clo
 
 Accounting Hygiene and other focused review work. Technical audit tools are available only in the advanced area.
 
+**Electronic Invoice Reception** lists every approved-platform payload and its
+draft bill, duplicate, rejection or technical-failure evidence.
+
 ## Analysis
 
 **Analytic Reporting** is the native exploratory pivot over analytic items.
@@ -32,6 +35,13 @@ open any aggregate to its source records.
 The canonical designed financial, partner, tax, asset, management and
 analytical statements. Use Analysis for free-form pivot exploration and
 Reporting for intentional statement presentation and exports.
+
+## Configuration
+
+**Accounting Framework > Electronic Invoicing** shows software capability,
+production readiness and live-connection status separately. It holds company
+identifiers, provider decision, reception journal and controlled activation
+approval. Development remains visibly **Not Connected**.
 
 ## Declarations
 
