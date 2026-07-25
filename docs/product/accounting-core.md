@@ -40,5 +40,10 @@ Valentin and the accountant must be able to:
 - Accounting differences are visible, classified and evidence-backed.
 - Legal compliance is professionally reviewed, not inferred from passing software tests.
 - Live bank connectivity is optional and outside the initial parity gate; historical bank accounting is not.
+- Accounting Hygiene and Closing use one visible, company-scoped control
+  catalogue. Business policy is configurable; advanced evaluators are
+  whitelisted module extensions rather than arbitrary code.
+- A technical control failure is not reported as an accounting failure and
+  cannot produce a false Ready conclusion.
 
 Detailed invariants and parity standards live under `docs/accounting/`.

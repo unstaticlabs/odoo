@@ -12,6 +12,7 @@ from odoo.tests import TransactionCase, tagged
 
 from odoo.addons.rebuild_account_migration.models.closing import (
     CLOSING_CONTROL_DEFINITIONS,
+    HYGIENE_CONTROL_DEFINITIONS,
 )
 
 
@@ -596,9 +597,35 @@ class TestDeclarationAndClosing(TransactionCase):
             "rebuild.account.closing.control.definition"
         ].search([("company_id", "=", company.id)])
         self.assertEqual(
-            {definition.code for definition in definitions},
+            {
+                definition.code
+                for definition in definitions.filtered("applies_to_closing")
+            },
             {values[0] for values in CLOSING_CONTROL_DEFINITIONS},
         )
+        self.assertEqual(
+            {
+                definition.code
+                for definition in definitions.filtered("applies_to_hygiene")
+            },
+            {values[0] for values in HYGIENE_CONTROL_DEFINITIONS},
+        )
+        reviewer = self.env["res.users"].with_context(
+            no_reset_password=True,
+        ).create({
+            "name": "Control Catalogue Reviewer",
+            "login": "control.catalogue.reviewer@example.invalid",
+            "email": "control.catalogue.reviewer@example.invalid",
+            "company_id": company.id,
+            "company_ids": [Command.set([company.id])],
+            "group_ids": [Command.set([self.reviewer_group.id])],
+        })
+        self.assertTrue(definitions.with_user(reviewer).has_access("read"))
+        self.assertFalse(definitions.with_user(reviewer).has_access("write"))
+        with self.assertRaises(AccessError):
+            definitions[:1].with_user(
+                reviewer,
+            ).action_refresh_open_workspaces()
         self.assertEqual(
             closing.control_line_ids.filtered(
                 lambda line: line.code == "reports",
@@ -631,6 +658,42 @@ class TestDeclarationAndClosing(TransactionCase):
         )
         self.assertEqual(bank_control.owner, "accountant_reviewer")
         self.assertEqual(bank_control.definition_id, bank_definition)
+        self.assertEqual(bank_definition.closing_result_count, 1)
+        self.assertEqual(bank_definition.origin, "company")
+
+        bank_definition.write({
+            "closing_period_scope": "annual",
+            "impact_policy": "informational",
+        })
+        policy_result = bank_definition._apply_result_policy({
+            "status": "block",
+            "next_action": "Resolve the accounting condition.",
+        })
+        self.assertEqual(policy_result["status"], "info")
+        closing.action_refresh_controls()
+        self.assertFalse(
+            closing.control_line_ids.filtered(
+                lambda line: line.code == "bank_reconciliation",
+            ),
+        )
+
+        with patch.object(
+            type(closing),
+            "_closing_control_evaluator_registry",
+            return_value={},
+        ):
+            closing.action_refresh_controls()
+        self.assertEqual(closing.readiness_status, "blocked")
+        self.assertEqual(closing.state, "blocked")
+        self.assertTrue(closing.technical_failure_count)
+        technical_control = closing.control_line_ids.filtered(
+            lambda line: line.status == "technical_error",
+        )[0]
+        self.assertEqual(technical_control.result_kind, "technical")
+        self.assertEqual(
+            technical_control.action_open_records()["res_model"],
+            "rebuild.account.closing.control.definition",
+        )
 
     def test_hygiene_issues_link_sources_and_auto_resolve(self):
         company = self._company("Actionable Hygiene Company")
@@ -693,9 +756,40 @@ class TestDeclarationAndClosing(TransactionCase):
         )
         self.assertEqual(evidence_issue.confidence, "high")
         self.assertEqual(evidence_issue.owner_role, "finance_operator")
+        self.assertEqual(
+            evidence_issue.control_code,
+            "hygiene_vendor_evidence",
+        )
+        self.assertEqual(
+            evidence_issue.definition_id.code,
+            "hygiene_vendor_evidence",
+        )
+        self.assertEqual(evidence_issue.definition_id.hygiene_result_count, 1)
         source_action = evidence_issue.action_open_source()
         self.assertEqual(source_action["res_model"], "account.move")
         self.assertEqual(source_action["res_id"], bill.id)
+
+        evidence_definition = evidence_issue.definition_id
+        evidence_definition.write({
+            "impact_policy": "blocking",
+            "owner": "accounting_manager",
+        })
+        Issue.sync_for_company(company)
+        self.assertEqual(evidence_issue.severity, "1_blocking")
+        self.assertEqual(evidence_issue.owner_role, "accounting_manager")
+        self.assertEqual(evidence_definition.origin, "company")
+
+        evidence_definition.impact_policy = "informational"
+        Issue.sync_for_company(company)
+        self.assertEqual(evidence_issue.severity, "4_information")
+
+        evidence_definition.enabled = False
+        Issue.sync_for_company(company)
+        self.assertEqual(evidence_issue.status, "resolved")
+
+        evidence_definition.enabled = True
+        Issue.sync_for_company(company)
+        self.assertEqual(evidence_issue.status, "open")
 
         bill.button_cancel()
         Issue.sync_for_company(company)

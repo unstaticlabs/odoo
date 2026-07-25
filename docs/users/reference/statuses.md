@@ -27,6 +27,12 @@
 
 Severity is **Blocking**, **Warning**, **Attention** or **Information**.
 
+The result kind is **Accounting Result** when an evaluator completed, or
+**Technical Failure** when no accounting conclusion could be produced.
+
 ## Declarations and closing
 
-Readiness is separate from filing. A declaration can be prepared and reviewed before it is marked filed, paid, refunded or credited. A closing control can pass, warn or block without locking the period automatically.
+Readiness is separate from filing. A declaration can be prepared and reviewed
+before it is marked filed, paid, refunded or credited. A Closing result can
+pass, inform, warn, block or report a technical failure without locking the
+period automatically.

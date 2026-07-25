@@ -30,4 +30,7 @@ French obligations, periods, deadlines, calculated fields, external confirmation
 
 ## Configuration
 
-Accounting settings, journals, accounts, taxes, analytic dimensions and Closing Controls. Access depends on role.
+Accounting settings, journals, accounts, taxes, analytic dimensions and the
+shared Accounting Controls catalogue. Accounting Managers configure business
+policy, read-only accountants inspect it, and Technical Administrators can see
+advanced evaluator details.

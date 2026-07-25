@@ -1567,9 +1567,12 @@
         <field name="arch" type="xml">
             <search string="Accounting Hygiene">
                 <field name="title"/>
+                <field name="definition_id"/>
+                <field name="control_code"/>
                 <field name="source_label"/>
                 <field name="company_id"/>
                 <field name="issue_type"/>
+                <field name="result_kind"/>
                 <field name="owner_user_id"/>
                 <filter name="open" string="Open" domain="[('status', '=', 'open')]"/>
                 <filter name="resolved" string="Resolved" domain="[('status', '=', 'resolved')]"/>
@@ -1577,8 +1580,13 @@
                 <separator/>
                 <filter name="blocking" string="Blocking" domain="[('severity', '=', '1_blocking')]"/>
                 <filter name="warning" string="Warnings" domain="[('severity', '=', '2_warning')]"/>
+                <filter name="information" string="Information" domain="[('severity', '=', '4_information')]"/>
                 <filter name="unassigned" string="Unassigned" domain="[('owner_user_id', '=', False)]"/>
                 <separator/>
+                <filter name="technical" string="Technical Failures" domain="[('result_kind', '=', 'technical')]"/>
+                <separator/>
+                <filter name="group_control" string="Accounting Control" context="{'group_by': 'definition_id'}"/>
+                <filter name="group_result_kind" string="Result Kind" context="{'group_by': 'result_kind'}"/>
                 <filter name="group_type" string="Issue Type" context="{'group_by': 'issue_type'}"/>
                 <filter name="group_role" string="Responsible Role" context="{'group_by': 'owner_role'}"/>
                 <filter name="group_status" string="Status" context="{'group_by': 'status'}"/>
@@ -1591,14 +1599,16 @@
         <field name="name">rebuild.account.hygiene.issue.list</field>
         <field name="model">rebuild.account.hygiene.issue</field>
         <field name="arch" type="xml">
-            <list create="false" delete="false" decoration-danger="severity == '1_blocking' and status == 'open'" decoration-warning="severity == '2_warning' and status == 'open'" decoration-muted="status != 'open'">
+            <list create="false" delete="false" decoration-danger="severity == '1_blocking' and status == 'open'" decoration-warning="severity == '2_warning' and status == 'open'" decoration-info="result_kind == 'technical' and status == 'open'" decoration-muted="status != 'open'">
                 <field
                     name="severity"
                     widget="badge"
                     decoration-danger="severity == '1_blocking'"
                     decoration-warning="severity == '2_warning'"
-                    decoration-info="severity == '3_attention'"/>
+                    decoration-info="severity in ['3_attention', '4_information']"/>
                 <field name="title"/>
+                <field name="definition_id" optional="show"/>
+                <field name="result_kind" optional="show"/>
                 <field name="issue_type"/>
                 <field name="issue_date"/>
                 <field name="amount" optional="show"/>
@@ -1611,7 +1621,7 @@
                     decoration-info="status == 'open'"
                     decoration-success="status == 'resolved'"
                     decoration-muted="status == 'dismissed'"/>
-                <button name="action_open_source" type="object" string="Open Source" icon="fa-external-link" title="Open the accounting record that needs review. This does not modify it."/>
+                <button name="action_open_source" type="object" string="Open Related Record" icon="fa-external-link" title="Open the accounting record or control configuration related to this result. This does not modify it."/>
                 <button name="action_check_resolution" type="object" string="Check" icon="fa-check-circle" groups="account.group_account_manager" invisible="status != 'open'" title="Re-run the deterministic control. The issue resolves only when its underlying condition is fixed."/>
             </list>
         </field>
@@ -1623,7 +1633,7 @@
         <field name="arch" type="xml">
             <form create="false" delete="false">
                 <header>
-                    <button name="action_open_source" type="object" string="Open Source Record" class="btn-primary" title="Open the document, transaction, expense or journal item that caused this issue."/>
+                    <button name="action_open_source" type="object" string="Open Related Record" class="btn-primary" title="Open the accounting record or control configuration related to this result."/>
                     <button name="action_check_resolution" type="object" string="Check Resolution" groups="account.group_account_manager" invisible="status != 'open'" title="Re-run the control and resolve this issue only if the accounting condition has been fixed."/>
                     <button name="action_dismiss" type="object" string="Dismiss" groups="account.group_account_manager" invisible="status != 'open'" confirm="Dismiss this issue without changing the underlying accounting record? It remains traceable and can be reviewed later." title="Record that this deterministic signal has been reviewed and deliberately dismissed."/>
                     <field name="status" widget="statusbar" statusbar_visible="open,resolved,dismissed"/>
@@ -1639,6 +1649,8 @@
                     <group>
                         <group>
                             <field name="company_id" readonly="1" groups="base.group_multi_company"/>
+                            <field name="definition_id" readonly="1"/>
+                            <field name="result_kind" readonly="1"/>
                             <field name="issue_type" readonly="1"/>
                             <field
                                 name="severity"
@@ -1646,7 +1658,7 @@
                                 readonly="1"
                                 decoration-danger="severity == '1_blocking'"
                                 decoration-warning="severity == '2_warning'"
-                                decoration-info="severity == '3_attention'"/>
+                                decoration-info="severity in ['3_attention', '4_information']"/>
                             <field name="issue_date" readonly="1"/>
                             <field name="amount" readonly="1"/>
                         </group>
