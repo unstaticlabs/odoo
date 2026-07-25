@@ -1068,6 +1068,33 @@ class TestRebuildAccountMigration(TransactionCase):
         with self.assertRaises(AccessError):
             hygiene.with_user(reviewer).action_refresh_hygiene()
 
+        if hygiene.latest_closing_period_id:
+            refresh_target = type(hygiene.latest_closing_period_id)
+            refresh_method = "action_refresh_controls"
+        else:
+            refresh_target = type(
+                self.env["rebuild.account.hygiene.issue"],
+            )
+            refresh_method = "sync_for_company"
+        with patch.object(
+            refresh_target,
+            refresh_method,
+            return_value=True,
+        ) as refresh:
+            action = hygiene.action_refresh_hygiene()
+
+        refresh.assert_called_once()
+        self.assertEqual(action["type"], "ir.actions.act_window")
+        self.assertEqual(
+            action["res_model"],
+            "rebuild.account.hygiene.issue",
+        )
+        self.assertEqual(
+            action["domain"],
+            [("company_id", "=", self.company.id)],
+        )
+        self.assertEqual(action["context"]["search_default_open"], 1)
+
     def test_journal_items_use_the_shared_matching_reference_chip(self):
         journal_items_view = self.env.ref(
             "account.view_move_line_tree",

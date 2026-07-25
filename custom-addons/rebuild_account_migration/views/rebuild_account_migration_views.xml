@@ -1068,7 +1068,6 @@
                 <header>
                     <button name="action_open_journal_dashboard" type="object" string="Journals"/>
                     <button name="action_open_bank_matching" type="object" string="Bank Matching"/>
-                    <button name="action_open_hygiene_issues" type="object" string="Accounting Hygiene"/>
                     <button
                         name="action_refresh_hygiene"
                         type="object"

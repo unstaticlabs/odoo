@@ -437,10 +437,7 @@ class RebuildAccountReviewSummary(models.Model):
             self.env["rebuild.account.hygiene.issue"].sync_for_company(
                 self.company_id,
             )
-        return {
-            "type": "ir.actions.client",
-            "tag": "reload",
-        }
+        return self.action_open_hygiene_issues()
 
     def action_open_hygiene_issues(self):
         self.ensure_one()
