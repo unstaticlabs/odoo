@@ -110,6 +110,7 @@ class AccountMoveLine(models.Model):
         matching_references = sorted(
             set(matched_lines.mapped("matching_number")) - {False},
         )
+        line_ids = matched_lines.ids
         matched_lines.remove_move_reconcile()
         reference_text = (
             ", ".join(matching_references)
@@ -128,8 +129,26 @@ class AccountMoveLine(models.Model):
                 "type": "success",
                 "sticky": False,
                 "next": {
-                    "type": "ir.actions.client",
-                    "tag": "soft_reload",
+                    "type": "ir.actions.act_window",
+                    "name": _("Matching undone — items are open again"),
+                    "res_model": "account.move.line",
+                    "view_mode": "list,form",
+                    "views": [
+                        (
+                            self.env.ref(
+                                "rebuild_account_migration."
+                                "view_rebuild_account_move_line_reconciliation_result",
+                            ).id,
+                            "list",
+                        ),
+                        (False, "form"),
+                    ],
+                    "domain": [("id", "in", line_ids)],
+                    "context": {
+                        "create": False,
+                        "delete": False,
+                        "reconciliation_result": True,
+                    },
                 },
             },
         }

@@ -472,6 +472,10 @@ class TestRebuildAccountMigration(TransactionCase):
         undo_result = clearing_lines.action_rebuild_unreconcile()
 
         self.assertEqual(undo_result["tag"], "display_notification")
+        undo_next = undo_result["params"]["next"]
+        self.assertEqual(undo_next["res_model"], "account.move.line")
+        self.assertEqual(undo_next["domain"], [("id", "in", clearing_lines.ids)])
+        self.assertIn("Matching undone", undo_next["name"])
         clearing_lines.invalidate_recordset()
         self.assertEqual(
             set(clearing_lines.mapped("rebuild_reconciliation_state")),

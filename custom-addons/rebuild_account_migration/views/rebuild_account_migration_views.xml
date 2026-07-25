@@ -164,6 +164,9 @@
         <field name="sequence">1</field>
         <field name="group_ids" eval="[(4, ref('account.group_account_readonly'))]"/>
     </record>
+    <record id="account_statement_import_file.account_statement_import_menu" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
     <record id="view_rebuild_account_journal_dashboard_readonly" model="ir.ui.view">
         <field name="name">account.journal.dashboard.readonly.controls</field>
         <field name="model">account.journal</field>
@@ -439,8 +442,14 @@
             <xpath expr="//page[@name='reconcile_line']" position="after">
                 <xpath expr="//page[@name='chatter']" position="move"/>
             </xpath>
+            <xpath expr="//page[@name='chatter']" position="attributes">
+                <attribute name="autofocus">autofocus</attribute>
+            </xpath>
             <xpath expr="//page[@name='narration']" position="after">
                 <xpath expr="//page[@name='manual']" position="move"/>
+            </xpath>
+            <xpath expr="//page[@name='manual']" position="attributes">
+                <attribute name="string">Manual Operation</attribute>
             </xpath>
             <xpath expr="//page[@name='manual']/group" position="before">
                 <div
