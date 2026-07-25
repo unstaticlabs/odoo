@@ -100,20 +100,15 @@ execution path and preserves upstream release metadata without a core patch.
 
 ## Database safety
 
-This branch must not open or update:
+Local databases are disposable. Normal development and QA use `odoo_dev`.
+Exact and native validation stages create their explicitly named validation
+databases only while those pipelines run. The Enterprise-derived
+`odoo_online_source_saas_19_2` database remains isolated in the optional source
+service and is read-only for extraction.
 
-- `odoo_dev`, the preserved Odoo 19 product database;
-- `odoo_online_source_saas_19_2`, the read-only Enterprise source.
-
-Allowed targets are:
-
-- `odoo_saas_19_2_empty_01`;
-- `odoo_saas_19_2_candidate_01`;
-- `odoo_saas_19_2_validation_exact`;
-- `odoo_saas_19_2_validation_native`.
-
-The canonical `odoo_dev` name can move only after two clean reconstructions,
-parity acceptance, and an explicit rollback checkpoint.
+The former `odoo_saas_19_2_empty_01` and
+`odoo_saas_19_2_candidate_01` names in the validation record below describe
+historical alignment evidence; they are not current deployment targets.
 
 ## Validation record
 

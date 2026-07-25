@@ -43,8 +43,8 @@ installation and developer documentation is available from
 
 This fork includes two local workflows for Odoo `saas~19.2` Community. The
 branch is pinned to upstream commit
-`8a44ecc8da96e341ac472fec27352d138ed2edd7`; it must not be run against the
-preserved Odoo 19 `odoo_dev` database:
+`8a44ecc8da96e341ac472fec27352d138ed2edd7`. Local development uses one
+disposable product database named `odoo_dev`:
 
 - Developer workflow: use the Dev Container and run Odoo from the mounted source tree.
 - QA/test workflow: use Docker Compose only, with no editor container, to run a local Odoo service and PostgreSQL.
@@ -89,11 +89,12 @@ The `.env` file is ignored by Git. Change these values before using the stack be
 Other useful variables:
 
 - `ODOO_INIT_DB`: database created by the init profile. Default:
-  `odoo_saas_19_2_empty_01`.
-- `ODOO_INIT_MODULES`: modules installed during first init. Default: `base`.
+  `odoo_dev`.
+- `ODOO_INIT_MODULES`: modules installed during first init. Default:
+  `rebuild_account_migration`.
 - `ODOO_ADDONS_PATH`: addon path list for the Compose Odoo service.
 - `ODOO_HTTP_PORT` and `ODOO_GEVENT_PORT`: host ports. Defaults: `8169` and `8172`,
-  leaving the preserved Odoo 19 stack on `8069`/`8072`.
+  avoiding the standard Odoo ports when another local service uses them.
 - `ODOO_WORKERS`, `ODOO_PROXY_MODE`, `ODOO_DB_FILTER`, and limits: deployment-oriented runtime controls.
 
 ### 1. Developer workflow: Dev Container
@@ -115,8 +116,8 @@ Inside the Dev Container, initialize the development database once:
 
 ```bash
 odoo --config=/etc/odoo/odoo.conf \
-  --database=odoo_saas_19_2_empty_01 \
-  --init=base \
+  --database=odoo_dev \
+  --init=rebuild_account_migration \
   --without-demo=true \
   --stop-after-init
 ```
@@ -124,10 +125,10 @@ odoo --config=/etc/odoo/odoo.conf \
 Then start a live development server:
 
 ```bash
-odoo --config=/etc/odoo/odoo.conf --database=odoo_saas_19_2_empty_01
+odoo --config=/etc/odoo/odoo.conf --database=odoo_dev
 ```
 
-Open <http://localhost:8069/web/login?db=odoo_saas_19_2_empty_01>.
+Open <http://localhost:8069/web/login?db=odoo_dev>.
 
 Default login for a freshly initialized local database:
 
@@ -156,8 +157,8 @@ Useful commands inside the Dev Container:
 
 ```bash
 ruff check custom-addons
-odoo --config=/etc/odoo/odoo.conf --database=odoo_saas_19_2_candidate_01 --update=your_module --stop-after-init
-odoo --config=/etc/odoo/odoo.conf --database=odoo_saas_19_2_candidate_01 --test-enable --stop-after-init --init=your_module
+odoo --config=/etc/odoo/odoo.conf --database=odoo_dev --update=your_module --stop-after-init
+odoo --config=/etc/odoo/odoo.conf --database=odoo_dev --test-enable --stop-after-init --init=your_module
 ```
 
 Debug configurations are available in `.devcontainer/launch.json`:
@@ -169,7 +170,7 @@ If you want to start Odoo manually under debugpy:
 
 ```bash
 python -Xfrozen_modules=off -m debugpy --listen 0.0.0.0:5678 \
-  /workspace/odoo/odoo-bin --config=/etc/odoo/odoo.conf --database=odoo_saas_19_2_candidate_01
+  /workspace/odoo/odoo-bin --config=/etc/odoo/odoo.conf --database=odoo_dev
 ```
 
 Do not run the normal Compose `odoo` service and a Dev Container Odoo server on the same host ports at the same time. Stop the normal service first if needed:
@@ -192,12 +193,11 @@ From a fresh clone:
 
 ```bash
 cp .env.example .env
-scripts/odoo-dev build
 scripts/odoo-dev init-db
-scripts/odoo-dev start
+make dev
 ```
 
-Open <http://localhost:8169/web/login?db=odoo_saas_19_2_empty_01>.
+Open <http://localhost:8169/web/login?db=odoo_dev>.
 
 Default login for a freshly initialized local database:
 
@@ -223,6 +223,8 @@ This workflow runs the repository-built image and mounts `custom-addons/`, `oca-
 ```bash
 scripts/odoo-dev build        # build Odoo images
 scripts/odoo-dev start        # start PostgreSQL and Odoo
+scripts/odoo-dev deploy       # update the Accounting add-on and redeploy
+scripts/odoo-dev rebuild      # rebuild images, update the add-on, and redeploy
 scripts/odoo-dev stop         # stop services
 scripts/odoo-dev logs odoo    # follow Odoo logs
 scripts/odoo-dev init-db      # initialize ODOO_INIT_DB with ODOO_INIT_MODULES
@@ -233,12 +235,19 @@ scripts/odoo-dev update       # pull service images and rebuild
 scripts/odoo-dev reset        # delete local Compose volumes
 ```
 
+The normal shorthand is:
+
+```bash
+make dev       # start the existing environment
+make deploy    # apply ordinary custom add-on changes
+make rebuild   # rebuild images, then deploy
+```
+
 ### Optional bootstrap fixture
 
 `custom-addons/usl_bootstrap` remains available for isolated module tests and
-smoke fixtures. It is not the developer/QA product database and must not be
-installed into `odoo_saas_19_2_candidate_01`. The candidate database is built from the
-accounting compatibility pipeline described below.
+smoke fixtures. It should not be installed into the normal `odoo_dev`
+Accounting product database.
 
 To create an explicitly named throwaway fixture:
 
@@ -265,11 +274,16 @@ docs/operations/run-imported-accounting-dev.md
 
 Important: run `make accounting-*` from the host shell, not from inside the Dev Container. The Dev Container runs Odoo, but it does not currently include the Docker CLI required by the accounting harness.
 
-After changing Python, system, or Docker dependencies:
+For ordinary custom add-on changes:
 
 ```bash
-docker compose --profile devcontainer build
-docker compose up -d --force-recreate odoo
+make deploy
+```
+
+After changing Python/system dependencies, the Dockerfile, or core source:
+
+```bash
+make rebuild
 ```
 
 ### Passwords and databases
@@ -277,9 +291,11 @@ docker compose up -d --force-recreate odoo
 - Odoo web login in a newly initialized database: `admin` / `admin`.
 - Odoo database manager master password: `ODOO_ADMIN_PASSWORD`, default `admin`.
 - PostgreSQL credentials: `ODOO_DB_USER=odoo` and `ODOO_DB_PASSWORD=odoo` by default.
-- Initial developer/QA candidate: `odoo_saas_19_2_candidate_01`.
+- Developer/QA database: `odoo_dev`.
 
-Starting the Dev Container does not create a database. Running `scripts/odoo-dev init-db` or the explicit `odoo --init=base --stop-after-init` command does.
+Starting the Dev Container does not create a database. Running
+`scripts/odoo-dev init-db` or an explicit
+`odoo --init=rebuild_account_migration --stop-after-init` command does.
 
 ### Troubleshooting
 

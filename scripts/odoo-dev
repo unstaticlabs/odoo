@@ -6,14 +6,41 @@ cd "$ROOT"
 
 COMPOSE_PROJECT="${ODOO_SAAS_COMPOSE_PROJECT:-usl-odoo-saas-19-2}"
 COMPOSE=(docker compose -p "$COMPOSE_PROJECT")
-export ODOO_INIT_DB="${ODOO_SAAS_INIT_DB:-odoo_saas_19_2_empty_01}"
+DEV_DB="${ODOO_DEV_DB:-odoo_dev}"
+DEV_MODULE="${ODOO_DEV_MODULE:-rebuild_account_migration}"
+export ODOO_INIT_DB="${ODOO_INIT_DB:-$DEV_DB}"
+
+deploy() {
+  local module="${1:-$DEV_MODULE}"
+  "${COMPOSE[@]}" up -d --wait db
+  "${COMPOSE[@]}" stop odoo >/dev/null 2>&1 || true
+  "${COMPOSE[@]}" --profile init run --rm \
+    -e ODOO_INIT_DB="$DEV_DB" \
+    init-db odoo \
+    --config=/etc/odoo/odoo.conf \
+    --database="$DEV_DB" \
+    --update="$module" \
+    --without-demo=true \
+    --stop-after-init \
+    --log-level=warn
+  "${COMPOSE[@]}" up -d --force-recreate --wait odoo
+  printf '\nDevelopment environment: http://localhost:8169/web/login?db=%s\n' "$DEV_DB"
+}
 
 case "${1:-help}" in
   build)
     "${COMPOSE[@]}" build "${@:2}"
     ;;
   start)
-    "${COMPOSE[@]}" up -d db odoo
+    "${COMPOSE[@]}" up -d --wait db odoo
+    printf '\nDevelopment environment: http://localhost:8169/web/login?db=%s\n' "$DEV_DB"
+    ;;
+  deploy)
+    deploy "${2:-$DEV_MODULE}"
+    ;;
+  rebuild)
+    "${COMPOSE[@]}" build odoo init-db
+    deploy "${2:-$DEV_MODULE}"
     ;;
   stop)
     "${COMPOSE[@]}" down
@@ -55,10 +82,12 @@ Usage: scripts/odoo-dev <command>
 Commands:
   build        Build Odoo images
   start        Start PostgreSQL and Odoo
+  deploy [mod] Update a module and recreate the development server
+  rebuild [mod] Rebuild images, update a module, and recreate the server
   stop         Stop the stack
   restart      Restart services
   logs         Follow logs
-  init-db      Initialize ODOO_INIT_DB with ODOO_INIT_MODULES
+  init-db      Initialize odoo_dev (or ODOO_INIT_DB)
   shell        Open a dev container shell
   test [mod]   Run Odoo tests for a module
   ruff [args]  Run ruff in the dev image

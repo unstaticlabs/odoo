@@ -6,7 +6,7 @@ Branch: `saas-19.2-usl-feat-accounting`
 
 Upstream baseline: `8a44ecc8da96e341ac472fec27352d138ed2edd7`
 
-Product candidate database: `odoo_saas_19_2_candidate_01`
+Product candidate database: `odoo_dev`
 
 Source database: `odoo_online_source_saas_19_2` (read-only)
 
@@ -133,5 +133,5 @@ published.
 - selection and activation of a production approved e-invoicing platform;
 - live bank synchronization and provider ingestion;
 - probabilistic/AI matching and autonomous posting;
-- replacement of the preserved Odoo 19 `odoo_dev` environment and production
-  cutover.
+- production deployment and cutover from the disposable `odoo_dev`
+  environment.

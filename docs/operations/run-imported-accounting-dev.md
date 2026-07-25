@@ -15,7 +15,7 @@ The complete pipeline restores the Odoo Online backup and builds the canonical
 disposable developer/QA database:
 
 ```text
-odoo_saas_19_2_candidate_01
+odoo_dev
 ```
 
 Two other target databases exist only to validate the two reconstruction
@@ -27,7 +27,7 @@ odoo_saas_19_2_validation_native
 ```
 
 There is no separate demo database. All three targets are disposable; only
-`odoo_saas_19_2_candidate_01` is the initial user-facing product candidate.
+`odoo_dev` is the disposable user-facing development and QA database.
 
 ## Step 1 - Open a Host Shell
 
@@ -100,7 +100,7 @@ Expected:
 - no `FileNotFoundError: docker`;
 - no failed `make` target;
 - both validation databases are recreated;
-- `odoo_saas_19_2_candidate_01` is recreated from the validated native state and exact history;
+- `odoo_dev` is recreated from the validated native state and exact history;
 - report evidence is generated.
 
 The full target runs the ordered exact-validation, native-validation and
@@ -171,7 +171,7 @@ the running server.
 ```bash
 odoo --config=/etc/odoo/odoo.conf \
   --addons-path=/workspace/odoo/addons,/workspace/odoo/odoo/addons,/workspace/odoo/custom-addons,/workspace/odoo/oca-addons \
-  --database=odoo_saas_19_2_candidate_01 \
+  --database=odoo_dev \
   --update=rebuild_account_migration \
   --stop-after-init
 ```
@@ -179,7 +179,7 @@ odoo --config=/etc/odoo/odoo.conf \
 Expected: Odoo exits by itself without an error.
 
 The update applies only to the named database. Use
-`odoo_saas_19_2_candidate_01` for normal development and QA. Update
+`odoo_dev` for normal development and QA. Update
 `odoo_saas_19_2_validation_exact` or `odoo_saas_19_2_validation_native` only
 while investigating that pipeline stage. Never
 run an update against `odoo_online_source_saas_19_2`.
@@ -191,7 +191,7 @@ Inside the Dev Container:
 ```bash
 odoo --config=/etc/odoo/odoo.conf \
   --addons-path=/workspace/odoo/addons,/workspace/odoo/odoo/addons,/workspace/odoo/custom-addons,/workspace/odoo/oca-addons \
-  --database=odoo_saas_19_2_candidate_01 \
+  --database=odoo_dev \
   --max-cron-threads=0 \
   --dev=reload,xml,qweb
 ```
@@ -203,7 +203,7 @@ Keep this terminal open. It is the running Odoo server.
 Open:
 
 ```text
-http://localhost:8169/web/login?db=odoo_saas_19_2_candidate_01
+http://localhost:8169/web/login?db=odoo_dev
 ```
 
 Login:
@@ -280,7 +280,7 @@ or start the Dev Container Odoo server on another port:
 
 ```bash
 odoo --config=/etc/odoo/odoo.conf \
-  --database=odoo_saas_19_2_candidate_01 \
+  --database=odoo_dev \
   --http-port=8070 \
   --dev=reload,xml,qweb
 ```
@@ -288,7 +288,7 @@ odoo --config=/etc/odoo/odoo.conf \
 Then open:
 
 ```text
-http://localhost:8169/web/login?db=odoo_saas_19_2_candidate_01
+http://localhost:8169/web/login?db=odoo_dev
 ```
 
 ## If the User Guide Shows 404 After Login
@@ -298,7 +298,7 @@ The user probably lacks accounting read-only access.
 Inside the Dev Container:
 
 ```bash
-odoo shell --config=/etc/odoo/odoo.conf --database=odoo_saas_19_2_candidate_01 <<'PY'
+odoo shell --config=/etc/odoo/odoo.conf --database=odoo_dev <<'PY'
 user = env.ref("base.user_admin")
 group = env.ref("account.group_account_readonly")
 user.write({"group_ids": [(4, group.id)]})
