@@ -283,7 +283,7 @@ class RebuildAccountReviewSummary(models.Model):
     def action_open_bank_matching(self):
         return self._standard_company_action(
             "rebuild_account_migration.action_rebuild_account_reconcile_bank_transactions",
-            [("is_reconciled", "=", False)],
+            [],
         )
 
     def action_open_customer_documents(self):

@@ -546,7 +546,6 @@ class AccountJournal(models.Model):
         )
         action["domain"] = [
             ("journal_id", "=", self.id),
-            *([("is_reconciled", "=", False)] if matching else []),
         ]
         context = action.get("context") or {}
         if isinstance(context, str):

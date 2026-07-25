@@ -1600,10 +1600,7 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertIn(bank_journal.display_name, matching_action["name"])
         self.assertEqual(
             matching_action["domain"],
-            [
-                ("journal_id", "=", bank_journal.id),
-                ("is_reconciled", "=", False),
-            ],
+            [("journal_id", "=", bank_journal.id)],
         )
         self.assertEqual(
             matching_action["context"]["search_default_not_reconciled"],
@@ -2865,6 +2862,10 @@ class TestRebuildAccountMigration(TransactionCase):
 
         self.assertEqual(action.view_mode, "kanban,list")
         self.assertEqual(action.view_ids[0].view_id, reconcile_view)
+        self.assertEqual(safe_eval(action.domain), [])
+        self.assertTrue(
+            safe_eval(action.context)["search_default_not_reconciled"],
+        )
         self.assertIn("'view_ref': 'account_reconcile_oca.bank_statement_line_form_reconcile_view'", action.context)
         self.assertEqual(etree.fromstring(reconcile_view.arch_db).get("create"), "0")
         self.assertNotIn("<field ", card_arch)

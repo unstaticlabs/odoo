@@ -980,7 +980,7 @@
     <record id="action_rebuild_account_reconcile_bank_transactions" model="ir.actions.act_window">
         <field name="name">Bank Matching</field>
         <field name="res_model">account.bank.statement.line</field>
-        <field name="domain">[('is_reconciled', '=', False)]</field>
+        <field name="domain">[]</field>
         <field name="context">{'search_default_not_reconciled': True, 'view_ref': 'account_reconcile_oca.bank_statement_line_form_reconcile_view', 'create': False}</field>
         <field name="view_mode">kanban,list</field>
         <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'kanban', 'view_id': ref('account_reconcile_oca.bank_statement_line_reconcile_view')}), (0, 0, {'view_mode': 'list', 'view_id': ref('account_statement_base.account_bank_statement_line_tree')})]"/>
