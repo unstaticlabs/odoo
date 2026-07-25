@@ -241,6 +241,19 @@
             </xpath>
         </field>
     </record>
+    <record id="view_rebuild_account_journal_dashboard_reconcile_permissions" model="ir.ui.view">
+        <field name="name">account.journal.dashboard.reconcile.permissions</field>
+        <field name="model">account.journal</field>
+        <field name="inherit_id" ref="account_reconcile_oca.account_journal_dashboard_kanban_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='%(account_reconcile_oca.action_bank_statement_line_reconcile)d']" position="attributes">
+                <attribute name="groups">account.group_account_user</attribute>
+            </xpath>
+            <xpath expr="//a[@name='%(account_reconcile_oca.action_bank_statement_line_reconcile_to_check)d']" position="attributes">
+                <attribute name="groups">account.group_account_user</attribute>
+            </xpath>
+        </field>
+    </record>
     <record id="view_rebuild_account_move_readonly_actions" model="ir.ui.view">
         <field name="name">account.move.readonly.actions</field>
         <field name="model">account.move</field>

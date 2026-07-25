@@ -416,6 +416,17 @@ class TestRebuildAccountMigration(TransactionCase):
             ["account.group_account_invoice", "account.group_account_invoice"],
         )
 
+        reconcile_arch = etree.fromstring(
+            self.env.ref(
+                "rebuild_account_migration."
+                "view_rebuild_account_journal_dashboard_reconcile_permissions",
+            ).arch_db,
+        )
+        self.assertEqual(
+            reconcile_arch.xpath("//attribute[@name='groups']/text()"),
+            ["account.group_account_user", "account.group_account_user"],
+        )
+
         move_arch = etree.fromstring(
             self.env.ref(
                 "rebuild_account_migration."
