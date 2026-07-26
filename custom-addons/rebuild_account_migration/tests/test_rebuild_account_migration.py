@@ -130,6 +130,111 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(len(attachment), 1)
         self.assertEqual(bill.message_main_attachment_id, attachment)
 
+    def test_vendor_bill_payment_suggestions_rank_and_protect_draft_matches(self):
+        supplier = self.env["res.partner"].create({
+            "name": "Unit payment suggestion supplier",
+            "company_id": self.company.id,
+        })
+        supplier.property_account_payable_id = self._account(
+            "T401910",
+            "Unit payment suggestion payable",
+            "liability_payable",
+        )
+        bill = self.env["account.move"].create({
+            "move_type": "in_invoice",
+            "partner_id": supplier.id,
+            "journal_id": self._journal("purchase").id,
+            "invoice_date": "2026-07-10",
+            "ref": "SUP-2026-0042",
+            "invoice_line_ids": [
+                Command.create({
+                    "name": "Payment suggestion test expense",
+                    "account_id": self._account(
+                        "T625910",
+                        "Unit payment suggestion expense",
+                        "expense",
+                    ).id,
+                    "quantity": 1.0,
+                    "price_unit": 125.0,
+                }),
+            ],
+        })
+        exact_payment = self.env["account.payment"].create({
+            "amount": 125.0,
+            "date": "2026-07-11",
+            "payment_type": "outbound",
+            "partner_type": "supplier",
+            "partner_id": supplier.id,
+            "journal_id": self._journal("bank").id,
+            "memo": "Payment SUP-2026-0042",
+        })
+        exact_payment.action_post()
+        other_payment = self.env["account.payment"].create({
+            "amount": 80.0,
+            "date": "2026-06-01",
+            "payment_type": "outbound",
+            "partner_type": "supplier",
+            "partner_id": supplier.id,
+            "journal_id": self._journal("bank").id,
+            "memo": "Unrelated advance",
+        })
+        other_payment.action_post()
+
+        bill.invalidate_recordset([
+            "invoice_outstanding_credits_debits_widget",
+            "invoice_has_outstanding",
+        ])
+        draft_widget = bill.invoice_outstanding_credits_debits_widget
+        self.assertTrue(draft_widget["draft_suggestions"])
+        self.assertEqual(draft_widget["title"], "Suggested existing payments")
+        self.assertEqual(len(draft_widget["content"]), 1)
+        best_suggestion = draft_widget["content"][0]
+        self.assertEqual(
+            best_suggestion["account_payment_id"],
+            exact_payment.id,
+        )
+        self.assertTrue(best_suggestion["is_best_match"])
+        self.assertEqual(best_suggestion["match_confidence"], "high")
+        self.assertIn("Reference match", best_suggestion["match_reason"])
+        self.assertIn("Exact amount", best_suggestion["match_reason"])
+        self.assertFalse(best_suggestion["can_assign"])
+        self.assertNotIn(
+            other_payment.id,
+            [
+                suggestion["account_payment_id"]
+                for suggestion in draft_widget["content"]
+            ],
+        )
+        with self.assertRaisesRegex(
+            UserError,
+            "Post the bill before matching",
+        ):
+            bill.js_assign_outstanding_line(best_suggestion["id"])
+
+        bill.action_post()
+        bill.invalidate_recordset([
+            "invoice_outstanding_credits_debits_widget",
+            "invoice_has_outstanding",
+        ])
+        posted_widget = bill.invoice_outstanding_credits_debits_widget
+        posted_best = posted_widget["content"][0]
+        self.assertFalse(posted_widget["draft_suggestions"])
+        self.assertTrue(posted_best["can_assign"])
+        unrelated_payable_line = other_payment.move_id.line_ids.filtered(
+            lambda line: line.account_id == supplier.property_account_payable_id
+        )
+        with self.assertRaisesRegex(
+            UserError,
+            "no longer an eligible suggestion",
+        ):
+            bill.js_assign_outstanding_line(unrelated_payable_line.id)
+        bill.js_assign_outstanding_line(posted_best["id"])
+        self.assertEqual(bill.payment_state, "paid")
+        self.assertNotIn(
+            other_payment.id,
+            bill.reconciled_payment_ids.ids,
+        )
+
     def test_french_einvoice_reception_is_offline_traceable_and_deduplicated(self):
         purchase_journal = self._journal("purchase")
         self.company.write({

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="rebuild_account_migration.AccountPaymentSuggestions"
+       t-inherit="account.AccountPaymentField"
+       t-inherit-mode="extension">
+        <xpath expr="//a[hasclass('open_account_move')]" position="after">
+            <div t-if="line.match_reason"
+                 class="small text-muted text-wrap px-2 pb-1"
+                 style="max-width: 18rem;">
+                <span t-if="line.is_best_match"
+                      class="badge text-bg-primary me-1">Best match</span>
+                <span t-out="line.match_reason"/>
+            </div>
+        </xpath>
+        <xpath expr="//a[hasclass('outstanding_credit_assign')]" position="replace">
+            <a t-if="line.can_assign !== false"
+               title="assign to invoice"
+               role="button"
+               class="oe_form_field btn btn-secondary outstanding_credit_assign d-print-none"
+               t-att-data-id="line.id"
+               href="#"
+               data-bs-toggle="tooltip"
+               t-on-click.prevent="() => this.assignOutstandingCredit(info.moveId, line.id)">Add</a>
+            <span t-else=""
+                  class="badge text-bg-light border text-muted text-wrap"
+                  title="The bill must be posted before accounting entries can be reconciled.">
+                Post to match
+            </span>
+        </xpath>
+    </t>
+</templates>
