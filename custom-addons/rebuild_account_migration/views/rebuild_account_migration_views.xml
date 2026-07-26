@@ -968,7 +968,10 @@
                     options="{'color_field': 'rebuild_matching_color'}"
                     optional="show"/>
                 <field name="rebuild_matching_color" column_invisible="True"/>
-                <field name="rebuild_linked_move_id" optional="show"/>
+                <field
+                    name="rebuild_linked_move_id"
+                    widget="many2one"
+                    optional="show"/>
                 <field
                     name="rebuild_remaining_amount"
                     widget="monetary"

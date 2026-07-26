@@ -2372,6 +2372,10 @@ class TestRebuildAccountMigration(TransactionCase):
             self.assertTrue(
                 transaction_arch.xpath(f"//field[@name='{field_name}']"),
             )
+        linked_move_field = transaction_arch.xpath(
+            "//field[@name='rebuild_linked_move_id']",
+        )
+        self.assertEqual(linked_move_field[0].get("widget"), "many2one")
         self.assertFalse(
             transaction_arch.xpath(
                 "//field[@name='rebuild_transaction_status']",
