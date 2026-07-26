@@ -889,6 +889,9 @@
                 <field name="amount"/>
                 <field name="amount_currency"/>
                 <field name="partner_id"/>
+                <field name="rebuild_partner_suggestion_id"/>
+                <field name="rebuild_partner_suggestion_confidence"/>
+                <field name="rebuild_partner_auto_assigned"/>
                 <field name="payment_ref"/>
                 <templates>
                     <t t-name="card">
@@ -902,9 +905,20 @@
                         </div>
                         <div class="mt-1 d-flex justify-content-between align-items-center">
                             <span class="badge rounded-pill text-bg-300" t-if="record.partner_id.raw_value" t-out="record.partner_id.value"/>
+                            <span
+                                class="badge rounded-pill text-bg-warning"
+                                t-elif="record.rebuild_partner_suggestion_id.raw_value">
+                                Suggested: <t t-out="record.rebuild_partner_suggestion_id.value"/>
+                            </span>
                             <span/>
                             <span t-if="record.review_state.raw_value === 'todo' || record.review_state.raw_value === 'anomaly'" class="badge text-bg-warning">To review</span>
                             <span t-if="record.is_reconciled.raw_value" class="badge text-bg-success">Reconciled</span>
+                        </div>
+                        <div
+                            class="small text-muted mt-1"
+                            t-if="record.rebuild_partner_auto_assigned.raw_value">
+                            Partner inferred automatically
+                            · <t t-out="record.rebuild_partner_suggestion_confidence.value"/>%
                         </div>
                     </t>
                 </templates>
@@ -926,6 +940,21 @@
                 <field name="date"/>
                 <field name="payment_ref" string="Bank description"/>
                 <field name="partner_id" optional="show"/>
+                <field
+                    name="rebuild_partner_suggestion_id"
+                    string="Partner suggestion"
+                    optional="show"/>
+                <field
+                    name="rebuild_partner_suggestion_confidence"
+                    string="Confidence %"
+                    optional="hide"/>
+                <field
+                    name="rebuild_partner_suggestion_reason"
+                    string="Matching evidence"
+                    optional="hide"/>
+                <field
+                    name="rebuild_partner_auto_assigned"
+                    column_invisible="True"/>
                 <field name="amount" sum="Amount"/>
                 <field
                     name="amount_currency"
@@ -956,6 +985,13 @@
                     invisible="rebuild_transaction_status == 'matched'"
                     title="Open this transaction in Bank Matching without leaving the accounting application."/>
                 <button
+                    name="action_rebuild_apply_partner_suggestion"
+                    string="Use Partner"
+                    type="object"
+                    groups="account.group_account_user"
+                    invisible="partner_id or not rebuild_partner_suggestion_id"
+                    title="Apply this evidence-backed partner suggestion without reconciling the transaction."/>
+                <button
                     name="action_open_journal_entry"
                     string="Open Entry"
                     type="object"
@@ -968,6 +1004,85 @@
                     class="btn-link text-success"
                     invisible="rebuild_transaction_status != 'matched'" />
             </list>
+        </field>
+    </record>
+    <record id="view_rebuild_bank_transaction_form_partner_suggestion" model="ir.ui.view">
+        <field name="name">account.bank.statement.line.form.partner.suggestion</field>
+        <field name="model">account.bank.statement.line</field>
+        <field name="inherit_id" ref="account_statement_base.account_bank_statement_line_form"/>
+        <field name="arch" type="xml">
+            <field name="partner_id" position="after">
+                <field name="rebuild_partner_auto_assigned" invisible="1"/>
+                <field
+                    name="rebuild_partner_suggestion_id"
+                    readonly="1"
+                    invisible="not rebuild_partner_suggestion_id or rebuild_partner_auto_assigned"/>
+                <field
+                    name="rebuild_partner_suggestion_confidence"
+                    readonly="1"
+                    invisible="not rebuild_partner_suggestion_id"/>
+                <field
+                    name="rebuild_partner_suggestion_source"
+                    readonly="1"
+                    invisible="not rebuild_partner_suggestion_id"/>
+                <field
+                    name="rebuild_partner_suggestion_reason"
+                    readonly="1"
+                    invisible="not rebuild_partner_suggestion_id"/>
+                <button
+                    name="action_rebuild_apply_partner_suggestion"
+                    string="Use Suggested Partner"
+                    type="object"
+                    class="btn-secondary"
+                    groups="account.group_account_user"
+                    invisible="partner_id or not rebuild_partner_suggestion_id"/>
+                <button
+                    name="action_rebuild_refresh_partner_suggestions"
+                    string="Refresh Suggestion"
+                    type="object"
+                    class="btn-link"
+                    groups="account.group_account_user"
+                    invisible="is_reconciled"/>
+            </field>
+        </field>
+    </record>
+    <record id="view_rebuild_bank_matching_form_partner_suggestion" model="ir.ui.view">
+        <field name="name">account.bank.statement.line.matching.partner.suggestion</field>
+        <field name="model">account.bank.statement.line</field>
+        <field name="inherit_id" ref="account_reconcile_oca.bank_statement_line_form_reconcile_view"/>
+        <field name="arch" type="xml">
+            <field name="partner_id" position="after">
+                <field name="rebuild_partner_suggestion_id" invisible="1"/>
+                <field name="rebuild_partner_suggestion_confidence" invisible="1"/>
+                <field name="rebuild_partner_suggestion_reason" invisible="1"/>
+                <field name="rebuild_partner_auto_assigned" invisible="1"/>
+            </field>
+            <field name="reconcile_data_info" position="before">
+                <div
+                    class="alert alert-info d-flex justify-content-between align-items-center"
+                    role="status"
+                    invisible="is_reconciled or partner_id or not rebuild_partner_suggestion_id">
+                    <div>
+                        <strong>Suggested partner:</strong>
+                        <field name="rebuild_partner_suggestion_id" readonly="1"/>
+                        <span> · </span>
+                        <field name="rebuild_partner_suggestion_reason" readonly="1"/>
+                    </div>
+                    <button
+                        name="action_rebuild_apply_partner_suggestion"
+                        string="Use Partner"
+                        type="object"
+                        class="btn btn-primary"
+                        groups="account.group_account_user"/>
+                </div>
+                <div
+                    class="alert alert-success"
+                    role="status"
+                    invisible="is_reconciled or not rebuild_partner_auto_assigned">
+                    <strong>Partner inferred automatically.</strong>
+                    <field name="rebuild_partner_suggestion_reason" readonly="1"/>
+                </div>
+            </field>
         </field>
     </record>
     <record id="view_rebuild_bank_transaction_search" model="ir.ui.view">

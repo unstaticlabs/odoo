@@ -113,6 +113,22 @@ focused **Bank Matching** queue. General Reconciliation covers reconcilable
 non-bank accounts with full/partial outcomes, residuals, matching chips and
 Undo while preserving the affected context.
 
+Partner identification extends the maintained OCA retrieval hook rather than
+introducing another matching engine. Two approaches were compared:
+
+1. retain OCA's broad bank-account/name lookup unchanged;
+2. govern that hook with exact structured matches and company-scoped,
+   reconciled history, while exposing confidence and evidence.
+
+Option 2 is implemented because the original lookup could select the first
+partial name or account match without explaining ambiguity. Exact active bank
+account ownership, exact declared counterparty names, repeated exact labels and
+stable repeated label patterns are evaluated in that order. Signals at or above
+90% confidence assign the partner on an unreconciled transaction; one-off or
+ambiguous evidence remains reviewable. Existing partners and reconciled
+transactions are never overwritten. The partner signal does not choose an
+account, post, reconcile or change an amount.
+
 ## Customer, vendor and expense scope
 
 Milestone 13 should now include customer and vendor business objects in addition to posted ledger replay, where the source dump contains usable processed objects.
