@@ -101,6 +101,7 @@ Use this refresh behavior:
 | Python models, controllers or business logic | Stop the running process, update the module when fields/data are involved, then start Odoo again | Reload the page |
 | Backend XML views, menus, actions, security XML or access CSV | Stop the running process, update `rebuild_account_migration`, then start Odoo again | Reload; use a hard refresh if the old view remains open |
 | JavaScript or backend QWeb assets already listed in the manifest | Restart Odoo after the module update | Enable `debug=assets` in the URL during development and hard refresh |
+| Transactions list navigation | focused model/view test plus `scripts/odoo-dev test-js rebuild_account_migration` | full reconstruction or comprehensive browser suite |
 | Manifest dependencies, data files or asset declarations | Stop Odoo, update the module, then start it again | Hard refresh with `debug=assets` enabled |
 | Files under `docs/users/` | No module update; the development route reads the mounted Markdown on each request | Reload `/usl/user-docs` |
 | Other Markdown documentation | No Odoo action | Rebuild or reload the documentation site as applicable |
@@ -120,6 +121,17 @@ If the UI still looks stale:
 
 Do not reset the target, clear asset attachments or rerun source
 restore/extraction merely to refresh a view or browser bundle.
+
+Frontend unit tests declared by the Accounting add-on run against the installed
+`odoo_dev` module in the dedicated Chromium-enabled `test` image and restore
+the normal development service afterward:
+
+```bash
+scripts/odoo-dev test-js rebuild_account_migration
+```
+
+For the Transactions navigation contract and its narrower server-side command,
+see [Transactions navigation contract](../accounting/transaction-navigation.md).
 
 ## When to run the full pipeline
 

@@ -51,6 +51,9 @@
             "rebuild_account_migration/static/src/xml/account_payment_suggestions.xml",
             "rebuild_account_migration/static/src/xml/hr_expense_reviewer_controls.xml",
         ],
+        "web.assets_unit_tests": [
+            "rebuild_account_migration/static/tests/transactions_navigation.test.js",
+        ],
     },
     "application": False,
     "installable": True,

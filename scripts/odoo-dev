@@ -36,6 +36,42 @@ deploy() {
   print_url
 }
 
+run_with_odoo_stopped() {
+  local profile="$1"
+  local service="$2"
+  shift 2
+  local status=0
+  "${COMPOSE[@]}" up -d --wait db
+  "${COMPOSE[@]}" stop odoo >/dev/null 2>&1 || true
+  "${COMPOSE[@]}" --profile "$profile" run --rm \
+    -e ODOO_INIT_DB="$DEV_DB" "$service" "$@" || status=$?
+  "${COMPOSE[@]}" up -d --wait odoo
+  print_url
+  return "$status"
+}
+
+test_js() {
+  local module="${1:-$DEV_MODULE}"
+  "${COMPOSE[@]}" --profile test build test
+  run_with_odoo_stopped test test odoo \
+    --config=/etc/odoo/odoo.conf \
+    --database="$DEV_DB" \
+    --test-tags="/${module}:WebSuite.test_unit_desktop" \
+    --stop-after-init \
+    --log-level=test
+}
+
+test_tag() {
+  local test_tag="$1"
+  run_with_odoo_stopped init init-db odoo \
+    --config=/etc/odoo/odoo.conf \
+    --database="$DEV_DB" \
+    --test-enable \
+    --test-tags="$test_tag" \
+    --stop-after-init \
+    --log-level=test
+}
+
 case "${1:-help}" in
   build)
     "${COMPOSE[@]}" build "${@:2}"
@@ -71,6 +107,12 @@ case "${1:-help}" in
     database="${3:-odoo_unit_test}"
     "${COMPOSE[@]}" --profile init run --rm init-db odoo --config=/etc/odoo/odoo.conf --database="$database" --init="$module" --without-demo=true --test-enable --stop-after-init
     ;;
+  test-js)
+    test_js "${2:-$DEV_MODULE}"
+    ;;
+  test-tag)
+    test_tag "${2:?Usage: scripts/odoo-dev test-tag TEST_TAG}"
+    ;;
   ruff)
     "${COMPOSE[@]}" --profile devcontainer run --rm devcontainer ruff check "${@:2}"
     ;;
@@ -99,6 +141,8 @@ Commands:
   init-db      Initialize odoo_dev (or ODOO_INIT_DB)
   shell        Open a dev container shell
   test [mod]   Run Odoo tests for a module
+  test-js [mod] Run one module's frontend unit tests on odoo_dev
+  test-tag TAG  Run one installed Odoo test tag on odoo_dev
   ruff [args]  Run ruff in the dev image
   update       Pull service images and rebuild
   reset        Stop and delete local volumes

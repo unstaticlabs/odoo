@@ -230,6 +230,8 @@ scripts/odoo-dev logs odoo    # follow Odoo logs
 scripts/odoo-dev init-db      # initialize ODOO_INIT_DB with ODOO_INIT_MODULES
 scripts/odoo-dev shell        # open a one-off devcontainer shell
 scripts/odoo-dev test base    # run an Odoo module test pass
+scripts/odoo-dev test-js rebuild_account_migration  # frontend unit tests
+scripts/odoo-dev test-tag '/module:Class.test_method'  # installed focused test
 scripts/odoo-dev ruff custom-addons
 scripts/odoo-dev update       # pull service images and rebuild
 scripts/odoo-dev reset        # delete local Compose volumes
