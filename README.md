@@ -20,7 +20,7 @@ production activation procedure is approved.
 Primary entry points:
 
 - **Accounting > Overview** for daily operational state;
-- **Accounting > Analysis > Analytic Reporting** for exploratory pivot analysis;
+- **Accounting > Reporting > Analytic Reporting** for exploratory pivot analysis;
 - **Accounting > Configuration** for governed Controls, Reports, Declarations
   and electronic-invoice readiness;
 - `/usl/user-docs` for role- and task-based user guidance;

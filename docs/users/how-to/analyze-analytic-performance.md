@@ -1,6 +1,6 @@
 # Analyze Analytic Performance
 
-1. Open **Accounting > Analysis > Analytic Reporting**.
+1. Open **Accounting > Reporting > Analytic Reporting**.
 2. Confirm the active **Current Fiscal Year** and **Revenue and Spending**
    filters. Remove either chip when you need a different population.
 3. Start with analytic activity in rows, month in columns and **Net

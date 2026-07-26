@@ -3,7 +3,7 @@
 ## Product contract
 
 Accounting Controls, Reports and Declarations are governed definitions under
-**Accounting > Configuration > Accounting > Accounting Framework**. They share
+**Accounting > Configuration > Accounting Framework**. They share
 the following contract:
 
 - a stable business code and definition version;

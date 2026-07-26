@@ -20,7 +20,7 @@ the page in place, and PDF or XLSX downloads the same report scope.
 | Fixed assets | Asset Register / Depreciation Schedule |
 | Management analysis | SIG / CAF / Management Ratios |
 | Designed analytical statement | Analytic Profit and Loss / Revenue vs Spending |
-| Free-form analytic exploration | Analysis > Analytic Reporting |
+| Free-form analytic exploration | Reporting > Analytic Reporting |
 
 ## Common filters
 

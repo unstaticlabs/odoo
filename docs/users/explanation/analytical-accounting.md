@@ -6,7 +6,7 @@ A document line may distribute its amount across one or more analytic plans. Pos
 
 **Revenue vs Spending** keeps revenue and spending as components and shows net contribution separately. Net contribution is revenue minus spending; it is not a third stacked source of value.
 
-**Analysis > Analytic Reporting** uses those native analytic items as a dynamic
+**Reporting > Analytic Reporting** uses those native analytic items as a dynamic
 pivot. Revenue keeps the income-side analytic sign, Spending presents normal
 expense consumption as positive, and Net Contribution remains the native
 analytic amount. The default current-fiscal-year view can be regrouped by any

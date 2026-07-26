@@ -149,12 +149,13 @@
         name="Analysis"
         parent="account.menu_finance"
         sequence="15"
+        active="False"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_analytic_reporting"
         name="Analytic Reporting"
-        parent="menu_rebuild_account_analysis"
+        parent="account.menu_finance_reports"
         action="action_rebuild_analytic_reporting"
-        sequence="1"
+        sequence="0"
         groups="account.group_account_readonly"/>
 </odoo>
