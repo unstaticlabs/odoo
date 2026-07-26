@@ -3,7 +3,7 @@
 1. Open **Accounting > Reporting > Analyse analytique**.
 2. Confirm the active **Current Fiscal Year** and **Revenue and Spending**
    filters. Remove either chip when you need a different population.
-3. Start with analytic activity in rows, month in columns and **Net
+3. Start with analytic activity in rows, quarter in columns and **Net
    Contribution** as the measure.
 4. Select **Measures** to add Revenue, Spending, Accounting Amount or Count.
 5. Select a row or column header to add another level, such as Project, Epic,

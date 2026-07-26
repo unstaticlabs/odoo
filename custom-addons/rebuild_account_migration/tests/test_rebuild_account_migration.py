@@ -1640,7 +1640,7 @@ class TestRebuildAccountMigration(TransactionCase):
         )
         context = safe_eval(action.context)
         self.assertEqual(context["pivot_row_groupby"], ["account_id"])
-        self.assertEqual(context["pivot_column_groupby"], ["date:month"])
+        self.assertEqual(context["pivot_column_groupby"], ["date:quarter"])
         self.assertEqual(
             context["pivot_measures"],
             ["rebuild_net_contribution"],

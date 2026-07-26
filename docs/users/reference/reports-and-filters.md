@@ -79,7 +79,7 @@ Reporting is the designed financial statement for a governed period and
 hierarchy; use the pivot for free-form exploration.
 
 Its default is the current company fiscal year, revenue and expense accounts,
-analytic activity by month and Net Contribution.
+analytic activity by quarter and Net Contribution.
 
 The pivot supports nested row/column dimensions, fiscal year/quarter/month/week/
 day intervals, several simultaneous measures, expand/collapse, axis flipping,
