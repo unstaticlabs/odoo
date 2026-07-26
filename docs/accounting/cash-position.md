@@ -60,10 +60,15 @@ clearing balances as future settlement.
 
 ## Drill-down and reconciliation
 
-- **View bank accounts** opens exactly the journals included in Cash on banks.
+The collapsed **View estimate details** section keeps the daily card focused on
+its two cash figures. Expanding it exposes the signed calculation and its
+audit routes:
+
+- **Included bank accounts** opens exactly the journals included in Cash on
+  banks.
 - **Expected receipts** and **Expected payments** open the residual journal
   items used in the projection.
-- **Review unresolved items** opens the other receivable/payable residuals
+- **Unresolved items** opens the other receivable/payable residuals
   deliberately excluded from the estimate.
 
 All amounts use posted journal-item balances in the selected company's

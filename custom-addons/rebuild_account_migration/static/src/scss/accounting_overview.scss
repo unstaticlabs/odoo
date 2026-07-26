@@ -65,14 +65,107 @@
     }
 
     .o_usl_overview_projection {
-        margin-bottom: 0.35rem;
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-top: 0.75rem;
+        padding: 0.65rem 0.75rem;
+        border-radius: 0.5rem;
+        background: #f6f8fa;
         color: var(--usl-overview-muted);
-        font-size: 0.95rem;
-        font-style: italic;
+        font-size: 0.84rem;
 
+        strong,
         .o_field_widget {
+            color: #344054;
             font-size: inherit;
             font-weight: 600;
+            white-space: nowrap;
+        }
+    }
+
+    .o_usl_cash_breakdown {
+        margin-top: 0.65rem;
+        color: var(--usl-overview-muted);
+        font-size: 0.82rem;
+
+        > summary {
+            width: fit-content;
+            color: #475467;
+            cursor: pointer;
+            font-weight: 600;
+            list-style: none;
+
+            &::-webkit-details-marker {
+                display: none;
+            }
+
+            &::after {
+                display: inline-block;
+                margin-left: 0.35rem;
+                content: "\f107";
+                font-family: FontAwesome;
+                transition: transform 0.15s ease;
+            }
+        }
+
+        &[open] > summary::after {
+            transform: rotate(180deg);
+        }
+    }
+
+    .o_usl_cash_breakdown_body {
+        margin-top: 0.55rem;
+        padding-top: 0.45rem;
+        border-top: 1px solid var(--usl-overview-border);
+    }
+
+    .o_usl_cash_breakdown_row {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 1rem;
+        min-height: 1.75rem;
+
+        .btn-link {
+            color: #475467;
+            font-weight: 500;
+        }
+    }
+
+    .o_usl_cash_breakdown_amount {
+        color: #344054;
+        font-variant-numeric: tabular-nums;
+        font-weight: 600;
+        white-space: nowrap;
+
+        &::before {
+            margin-right: 0.2rem;
+        }
+    }
+
+    .o_usl_cash_breakdown_positive::before {
+        content: "+";
+    }
+
+    .o_usl_cash_breakdown_negative::before {
+        content: "\2212";
+    }
+
+    .o_usl_cash_breakdown_unresolved {
+        color: #667085;
+    }
+
+    .o_usl_cash_breakdown_footer {
+        margin-top: 0.25rem;
+        padding-top: 0.35rem;
+        border-top: 1px solid rgba(#1f2937, 0.07);
+
+        .btn-link {
+            color: #475467;
+            font-size: inherit;
+            font-weight: 500;
         }
     }
 
