@@ -67,15 +67,14 @@ Readiness is progressive information:
 - **Ready to submit**, **Needs information** and **Already in a batch** are
   available as list filters;
 - **Create expense batch** opens the selected eligible draft expenses;
-- **Submit ready expenses** proposes all eligible complete drafts when no
-  explicit selection is active;
 - the creation preview shows readiness, missing information, common analytic
   context, dates and employee/company-paid totals before anything is saved or
   submitted.
 
-On desktop, the batch actions must remain on the same toolbar row as the
-native expense actions. Adding the batch feature must not increase the
-toolbar's vertical height.
+**Create expense batch** is the only batch action in the expense-list toolbar
+and appears after the user selects draft expenses. On desktop, it must remain
+on the same toolbar row as the native expense actions. Adding the batch
+feature must not increase the toolbar's vertical height.
 
 ## Completeness and accounting invariants
 

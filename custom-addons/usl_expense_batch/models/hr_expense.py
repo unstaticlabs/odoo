@@ -117,19 +117,7 @@ class HrExpense(models.Model):
     def action_open_expense_batch_wizard(self, expense_ids=None):
         expenses = self.browse(expense_ids or []).exists()
         if not expenses:
-            expenses = self.search([
-                ("employee_id.user_id", "=", self.env.user.id),
-                ("company_id", "=", self.env.company.id),
-                ("state", "=", "draft"),
-                ("expense_batch_id", "=", False),
-            ]).filtered(lambda expense: expense.batch_readiness == "ready")
-        if not expenses:
-            raise UserError(
-                _(
-                    "Select draft expenses, or complete at least one expense "
-                    "that is ready to submit.",
-                ),
-            )
+            raise UserError(_("Select at least one draft expense."))
         invalid = expenses.filtered(
             lambda expense: expense.state != "draft" or expense.expense_batch_id,
         )

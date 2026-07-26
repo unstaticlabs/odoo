@@ -66,6 +66,13 @@ class TestExpenseBatch(TestExpenseCommon):
         self.assertEqual(incomplete.batch_readiness, "incomplete")
         self.assertIn("receipt", incomplete.batch_incomplete_reason)
 
+        with self.assertRaisesRegex(UserError, "Select at least one draft expense"):
+            (
+                self.env["hr.expense"]
+                .with_user(self.expense_user_employee)
+                .action_open_expense_batch_wizard()
+            )
+
         action = (
             self.env["hr.expense"]
             .with_user(self.expense_user_employee)
