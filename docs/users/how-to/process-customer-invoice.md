@@ -11,4 +11,6 @@
 9. Check payment state and residual on the invoice.
 10. Inspect Grand livre auxiliaire, Balance âgée clients and Compte de résultat.
 
-Create a credit note from the original invoice when correcting billed revenue. This preserves the document chain.
+On a posted invoice, **Pay** records a payment against the document; it does not
+contact the bank. **Credit Note** creates a linked draft correction. Review and
+post it separately so the original invoice and correction remain traceable.

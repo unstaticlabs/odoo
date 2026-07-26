@@ -16,10 +16,14 @@
                     </div>
                 </div>
                 <div class="o_usl_report_exports">
-                    <button t-if="state.data.capabilities.pdf !== false" class="btn btn-outline-secondary" t-on-click="() => this.exportReport('pdf')">
+                    <button t-if="state.data.capabilities.pdf !== false" class="btn btn-outline-secondary"
+                            title="Download this displayed report as a PDF with the same period, filters, hierarchy, and totals."
+                            t-on-click="() => this.exportReport('pdf')">
                         <i class="fa fa-file-pdf-o me-1"/> PDF
                     </button>
-                    <button t-if="state.data.capabilities.xlsx !== false" class="btn btn-primary" t-on-click="() => this.exportReport('xlsx')">
+                    <button t-if="state.data.capabilities.xlsx !== false" class="btn btn-primary"
+                            title="Download this displayed report as an XLSX workbook with the same period, filters, hierarchy, and totals."
+                            t-on-click="() => this.exportReport('xlsx')">
                         <i class="fa fa-file-excel-o me-1"/> XLSX
                     </button>
                 </div>
@@ -95,6 +99,7 @@
                     </select>
                 </label>
                 <button class="btn btn-outline-secondary o_usl_report_more_filters" type="button"
+                        title="Show or hide the less frequently used journal, account, partner, and analytic filters."
                         t-on-click="() => state.advancedOpen = !state.advancedOpen">
                     <i class="fa fa-filter me-1"/>
                     Filtres
@@ -113,7 +118,8 @@
                     </label>
                 </form>
                 <button t-if="hasOptionalFilters" class="btn btn-link o_usl_report_clear_filters"
-                        type="button" t-on-click="clearOptionalFilters">
+                        type="button" title="Remove optional filters while keeping the company, period, and posted-entry scope."
+                        t-on-click="clearOptionalFilters">
                     Effacer
                 </button>
             </div>

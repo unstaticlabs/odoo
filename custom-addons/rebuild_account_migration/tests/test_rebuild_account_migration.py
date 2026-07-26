@@ -2753,6 +2753,138 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(len(receipt_filters), 1)
         self.assertEqual(receipt_filters[0].get("string"), "Receipts")
 
+    def test_consequential_accounting_actions_have_plain_language_guidance(self):
+        audited_views = (
+            (
+                "account.move",
+                "account.view_move_form",
+                "form",
+                (
+                    "action_post",
+                    "action_invoice_sent",
+                    "action_register_payment",
+                    "action_reverse",
+                    "button_cancel",
+                    "button_draft",
+                    "button_hash",
+                    "button_request_cancel",
+                ),
+            ),
+            (
+                "account.payment",
+                "account.view_account_payment_form",
+                "form",
+                (
+                    "action_post",
+                    "action_reject",
+                    "action_draft",
+                    "button_request_cancel",
+                    "mark_as_sent",
+                    "unmark_as_sent",
+                    "action_cancel",
+                ),
+            ),
+            (
+                "hr.expense",
+                "hr_expense.hr_expense_view_form",
+                "form",
+                (
+                    "action_submit",
+                    "action_approve",
+                    "action_post",
+                    "action_refuse",
+                    "action_reset",
+                    "action_split_wizard",
+                ),
+            ),
+            (
+                "account.bank.statement.line",
+                "account_reconcile_oca.bank_statement_line_form_reconcile_view",
+                "form",
+                (
+                    "reconcile_bank_line",
+                    "unreconcile_bank_line",
+                    "clean_reconcile",
+                    "action_to_check",
+                    "action_checked",
+                    "action_show_move",
+                ),
+            ),
+            (
+                "account.account.reconcile",
+                "account_reconcile_oca.account_account_reconcile_form_view",
+                "form",
+                ("reconcile", "clean_reconcile"),
+            ),
+            (
+                "rebuild.account.declaration",
+                "rebuild_account_migration.view_rebuild_account_declaration_form",
+                "form",
+                (
+                    "action_refresh_preparation",
+                    "action_mark_internal_ready",
+                    "action_mark_ready_to_file",
+                    "action_request_accountant_review",
+                    "action_record_review_decision",
+                    "action_mark_filed",
+                    "action_mark_paid_or_refunded",
+                ),
+            ),
+            (
+                "rebuild.account.closing.period",
+                "rebuild_account_migration.view_rebuild_account_closing_form",
+                "form",
+                (
+                    "action_refresh_controls",
+                    "action_prepare",
+                    "action_mark_ready_to_close",
+                    "action_request_accountant_review",
+                    "action_record_review_decision",
+                    "action_capture_accepted_snapshots",
+                    "action_close_and_apply_lock_dates",
+                ),
+            ),
+            (
+                "res.company",
+                "rebuild_account_migration.view_company_rebuild_einvoice_readiness_form",
+                "form",
+                (
+                    "action_rebuild_approve_einvoice_activation",
+                    "action_rebuild_revoke_einvoice_activation",
+                    "action_rebuild_enable_einvoice_exchange",
+                    "action_rebuild_suspend_einvoice_exchange",
+                ),
+            ),
+        )
+
+        for model_name, view_xmlid, view_type, button_names in audited_views:
+            view = self.env.ref(view_xmlid)
+            arch = self.env[model_name]._get_view(
+                view_id=view.id,
+                view_type=view_type,
+            )[0]
+            for button_name in button_names:
+                buttons = arch.xpath(f"//button[@name='{button_name}']")
+                self.assertTrue(
+                    buttons,
+                    f"{view_xmlid} must expose {button_name}",
+                )
+                self.assertTrue(
+                    all((button.get("title") or "").strip() for button in buttons),
+                    f"{view_xmlid}:{button_name} needs concise action guidance",
+                )
+
+        move_arch = self.env["account.move"]._get_view(
+            view_id=self.env.ref("account.view_move_form").id,
+            view_type="form",
+        )[0]
+        credit_note = move_arch.xpath("//button[@name='action_reverse']")
+        self.assertIn("draft credit note", credit_note[0].get("title").lower())
+        pay_buttons = move_arch.xpath("//button[@name='action_register_payment']")
+        self.assertTrue(
+            all("record a payment" in button.get("title").lower() for button in pay_buttons),
+        )
+
     def test_expense_manager_gets_explicit_review_step_and_guidance(self):
         manager = self.env["res.users"].with_context(
             no_reset_password=True,
