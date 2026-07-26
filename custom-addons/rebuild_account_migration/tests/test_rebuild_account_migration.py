@@ -2706,6 +2706,53 @@ class TestRebuildAccountMigration(TransactionCase):
             expense_arch.xpath("//field[@name='rebuild_next_step']"),
         )
 
+    def test_vendor_bills_and_receipts_have_separate_removable_default_filters(self):
+        bills_action = self.env.ref("account.action_move_in_invoice")
+        expenses_action = self.env.ref(
+            "rebuild_account_migration.action_rebuild_vendor_expenses",
+        )
+        expenses_menu = self.env.ref(
+            "rebuild_account_migration.menu_rebuild_vendor_expenses",
+        )
+        vendor_menu = self.env.ref("account.menu_finance_payables")
+        expected_domain = [
+            ("move_type", "in", ["in_invoice", "in_refund", "in_receipt"]),
+        ]
+
+        self.assertEqual(safe_eval(bills_action.domain), expected_domain)
+        self.assertEqual(safe_eval(expenses_action.domain), expected_domain)
+        self.assertEqual(
+            safe_eval(bills_action.context),
+            {
+                "search_default_in_invoice": 1,
+                "default_move_type": "in_invoice",
+            },
+        )
+        self.assertEqual(
+            safe_eval(expenses_action.context),
+            {
+                "search_default_in_receipt": 1,
+                "default_move_type": "in_receipt",
+            },
+        )
+        self.assertEqual(expenses_menu.parent_id, vendor_menu)
+        self.assertEqual(expenses_menu.name, "Expenses")
+        self.assertEqual(expenses_menu.sequence, 2)
+        self.assertEqual(expenses_menu.action, expenses_action)
+        self.assertEqual(
+            self.env.ref("account.menu_action_move_in_refund_type").sequence,
+            3,
+        )
+
+        bill_search = self.env.ref("account.view_account_bill_filter")
+        combined_arch = self.env["account.move"]._get_view(
+            view_id=bill_search.id,
+            view_type="search",
+        )[0]
+        receipt_filters = combined_arch.xpath("//filter[@name='in_receipt']")
+        self.assertEqual(len(receipt_filters), 1)
+        self.assertEqual(receipt_filters[0].get("string"), "Receipts")
+
     def test_expense_manager_gets_explicit_review_step_and_guidance(self):
         manager = self.env["res.users"].with_context(
             no_reset_password=True,

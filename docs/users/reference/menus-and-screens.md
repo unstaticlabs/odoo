@@ -27,7 +27,16 @@ entry. **Match** opens an unreconciled line in Bank Matching.
 
 ## Customers and Vendors
 
-Customer invoices, credit notes, payments, supplier bills, refunds and vendor payments.
+Customer invoices, credit notes, payments, supplier bills, refunds and vendor
+payments.
+
+Under **Vendors**, **Bills** opens with a removable **Bills** filter and
+**Expenses** opens with a removable **Receipts** filter. Use Bills for supplier
+invoices and Expenses for purchases supported by a receipt rather than an
+invoice. Removing either chip broadens the view to the other vendor document
+types without changing or duplicating the underlying accounting records.
+
+Employee expense claims remain in the separate **Expenses** application.
 
 ## Accounting
 

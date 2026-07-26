@@ -1,6 +1,8 @@
 # Process a Supplier Bill
 
-1. Open **Vendors > Bills** and select **New**, or upload the bill from the vendor document area.
+1. Open **Vendors > Bills** and select **New**, or upload the bill from the
+   vendor document area. The removable **Bills** chip keeps supplier receipts
+   out of the normal bill-processing queue.
 2. Confirm supplier, invoice date, reference, payment terms and currency.
 3. Review every business line: description, expense or asset account, taxes and analytic distribution.
 4. Attach the supplier invoice as primary evidence.
