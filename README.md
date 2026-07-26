@@ -93,8 +93,8 @@ Other useful variables:
 - `ODOO_INIT_MODULES`: modules installed during first init. Default:
   `rebuild_account_migration`.
 - `ODOO_ADDONS_PATH`: addon path list for the Compose Odoo service.
-- `ODOO_HTTP_PORT` and `ODOO_GEVENT_PORT`: host ports. Defaults: `8169` and `8172`,
-  avoiding the standard Odoo ports when another local service uses them.
+- `ODOO_HTTP_PORT` and `ODOO_GEVENT_PORT`: host ports. Defaults: Odoo's standard
+  development ports `8069` and `8072`.
 - `ODOO_WORKERS`, `ODOO_PROXY_MODE`, `ODOO_DB_FILTER`, and limits: deployment-oriented runtime controls.
 
 ### 1. Developer workflow: Dev Container
@@ -197,7 +197,7 @@ scripts/odoo-dev init-db
 make dev
 ```
 
-Open <http://localhost:8169/web/login?db=odoo_dev>.
+Open <http://localhost:8069/web/login?db=odoo_dev>.
 
 Default login for a freshly initialized local database:
 

@@ -52,7 +52,7 @@
       "id": "module",
       "type": "promptString",
       "description": "Module to install/test",
-      "default": "base"
+      "default": "rebuild_account_migration"
     }
   ]
 }

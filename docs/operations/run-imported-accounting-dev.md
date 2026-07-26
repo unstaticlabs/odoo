@@ -203,7 +203,7 @@ Keep this terminal open. It is the running Odoo server.
 Open:
 
 ```text
-http://localhost:8169/web/login?db=odoo_dev
+http://localhost:8069/web/login?db=odoo_dev
 ```
 
 Login:
@@ -265,7 +265,7 @@ Accounting > Review > Advanced Audit > Imported Report Export
 The direct user-guide URL after login is:
 
 ```text
-http://localhost:8169/usl/user-docs
+http://localhost:8069/usl/user-docs
 ```
 
 ## If Port 8069 Is Already Used
@@ -288,7 +288,7 @@ odoo --config=/etc/odoo/odoo.conf \
 Then open:
 
 ```text
-http://localhost:8169/web/login?db=odoo_dev
+http://localhost:8069/web/login?db=odoo_dev
 ```
 
 ## If the User Guide Shows 404 After Login

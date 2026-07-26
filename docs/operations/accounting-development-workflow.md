@@ -75,7 +75,7 @@ Use `make rebuild` only after Dockerfile, dependency, system or
 core-source changes. Both commands print the development URL:
 
 ```text
-http://localhost:8169/web/login?db=odoo_dev
+http://localhost:8069/web/login?db=odoo_dev
 ```
 
 ## Module and browser refresh contract
