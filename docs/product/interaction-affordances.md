@@ -15,7 +15,10 @@ The Accounting product follows familiar desktop interaction conventions:
 The convention is implemented once in the isolated
 `rebuild_account_migration` backend asset. New custom components should use
 native semantic elements (`a`, `button`) or the appropriate ARIA role instead
-of adding screen-specific cursor rules.
+of adding screen-specific cursor rules. The shared rule intentionally takes
+precedence over neutral component defaults; explicit disabled, text-entry,
+drag, resize, edit-row and sample-data states then restore their more specific
+cursor.
 
 ## Accessibility boundary
 

@@ -4,17 +4,30 @@
     :where(
         a[href],
         button,
+        summary,
+        input[type="checkbox"],
+        input[type="radio"],
         [role="button"],
+        [role="link"],
+        [role="menuitem"],
+        [role="option"],
         [type="action"],
         [type="object"],
+        [data-bs-toggle],
         .btn,
         .dropdown-item,
         .nav-link,
         .o_form_uri,
+        .o_kanban_record:not(.o_kanban_ghost):not(.o-kanban-button-new):not(
+                [draggable="true"]
+            ),
         .o_menu_item,
         .o_searchview_facet
     ):not(:disabled):not(.disabled):not([aria-disabled="true"]) {
-        cursor: pointer;
+        // Cursor is a product-wide interaction contract. Odoo components
+        // sometimes set a more specific neutral cursor, so this must win
+        // without requiring per-screen overrides.
+        cursor: pointer !important;
     }
 
     // A normal Odoo list cell opens or selects its record. Cells in explicit
@@ -23,7 +36,7 @@
         .o_data_row:not(.o_list_no_open):not(.o_selected_row)
         > .o_data_cell:not(.o_list_record_selector):not(.o_handle_cell),
     .o_list_view .o_group_header .o_group_name {
-        cursor: pointer;
+        cursor: pointer !important;
     }
 
     :where(
@@ -34,7 +47,7 @@
         .nav-link.disabled,
         .o_field_cursor_disabled
     ) {
-        cursor: not-allowed;
+        cursor: not-allowed !important;
     }
 
     // Do not let the broad semantic rules weaken direct-manipulation cues.
@@ -45,16 +58,24 @@
         textarea,
         [contenteditable="true"]
     ) {
-        cursor: text;
+        cursor: text !important;
     }
 
     .o_row_handle,
     .o_field_handle,
     .o_handle_cell {
-        cursor: grab;
+        cursor: grab !important;
     }
 
     .o_resize {
-        cursor: col-resize;
+        cursor: col-resize !important;
+    }
+
+    // Rows being edited and sample records are demonstrations or direct input,
+    // not record-opening targets.
+    .o_list_view .o_selected_row > .o_data_cell,
+    .o_list_view .o_view_sample_data .o_data_cell,
+    .o_list_view .o_view_sample_data .o_group_name {
+        cursor: default !important;
     }
 }
