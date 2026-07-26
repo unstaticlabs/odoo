@@ -2,7 +2,16 @@
 
 ## Overview
 
-The daily starting point. It summarizes cash, documents, reconciliation, Hygiene, declarations and closing readiness. Each actionable count opens the relevant records.
+The daily starting point. It summarizes cash, documents, reconciliation,
+Hygiene, declarations and closing readiness. Each actionable count opens the
+relevant records.
+
+The **Cash on banks** headline includes only real bank and payment-account
+balances effective through today. **Projected after settlement** estimates the
+remaining cash after identified customer receipts, supplier payments and
+employee reimbursements. Use the links below the estimate to inspect the
+included items. Unresolved transfer, suspense or generic open items are shown
+separately and do not silently change the projection.
 
 ## Journals
 
