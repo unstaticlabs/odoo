@@ -714,14 +714,26 @@ class TestRebuildAccountMigration(TransactionCase):
                 "action_open_expected_receipts",
                 "action_open_expected_payments",
                 "action_open_cash_projection_unresolved",
-                "action_open_cash_position_journals",
             },
         )
         self.assertTrue(
             home_arch.xpath(
                 "//div[contains(@class, 'o_usl_cash_position_card')]"
+                "/button[@name='action_open_cash_position_journals']"
+                "/field[@name='cash_on_banks']",
+            ),
+        )
+        self.assertTrue(
+            home_arch.xpath(
+                "//div[contains(@class, 'o_usl_cash_position_card')]"
                 "/div[contains(@class, 'o_usl_overview_projection')]"
-                "/strong/field[@name='projected_cash_after_settlement']",
+                "/button[@name='action_open_projected_cash_accounts']"
+                "/field[@name='projected_cash_after_settlement']",
+            ),
+        )
+        self.assertFalse(
+            home_arch.xpath(
+                "//*[normalize-space(.)='Included bank accounts']",
             ),
         )
         review_buttons = home_arch.xpath(
@@ -1060,6 +1072,19 @@ class TestRebuildAccountMigration(TransactionCase):
 
         journal_action = home.action_open_cash_position_journals()
         self.assertEqual(journal_action["domain"], [("id", "in", included_bank.ids)])
+        projected_accounts_action = home.action_open_projected_cash_accounts()
+        self.assertEqual(
+            projected_accounts_action["domain"],
+            [(
+                "id",
+                "in",
+                (
+                    included_bank.default_account_id
+                    | receivable_account
+                    | payable_account
+                ).ids,
+            )],
+        )
         receipt_action = home.action_open_expected_receipts()
         self.assertIn(
             ("move_id.move_type", "in", ("out_invoice", "out_receipt", "in_refund")),

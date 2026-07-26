@@ -1347,16 +1347,24 @@
                                 <div class="col-12 col-md-6">
                                     <div class="o_usl_overview_card o_usl_cash_position_card">
                                         <h4 class="o_usl_overview_card_title">Cash on banks</h4>
-                                        <span class="o_usl_overview_value">
+                                        <button
+                                            name="action_open_cash_position_journals"
+                                            type="object"
+                                            class="btn btn-link o_usl_overview_value o_usl_cash_amount_link"
+                                            title="Open the bank and payment journals included in this balance.">
                                             <field name="cash_on_banks" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                                        </span>
+                                        </button>
                                         <div
                                             class="o_usl_overview_projection"
                                             title="Estimate after identified receipts and payments effective through today.">
                                             <span>Projected after settlement</span>
-                                            <strong>
+                                            <button
+                                                name="action_open_projected_cash_accounts"
+                                                type="object"
+                                                class="btn btn-link o_usl_cash_projection_link"
+                                                title="Open the bank, receivable and payable accounts used by this estimate.">
                                                 <field name="projected_cash_after_settlement" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                                            </strong>
+                                            </button>
                                         </div>
                                         <details class="o_usl_cash_breakdown">
                                             <summary>View estimate details</summary>
@@ -1379,9 +1387,6 @@
                                                         <field name="cash_projection_unresolved_count" nolabel="1"/>
                                                         excluded
                                                     </span>
-                                                </div>
-                                                <div class="o_usl_cash_breakdown_footer">
-                                                    <button name="action_open_cash_position_journals" type="object" string="Included bank accounts" class="btn-link"/>
                                                 </div>
                                             </div>
                                         </details>

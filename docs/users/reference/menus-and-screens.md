@@ -10,9 +10,9 @@ The **Cash on banks** headline includes only real bank and payment-account
 balances effective through today. **Projected after settlement** estimates the
 remaining cash after identified customer receipts, supplier payments and
 employee reimbursements. Expand **View estimate details** only when you need
-the signed receipts/payments calculation, included bank accounts or unresolved
-items. Transfers, suspense and generic open items do not silently change the
-projection.
+the signed receipts/payments calculation or unresolved items. Select either
+headline amount to open the journals or accounts behind it. Transfers,
+suspense and generic open items do not silently change the projection.
 
 ## Journals
 
