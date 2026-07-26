@@ -34,7 +34,7 @@ but matching becomes available only after posting.
 
 From a bill or invoice, open its journal items. Note the account, partner, debit, credit, currency, analytic distribution and matching reference.
 
-Open **Reporting > General Ledger**, choose the same period and search for the account or document. Select the line to return to the source.
+Open **Reporting > Grand livre**, choose the same period and search for the account or document. Select the line to return to the source.
 
 ## 4. Review reconciliation
 
@@ -46,7 +46,7 @@ Do not reconcile during this tutorial unless you intend to change accounting.
 
 ## 5. Use an interactive report
 
-Open **Reporting > Trial Balance**.
+Open **Reporting > Balance générale**.
 
 Change the period, unfold an account group, search for an account and open its journal items. Download PDF and XLSX; both exports use the filters currently visible on screen.
 

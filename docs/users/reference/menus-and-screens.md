@@ -43,8 +43,8 @@ draft bill, duplicate, rejection or technical-failure evidence.
 ## Reporting
 
 The canonical designed financial, partner, tax, asset, management and
-analytical statements. **Analytic Profit and Loss** is the governed analytical
-statement; use **Reporting > Analytic Reporting** for free-form pivot
+analytical statements. **Compte de résultat analytique** is the governed
+analytical statement; use **Reporting > Analyse analytique** for free-form pivot
 exploration. Combine configured analytic plans with dates, financial accounts,
 partners, products, journals and companies; switch between pivot, list and
 graph; and open any aggregate to its source records.

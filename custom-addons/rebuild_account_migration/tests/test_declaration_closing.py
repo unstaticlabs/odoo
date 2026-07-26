@@ -377,7 +377,7 @@ class TestDeclarationAndClosing(TransactionCase):
         self.assertIn(b'Metadata', workbook_xml)
         self.assertIn(b'Report', workbook_xml)
         self.assertIn(b'Audit Data', workbook_xml)
-        self.assertIn(b'Closing Review Package', shared_strings)
+        self.assertIn(b'Dossier de revue de cl\xc3\xb4ture', shared_strings)
         self.assertIn(b'Lock dates', shared_strings)
 
         wizard.export_format = "pdf"

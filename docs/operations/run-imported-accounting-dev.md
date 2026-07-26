@@ -254,10 +254,10 @@ Then try:
 ```text
 Accounting > Transactions > Bank Matching
 Accounting > Closing > General Reconciliation
-Accounting > Reporting > Interactive Reports > Trial Balance
-Accounting > Reporting > Interactive Reports > General Ledger
-Accounting > Reporting > Statement Reports > Balance Sheet
-Accounting > Reporting > Statement Reports > Profit and Loss
+Accounting > Reporting > Interactive Reports > Balance générale
+Accounting > Reporting > Interactive Reports > Grand livre
+Accounting > Reporting > Statement Reports > Bilan
+Accounting > Reporting > Statement Reports > Compte de résultat
 Accounting > Reporting > Taxes & Fiscal > FEC
 Accounting > Review > Advanced Audit > Accounting Reconstruction Review
 Accounting > Review > Advanced Audit > User Guide

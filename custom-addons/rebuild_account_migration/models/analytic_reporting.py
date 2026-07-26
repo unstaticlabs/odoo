@@ -5,45 +5,45 @@ class AccountAnalyticLine(models.Model):
     _inherit = "account.analytic.line"
 
     rebuild_revenue = fields.Monetary(
-        string="Revenue",
+        string="Produits",
         compute="_compute_reporting_amounts",
         store=True,
         currency_field="currency_id",
         help=(
-            "Income-side analytic amount with the native analytic sign. "
-            "Normal revenue is positive and reversals reduce the measure."
+            "Montant analytique côté produits avec le signe analytique natif. "
+            "Un produit normal est positif ; une extourne réduit la mesure."
         ),
     )
     rebuild_spending = fields.Monetary(
-        string="Spending",
+        string="Charges",
         compute="_compute_reporting_amounts",
         store=True,
         currency_field="currency_id",
         help=(
-            "Expense-side analytic amount shown as a positive consumption of "
-            "value. Expense reversals reduce the measure."
+            "Montant analytique côté charges présenté comme une consommation "
+            "positive. Une extourne réduit la mesure."
         ),
     )
     rebuild_net_contribution = fields.Monetary(
-        string="Net Contribution",
+        string="Contribution nette",
         compute="_compute_reporting_amounts",
         store=True,
         currency_field="currency_id",
         help=(
-            "Revenue less spending; this remains equal to the native analytic "
-            "amount."
+            "Produits moins charges ; cette valeur reste égale au montant "
+            "analytique natif."
         ),
     )
     rebuild_financial_account_type = fields.Selection(
         related="general_account_id.account_type",
-        string="Account Category",
+        string="Catégorie de compte",
         store=True,
         index=True,
         readonly=True,
     )
     rebuild_financial_account_group_id = fields.Many2one(
         "account.group",
-        string="Account Group",
+        string="Groupe de comptes",
         compute="_compute_financial_account_group",
         store=True,
         index=True,
@@ -51,14 +51,14 @@ class AccountAnalyticLine(models.Model):
     )
     rebuild_document_id = fields.Many2one(
         "account.move",
-        string="Business Document",
+        string="Document d’origine",
         related="move_line_id.move_id",
         store=True,
         index=True,
         readonly=True,
     )
     rebuild_current_fiscal_year = fields.Boolean(
-        string="Current Fiscal Year",
+        string="Exercice en cours",
         search="_search_current_fiscal_year",
         store=False,
         exportable=False,

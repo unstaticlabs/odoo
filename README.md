@@ -20,7 +20,7 @@ production activation procedure is approved.
 Primary entry points:
 
 - **Accounting > Overview** for daily operational state;
-- **Accounting > Reporting > Analytic Reporting** for exploratory pivot analysis;
+- **Accounting > Reporting > Analyse analytique** for exploratory pivot analysis;
 - **Accounting > Configuration** for governed Controls, Reports, Declarations
   and electronic-invoice readiness;
 - `/usl/user-docs` for role- and task-based user guidance;
@@ -179,7 +179,9 @@ Do not run the normal Compose `odoo` service and a Dev Container Odoo server on 
 docker compose stop odoo
 ```
 
-Milestone 13 accounting development uses a separate imported target database and workflow. Read these before iterating on accounting reconstruction or reports:
+Accounting development keeps the reconstructed product in `odoo_dev`; the
+validation databases are disposable pipeline proofs only. Read these before
+iterating on reconstruction or reports:
 
 - [Run imported accounting data in development](docs/operations/run-imported-accounting-dev.md)
 - [Accounting development workflow](docs/operations/accounting-development-workflow.md)
@@ -264,7 +266,12 @@ accounting parity evidence.
 
 Installed application domains: Contacts, Discuss, Accounting/Invoicing, French accounting localization, Expenses, Projects and Tasks, Employees, Sales, Settings and application management.
 
-Known first-iteration gaps compared with the current Odoo Online environment: Community does not provide the Enterprise application launcher experience, Documents, Sign, Knowledge, Dashboards, To-do, AI features, TESE Payroll, Platform Invoicing, or live bank synchronization. Brands such as SBFH, GBC, Yoshi, Smash, and KinkVerse are represented as projects or analytic contexts under the single legal company only.
+Deliberate product boundaries: Community does not provide the Enterprise
+application launcher or unrelated Enterprise applications such as Documents,
+Sign, Knowledge, To-do, AI features or TESE Payroll. Live bank synchronization
+and production electronic-invoicing connectivity remain inactive. Brands such
+as SBFH, GBC, Yoshi, Smash and KinkVerse are represented as projects or
+analytic contexts under the single legal company.
 
 ### Production-derived accounting reconstruction
 

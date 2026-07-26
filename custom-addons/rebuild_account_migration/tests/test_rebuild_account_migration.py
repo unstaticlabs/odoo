@@ -5398,12 +5398,12 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(action["res_id"], wizard.id)
         metadata = json.loads(wizard.export_metadata)
         self.assertEqual(metadata["report_type"], "trial_balance")
-        self.assertEqual(metadata["report_name"], "Trial Balance")
+        self.assertEqual(metadata["report_name"], "Balance générale")
         self.assertEqual(metadata["date_from"], "2099-01-01")
         self.assertEqual(metadata["date_to"], "2099-12-31")
         self.assertEqual(metadata["target_move"], "posted")
         self.assertEqual(metadata["format"], "csv")
-        self.assertEqual(action["name"], "Trial Balance Export")
+        self.assertEqual(action["name"], "Export — Balance générale")
         payload = base64.b64decode(wizard.export_file).decode("utf-8")
         self.assertIn("metadata", payload)
         self.assertIn("empty_report", payload)
@@ -5423,7 +5423,7 @@ class TestRebuildAccountMigration(TransactionCase):
 
         self.assertEqual(action["res_model"], "rebuild.account.report.export.wizard")
         self.assertEqual(action["res_id"], wizard.id)
-        self.assertEqual(action["name"], "Trial Balance")
+        self.assertEqual(action["name"], "Balance générale")
         self.assertEqual(action["target"], "current")
         self.assertEqual(wizard.preview_row_count, 0)
         self.assertFalse(wizard.preview_truncated)
@@ -5431,7 +5431,7 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(wizard.preview_line_ids.label, "No rows for the selected report filters")
         metadata = json.loads(wizard.preview_metadata)
         self.assertEqual(metadata["report_type"], "trial_balance")
-        self.assertEqual(metadata["report_name"], "Trial Balance")
+        self.assertEqual(metadata["report_name"], "Balance générale")
         self.assertEqual(metadata["row_count"], 0)
         self.assertEqual(metadata["preview_limit"], 10)
         self.assertFalse(metadata["preview_truncated"])
@@ -5450,6 +5450,41 @@ class TestRebuildAccountMigration(TransactionCase):
         )
         self.assertEqual(source_action["context"]["create"], False)
         self.assertEqual(source_action["context"]["delete"], False)
+
+    def test_balance_sheet_summary_uses_accounting_side_not_translated_label(self):
+        wizard = self.env["rebuild.account.report.export.wizard"].create({
+            "company_id": self.company.id,
+            "report_type": "balance_sheet",
+            "date_from": "2099-01-01",
+            "date_to": "2099-12-31",
+            "target_move": "posted",
+        })
+        PreviewLine = self.env["rebuild.account.report.preview.line"]
+        rows = [
+            ("Immobilisations", "asset_fixed", "400.00"),
+            ("Actif circulant", "asset_current", "600.00"),
+            ("Capitaux propres", "equity", "300.00"),
+            ("Dettes et passifs", "liability_current", "700.00"),
+        ]
+        for sequence, (section, account_type, amount) in enumerate(rows, 1):
+            PreviewLine.create({
+                "wizard_id": wizard.id,
+                "sequence": sequence,
+                "section": section,
+                "label": section,
+                "row_json": json.dumps({
+                    "section": section,
+                    "account_type": account_type,
+                    "amount": amount,
+                }),
+            })
+
+        cards = wizard._report_client_summary()["cards"]
+
+        self.assertEqual(cards[0]["value"], 1000.0)
+        self.assertEqual(cards[1]["value"], 1000.0)
+        self.assertEqual(cards[2]["value"], 0.0)
+        self.assertEqual(cards[2]["status"], "success")
 
         preview_line = self.env["rebuild.account.report.preview.line"].create({
             "wizard_id": wizard.id,
@@ -5470,6 +5505,56 @@ class TestRebuildAccountMigration(TransactionCase):
             for term in line_action["domain"]
             if term[0] == "account_id" and term[1] == "in"
         ])
+
+    def test_grouped_report_drilldown_keeps_contributing_accounts(self):
+        equity_account = self._account(
+            "T101000",
+            "Grouped report equity",
+            "equity",
+        )
+        retained_account = self._account(
+            "T110000",
+            "Grouped report retained earnings",
+            "equity",
+        )
+        wizard = self.env["rebuild.account.report.export.wizard"].create({
+            "company_id": self.company.id,
+            "report_type": "balance_sheet",
+            "date_from": "2026-01-01",
+            "date_to": "2026-12-31",
+            "target_move": "posted",
+            "group_by": "section",
+        })
+
+        grouped_rows = wizard._group_report_rows([
+            {
+                "section": "Capitaux propres",
+                "account_code": "T101000",
+                "amount": "300.00",
+            },
+            {
+                "section": "Capitaux propres",
+                "account_code": "T110000",
+                "amount": "700.00",
+            },
+        ])
+        group_row = grouped_rows[0]
+        domain = wizard._preview_journal_item_domain(group_row)
+
+        self.assertEqual(
+            group_row["drilldown_account_codes"],
+            "T101000,T110000",
+        )
+        account_terms = [
+            term
+            for term in domain
+            if term[0] == "account_id" and term[1] == "in"
+        ]
+        self.assertEqual(len(account_terms), 1)
+        self.assertEqual(
+            set(account_terms[0][2]),
+            {equity_account.id, retained_account.id},
+        )
 
     def test_dynamic_report_workbench_period_comparison_and_native_scope(self):
         expense_account = self._account(
@@ -5713,14 +5798,23 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertTrue(standard.business_purpose)
         with self.assertRaises(UserError):
             standard.write({"name": "Unsafe direct customization"})
+        standard.with_context(accounting_definition_seed=True).write({
+            "name": "Trial Balance",
+        })
+        Definition._ensure_standard_definitions()
+        self.assertEqual(standard.name, "Balance générale")
+        self.assertEqual(standard.origin, "usl")
 
         action = standard.action_customize_for_company()
         company_definition = Definition.browse(action["res_id"])
         company_definition.write({
+            "name": "Balance USL personnalisée",
             "definition_version": "test-company-1",
             "business_purpose": "Company-governed Trial Balance.",
             "supports_comparison": False,
         })
+        Definition._ensure_standard_definitions()
+        self.assertEqual(company_definition.name, "Balance USL personnalisée")
         self.assertEqual(company_definition.origin, "company")
         self.assertEqual(
             Definition._resolve(
@@ -6154,8 +6248,8 @@ class TestRebuildAccountMigration(TransactionCase):
         balance_export_menu = self.env.ref("rebuild_account_migration.menu_rebuild_account_report_balance_sheet_launcher")
         profit_export_menu = self.env.ref("rebuild_account_migration.menu_rebuild_account_report_profit_loss_launcher")
 
-        self.assertEqual(balance_export_menu.name, "Balance Sheet")
-        self.assertEqual(profit_export_menu.name, "Profit and Loss")
+        self.assertEqual(balance_export_menu.name, "Bilan")
+        self.assertEqual(profit_export_menu.name, "Compte de résultat")
         self.assertEqual(
             balance_export_menu.action,
             self.env.ref(

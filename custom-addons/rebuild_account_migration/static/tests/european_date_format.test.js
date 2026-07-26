@@ -2,7 +2,11 @@ import { beforeEach, expect, test } from "@odoo/hoot";
 import { patchWithCleanup } from "@web/../tests/web_test_helpers";
 
 import { localization } from "@web/core/l10n/localization";
-import { formatDate, formatDateTime } from "@web/views/fields/formatters";
+import {
+    formatDate,
+    formatDateTime,
+    formatFloat,
+} from "@web/views/fields/formatters";
 import { europeanDateFormatService } from "../src/js/european_date_format";
 
 const { DateTime, Settings } = luxon;
@@ -12,6 +16,9 @@ beforeEach(() => {
         code: "en_US",
         dateFormat: "dd/MM/yyyy",
         dateTimeFormat: "dd/MM/yyyy HH:mm:ss",
+        decimalPoint: ".",
+        grouping: [3, 0],
+        thousandsSep: ",",
     });
     patchWithCleanup(Settings, { defaultLocale: "en-US" });
 });
@@ -38,6 +45,7 @@ test("English US users receive unambiguous European dates everywhere", () => {
     expect(formatDateTime(priorYearValue)).toMatch(
         new RegExp(`^10 Jun ${priorYearValue.year}, `)
     );
+    expect(formatFloat(15603.74, { digits: [16, 2] })).toBe("15 603,74");
 });
 
 test("the service preserves the locale of non-US languages", () => {

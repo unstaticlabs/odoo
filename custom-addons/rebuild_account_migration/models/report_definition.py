@@ -5,32 +5,32 @@ from .configurable_definition import ACCOUNTING_DEFINITION_ORIGINS
 
 
 ACCOUNTING_REPORT_TYPES = [
-    ("trial_balance", "Trial Balance"),
-    ("general_ledger", "General Ledger"),
-    ("journal_report", "Journal Report"),
-    ("partner_ledger", "Partner Ledger"),
-    ("customer_statement", "Customer Statement"),
-    ("open_items", "Open Items"),
-    ("aged_receivable", "Aged Receivable"),
-    ("aged_payable", "Aged Payable"),
-    ("balance_sheet", "Balance Sheet"),
-    ("profit_loss", "Profit and Loss"),
-    ("tax_report", "VAT and Tax Report"),
-    ("tax_report_group_account_tax", "Tax Report by Account then Tax"),
-    ("tax_report_group_tax_account", "Tax Report by Tax then Account"),
-    ("ec_sales_list", "EC Sales List"),
-    ("oss_sales", "OSS Sales"),
-    ("oss_imports", "OSS Imports"),
-    ("bank_reconciliation", "Bank Reconciliation"),
-    ("currency_report", "Currency Gain, Loss and Exposure"),
-    ("cash_flow", "Cash Flow Statement"),
-    ("executive_summary", "Executive Summary"),
-    ("analytic_report", "Analytic Profit and Loss"),
-    ("analytic_pivot", "Analytic Reporting"),
-    ("fixed_assets", "Fixed Asset Register"),
-    ("fixed_asset_group_account", "Fixed Asset Register by Account"),
-    ("depreciation_schedule", "Depreciation Schedule"),
-    ("deferred_schedule", "Deferred Expense and Revenue Schedule"),
+    ("trial_balance", "Balance générale"),
+    ("general_ledger", "Grand livre"),
+    ("journal_report", "Journal comptable"),
+    ("partner_ledger", "Grand livre auxiliaire"),
+    ("customer_statement", "Relevé client"),
+    ("open_items", "Écritures ouvertes"),
+    ("aged_receivable", "Balance âgée clients"),
+    ("aged_payable", "Balance âgée fournisseurs"),
+    ("balance_sheet", "Bilan"),
+    ("profit_loss", "Compte de résultat"),
+    ("tax_report", "TVA et taxes"),
+    ("tax_report_group_account_tax", "Taxes par compte puis taxe"),
+    ("tax_report_group_tax_account", "Taxes par taxe puis compte"),
+    ("ec_sales_list", "État récapitulatif TVA UE"),
+    ("oss_sales", "Ventes OSS"),
+    ("oss_imports", "Importations OSS"),
+    ("bank_reconciliation", "État de rapprochement bancaire"),
+    ("currency_report", "Gains, pertes et exposition de change"),
+    ("cash_flow", "Tableau des flux de trésorerie"),
+    ("executive_summary", "Synthèse de gestion"),
+    ("analytic_report", "Compte de résultat analytique"),
+    ("analytic_pivot", "Analyse analytique"),
+    ("fixed_assets", "Registre des immobilisations"),
+    ("fixed_asset_group_account", "Immobilisations par compte"),
+    ("depreciation_schedule", "Plan d’amortissement"),
+    ("deferred_schedule", "Charges et produits constatés d’avance"),
     ("french_annual", "États financiers français"),
     ("french_balance_sheet_2024", "Bilan détaillé (PCG 2024)"),
     (
@@ -38,10 +38,41 @@ ACCOUNTING_REPORT_TYPES = [
         "Compte de résultat détaillé (PCG 2024)",
     ),
     ("sig_caf_2024", "SIG et CAF (PCG 2024)"),
-    ("french_tax_package", "French Tax Package Mapping"),
-    ("closing_package", "Closing Review Package"),
+    ("french_tax_package", "Liasse fiscale française"),
+    ("closing_package", "Dossier de revue de clôture"),
     ("fec", "FEC"),
 ]
+
+LEGACY_STANDARD_REPORT_NAMES = {
+    "trial_balance": "Trial Balance",
+    "general_ledger": "General Ledger",
+    "journal_report": "Journal Report",
+    "partner_ledger": "Partner Ledger",
+    "customer_statement": "Customer Statement",
+    "open_items": "Open Items",
+    "aged_receivable": "Aged Receivable",
+    "aged_payable": "Aged Payable",
+    "balance_sheet": "Balance Sheet",
+    "profit_loss": "Profit and Loss",
+    "tax_report": "VAT and Tax Report",
+    "tax_report_group_account_tax": "Tax Report by Account then Tax",
+    "tax_report_group_tax_account": "Tax Report by Tax then Account",
+    "ec_sales_list": "EC Sales List",
+    "oss_sales": "OSS Sales",
+    "oss_imports": "OSS Imports",
+    "bank_reconciliation": "Bank Reconciliation",
+    "currency_report": "Currency Gain, Loss and Exposure",
+    "cash_flow": "Cash Flow Statement",
+    "executive_summary": "Executive Summary",
+    "analytic_report": "Analytic Profit and Loss",
+    "analytic_pivot": "Analytic Reporting",
+    "fixed_assets": "Fixed Asset Register",
+    "fixed_asset_group_account": "Fixed Asset Register by Account",
+    "depreciation_schedule": "Depreciation Schedule",
+    "deferred_schedule": "Deferred Expense and Revenue Schedule",
+    "french_tax_package": "French Tax Package Mapping",
+    "closing_package": "Closing Review Package",
+}
 
 
 REPORT_ACTIONS = {
@@ -340,7 +371,19 @@ class RebuildAccountReportDefinition(models.Model):
             ])
         }
         for report_type, name in ACCOUNTING_REPORT_TYPES:
-            if report_type in existing:
+            definition = existing.get(report_type)
+            if definition:
+                seed_values = _report_seed_values(report_type, name)
+                legacy_name = LEGACY_STANDARD_REPORT_NAMES.get(report_type)
+                values = {}
+                if legacy_name and definition.name == legacy_name:
+                    values["name"] = name
+                if definition.origin != seed_values["origin"]:
+                    values["origin"] = seed_values["origin"]
+                if values:
+                    definition.with_context(
+                        accounting_definition_seed=True,
+                    ).write(values)
                 continue
             existing[report_type] = self.with_context(
                 accounting_definition_seed=True,
@@ -471,7 +514,10 @@ class RebuildAccountReportDefinition(models.Model):
                 "Shared Accounting Report definitions are upgrade-managed. "
                 "Use Customize for Company and edit the company definition."
             )
-        if protected_business_fields & set(vals):
+        if (
+            protected_business_fields & set(vals)
+            and not self.env.context.get("accounting_definition_seed")
+        ):
             vals = {**vals, "origin": "company"}
         return super().write(vals)
 

@@ -8,19 +8,19 @@ the page in place, and PDF or XLSX downloads the same report scope.
 
 | Need | Report |
 | --- | --- |
-| Account totals | Trial Balance |
-| Detailed account movements | General Ledger |
-| Movements by journal | Journal Report |
-| Customer or supplier history | Partner Ledger |
-| Outstanding entries | Open Items |
-| Due-date analysis | Aged Receivable / Aged Payable |
-| Financial position | Balance Sheet / Detailed Balance Sheet |
-| Performance | Profit and Loss / Detailed Profit and Loss |
-| French tax | Tax Report / French VAT |
-| Fixed assets | Asset Register / Depreciation Schedule |
+| Account totals | Balance générale |
+| Detailed account movements | Grand livre |
+| Movements by journal | Journal comptable |
+| Customer or supplier history | Grand livre auxiliaire |
+| Outstanding entries | Écritures ouvertes |
+| Due-date analysis | Balance âgée clients / Balance âgée fournisseurs |
+| Financial position | Bilan / Bilan détaillé |
+| Performance | Compte de résultat / Compte de résultat détaillé |
+| French tax | TVA et taxes / Liasse fiscale française |
+| Fixed assets | Registre des immobilisations / Plan d’amortissement |
 | Management analysis | SIG / CAF / Management Ratios |
-| Designed analytical statement | Analytic Profit and Loss / Revenue vs Spending |
-| Free-form analytic exploration | Reporting > Analytic Reporting |
+| Designed analytical statement | Compte de résultat analytique / Revenue vs Spending |
+| Free-form analytic exploration | Reporting > Analyse analytique |
 
 ## Common filters
 
@@ -41,7 +41,8 @@ Less common journal, account, partner and analytic choices are under
 optional filters without losing the company or selected period. Accounting
 statements consistently use `DD/MM/YYYY` and French number separators, even
 when the user's general Odoo interface language is different. The same
-day-first date convention applies throughout the normal application; English
+day-first date and French accounting-number convention applies throughout the
+normal application; English
 human-readable dates use `10 Jun` in the current year and include the year for
 any other year.
 
@@ -72,8 +73,8 @@ Reports**.
 
 ## Analytic pivot
 
-**Analytic Reporting** under Analysis deliberately uses Odoo's native pivot
-rather than the statement layout above. **Analytic Profit and Loss** under
+**Analyse analytique** under Reporting deliberately uses Odoo's native pivot
+rather than the statement layout above. **Compte de résultat analytique** under
 Reporting is the designed financial statement for a governed period and
 hierarchy; use the pivot for free-form exploration.
 
