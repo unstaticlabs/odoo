@@ -22,8 +22,8 @@ soumission.
 2. Utilisez les filtres **Prête à soumettre**, **Informations requises** et
    **Déjà dans une note de frais** pour vérifier vos dépenses.
 3. Sélectionnez les dépenses liées puis cliquez sur
-   **Créer une note de frais**. Sans sélection, **Soumettre les dépenses
-   prêtes** propose vos dépenses complètes.
+   **Créer une note de frais**. Ce bouton apparaît lorsque vous avez
+   sélectionné au moins une dépense en brouillon.
 4. Vérifiez le nom, l’objet, la période, les totaux payés par l’employé et par
    la société, l’activité analytique, la préparation de chaque ligne et les
    informations manquantes.

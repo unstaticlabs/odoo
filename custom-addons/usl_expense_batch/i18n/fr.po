@@ -465,6 +465,12 @@ msgid "Select at least one expense."
 msgstr "Sélectionnez au moins une dépense."
 
 #. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/hr_expense.py:0
+msgid "Select at least one draft expense."
+msgstr "Sélectionnez au moins une dépense en brouillon."
+
+#. module: usl_expense_batch
 #: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__state
 msgid "State"
 msgstr "État"
@@ -479,12 +485,6 @@ msgstr "Statut"
 #: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
 msgid "Submit batch"
 msgstr "Soumettre la note de frais"
-
-#. module: usl_expense_batch
-#. odoo-javascript
-#: code:addons/usl_expense_batch/static/src/xml/expense_batch_list.xml:0
-msgid "Submit ready expenses"
-msgstr "Soumettre les dépenses prêtes"
 
 #. module: usl_expense_batch
 #: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch__state__submitted
