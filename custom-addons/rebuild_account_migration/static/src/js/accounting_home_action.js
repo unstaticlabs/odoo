@@ -8,7 +8,7 @@ registry.category("actions").add("rebuild_accounting_home", async (env, clientAc
         env.services.menu.setCurrentMenu(accountingApp);
     }
     const action = await env.services.orm.call(
-        "rebuild.account.review.summary",
+        "rebuild.account.overview",
         "action_open_accounting_home",
         [],
     );

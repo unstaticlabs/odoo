@@ -81,7 +81,7 @@ class RebuildAccountDiscrepancy(models.Model):
         return {
             "type": "ir.actions.act_window",
             "name": "Record Accounting Review Decision",
-            "res_model": "rebuild.account.review.decision",
+            "res_model": "rebuild.account.assurance.decision",
             "view_mode": "form",
             "target": "current",
             "context": {

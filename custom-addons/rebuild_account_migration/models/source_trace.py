@@ -1,7 +1,7 @@
 from lxml import etree
 
 from odoo import _, api, fields, models
-from odoo.exceptions import AccessError, UserError
+from odoo.exceptions import AccessError, UserError, ValidationError
 
 
 class RebuildSourceTraceMixin(models.AbstractModel):
@@ -481,6 +481,81 @@ class IrAttachment(models.Model):
 class AccountPayment(models.Model):
     _name = "account.payment"
     _inherit = ["account.payment", "rebuild.source.trace.mixin"]
+
+    usl_historical_no_ledger_effect = fields.Boolean(
+        string="Historical payment without journal entry",
+        copy=False,
+        index=True,
+        help=(
+            "Preserves a payment workflow record from the source system when "
+            "that record had no journal entry. Its accounting effect is "
+            "already represented by the linked invoices and reconciliations."
+        ),
+    )
+    usl_source_is_reconciled = fields.Boolean(copy=False)
+    usl_source_is_matched = fields.Boolean(copy=False)
+    usl_source_is_sent = fields.Boolean(copy=False)
+    usl_source_is_reconciled_raw = fields.Char(copy=False)
+    usl_source_is_matched_raw = fields.Char(copy=False)
+    usl_source_is_sent_raw = fields.Char(copy=False)
+    usl_source_outstanding_account_id = fields.Integer(copy=False)
+    usl_source_destination_account_id = fields.Integer(copy=False)
+    usl_source_amount_company_currency_signed = fields.Monetary(
+        currency_field="company_currency_id",
+        copy=False,
+    )
+
+    def _get_outstanding_account(self, payment_type):
+        if self.env.context.get("usl_import_no_ledger_payment"):
+            return self.env["account.account"]
+        return super()._get_outstanding_account(payment_type)
+
+    @api.depends(
+        "move_id.line_ids.amount_residual",
+        "move_id.line_ids.amount_residual_currency",
+        "move_id.line_ids.account_id",
+        "state",
+        "usl_historical_no_ledger_effect",
+        "usl_source_is_reconciled",
+        "usl_source_is_matched",
+    )
+    def _compute_reconciliation_status(self):
+        super()._compute_reconciliation_status()
+        for payment in self.filtered("usl_historical_no_ledger_effect"):
+            payment.is_reconciled = payment.usl_source_is_reconciled
+            payment.is_matched = payment.usl_source_is_matched
+
+    def write(self, vals):
+        historical = self.filtered("usl_historical_no_ledger_effect")
+        protected_fields = {
+            "amount",
+            "company_id",
+            "currency_id",
+            "date",
+            "destination_account_id",
+            "journal_id",
+            "move_id",
+            "outstanding_account_id",
+            "partner_id",
+            "partner_type",
+            "payment_method_line_id",
+            "payment_type",
+            "state",
+        }
+        if (
+            historical
+            and protected_fields.intersection(vals)
+            and not self.env.context.get("usl_import_no_ledger_payment")
+        ):
+            message = (
+                "This historical payment exactly mirrors a source workflow "
+                "record that had no journal entry. Its accounting fields "
+                "cannot be changed; open the linked invoice or bill instead."
+            )
+            raise ValidationError(
+                message,
+            )
+        return super().write(vals)
 
 
 class AccountBankStatementLine(models.Model):

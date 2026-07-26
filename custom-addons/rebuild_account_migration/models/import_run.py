@@ -22,7 +22,6 @@ class RebuildAccountImportRun(models.Model):
         [
             ("exact_ledger_replay", "Exact Ledger Replay"),
             ("native_engine_replay", "Native Engine Replay"),
-            ("document_regeneration", "Document Regeneration"),
             ("controls_only", "Controls Only"),
         ],
         required=True,
@@ -56,19 +55,14 @@ class RebuildAccountImportRun(models.Model):
     imported_partner_count = fields.Integer(readonly=True)
     imported_move_count = fields.Integer(readonly=True)
     imported_move_line_count = fields.Integer(readonly=True)
-    imported_move_review_count = fields.Integer(readonly=True)
-    imported_move_line_review_count = fields.Integer(readonly=True)
-    document_regeneration_case_count = fields.Integer(readonly=True)
-    document_regeneration_candidate_count = fields.Integer(readonly=True)
-    document_regeneration_review_only_count = fields.Integer(readonly=True)
-    document_regeneration_blocked_count = fields.Integer(readonly=True)
+    imported_non_posted_move_count = fields.Integer(readonly=True)
+    imported_context_line_count = fields.Integer(readonly=True)
     imported_payment_count = fields.Integer(readonly=True)
-    imported_payment_review_count = fields.Integer(readonly=True)
+    imported_no_entry_payment_count = fields.Integer(readonly=True)
     imported_bank_statement_line_count = fields.Integer(readonly=True)
     imported_analytic_line_count = fields.Integer(readonly=True)
     imported_attachment_count = fields.Integer(readonly=True)
     imported_reconciliation_count = fields.Integer(readonly=True)
-    imported_reconciliation_review_count = fields.Integer(readonly=True)
     imported_source_report_count = fields.Integer(readonly=True)
     imported_deferred_schedule_line_count = fields.Integer(readonly=True)
     external_report_value_count = fields.Integer(readonly=True)
@@ -3310,38 +3304,12 @@ class RebuildAccountImportRun(models.Model):
                    fiscal_position_id, invoice_payment_term_id,
                    sequence_prefix, sequence_number, secure_sequence_number
             FROM account_move
-            WHERE company_id = ANY(%(source_company_ids)s) AND state = 'posted'
-              AND date BETWEEN %(date_from)s AND %(date_to)s
+            WHERE company_id = ANY(%(source_company_ids)s)
             ORDER BY date, id
             """,
             options,
         )
 
-    def _move_review_rows(self, conn, options):
-        return self._fetchall(
-            conn,
-            """
-            SELECT am.id, am.name, am.ref, am.state, am.move_type, am.journal_id,
-                   am.company_id, am.partner_id, am.commercial_partner_id,
-                   am.currency_id, am.date, am.invoice_date, am.invoice_date_due,
-                   am.payment_reference, am.payment_state,
-                   am.amount_untaxed_signed, am.amount_total_signed,
-                   am.amount_residual_signed, am.create_date, am.write_date,
-                   count(aml.id)::integer AS source_line_count,
-                   count(aml.id) FILTER (WHERE aml.account_id IS NOT NULL)::integer AS source_accounting_line_count,
-                   round(COALESCE(sum(aml.debit), 0)::numeric, 2) AS source_line_debit_total,
-                   round(COALESCE(sum(aml.credit), 0)::numeric, 2) AS source_line_credit_total,
-                   round(COALESCE(sum(aml.balance), 0)::numeric, 2) AS source_line_balance_total
-            FROM account_move am
-            LEFT JOIN account_move_line aml ON aml.move_id = am.id
-            WHERE am.company_id = ANY(%(source_company_ids)s)
-              AND am.state <> 'posted'
-              AND am.date >= %(date_from)s
-            GROUP BY am.id
-            ORDER BY am.date, am.id
-            """,
-            options,
-        )
 
     def _line_rows_by_move(self, conn, options):
         rows = self._fetchall(
@@ -3365,8 +3333,7 @@ class RebuildAccountImportRun(models.Model):
                    ), ARRAY[]::integer[]) AS tax_tag_ids
             FROM account_move_line aml
             JOIN account_move am ON am.id = aml.move_id
-            WHERE am.company_id = ANY(%(source_company_ids)s) AND am.state = 'posted'
-              AND am.date BETWEEN %(date_from)s AND %(date_to)s
+            WHERE am.company_id = ANY(%(source_company_ids)s)
             ORDER BY aml.move_id, aml.sequence, aml.id
             """,
             options,
@@ -3376,62 +3343,27 @@ class RebuildAccountImportRun(models.Model):
             by_move[row["move_id"]].append(row)
         return by_move
 
-    def _non_account_line_review_rows(self, conn, options):
-        return self._fetchall(
-            conn,
-            """
-            SELECT aml.id, aml.move_id, aml.sequence, aml.account_id, aml.currency_id,
-                   aml.partner_id, aml.name, aml.ref, aml.date_maturity, aml.debit,
-                   aml.credit, aml.balance, aml.amount_currency, aml.tax_base_amount,
-                   aml.display_type, aml.tax_line_id, aml.tax_group_id,
-                   aml.tax_repartition_line_id,
-                   COALESCE((
-                       SELECT array_agg(rel.account_tax_id ORDER BY rel.account_tax_id)
-                       FROM account_move_line_account_tax_rel rel
-                       WHERE rel.account_move_line_id = aml.id
-                   ), ARRAY[]::integer[]) AS tax_ids,
-                   COALESCE((
-                       SELECT array_agg(rel.account_account_tag_id ORDER BY rel.account_account_tag_id)
-                       FROM account_account_tag_account_move_line_rel rel
-                       WHERE rel.account_move_line_id = aml.id
-                   ), ARRAY[]::integer[]) AS tax_tag_ids,
-                   am.name AS move_name, am.state AS move_state, am.move_type,
-                   am.journal_id, am.company_id, am.date
-            FROM account_move_line aml
-            JOIN account_move am ON am.id = aml.move_id
-            WHERE am.company_id = ANY(%(source_company_ids)s)
-              AND (
-                    (
-                        am.state = 'posted'
-                        AND am.date BETWEEN %(date_from)s AND %(date_to)s
-                        AND aml.account_id IS NULL
-                    )
-                    OR
-                    (
-                        am.state <> 'posted'
-                        AND am.date >= %(date_from)s
-                    )
-              )
-            ORDER BY am.date, aml.move_id, aml.sequence, aml.id
-            """,
-            options,
-        )
 
     def _payment_rows(self, conn, options):
         return self._fetchall(
             conn,
             """
-            SELECT id, move_id, journal_id, company_id, partner_bank_id,
+            SELECT payment.id, payment.move_id, payment.journal_id,
+                   payment.company_id, payment.partner_bank_id,
                    paired_internal_transfer_payment_id, payment_method_line_id,
                    currency_id, partner_id, outstanding_account_id,
                    destination_account_id, name, state, payment_type,
                    partner_type, memo, payment_reference, date, amount,
                    amount_company_currency_signed, is_reconciled, is_matched,
-                   is_sent
-            FROM account_payment
-            WHERE company_id = ANY(%(source_company_ids)s)
-              AND date BETWEEN %(date_from)s AND %(date_to)s
-            ORDER BY id
+                   is_sent,
+                   COALESCE((
+                       SELECT array_agg(relation.invoice_id ORDER BY relation.invoice_id)
+                       FROM account_move__account_payment relation
+                       WHERE relation.payment_id = payment.id
+                   ), ARRAY[]::integer[]) AS invoice_ids
+            FROM account_payment payment
+            WHERE payment.company_id = ANY(%(source_company_ids)s)
+            ORDER BY payment.id
             """,
             options,
         )
@@ -3594,7 +3526,6 @@ class RebuildAccountImportRun(models.Model):
             account_move_trace_models = trace_models.get(
                 "account.move",
                 [
-                    "account.move.document_regeneration",
                     "account.move.native_engine_replay",
                     "account.move.native_expense_replay",
                     "account.move",
@@ -3607,14 +3538,7 @@ class RebuildAccountImportRun(models.Model):
             ], limit=1)
             if target:
                 return "account.move", target
-            review = self.env["rebuild.account.move.review"].with_context(
-                active_test=False,
-            ).search([
-                ("rebuild_source_model", "=", "account.move"),
-                ("rebuild_source_id", "=", row["res_id"]),
-                ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
-            ], limit=1)
-            return "rebuild.account.move.review", review
+            return None, self.env["account.move"]
         if row["res_model"] == "hr.expense":
             expense_trace_models = trace_models.get(
                 "hr.expense",
@@ -4084,409 +4008,6 @@ class RebuildAccountImportRun(models.Model):
             )
         )
 
-    def _import_move_reviews(self, conn, options, companies, partners, journals, currencies):
-        rows = self._move_review_rows(conn, options)
-        MoveReview = self.env["rebuild.account.move.review"].with_context(
-            tracking_disable=True,
-            mail_create_nolog=True,
-        )
-        imported_reviews = self.env["rebuild.account.move.review"]
-        seen_source_ids = set()
-        for row in rows:
-            source_state = row["state"] or "unknown"
-            review_vals = {
-                "name": row["name"] or row["ref"] or f"Source move {row['id']}",
-                "source_name": row["name"],
-                "source_move_id": row["id"],
-                "source_state": source_state,
-                "state": source_state if source_state in {"draft", "cancel"} else "unknown",
-                "review_status": "review_required" if source_state == "cancel" else "represented_no_ledger_effect",
-                "accounting_effect": "none_non_posted_source_move",
-                "company_id": companies[row["company_id"]].id,
-                "journal_id": journals[row["journal_id"]].id if row["journal_id"] in journals else False,
-                "partner_id": partners[row["partner_id"]].id if row["partner_id"] in partners else False,
-                "commercial_partner_id": (
-                    partners[row["commercial_partner_id"]].id
-                    if row["commercial_partner_id"] in partners
-                    else False
-                ),
-                "currency_id": currencies[row["currency_id"]].id,
-                "date": row["date"],
-                "invoice_date": row["invoice_date"],
-                "invoice_date_due": row["invoice_date_due"],
-                "move_type": row["move_type"],
-                "ref": row["ref"],
-                "payment_reference": row["payment_reference"],
-                "payment_state": row["payment_state"],
-                "amount_untaxed_signed": self._amount(row["amount_untaxed_signed"]),
-                "amount_total_signed": self._amount(row["amount_total_signed"]),
-                "amount_residual_signed": self._amount(row["amount_residual_signed"]),
-                "source_line_count": row["source_line_count"],
-                "source_accounting_line_count": row["source_accounting_line_count"],
-                "source_line_debit_total": self._amount(row["source_line_debit_total"]),
-                "source_line_credit_total": self._amount(row["source_line_credit_total"]),
-                "source_line_balance_total": self._amount(row["source_line_balance_total"]),
-                "source_create_date": row["create_date"],
-                "source_write_date": row["write_date"],
-                "note": (
-                    "Source account.move is not posted. It is represented for workflow review only "
-                    "and does not create a target posted journal entry."
-                ),
-                **self._trace_values("account.move", row["id"], options),
-            }
-            review = MoveReview.search([
-                ("rebuild_source_model", "=", "account.move"),
-                ("rebuild_source_id", "=", row["id"]),
-                ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
-            ], limit=1)
-            if review:
-                review.write(review_vals)
-            else:
-                review = MoveReview.create(review_vals)
-            imported_reviews |= review
-            seen_source_ids.add(row["id"])
-
-        stale_reviews = MoveReview.search([
-            ("rebuild_source_model", "=", "account.move"),
-            ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
-            ("accounting_effect", "=", "none_non_posted_source_move"),
-            ("rebuild_source_id", "not in", list(seen_source_ids) or [0]),
-        ])
-        stale_reviews.unlink()
-        return {
-            "source_move_review_count": len(rows),
-            "imported_move_review_count": len(imported_reviews),
-            "review_required_count": len(imported_reviews.filtered(lambda review: review.review_status == "review_required")),
-            "represented_no_ledger_effect_count": len(imported_reviews.filtered(lambda review: review.review_status == "represented_no_ledger_effect")),
-        }
-
-    def _import_move_line_reviews(self, conn, options, companies, partners, accounts, journals, currencies):
-        rows = self._non_account_line_review_rows(conn, options)
-        source_move_ids = [row["move_id"] for row in rows]
-        move_map = self._source_trace_record_map(
-            "account.move",
-            source_move_ids,
-            options,
-        )
-        move_review_map = {
-            review.rebuild_source_id: review
-            for review in self.env["rebuild.account.move.review"].with_context(active_test=False).search([
-                ("rebuild_source_model", "=", "account.move"),
-                ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
-                ("rebuild_source_id", "in", source_move_ids or [0]),
-            ])
-        }
-        LineReview = self.env["rebuild.account.move.line.review"].with_context(
-            tracking_disable=True,
-            mail_create_nolog=True,
-        )
-        imported_reviews = self.env["rebuild.account.move.line.review"]
-        seen_source_ids = set()
-        missing_imported_moves = []
-        missing_move_reviews = []
-        posted_non_account_line_count = 0
-        non_posted_line_count = 0
-        non_posted_accounting_line_count = 0
-        for row in rows:
-            source_state = row["move_state"] or "unknown"
-            is_posted_display_line = source_state == "posted"
-            imported_move = move_map.get(row["move_id"]) if is_posted_display_line else False
-            imported_move_review = move_review_map.get(row["move_id"]) if not is_posted_display_line else False
-            if is_posted_display_line:
-                posted_non_account_line_count += 1
-            else:
-                non_posted_line_count += 1
-                if row["account_id"]:
-                    non_posted_accounting_line_count += 1
-            if is_posted_display_line and not imported_move:
-                missing_imported_moves.append(row)
-            if not is_posted_display_line and not imported_move_review:
-                missing_move_reviews.append(row)
-            accounting_effect = (
-                "none_non_account_display_line"
-                if is_posted_display_line
-                else "none_non_posted_source_line"
-            )
-            review_status = "represented_no_ledger_effect"
-            if source_state == "cancel" or (is_posted_display_line and not imported_move) or (
-                not is_posted_display_line and not imported_move_review
-            ):
-                review_status = "review_required"
-            source_tax_ids = ",".join(str(tax_id) for tax_id in (row["tax_ids"] or []))
-            source_tax_tag_ids = ",".join(str(tag_id) for tag_id in (row["tax_tag_ids"] or []))
-            line_currency = currencies.get(row["currency_id"]) or companies[row["company_id"]].currency_id
-            review_vals = {
-                "name": row["name"] or f"Source display line {row['id']}",
-                "source_move_line_id": row["id"],
-                "source_move_id": row["move_id"],
-                "imported_move_id": imported_move.id if imported_move else False,
-                "imported_move_review_id": imported_move_review.id if imported_move_review else False,
-                "company_id": companies[row["company_id"]].id,
-                "line_currency_id": line_currency.id if line_currency else False,
-                "journal_id": journals[row["journal_id"]].id if row["journal_id"] in journals else False,
-                "partner_id": partners[row["partner_id"]].id if row["partner_id"] in partners else False,
-                "account_id": accounts[row["account_id"]].id if row["account_id"] in accounts else False,
-                "date": row["date"],
-                "date_maturity": row["date_maturity"],
-                "source_move_name": row["move_name"],
-                "source_move_state": source_state,
-                "source_move_type": row["move_type"],
-                "sequence": row["sequence"],
-                "display_type": row["display_type"],
-                "label": row["name"],
-                "ref": row["ref"],
-                "review_status": review_status,
-                "accounting_effect": accounting_effect,
-                "debit": self._amount(row["debit"]),
-                "credit": self._amount(row["credit"]),
-                "balance": self._amount(row["balance"]),
-                "amount_currency": self._amount(row["amount_currency"]),
-                "tax_base_amount": self._amount(row["tax_base_amount"]),
-                "source_account_id": row["account_id"],
-                "source_tax_ids": source_tax_ids,
-                "source_tax_tag_ids": source_tax_tag_ids,
-                "source_tax_line_id": row["tax_line_id"],
-                "source_tax_group_id": row["tax_group_id"],
-                "source_tax_repartition_line_id": row["tax_repartition_line_id"],
-                "note": (
-                    "Source account.move.line has no account_id. It is represented for document context "
-                    "only and does not create a target accounting journal item."
-                    if is_posted_display_line else
-                    "Source account.move.line belongs to a non-posted source move. It is represented "
-                    "for workflow and evidence review only and does not affect the posted target ledger."
-                ),
-                **self._trace_values("account.move.line", row["id"], options),
-            }
-            review = LineReview.search([
-                ("rebuild_source_model", "=", "account.move.line"),
-                ("rebuild_source_id", "=", row["id"]),
-                ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
-            ], limit=1)
-            if review:
-                review.write(review_vals)
-            else:
-                review = LineReview.create(review_vals)
-            imported_reviews |= review
-            seen_source_ids.add(row["id"])
-
-        stale_reviews = LineReview.search([
-            ("rebuild_source_model", "=", "account.move.line"),
-            ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
-            ("accounting_effect", "in", ["none_non_account_display_line", "none_non_posted_source_line"]),
-            ("rebuild_source_id", "not in", list(seen_source_ids) or [0]),
-        ])
-        stale_reviews.unlink()
-        if missing_imported_moves:
-            self.env["rebuild.account.discrepancy"].create({
-                "name": "Non-account source display lines could not be linked to imported moves",
-                "import_run_id": self.id,
-                "severity": "P1",
-                "classification": "import_defect",
-                "status": "open",
-                "period_key": f"{options['date_from']}:{options['date_to']}",
-                "evidence": json.dumps([
-                    {"source_line_id": row["id"], "source_move_id": row["move_id"]}
-                    for row in missing_imported_moves[:50]
-                ], ensure_ascii=False, sort_keys=True),
-                "accounting_impact": "Source document context lines are not traceable to their imported posted move.",
-                "recommendation": "Fix posted move import scope before accepting document-context parity.",
-            })
-        if missing_move_reviews:
-            self.env["rebuild.account.discrepancy"].create({
-                "name": "Non-posted source move lines could not be linked to source move reviews",
-                "import_run_id": self.id,
-                "severity": "P1",
-                "classification": "import_defect",
-                "status": "open",
-                "period_key": f"{options['date_from']}:open",
-                "evidence": json.dumps([
-                    {"source_line_id": row["id"], "source_move_id": row["move_id"]}
-                    for row in missing_move_reviews[:50]
-                ], ensure_ascii=False, sort_keys=True),
-                "accounting_impact": (
-                    "Source draft/cancelled document lines are present, but they cannot be navigated "
-                    "from their source move review records."
-                ),
-                "recommendation": "Fix non-posted move review import before accepting workflow-document parity.",
-            })
-        return {
-            "source_move_line_review_count": len(rows),
-            "imported_move_line_review_count": len(imported_reviews),
-            "source_posted_non_account_line_count": posted_non_account_line_count,
-            "source_non_posted_line_count": non_posted_line_count,
-            "source_non_posted_accounting_line_count": non_posted_accounting_line_count,
-            "missing_imported_move_count": len(missing_imported_moves),
-            "missing_move_review_count": len(missing_move_reviews),
-        }
-
-    def _sync_document_regeneration_cases(self, options):
-        Case = self.env["rebuild.account.document.regeneration.case"].with_context(
-            tracking_disable=True,
-            mail_create_nolog=True,
-        )
-        MoveReview = self.env["rebuild.account.move.review"].with_context(active_test=False)
-        reviews = MoveReview.search([
-            ("rebuild_source_model", "=", "account.move"),
-            ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
-            ("accounting_effect", "=", "none_non_posted_source_move"),
-        ])
-        imported_cases = Case
-        seen_source_ids = set()
-        status_counts = defaultdict(int)
-        scope_counts = defaultdict(int)
-        generation_status_counts = defaultdict(int)
-        for review in reviews:
-            classification = Case._classification_from_review(review)
-            case_vals = {
-                "name": f"Document regeneration case - {review.source_name or review.name}",
-                "active": True,
-                "move_review_id": review.id,
-                "target_move_id": False,
-                "validation_note": "",
-                **classification,
-                "rebuild_source_database": review.rebuild_source_database,
-                "rebuild_source_model": review.rebuild_source_model,
-                "rebuild_source_id": review.rebuild_source_id,
-                "rebuild_source_xmlid": review.rebuild_source_xmlid,
-                "rebuild_source_snapshot": review.rebuild_source_snapshot,
-                "rebuild_import_run_id": self.id,
-                "rebuild_import_status": "transformed",
-                "rebuild_import_note": (
-                    "Document-regeneration workbench case generated from the non-posted source move review. "
-                    "No native target draft is created in exact ledger replay mode."
-                ),
-            }
-            case = Case.search([
-                ("rebuild_source_model", "=", review.rebuild_source_model),
-                ("rebuild_source_id", "=", review.rebuild_source_id),
-                ("rebuild_source_snapshot", "=", review.rebuild_source_snapshot),
-            ], limit=1)
-            if case:
-                preserved_status = {}
-                if case.generation_status in {"generated", "validated", "mismatch"}:
-                    preserved_status = {
-                        "generation_status": case.generation_status,
-                        "target_move_id": case.target_move_id.id,
-                        "validation_note": case.validation_note,
-                    }
-                case.write({**case_vals, **preserved_status})
-            else:
-                case = Case.create(case_vals)
-            imported_cases |= case
-            seen_source_ids.add(review.rebuild_source_id)
-            status_counts[case.case_status] += 1
-            scope_counts[case.generation_scope] += 1
-            generation_status_counts[case.generation_status] += 1
-
-        stale_cases = Case.search([
-            ("rebuild_source_model", "=", "account.move"),
-            ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
-            ("rebuild_source_id", "not in", list(seen_source_ids) or [0]),
-        ])
-        stale_cases.write({
-            "active": False,
-            "generation_status": "blocked",
-            "blocker_reason": "Source move review is no longer present in the imported source snapshot.",
-            "rebuild_import_run_id": self.id,
-            "rebuild_import_status": "skipped",
-        })
-        candidate_count = status_counts.get("candidate_ready", 0)
-        review_only_count = generation_status_counts.get("not_applicable", 0)
-        blocked_count = generation_status_counts.get("blocked", 0)
-        return {
-            "source_move_review_count": len(reviews),
-            "document_regeneration_case_count": len(imported_cases),
-            "candidate_ready_count": candidate_count,
-            "review_only_count": review_only_count,
-            "blocked_count": blocked_count,
-            "generated_count": generation_status_counts.get("generated", 0),
-            "validated_count": generation_status_counts.get("validated", 0),
-            "mismatch_count": generation_status_counts.get("mismatch", 0),
-            "stale_case_count": len(stale_cases),
-            "case_status_counts": dict(sorted(status_counts.items())),
-            "generation_scope_counts": dict(sorted(scope_counts.items())),
-            "generation_status_counts": dict(sorted(generation_status_counts.items())),
-        }
-
-    def finalize_product_draft_regeneration(self):
-        """Close the import discrepancy once every eligible source draft exists."""
-        self.ensure_one()
-        cases = self.env[
-            "rebuild.account.document.regeneration.case"
-        ].with_context(active_test=False).search([
-            ("active", "=", True),
-            ("rebuild_source_snapshot", "=", self.source_snapshot_id),
-        ])
-        candidates = cases.filtered(
-            lambda case: case.case_status == "candidate_ready"
-        )
-        review_only = cases.filtered(
-            lambda case: case.generation_status == "not_applicable"
-        )
-        validated = candidates.filtered(
-            lambda case: case.generation_status == "validated"
-        )
-        mismatches = candidates.filtered(
-            lambda case: case.generation_status == "mismatch"
-        )
-        blocked = candidates.filtered(
-            lambda case: case.generation_status == "blocked"
-        )
-        incomplete = candidates - validated - mismatches - blocked
-        stats = {
-            "candidate_count": len(candidates),
-            "validated_count": len(validated),
-            "review_only_count": len(review_only),
-            "mismatch_count": len(mismatches),
-            "blocked_count": len(blocked),
-            "incomplete_count": len(incomplete),
-        }
-        if (
-            len(validated) == len(candidates)
-            and not mismatches
-            and not blocked
-            and not incomplete
-        ):
-            discrepancy_name = (
-                "Non-posted source moves have regeneration cases but "
-                "native generation remains incomplete"
-            )
-            self.env["rebuild.account.discrepancy"].search([
-                ("name", "=", discrepancy_name),
-                ("status", "!=", "resolved"),
-            ]).write({
-                "import_run_id": self.id,
-                "status": "resolved",
-                "classification": "period_or_scope_difference",
-                "severity": "P2",
-                "target_value": (
-                    f"{len(validated)} candidate drafts validated; "
-                    f"{len(review_only)} review-only cases marked not applicable"
-                ),
-                "difference": (
-                    "No candidate-ready source draft remains ungenerated, "
-                    "unvalidated or blocked."
-                ),
-                "evidence": json.dumps(
-                    stats,
-                    ensure_ascii=False,
-                    sort_keys=True,
-                ),
-                "accounting_impact": (
-                    "Every eligible non-posted source move is represented by "
-                    "a native target draft with matching source line count and "
-                    "debit, credit and balance totals."
-                ),
-                "legal_or_tax_impact": (
-                    "Generated records remain drafts and introduce no posted "
-                    "closed-period ledger effect."
-                ),
-                "recommendation": (
-                    "Use the native drafts in normal product workflows; keep "
-                    "cancelled or empty source records as review-only evidence."
-                ),
-            })
-        return stats
 
     def _import_bank_statement_lines(self, conn, options, companies, partners, journals, currencies):
         rows = self._bank_statement_line_rows(conn, options)
@@ -4743,6 +4264,16 @@ class RebuildAccountImportRun(models.Model):
     def _import_payments(self, conn, options, companies, partners, accounts, journals, currencies):
         rows = self._payment_rows(conn, options)
         method_lines = self._payment_method_line_map(conn, journals, accounts)
+        source_invoice_ids = {
+            source_invoice_id
+            for row in rows
+            for source_invoice_id in (row["invoice_ids"] or [])
+        }
+        invoice_map = self._source_trace_record_map(
+            "account.move",
+            source_invoice_ids,
+            options,
+        )
 
         source_move_ids = [row["move_id"] for row in rows if row["move_id"]]
         move_map = self._source_trace_record_map(
@@ -4757,13 +4288,8 @@ class RebuildAccountImportRun(models.Model):
             skip_account_move_synchronization=True,
             skip_invoice_sync=True,
         )
-        PaymentReview = self.env["rebuild.account.payment.review"].with_context(
-            tracking_disable=True,
-            mail_create_nolog=True,
-        )
         imported_payments = self.env["account.payment"]
-        imported_payment_reviews = self.env["rebuild.account.payment.review"]
-        seen_review_source_ids = set()
+        imported_no_entry_payments = self.env["account.payment"]
         skipped_without_imported_move = []
         missing_method_lines = []
         state_transformations = defaultdict(int)
@@ -4774,52 +4300,111 @@ class RebuildAccountImportRun(models.Model):
         for row in rows:
             if not row["move_id"]:
                 source_state = row["state"] or "unknown"
-                review_vals = {
+                payment_method_line = method_lines.get(row["payment_method_line_id"])
+                if not payment_method_line:
+                    missing_method_lines.append(row)
+                    continue
+                invoice_ids = [
+                    invoice_map[source_id].id
+                    for source_id in (row["invoice_ids"] or [])
+                    if source_id in invoice_map
+                ]
+                vals = {
                     "name": row["name"] or row["memo"] or f"Source payment {row['id']}",
-                    "source_payment_id": row["id"],
-                    "source_state": source_state,
-                    "state": source_state if source_state in {"draft", "reconciled", "canceled"} else "unknown",
-                    "review_status": "review_required" if source_state == "reconciled" else "represented_no_ledger_effect",
                     "company_id": companies[row["company_id"]].id,
                     "currency_id": currencies[row["currency_id"]].id,
                     "journal_id": journals[row["journal_id"]].id if row["journal_id"] in journals else False,
                     "partner_id": partners[row["partner_id"]].id if row["partner_id"] in partners else False,
-                    "partner_bank_source_id": row["partner_bank_id"],
-                    "payment_method_line_source_id": row["payment_method_line_id"],
-                    "paired_internal_transfer_payment_source_id": row["paired_internal_transfer_payment_id"],
-                    "outstanding_account_id": accounts[row["outstanding_account_id"]].id if row["outstanding_account_id"] in accounts else False,
+                    "payment_method_line_id": payment_method_line.id,
                     "destination_account_id": accounts[row["destination_account_id"]].id if row["destination_account_id"] in accounts else False,
                     "date": row["date"],
                     "amount": self._amount(row["amount"]),
-                    "amount_company_currency_signed": self._amount(row["amount_company_currency_signed"]),
-                    "payment_type": row["payment_type"],
-                    "partner_type": row["partner_type"],
+                    "payment_type": row["payment_type"] or "inbound",
+                    "partner_type": row["partner_type"] or "customer",
                     "memo": row["memo"],
                     "payment_reference": row["payment_reference"],
-                    "source_is_reconciled": bool(row["is_reconciled"]),
-                    "source_is_matched": bool(row["is_matched"]),
-                    "source_is_sent": bool(row["is_sent"]),
-                    "source_is_reconciled_raw": raw_bool(row["is_reconciled"]),
-                    "source_is_matched_raw": raw_bool(row["is_matched"]),
-                    "source_is_sent_raw": raw_bool(row["is_sent"]),
-                    "accounting_effect": "none_no_source_move",
-                    "note": (
-                        "Source account.payment has no source journal entry (move_id is null). "
-                        "It is represented for workflow review only and does not create target ledger debit or credit."
+                    "state": "draft",
+                    "is_sent": bool(row["is_sent"]),
+                    "invoice_ids": [Command.set(invoice_ids)],
+                    "usl_historical_no_ledger_effect": True,
+                    "usl_source_is_reconciled": bool(row["is_reconciled"]),
+                    "usl_source_is_matched": bool(row["is_matched"]),
+                    "usl_source_is_sent": bool(row["is_sent"]),
+                    "usl_source_is_reconciled_raw": raw_bool(
+                        row["is_reconciled"],
+                    ),
+                    "usl_source_is_matched_raw": raw_bool(row["is_matched"]),
+                    "usl_source_is_sent_raw": raw_bool(row["is_sent"]),
+                    "usl_source_outstanding_account_id": row[
+                        "outstanding_account_id"
+                    ],
+                    "usl_source_destination_account_id": row[
+                        "destination_account_id"
+                    ],
+                    "usl_source_amount_company_currency_signed": self._amount(
+                        row["amount_company_currency_signed"],
+                    ),
+                    "rebuild_import_note": (
+                        "Native historical payment imported without a journal "
+                        "entry because the source payment also had no move_id. "
+                        "The source state and invoice links are preserved "
+                        "without duplicating any ledger effect."
                     ),
                     **self._trace_values("account.payment", row["id"], options),
                 }
-                review = PaymentReview.search([
+                payment = Payment.search([
                     ("rebuild_source_model", "=", "account.payment"),
                     ("rebuild_source_id", "=", row["id"]),
                     ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
                 ], limit=1)
-                if review:
-                    review.write(review_vals)
+                historical_payment = Payment.with_context(
+                    usl_import_no_ledger_payment=True,
+                )
+                if payment:
+                    payment.with_context(
+                        usl_import_no_ledger_payment=True,
+                    ).write(vals)
                 else:
-                    review = PaymentReview.create(review_vals)
-                imported_payment_reviews |= review
-                seen_review_source_ids.add(row["id"])
+                    payment = historical_payment.create(vals)
+                target_state = self._target_payment_state(source_state)
+                payment.flush_recordset([
+                    "name",
+                    "state",
+                    "outstanding_account_id",
+                    "is_reconciled",
+                    "is_matched",
+                    "is_sent",
+                ])
+                self.env.cr.execute(
+                    """
+                    UPDATE account_payment
+                       SET name = %s,
+                           state = %s,
+                           outstanding_account_id = NULL,
+                           is_reconciled = %s,
+                           is_matched = %s,
+                           is_sent = %s
+                     WHERE id = %s
+                    """,
+                    (
+                        row["name"] or row["memo"] or f"Source payment {row['id']}",
+                        target_state,
+                        bool(row["is_reconciled"]),
+                        bool(row["is_matched"]),
+                        bool(row["is_sent"]),
+                        payment.id,
+                    ),
+                )
+                payment.invalidate_recordset([
+                    "name",
+                    "state",
+                    "outstanding_account_id",
+                    "is_reconciled",
+                    "is_matched",
+                    "is_sent",
+                ], flush=False)
+                imported_payments |= payment
+                imported_no_entry_payments |= payment
                 continue
             move = move_map.get(row["move_id"])
             if not move:
@@ -4950,13 +4535,6 @@ class RebuildAccountImportRun(models.Model):
                 ).write({"origin_payment_id": payment.id})
             imported_payments |= payment
 
-        stale_reviews = PaymentReview.search([
-            ("rebuild_source_model", "=", "account.payment"),
-            ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
-            ("accounting_effect", "=", "none_no_source_move"),
-            ("rebuild_source_id", "not in", list(seen_review_source_ids) or [0]),
-        ])
-        stale_reviews.unlink()
         if skipped_without_imported_move:
             self.env["rebuild.account.discrepancy"].create({
                 "name": "Source payments point to journal entries outside the imported replay scope",
@@ -4996,7 +4574,7 @@ class RebuildAccountImportRun(models.Model):
             "source_payment_count": len(rows),
             "source_move_backed_payment_count": len(source_move_ids),
             "imported_payment_count": len(imported_payments),
-            "no_entry_payment_review_count": len(imported_payment_reviews),
+            "native_no_entry_payment_count": len(imported_no_entry_payments),
             "skipped_without_imported_move_count": len(skipped_without_imported_move),
             "missing_method_line_count": len(missing_method_lines),
             "state_transformations": dict(state_transformations),
@@ -5011,8 +4589,6 @@ class RebuildAccountImportRun(models.Model):
                 FROM account_move_line aml
                 JOIN account_move am ON am.id = aml.move_id
                 WHERE am.company_id = ANY(%(source_company_ids)s)
-                  AND am.state = 'posted'
-                  AND am.date BETWEEN %(date_from)s AND %(date_to)s
             )
             SELECT pr.id, pr.debit_move_id, pr.credit_move_id, pr.full_reconcile_id,
                    pr.exchange_move_id, pr.company_id, pr.max_date, pr.draft_caba_move_vals,
@@ -5034,8 +4610,6 @@ class RebuildAccountImportRun(models.Model):
                 FROM account_move_line aml
                 JOIN account_move am ON am.id = aml.move_id
                 WHERE am.company_id = ANY(%(source_company_ids)s)
-                  AND am.state = 'posted'
-                  AND am.date BETWEEN %(date_from)s AND %(date_to)s
             ),
             full_lines AS (
                 SELECT full_reconcile_id,
@@ -5072,8 +4646,6 @@ class RebuildAccountImportRun(models.Model):
                 FROM account_move_line aml
                 JOIN account_move am ON am.id = aml.move_id
                 WHERE am.company_id = ANY(%(source_company_ids)s)
-                  AND am.state = 'posted'
-                  AND am.date BETWEEN %(date_from)s AND %(date_to)s
             ),
             full_lines AS (
                 SELECT full_reconcile_id,
@@ -5110,295 +4682,11 @@ class RebuildAccountImportRun(models.Model):
         )
         return rows[0] if rows else {}
 
-    def _reconciliation_review_rows(self, conn, options):
-        partial_rows = self._fetchall(
-            conn,
-            """
-            WITH imported AS (
-                SELECT aml.id
-                FROM account_move_line aml
-                JOIN account_move am ON am.id = aml.move_id
-                WHERE am.company_id = ANY(%(source_company_ids)s)
-                  AND am.state = 'posted'
-                  AND am.date BETWEEN %(date_from)s AND %(date_to)s
-            )
-            SELECT 'partial' AS reconciliation_kind,
-                   pr.id AS source_partial_reconcile_id,
-                   pr.full_reconcile_id AS source_full_reconcile_id,
-                   pr.debit_move_id AS source_debit_line_id,
-                   pr.credit_move_id AS source_credit_line_id,
-                   debit_move.id AS source_debit_move_id,
-                   credit_move.id AS source_credit_move_id,
-                   debit_move.date AS source_debit_move_date,
-                   credit_move.date AS source_credit_move_date,
-                   debit_move.state AS source_debit_move_state,
-                   credit_move.state AS source_credit_move_state,
-                   debit_move.company_id AS source_debit_company_id,
-                   credit_move.company_id AS source_credit_company_id,
-                   pr.company_id AS source_company_id,
-                   ARRAY(
-                       SELECT DISTINCT company_id
-                       FROM (VALUES (debit_move.company_id), (credit_move.company_id)) AS companies(company_id)
-                       WHERE company_id IS NOT NULL
-                       ORDER BY company_id
-                   ) AS source_company_ids,
-                   (pr.debit_move_id IN (SELECT id FROM imported)) AS debit_line_imported,
-                   (pr.credit_move_id IN (SELECT id FROM imported)) AS credit_line_imported,
-                   pr.exchange_move_id AS source_exchange_move_id,
-                   pr.max_date,
-                   pr.amount,
-                   pr.debit_amount_currency,
-                   pr.credit_amount_currency,
-                   0 AS total_line_count,
-                   0 AS imported_line_count,
-                   0 AS missing_line_count,
-                   ARRAY[]::integer[] AS source_line_ids,
-                   ARRAY[]::integer[] AS imported_source_line_ids,
-                   ARRAY[]::integer[] AS missing_source_line_ids,
-                   ARRAY[]::integer[] AS missing_source_move_ids,
-                   ARRAY[]::text[] AS missing_source_move_states,
-                   ARRAY[]::text[] AS missing_source_move_dates,
-                   ARRAY[]::integer[] AS missing_source_company_ids,
-                   ARRAY[]::integer[] AS source_partial_reconcile_ids
-            FROM account_partial_reconcile pr
-            JOIN account_move_line debit_line ON debit_line.id = pr.debit_move_id
-            JOIN account_move debit_move ON debit_move.id = debit_line.move_id
-            JOIN account_move_line credit_line ON credit_line.id = pr.credit_move_id
-            JOIN account_move credit_move ON credit_move.id = credit_line.move_id
-            WHERE (pr.debit_move_id IN (SELECT id FROM imported)
-                OR pr.credit_move_id IN (SELECT id FROM imported))
-              AND NOT (
-                    pr.debit_move_id IN (SELECT id FROM imported)
-                AND pr.credit_move_id IN (SELECT id FROM imported)
-              )
-            ORDER BY pr.id
-            """,
-            options,
-        )
-        full_rows = self._fetchall(
-            conn,
-            """
-            WITH imported AS (
-                SELECT aml.id
-                FROM account_move_line aml
-                JOIN account_move am ON am.id = aml.move_id
-                WHERE am.company_id = ANY(%(source_company_ids)s)
-                  AND am.state = 'posted'
-                  AND am.date BETWEEN %(date_from)s AND %(date_to)s
-            ),
-            full_lines AS (
-                SELECT aml.full_reconcile_id,
-                       count(*) AS total_line_count,
-                       count(*) FILTER (WHERE aml.id IN (SELECT id FROM imported)) AS imported_line_count,
-                       array_agg(aml.id ORDER BY aml.id) AS source_line_ids,
-                       array_agg(aml.id ORDER BY aml.id) FILTER (WHERE aml.id IN (SELECT id FROM imported)) AS imported_source_line_ids,
-                       array_agg(aml.id ORDER BY aml.id) FILTER (WHERE aml.id NOT IN (SELECT id FROM imported)) AS missing_source_line_ids,
-                       array_agg(am.id ORDER BY aml.id) FILTER (WHERE aml.id NOT IN (SELECT id FROM imported)) AS missing_source_move_ids,
-                       array_agg(am.state ORDER BY aml.id) FILTER (WHERE aml.id NOT IN (SELECT id FROM imported)) AS missing_source_move_states,
-                       array_agg(am.date::text ORDER BY aml.id) FILTER (WHERE aml.id NOT IN (SELECT id FROM imported)) AS missing_source_move_dates,
-                       array_agg(am.company_id ORDER BY aml.id) FILTER (WHERE aml.id NOT IN (SELECT id FROM imported)) AS missing_source_company_ids,
-                       min(am.company_id) FILTER (WHERE aml.id IN (SELECT id FROM imported)) AS source_company_id,
-                       array_agg(DISTINCT am.company_id ORDER BY am.company_id) AS source_company_ids
-                FROM account_move_line aml
-                JOIN account_move am ON am.id = aml.move_id
-                WHERE aml.full_reconcile_id IS NOT NULL
-                GROUP BY aml.full_reconcile_id
-            )
-            SELECT 'full' AS reconciliation_kind,
-                   NULL::integer AS source_partial_reconcile_id,
-                   fl.full_reconcile_id AS source_full_reconcile_id,
-                   NULL::integer AS source_debit_line_id,
-                   NULL::integer AS source_credit_line_id,
-                   NULL::integer AS source_debit_move_id,
-                   NULL::integer AS source_credit_move_id,
-                   NULL::date AS source_debit_move_date,
-                   NULL::date AS source_credit_move_date,
-                   NULL::text AS source_debit_move_state,
-                   NULL::text AS source_credit_move_state,
-                   NULL::integer AS source_debit_company_id,
-                   NULL::integer AS source_credit_company_id,
-                   fl.source_company_id,
-                   fl.source_company_ids,
-                   false AS debit_line_imported,
-                   false AS credit_line_imported,
-                   NULL::integer AS source_exchange_move_id,
-                   max(pr.max_date) AS max_date,
-                   COALESCE(sum(pr.amount), 0) AS amount,
-                   COALESCE(sum(pr.debit_amount_currency), 0) AS debit_amount_currency,
-                   COALESCE(sum(pr.credit_amount_currency), 0) AS credit_amount_currency,
-                   fl.total_line_count,
-                   fl.imported_line_count,
-                   fl.total_line_count - fl.imported_line_count AS missing_line_count,
-                   fl.source_line_ids,
-                   fl.imported_source_line_ids,
-                   fl.missing_source_line_ids,
-                   fl.missing_source_move_ids,
-                   fl.missing_source_move_states,
-                   fl.missing_source_move_dates,
-                   fl.missing_source_company_ids,
-                   array_remove(array_agg(pr.id ORDER BY pr.id), NULL) AS source_partial_reconcile_ids
-            FROM full_lines fl
-            LEFT JOIN account_partial_reconcile pr ON pr.full_reconcile_id = fl.full_reconcile_id
-            WHERE fl.imported_line_count > 0
-              AND fl.imported_line_count < fl.total_line_count
-            GROUP BY fl.full_reconcile_id,
-                     fl.source_company_id,
-                     fl.source_company_ids,
-                     fl.total_line_count,
-                     fl.imported_line_count,
-                     fl.source_line_ids,
-                     fl.imported_source_line_ids,
-                     fl.missing_source_line_ids,
-                     fl.missing_source_move_ids,
-                     fl.missing_source_move_states,
-                     fl.missing_source_move_dates,
-                     fl.missing_source_company_ids
-            ORDER BY fl.full_reconcile_id
-            """,
-            options,
-        )
-        return partial_rows + full_rows
-
-    def _import_reconciliation_reviews(self, conn, options, companies):
-        rows = self._reconciliation_review_rows(conn, options)
-        Review = self.env["rebuild.account.reconciliation.review"].with_context(
-            tracking_disable=True,
-            mail_create_nolog=True,
-        )
-        imported_reviews = Review.browse()
-        seen_partial_ids = set()
-        seen_full_ids = set()
-        source_line_ids = set()
-        source_exchange_move_ids = set()
-        for row in rows:
-            source_line_ids.update(row["imported_source_line_ids"] or [])
-            for key in ("source_debit_line_id", "source_credit_line_id"):
-                if row.get(key):
-                    source_line_ids.add(row[key])
-            if row.get("source_exchange_move_id"):
-                source_exchange_move_ids.add(row["source_exchange_move_id"])
-
-        line_map = self._source_trace_record_map(
-            "account.move.line",
-            source_line_ids,
-            options,
-        )
-        move_map = self._source_trace_record_map(
-            "account.move",
-            source_exchange_move_ids,
-            options,
-        )
-
-        for row in rows:
-            kind = row["reconciliation_kind"]
-            source_model = "account.partial.reconcile" if kind == "partial" else "account.full.reconcile"
-            source_id = row["source_partial_reconcile_id"] if kind == "partial" else row["source_full_reconcile_id"]
-            source_company_id = row["source_company_id"]
-            if source_company_id not in companies:
-                source_company_ids = row["source_company_ids"] or []
-                source_company_id = next((company_id for company_id in source_company_ids if company_id in companies), None)
-            if source_company_id not in companies:
-                continue
-            vals = {
-                "name": (
-                    f"Source partial reconciliation {source_id}"
-                    if kind == "partial"
-                    else f"Source full reconciliation {source_id}"
-                ),
-                "reconciliation_kind": kind,
-                "review_status": "review_required",
-                "accounting_effect": "review_only_cross_boundary",
-                "company_id": companies[source_company_id].id,
-                "source_company_id": source_company_id,
-                "source_company_ids": self._source_ids_text(row["source_company_ids"]),
-                "source_partial_reconcile_id": row["source_partial_reconcile_id"],
-                "source_full_reconcile_id": row["source_full_reconcile_id"],
-                "source_debit_line_id": row["source_debit_line_id"],
-                "source_credit_line_id": row["source_credit_line_id"],
-                "source_debit_move_id": row["source_debit_move_id"],
-                "source_credit_move_id": row["source_credit_move_id"],
-                "source_debit_move_date": row["source_debit_move_date"],
-                "source_credit_move_date": row["source_credit_move_date"],
-                "source_debit_move_state": row["source_debit_move_state"],
-                "source_credit_move_state": row["source_credit_move_state"],
-                "source_debit_company_id": row["source_debit_company_id"],
-                "source_credit_company_id": row["source_credit_company_id"],
-                "debit_line_imported": bool(row["debit_line_imported"]),
-                "credit_line_imported": bool(row["credit_line_imported"]),
-                "source_exchange_move_id": row["source_exchange_move_id"],
-                "exchange_move_imported": row["source_exchange_move_id"] in move_map,
-                "max_date": row["max_date"],
-                "amount": self._amount(row["amount"]),
-                "debit_amount_currency": self._amount(row["debit_amount_currency"]),
-                "credit_amount_currency": self._amount(row["credit_amount_currency"]),
-                "total_line_count": row["total_line_count"],
-                "imported_line_count": row["imported_line_count"],
-                "missing_line_count": row["missing_line_count"],
-                "source_line_ids": self._source_ids_text(row["source_line_ids"]),
-                "imported_source_line_ids": self._source_ids_text(row["imported_source_line_ids"]),
-                "missing_source_line_ids": self._source_ids_text(row["missing_source_line_ids"]),
-                "missing_source_move_ids": self._source_ids_text(row["missing_source_move_ids"]),
-                "missing_source_move_states": self._source_ids_text(row["missing_source_move_states"]),
-                "missing_source_move_dates": self._source_ids_text(row["missing_source_move_dates"]),
-                "missing_source_company_ids": self._source_ids_text(row["missing_source_company_ids"]),
-                "source_partial_reconcile_ids": self._source_ids_text(row["source_partial_reconcile_ids"]),
-                "note": (
-                    "Source reconciliation crosses the exact replay boundary. Imported endpoints are visible "
-                    "for review, but the target reconciliation graph is not completed until the missing "
-                    "source endpoints are imported or explicitly excluded."
-                ),
-                **self._trace_values(source_model, source_id, options),
-            }
-            if row["source_debit_line_id"] in line_map:
-                vals["debit_move_line_id"] = line_map[row["source_debit_line_id"]].id
-            if row["source_credit_line_id"] in line_map:
-                vals["credit_move_line_id"] = line_map[row["source_credit_line_id"]].id
-            if row["source_exchange_move_id"] in move_map:
-                vals["exchange_move_id"] = move_map[row["source_exchange_move_id"]].id
-
-            review = Review.search([
-                ("rebuild_source_model", "=", source_model),
-                ("rebuild_source_id", "=", source_id),
-                ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
-            ], limit=1)
-            if review:
-                review.write(vals)
-            else:
-                review = Review.create(vals)
-            imported_reviews |= review
-            if kind == "partial":
-                seen_partial_ids.add(source_id)
-            else:
-                seen_full_ids.add(source_id)
-
-        stale_partial_reviews = Review.search([
-            ("rebuild_source_model", "=", "account.partial.reconcile"),
-            ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
-            ("accounting_effect", "=", "review_only_cross_boundary"),
-            ("rebuild_source_id", "not in", list(seen_partial_ids) or [0]),
-        ])
-        stale_full_reviews = Review.search([
-            ("rebuild_source_model", "=", "account.full.reconcile"),
-            ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
-            ("accounting_effect", "=", "review_only_cross_boundary"),
-            ("rebuild_source_id", "not in", list(seen_full_ids) or [0]),
-        ])
-        (stale_partial_reviews | stale_full_reviews).unlink()
-        return {
-            "source_partial_review_count": sum(1 for row in rows if row["reconciliation_kind"] == "partial"),
-            "source_full_review_count": sum(1 for row in rows if row["reconciliation_kind"] == "full"),
-            "source_reconciliation_review_count": len(rows),
-            "imported_partial_review_count": len(imported_reviews.filtered(lambda review: review.reconciliation_kind == "partial")),
-            "imported_full_review_count": len(imported_reviews.filtered(lambda review: review.reconciliation_kind == "full")),
-            "imported_reconciliation_review_count": len(imported_reviews),
-        }
 
     def _import_reconciliations(self, conn, options, companies):
         partial_rows = self._partial_reconcile_rows(conn, options)
         full_rows = self._full_reconcile_rows(conn, options)
         scope_summary = self._reconciliation_scope_summary(conn, options)
-        review_stats = self._import_reconciliation_reviews(conn, options, companies)
-
         Partial = self.env["account.partial.reconcile"].with_context(
             tracking_disable=True,
             check_move_validity=False,
@@ -5485,7 +4773,6 @@ class RebuildAccountImportRun(models.Model):
                 key: int(value or 0)
                 for key, value in dict(scope_summary).items()
             },
-            "reviews": review_stats,
         }
 
     def _import_assets(self, conn, options, companies, accounts, journals, currencies):
@@ -5812,7 +5099,6 @@ class RebuildAccountImportRun(models.Model):
             tracking_disable=True,
             mail_create_nolog=True,
         )
-        MoveReview = self.env["rebuild.account.move.review"].with_context(active_test=False)
         source_move_ids = {
             row["original_move_id"]
             for row in rows
@@ -5825,14 +5111,6 @@ class RebuildAccountImportRun(models.Model):
             source_move_ids,
             options,
         )
-        move_review_map = {
-            review.rebuild_source_id: review
-            for review in MoveReview.search([
-                ("rebuild_source_model", "=", "account.move"),
-                ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
-                ("rebuild_source_id", "in", list(source_move_ids) or [0]),
-            ])
-        }
         imported_lines = self.env["rebuild.account.deferred.schedule.line"]
         seen_source_ids = set()
         representation_counts = defaultdict(int)
@@ -5843,11 +5121,10 @@ class RebuildAccountImportRun(models.Model):
             schedule_phase = self._deferred_schedule_phase(schedule_type, deferred_account_balance)
             original_move = move_map.get(row["original_move_id"])
             deferred_move = move_map.get(row["deferred_move_id"])
-            deferred_review = move_review_map.get(row["deferred_move_id"])
-            if deferred_move:
-                representation_status = "imported_posted_entry"
-            elif row["deferred_state"] != "posted":
+            if row["deferred_state"] != "posted":
                 representation_status = "source_draft_forecast"
+            elif deferred_move:
+                representation_status = "imported_posted_entry"
             else:
                 representation_status = "source_not_replayed"
             review_status = "represented"
@@ -5869,7 +5146,6 @@ class RebuildAccountImportRun(models.Model):
                 "partner_id": partners[row["partner_id"]].id if row["partner_id"] in partners else False,
                 "original_move_id": original_move.id if original_move else False,
                 "deferred_move_id": deferred_move.id if deferred_move else False,
-                "deferred_move_review_id": deferred_review.id if deferred_review else False,
                 "original_move_imported": bool(original_move),
                 "deferred_move_imported": bool(deferred_move),
                 "source_original_move_id": row["original_move_id"],
@@ -8375,13 +7651,14 @@ class RebuildAccountImportRun(models.Model):
             )
             imported_moves = self.env["account.move"]
             imported_line_count = 0
-            skipped_non_account_lines = [
+            imported_display_lines = [
                 line
                 for lines in line_rows_by_move.values()
                 for line in lines
                 if not line["account_id"]
             ]
-            skipped_non_account_line_count = len(skipped_non_account_lines)
+            skipped_non_account_lines = []
+            skipped_non_account_line_count = 0
             skipped_non_account_line_examples = [
                 {
                     "source_move_id": line["move_id"],
@@ -8389,7 +7666,7 @@ class RebuildAccountImportRun(models.Model):
                     "display_type": line["display_type"],
                     "name": line["name"],
                 }
-                for line in skipped_non_account_lines[:20]
+                for line in imported_display_lines[:20]
             ]
             existing_move_map = self._source_trace_record_map(
                 "account.move",
@@ -8428,11 +7705,8 @@ class RebuildAccountImportRun(models.Model):
                     continue
                 line_commands = []
                 for line in line_rows_by_move[move_row["id"]]:
-                    if not line["account_id"]:
-                        continue
                     line_vals = {
                         "sequence": line["sequence"] or 10,
-                        "account_id": accounts[line["account_id"]].id,
                         "name": line["name"] or "/",
                         "ref": line["ref"],
                         "partner_id": partners[line["partner_id"]].id if line["partner_id"] in partners else False,
@@ -8444,6 +7718,10 @@ class RebuildAccountImportRun(models.Model):
                         "display_type": line["display_type"] or "product",
                         **self._trace_values("account.move.line", line["id"], options),
                     }
+                    if line["account_id"]:
+                        line_vals["account_id"] = accounts[line["account_id"]].id
+                    elif line["display_type"] not in {"line_section", "line_note"}:
+                        line_vals["display_type"] = "line_note"
                     if options.get("preserve_business_documents"):
                         line_vals.update({
                             "quantity": self._amount(line["quantity"]),
@@ -8512,7 +7790,10 @@ class RebuildAccountImportRun(models.Model):
                 if move_row["currency_id"] in currencies:
                     move_vals["currency_id"] = currencies[move_row["currency_id"]].id
                 move = Move.create(move_vals)
-                move.action_post()
+                if move_row["state"] == "posted":
+                    move.action_post()
+                elif move_row["state"] == "cancel":
+                    move.button_cancel()
                 if move.name != (move_row["name"] or "/"):
                     warnings.append(f"Move {move_row['id']} imported with name {move.name} instead of {move_row['name']}.")
                 imported_moves |= move
@@ -8524,7 +7805,7 @@ class RebuildAccountImportRun(models.Model):
                 options,
             )
             sequence_chronology_stats = self._sequence_chronology_stats(
-                move_rows,
+                [row for row in move_rows if row["state"] == "posted"],
                 imported_move_map,
             )
             if not sequence_chronology_stats["target_matches_source"]:
@@ -8624,11 +7905,42 @@ class RebuildAccountImportRun(models.Model):
             for source_account_id in account_ids_to_archive_after_post:
                 accounts[source_account_id].active = False
 
-            move_review_stats = self._import_move_reviews(conn, options, companies, partners, journals, currencies)
-            move_line_review_stats = self._import_move_line_reviews(
-                conn, options, companies, partners, accounts, journals, currencies
-            )
-            document_regeneration_stats = self._sync_document_regeneration_cases(options)
+            non_posted_moves = [
+                row for row in move_rows if row["state"] != "posted"
+            ]
+            non_posted_lines = [
+                line
+                for row in non_posted_moves
+                for line in line_rows_by_move[row["id"]]
+            ]
+            posted_display_lines = [
+                line
+                for row in move_rows
+                if row["state"] == "posted"
+                for line in line_rows_by_move[row["id"]]
+                if not line["account_id"]
+            ]
+            native_document_stats = {
+                "source_non_posted_move_count": len(non_posted_moves),
+                "imported_non_posted_move_count": len(non_posted_moves),
+                "native_non_posted_move_count": len(non_posted_moves),
+            }
+            native_context_line_stats = {
+                "source_context_line_count": len(non_posted_lines)
+                + len(posted_display_lines),
+                "imported_context_line_count": len(non_posted_lines)
+                + len(posted_display_lines),
+                "source_posted_non_account_line_count": len(
+                    posted_display_lines
+                ),
+                "source_non_posted_line_count": len(non_posted_lines),
+                "source_non_posted_accounting_line_count": len(
+                    [line for line in non_posted_lines if line["account_id"]]
+                ),
+                "missing_imported_move_count": 0,
+                "native_source_line_count": len(non_posted_lines)
+                + len(posted_display_lines),
+            }
             reconciliation_stats = self._import_reconciliations(conn, options, companies)
             payment_stats = self._import_payments(conn, options, companies, partners, accounts, journals, currencies)
             deferred_schedule_stats = self._import_deferred_schedules(
@@ -8669,190 +7981,13 @@ class RebuildAccountImportRun(models.Model):
                         declarations.action_refresh_preparation()
                     self.env["rebuild.account.closing.period"].sync_for_company(company)
 
-            missing_domains = [
-                ("Report suite awaits current technical parity evidence", "P1"),
-            ]
-            for name, severity in missing_domains:
-                self._upsert_discrepancy({
-                    "name": name,
-                    "severity": severity,
-                    "classification": "report_definition_defect",
-                    "status": "open",
-                    "period_key": f"{options['date_from']}:{options['date_to']}",
-                    "source_model": "account.report",
-                    "source_value": str(source_report_stats["active_source_report_count"]),
-                    "target_model": "rebuild.account.source.report",
-                    "target_value": str(source_report_stats["partial_target_equivalent_count"]),
-                    "difference": str(source_report_stats["missing_target_equivalent_count"]),
-                    "evidence": json.dumps(source_report_stats, ensure_ascii=False, sort_keys=True),
-                    "accounting_impact": (
-                        "This import run preserves every active source report catalogue record and assigns "
-                        "a target equivalent. The report evidence stage now exercises exports, preview "
-                        "drill-down and explicit 2024/legal-form scope handling. The discrepancy remains open "
-                        "until the current commit's complete technical report evidence passes."
-                    ),
-                    "recommendation": (
-                        "Run the complete report evidence suite on the current commit and resolve every failed "
-                        "availability, value, hierarchy, drill-down, PDF or XLSX control."
-                    ),
-                })
-            self.env["rebuild.account.discrepancy"].search([
-                ("name", "=", "User-facing report suite is not yet complete account.report parity"),
-                ("status", "!=", "resolved"),
-                ("source_model", "=", "account.report"),
-            ]).write({
-                "import_run_id": self.id,
-                "status": "resolved",
-                "decision": "Superseded by the report-suite acceptance discrepancy with current post-export evidence wording.",
-            })
-            if move_review_stats["source_move_review_count"] != move_review_stats["imported_move_review_count"]:
-                self._upsert_discrepancy({
-                    "name": "Non-posted source move review records are incomplete",
-                    "severity": "P1",
-                    "classification": "import_defect",
-                    "status": "open",
-                    "period_key": f"{options['date_from']}:open",
-                    "source_value": str(move_review_stats["source_move_review_count"]),
-                    "target_value": str(move_review_stats["imported_move_review_count"]),
-                    "accounting_impact": "Draft/cancelled/future source workflow records are not fully represented for review.",
-                    "recommendation": "Fix the move review import before using the target for operational accounting review.",
-                })
-            else:
-                all_regeneration_candidates_validated = (
-                    document_regeneration_stats["candidate_ready_count"]
-                    == document_regeneration_stats["validated_count"]
-                    and not document_regeneration_stats["mismatch_count"]
-                    and not document_regeneration_stats["generation_status_counts"].get("not_generated")
-                )
-                document_regeneration_discrepancy = "Non-posted source moves have regeneration cases but native generation remains incomplete"
-                if all_regeneration_candidates_validated and not document_regeneration_stats["blocked_count"]:
-                    self.env["rebuild.account.discrepancy"].search([
-                        ("name", "=", document_regeneration_discrepancy),
-                        ("status", "!=", "resolved"),
-                    ]).write({
-                        "import_run_id": self.id,
-                        "status": "resolved",
-                        "classification": "period_or_scope_difference",
-                        "severity": "P2",
-                        "source_value": str(move_review_stats["source_move_review_count"]),
-                        "target_value": (
-                            f"{document_regeneration_stats['validated_count']} candidate drafts validated; "
-                            f"{document_regeneration_stats['review_only_count']} review-only cases marked not applicable"
-                        ),
-                        "difference": "No candidate-ready document-regeneration case remains unvalidated or blocked.",
-                        "evidence": json.dumps({
-                            "move_reviews": move_review_stats,
-                            "document_regeneration_cases": document_regeneration_stats,
-                        }, ensure_ascii=False, sort_keys=True),
-                        "accounting_impact": (
-                            "Every candidate-ready non-posted source move is represented by a native target draft with matching preserved source line counts and debit/credit totals. "
-                            "Cancelled or empty non-posted records are retained as review evidence and explicitly marked not applicable for native draft generation."
-                        ),
-                        "legal_or_tax_impact": "No posted closed-year ledger effect is introduced by generated drafts.",
-                        "recommendation": "Keep review-only cases visible in the document-regeneration workbench; no technical generation blocker remains for the current source perimeter.",
-                    })
-                else:
-                    self._upsert_discrepancy({
-                        "name": document_regeneration_discrepancy,
-                        "severity": "P2" if all_regeneration_candidates_validated else "P1",
-                        "classification": "period_or_scope_difference" if all_regeneration_candidates_validated else "missing_capability",
-                        "status": "open",
-                        "period_key": f"{options['date_from']}:open",
-                        "source_value": str(move_review_stats["source_move_review_count"]),
-                        "target_value": (
-                            (
-                                f"{document_regeneration_stats['validated_count']} candidate drafts validated; "
-                                f"{document_regeneration_stats['blocked_count']} blocked and "
-                                f"{document_regeneration_stats['review_only_count']} review-only not applicable of "
-                                f"{document_regeneration_stats['document_regeneration_case_count']}"
-                            )
-                            if all_regeneration_candidates_validated
-                            else (
-                                f"{document_regeneration_stats['validated_count']} validated of "
-                                f"{document_regeneration_stats['document_regeneration_case_count']}"
-                            )
-                        ),
-                        "difference": (
-                            f"{document_regeneration_stats['blocked_count']} cancelled or line-incomplete "
-                            "cases remain outside native draft generation"
-                            if all_regeneration_candidates_validated
-                            else (
-                                f"{document_regeneration_stats['document_regeneration_case_count'] - document_regeneration_stats['validated_count'] - document_regeneration_stats['review_only_count']} "
-                                "cases are not validated as native generated drafts or classified as not applicable"
-                            )
-                        ),
-                        "evidence": json.dumps({
-                            "move_reviews": move_review_stats,
-                            "document_regeneration_cases": document_regeneration_stats,
-                        }, ensure_ascii=False, sort_keys=True),
-                        "accounting_impact": (
-                            "All candidate-ready non-posted source moves are represented by native target drafts with matching preserved source line counts and debit/credit totals. Remaining blocked cases require review-only acceptance or an explicit source-line/cancelled-record scope decision."
-                            if all_regeneration_candidates_validated
-                            else (
-                                "Non-posted source records are visible, traceable and classified for regeneration, "
-                                "but native draft generation and generated-line comparison are not complete for every ready case."
-                            )
-                        ),
-                        "legal_or_tax_impact": (
-                            "No posted closed-year ledger effect is introduced by generated drafts. Blocked cancelled or source-line-incomplete records remain a workflow-review risk until accepted or explicitly regenerated."
-                            if all_regeneration_candidates_validated
-                            else False
-                        ),
-                        "recommendation": (
-                            f"Review the {document_regeneration_stats['blocked_count']} blocked document-regeneration cases and record whether they remain review-only or require a separate scenario."
-                            if all_regeneration_candidates_validated
-                            else "Use the document-regeneration case workbench to select supported draft records, then implement isolated native draft generation and generated-line comparison outside the exact replay baseline."
-                        ),
-                    })
-                self.env["rebuild.account.discrepancy"].search([
-                    ("name", "in", [
-                        "Non-posted source moves are review-only, not regenerated as target documents",
-                        "Non-posted source moves have regeneration cases but no generated target drafts",
-                    ]),
-                    ("status", "!=", "resolved"),
-                    ("classification", "=", "missing_capability"),
-                ]).write({
-                    "import_run_id": self.id,
-                    "status": "resolved",
-                    "decision": "Superseded by document-regeneration case workbench discrepancy with native generation progress counts.",
-                })
+            if native_document_stats["source_non_posted_move_count"] != native_document_stats["imported_non_posted_move_count"]:
+                raise ValueError("Not every non-posted source move was materialized as a native account.move.")
+            if native_context_line_stats["source_context_line_count"] != native_context_line_stats["imported_context_line_count"]:
+                raise ValueError("Not every source document line was materialized as a native account.move.line.")
             if reconciliation_stats["scope_summary"].get("partials_cross_boundary") or reconciliation_stats["scope_summary"].get("fulls_cross_boundary"):
-                self._upsert_discrepancy({
-                    "name": "Cross-boundary reconciliations are review-only until missing endpoints are in scope",
-                    "severity": "P1",
-                    "classification": "period_or_scope_difference",
-                    "status": "open",
-                    "period_key": f"{options['date_from']}:{options['date_to']}",
-                    "source_value": str(
-                        reconciliation_stats["reviews"]["source_reconciliation_review_count"]
-                    ),
-                    "target_value": str(
-                        reconciliation_stats["reviews"]["imported_reconciliation_review_count"]
-                    ),
-                    "evidence": json.dumps(reconciliation_stats["reviews"], ensure_ascii=False, sort_keys=True),
-                    "accounting_impact": (
-                        "Some reconciliation relationships touch benchmark lines and source lines outside the "
-                        "selected posted replay scope. The cross-boundary source relationships are now visible "
-                        "as review records, but they are not applied to the target reconciliation graph."
-                    ),
-                    "recommendation": "Classify each missing reconciliation endpoint and import or explicitly exclude draft/future records before declaring full reconciliation parity.",
-                })
-            if (
-                move_line_review_stats["source_move_line_review_count"]
-                != move_line_review_stats["imported_move_line_review_count"]
-            ):
-                self._upsert_discrepancy({
-                    "name": "Source non-account display lines are not fully represented",
-                    "severity": "P1",
-                    "classification": "import_defect",
-                    "status": "open",
-                    "period_key": f"{options['date_from']}:{options['date_to']}",
-                    "source_value": str(move_line_review_stats["source_move_line_review_count"]),
-                    "target_value": str(move_line_review_stats["imported_move_line_review_count"]),
-                    "evidence": json.dumps(move_line_review_stats, ensure_ascii=False, sort_keys=True),
-                    "accounting_impact": "Source display/note lines with no account are not fully traceable in the target review layer.",
-                    "recommendation": "Fix the move-line review import before accepting document-context parity.",
-                })
+                raise ValueError("The native reconciliation graph still has source endpoints outside the imported company scope.")
+
             if deferred_schedule_stats["source_not_replayed_count"]:
                 self._upsert_discrepancy({
                     "name": "Posted source deferred schedule entries are not fully represented",
@@ -8865,7 +8000,7 @@ class RebuildAccountImportRun(models.Model):
                     "evidence": json.dumps(deferred_schedule_stats, ensure_ascii=False, sort_keys=True),
                     "accounting_impact": (
                         "At least one posted source deferred schedule entry is not linked to an imported "
-                        "target journal entry or explicit source draft review record."
+                        "target journal entry."
                     ),
                     "recommendation": "Expand the replay scope or repair the deferred schedule mapping before declaring deferred report parity.",
                 })
@@ -8980,9 +8115,8 @@ class RebuildAccountImportRun(models.Model):
                 "partner_accounting_properties": partner_property_stats,
                 "reconciliations": reconciliation_stats,
                 "payments": payment_stats,
-                "move_reviews": move_review_stats,
-                "move_line_reviews": move_line_review_stats,
-                "document_regeneration_cases": document_regeneration_stats,
+                "native_documents": native_document_stats,
+                "native_context_lines": native_context_line_stats,
                 "bank_statement_lines": bank_statement_line_stats,
                 "assets": asset_stats,
                 "analytics": analytic_stats,
@@ -8996,7 +8130,7 @@ class RebuildAccountImportRun(models.Model):
                 "warnings": warnings,
             }
             self.write({
-                "status": "partial",
+                "status": "passed",
                 "finished_at": fields.Datetime.now(),
                 "company_ids": [Command.set([company.id for company in companies.values()])],
                 "imported_company_count": len(companies),
@@ -9006,14 +8140,10 @@ class RebuildAccountImportRun(models.Model):
                 "imported_partner_count": len(partners),
                 "imported_move_count": len(imported_moves),
                 "imported_move_line_count": imported_line_count,
-                "imported_move_review_count": move_review_stats["imported_move_review_count"],
-                "imported_move_line_review_count": move_line_review_stats["imported_move_line_review_count"],
-                "document_regeneration_case_count": document_regeneration_stats["document_regeneration_case_count"],
-                "document_regeneration_candidate_count": document_regeneration_stats["candidate_ready_count"],
-                "document_regeneration_review_only_count": document_regeneration_stats["review_only_count"],
-                "document_regeneration_blocked_count": document_regeneration_stats["blocked_count"],
+                "imported_non_posted_move_count": native_document_stats["imported_non_posted_move_count"],
+                "imported_context_line_count": native_context_line_stats["imported_context_line_count"],
                 "imported_payment_count": payment_stats["imported_payment_count"],
-                "imported_payment_review_count": payment_stats["no_entry_payment_review_count"],
+                "imported_no_entry_payment_count": payment_stats["native_no_entry_payment_count"],
                 "imported_bank_statement_line_count": bank_statement_line_stats["imported_bank_statement_line_count"],
                 "imported_analytic_line_count": analytic_stats["imported_analytic_line_count"],
                 "imported_attachment_count": attachment_stats["imported_attachment_count"],
@@ -9021,16 +8151,13 @@ class RebuildAccountImportRun(models.Model):
                     reconciliation_stats["imported_partial_reconcile_count"]
                     + reconciliation_stats["imported_full_reconcile_count"]
                 ),
-                "imported_reconciliation_review_count": (
-                    reconciliation_stats["reviews"]["imported_reconciliation_review_count"]
-                ),
                 "imported_source_report_count": source_report_stats["imported_source_report_count"],
                 "imported_deferred_schedule_line_count": deferred_schedule_stats["imported_deferred_schedule_line_count"],
                 "external_report_value_count": len(external_report_values),
                 "warning_count": len(warnings),
                 "discrepancy_count": len(self.discrepancy_ids),
                 "statistics_json": stats,
-                "notes": "Posted source accounting replay through the selected source snapshot date. Ledger entries, contained reconciliation graph, cross-boundary reconciliation review records, move-backed payment records, no-entry payment workflow review records, non-posted move workflow review records, document-regeneration workbench cases, non-account display-line review records, bank statement line links, source tax configuration, source report catalogue records, deferred expense/revenue schedule review lines, analytic accounts and analytic lines, asset register and scoped accounting attachments are imported; native generated draft documents for draft/cancelled/future operational records and complete account.report semantic parity remain open.",
+                "notes": "Complete source accounting replay for the selected companies. Posted, draft and cancelled entries, every native payment, the complete reconciliation graph, bank statement lines, tax and report configuration, deferred schedules, analytics, assets and scoped accounting attachments are materialized as native product records. No migration review placeholder represents source accounting truth.",
             })
             return stats
         except Exception:

@@ -4,9 +4,11 @@ from odoo.tools import date_utils
 from odoo.tools.safe_eval import safe_eval
 
 
-class RebuildAccountReviewSummary(models.Model):
-    _name = "rebuild.account.review.summary"
-    _description = "USL Accounting Reconstruction Review Summary"
+class RebuildAccountOverview(models.Model):
+    """Company-scoped operational Accounting cockpit."""
+
+    _name = "rebuild.account.overview"
+    _description = "USL Accounting Overview"
     _auto = False
     _order = "source_company_id, company_id"
     _rec_name = "name"
@@ -180,16 +182,11 @@ class RebuildAccountReviewSummary(models.Model):
     open_discrepancy_count = fields.Integer(readonly=True)
     open_p0_count = fields.Integer(readonly=True)
     open_p1_count = fields.Integer(readonly=True)
-    review_record_count = fields.Integer(readonly=True)
     review_decision_count = fields.Integer(readonly=True)
     pending_review_decision_count = fields.Integer(readonly=True)
     recorded_review_decision_count = fields.Integer(readonly=True)
     external_report_value_count = fields.Integer(readonly=True)
     pending_external_report_value_count = fields.Integer(readonly=True)
-    document_regeneration_case_count = fields.Integer(readonly=True)
-    document_regeneration_candidate_count = fields.Integer(readonly=True)
-    document_regeneration_review_only_count = fields.Integer(readonly=True)
-    document_regeneration_blocked_count = fields.Integer(readonly=True)
     readiness_status = fields.Selection(
         [
             ("blocked", "Blocked"),
@@ -550,7 +547,7 @@ class RebuildAccountReviewSummary(models.Model):
         return {
             "type": "ir.actions.act_window",
             "name": "Accounting Manager Decisions",
-            "res_model": "rebuild.account.review.decision",
+            "res_model": "rebuild.account.assurance.decision",
             "view_mode": "list,form,pivot",
             "views": [(False, "list"), (False, "form"), (False, "pivot")],
             "domain": [
@@ -568,7 +565,7 @@ class RebuildAccountReviewSummary(models.Model):
         return {
             "type": "ir.actions.act_window",
             "name": "Accountant Review Decisions",
-            "res_model": "rebuild.account.review.decision",
+            "res_model": "rebuild.account.assurance.decision",
             "view_mode": "list,form,pivot",
             "views": [(False, "list"), (False, "form"), (False, "pivot")],
             "domain": [
@@ -623,7 +620,7 @@ class RebuildAccountReviewSummary(models.Model):
         return {
             "type": "ir.actions.act_window",
             "name": "Accounting Review Decisions",
-            "res_model": "rebuild.account.review.decision",
+            "res_model": "rebuild.account.assurance.decision",
             "view_mode": "list,form,pivot",
             "views": [(False, "list"), (False, "form"), (False, "pivot")],
             "domain": [
@@ -654,24 +651,6 @@ class RebuildAccountReviewSummary(models.Model):
             "context": {
                 "default_company_id": self.company_id.id,
                 "default_period_key": "USL benchmark 2024-01-10 to 2025-09-30",
-                "delete": False,
-            },
-        }
-
-    def action_open_document_regeneration_cases(self):
-        self.ensure_one()
-        return {
-            "type": "ir.actions.act_window",
-            "name": "Document Regeneration Cases",
-            "res_model": "rebuild.account.document.regeneration.case",
-            "view_mode": "list,form,pivot",
-            "views": [(False, "list"), (False, "form"), (False, "pivot")],
-            "domain": [
-                ("company_id", "=", self.company_id.id),
-                ("active", "=", True),
-            ],
-            "context": {
-                "search_default_group_status": 1,
                 "delete": False,
             },
         }
@@ -846,25 +825,18 @@ class RebuildAccountReviewSummary(models.Model):
                        COALESCE(discrepancies.open_discrepancy_count, 0) AS open_discrepancy_count,
                        COALESCE(discrepancies.open_p0_count, 0) AS open_p0_count,
                        COALESCE(discrepancies.open_p1_count, 0) AS open_p1_count,
-                       COALESCE(reviews.review_record_count, 0) AS review_record_count,
                        COALESCE(decisions.review_decision_count, 0) AS review_decision_count,
                        COALESCE(decisions.pending_review_decision_count, 0) AS pending_review_decision_count,
                        COALESCE(decisions.recorded_review_decision_count, 0) AS recorded_review_decision_count,
                        COALESCE(external_values.external_report_value_count, 0) AS external_report_value_count,
                        COALESCE(external_values.pending_external_report_value_count, 0) AS pending_external_report_value_count,
-                       COALESCE(document_cases.document_regeneration_case_count, 0) AS document_regeneration_case_count,
-                       COALESCE(document_cases.document_regeneration_candidate_count, 0) AS document_regeneration_candidate_count,
-                       COALESCE(document_cases.document_regeneration_review_only_count, 0) AS document_regeneration_review_only_count,
-                       COALESCE(document_cases.document_regeneration_blocked_count, 0) AS document_regeneration_blocked_count,
                        CASE
                            WHEN COALESCE(discrepancies.open_p0_count, 0) > 0
                              OR abs(COALESCE(ledger.balance, 0.00)) > 0.004
                            THEN 'blocked'
                            WHEN COALESCE(discrepancies.open_p1_count, 0) > 0
-                             OR COALESCE(reviews.review_record_count, 0) > 0
                              OR COALESCE(decisions.pending_review_decision_count, 0) > 0
                              OR COALESCE(external_values.pending_external_report_value_count, 0) > 0
-                             OR COALESCE(document_cases.document_regeneration_case_count, 0) > 0
                            THEN 'review_required'
                            ELSE 'technical_evidence_available'
                        END AS readiness_status
@@ -1146,16 +1118,6 @@ class RebuildAccountReviewSummary(models.Model):
                           OR discrepancy.company_id = company.id
                   ) discrepancies ON TRUE
                   LEFT JOIN LATERAL (
-                      SELECT (
-                          (SELECT count(*) FROM rebuild_account_move_review review WHERE review.company_id = company.id)
-                        + (SELECT count(*) FROM rebuild_account_document_regeneration_case review WHERE review.company_id = company.id AND review.active IS TRUE)
-                        + (SELECT count(*) FROM rebuild_account_move_line_review review WHERE review.company_id = company.id)
-                        + (SELECT count(*) FROM rebuild_account_payment_review review WHERE review.company_id = company.id)
-                        + (SELECT count(*) FROM rebuild_account_reconciliation_review review WHERE review.company_id = company.id)
-                        + (SELECT count(*) FROM rebuild_account_deferred_schedule_line review WHERE review.company_id = company.id)
-                      )::integer AS review_record_count
-                  ) reviews ON TRUE
-                  LEFT JOIN LATERAL (
                       SELECT count(*) FILTER (WHERE decision.state != 'superseded')::integer AS review_decision_count,
                              count(*) FILTER (WHERE decision.state = 'draft')::integer AS pending_review_decision_count,
                              count(*) FILTER (WHERE decision.state = 'recorded')::integer AS recorded_review_decision_count,
@@ -1173,7 +1135,7 @@ class RebuildAccountReviewSummary(models.Model):
                                        'joint'
                                    )
                              )::integer AS accountant_action_count
-                        FROM rebuild_account_review_decision decision
+                        FROM rebuild_account_assurance_decision decision
                        WHERE decision.company_id IS NULL
                           OR decision.company_id = company.id
                   ) decisions ON TRUE
@@ -1183,14 +1145,6 @@ class RebuildAccountReviewSummary(models.Model):
                         FROM rebuild_account_external_report_value value
                        WHERE value.company_id = company.id
                   ) external_values ON TRUE
-                  LEFT JOIN LATERAL (
-                      SELECT count(*) FILTER (WHERE case_record.active IS TRUE)::integer AS document_regeneration_case_count,
-                             count(*) FILTER (WHERE case_record.active IS TRUE AND case_record.case_status = 'candidate_ready')::integer AS document_regeneration_candidate_count,
-                             count(*) FILTER (WHERE case_record.active IS TRUE AND case_record.generation_status = 'not_applicable')::integer AS document_regeneration_review_only_count,
-                             count(*) FILTER (WHERE case_record.active IS TRUE AND case_record.generation_status = 'blocked')::integer AS document_regeneration_blocked_count
-                        FROM rebuild_account_document_regeneration_case case_record
-                       WHERE case_record.company_id = company.id
-                  ) document_cases ON TRUE
             )
             """,
         )

@@ -2528,27 +2528,6 @@ def dev_attachment_replay(args: argparse.Namespace) -> dict[str, Any]:
             "    run._attachment_issue_count(accounting_stats)",
             "    + run._attachment_issue_count(expense_stats)",
             ")",
-            "regeneration_sync = run._sync_document_regeneration_cases(",
-            "    options,",
-            ")",
-            "attachment_only_cases = env[",
-            "    'rebuild.account.document.regeneration.case'",
-            "].search([",
-            "    ('rebuild_source_snapshot', '=', options['source_snapshot_id']),",
-            "    ('case_status', '=', 'candidate_ready'),",
-            "    ('generation_status', '=', 'not_generated'),",
-            "    ('source_accounting_line_count', '=', 0),",
-            "    ('move_type', 'in', [",
-            "        'out_invoice', 'out_refund',",
-            "        'in_invoice', 'in_refund',",
-            "        'out_receipt', 'in_receipt',",
-            "    ]),",
-            "])",
-            "for case in attachment_only_cases:",
-            "    case.action_generate_draft_move()",
-            "regeneration_completion = (",
-            "    run.finalize_product_draft_regeneration()",
-            ")",
             "stats = {",
             "    'accounting_documents_and_assets': accounting_stats,",
             "    'expenses': expense_stats,",
@@ -2559,13 +2538,6 @@ def dev_attachment_replay(args: argparse.Namespace) -> dict[str, Any]:
             "    'imported_attachment_count': (",
             "        accounting_stats['imported_attachment_count']",
             "        + expense_stats['imported_attachment_count']",
-            "    ),",
-            "    'document_regeneration_sync': regeneration_sync,",
-            "    'document_regeneration_completion': (",
-            "        regeneration_completion",
-            "    ),",
-            "    'generated_attachment_only_draft_count': len(",
-            "        attachment_only_cases",
             "    ),",
             "}",
             "run.write({",
@@ -2816,12 +2788,7 @@ def target_table_counts(db: str) -> list[dict[str, Any]]:
         "account_tax",
         "account_move",
         "account_move_line",
-        "rebuild_account_move_review",
-        "rebuild_account_document_regeneration_case",
-        "rebuild_account_move_line_review",
         "account_payment",
-        "rebuild_account_payment_review",
-        "rebuild_account_reconciliation_review",
         "rebuild_account_source_report",
         "rebuild_account_deferred_schedule_line",
         "rebuild_account_external_report_value",
@@ -2861,15 +2828,10 @@ TARGET_IDEMPOTENCE_TABLES = [
     "account_account_tag",
     "account_move",
     "account_move_line",
-    "rebuild_account_move_review",
-    "rebuild_account_document_regeneration_case",
-    "rebuild_account_move_line_review",
     "account_payment",
-    "rebuild_account_payment_review",
     "account_bank_statement_line",
     "account_partial_reconcile",
     "account_full_reconcile",
-    "rebuild_account_reconciliation_review",
     "rebuild_account_source_report",
     "rebuild_account_deferred_schedule_line",
     "rebuild_account_external_report_value",
@@ -2926,20 +2888,20 @@ def target_idempotence_signature() -> dict[str, Any]:
         """,
         set_readonly_role=False,
     )
-    generated_draft_summary = query_json(
+    native_non_posted_summary = query_json(
         EXACT_VALIDATION_DB,
         """
         SELECT jsonb_build_object(
-            'generated_draft_move_count', count(DISTINCT am.id)::text,
-            'generated_draft_move_line_count', count(aml.id)::text,
+            'native_non_posted_move_count', count(DISTINCT am.id)::text,
+            'native_non_posted_move_line_count', count(aml.id)::text,
             'debit', COALESCE(sum(aml.debit), 0)::text,
             'credit', COALESCE(sum(aml.credit), 0)::text,
             'balance', COALESCE(sum(aml.balance), 0)::text
         )
         FROM account_move am
         LEFT JOIN account_move_line aml ON aml.move_id = am.id
-        WHERE am.rebuild_source_model = 'account.move.document_regeneration'
-          AND am.state = 'draft'
+        WHERE am.rebuild_source_model = 'account.move'
+          AND am.state != 'posted'
         """,
         set_readonly_role=False,
     )
@@ -2960,7 +2922,7 @@ def target_idempotence_signature() -> dict[str, Any]:
     return {
         "source_traced_counts": traced_counts,
         "posted_ledger_summary": posted_ledger_summary,
-        "generated_draft_summary": generated_draft_summary,
+        "native_non_posted_summary": native_non_posted_summary,
         "discrepancy_summary": discrepancy_summary,
     }
 
@@ -3514,19 +3476,28 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
                 SELECT count(*)
                 FROM account_move move
                 WHERE move.company_id IN (1, 8)
-                  AND move.state = 'posted'
-                  AND move.date BETWEEN DATE '2024-01-10'
-                                    AND source_end.date_to
             ),
             'source_move_line_count', (
                 SELECT count(*)
                 FROM account_move_line line
                 JOIN account_move move ON move.id = line.move_id
                 WHERE move.company_id IN (1, 8)
-                  AND move.state = 'posted'
-                  AND move.date BETWEEN DATE '2024-01-10'
-                                    AND source_end.date_to
-                  AND line.account_id IS NOT NULL
+            ),
+            'source_non_posted_move_count', (
+                SELECT count(*)
+                FROM account_move move
+                WHERE move.company_id IN (1, 8)
+                  AND move.state != 'posted'
+            ),
+            'source_native_context_line_count', (
+                SELECT count(*)
+                FROM account_move_line line
+                JOIN account_move move ON move.id = line.move_id
+                WHERE move.company_id IN (1, 8)
+                  AND (
+                      move.state != 'posted'
+                      OR line.account_id IS NULL
+                  )
             ),
             'source_expense_count', (
                 SELECT count(*)
@@ -3625,13 +3596,6 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             "    'opening_depreciation_date': '2025-09-30',",
             "    'use_exact_imported_moves': True,",
             "})",
-            "cases = env['rebuild.account.document.regeneration.case'].search([",
-            "    ('case_status', '=', 'candidate_ready'),",
-            "    ('generation_status', '=', 'not_generated'),",
-            "])",
-            "for case in cases:",
-            "    case.action_generate_draft_move()",
-            "draft_stats = run.finalize_product_draft_regeneration()",
             "currency_rate_cron = env.ref(",
             "    'rebuild_account_migration.ir_cron_rebuild_currency_rate_provider',",
             ")",
@@ -3714,7 +3678,6 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             "    'asset_run_id': asset_run.id,",
             "    'asset_run_status': asset_run.status,",
             "    'asset_stats': asset_stats,",
-            "    'draft_stats': draft_stats,",
             "    'users': {",
             "        'manager': {",
             "            'id': manager_user.id,",
@@ -3815,10 +3778,13 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
         )
         is True
     )
-    checks["draft_regeneration_matches"] = (
-        payload["draft_stats"]["candidate_count"]
-        == payload["draft_stats"]["validated_count"]
-        and payload["draft_stats"]["mismatch_count"] == 0
+    checks["native_non_posted_documents_match"] = (
+        stats.get("native_documents", {}).get("native_non_posted_move_count")
+        == source_profile["source_non_posted_move_count"]
+        and stats.get("native_context_lines", {}).get(
+            "native_source_line_count",
+        )
+        == source_profile["source_native_context_line_count"]
     )
     checks["native_expenses_match"] = (
         payload["expense_run_status"] == "passed"
@@ -3868,12 +3834,11 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
         "statistics": stats,
         "expense_statistics": payload["expense_stats"],
         "asset_statistics": payload["asset_stats"],
-        "draft_statistics": payload["draft_stats"],
         "users": payload["users"],
     }
     write_json(PRIVATE_ARTIFACTS / "dev-import-status.json", status)
     if status["status"] != "passed":
-        message = "Product import counts, draft generation, or chronology differ."
+        message = "Product import counts, native document replay, or chronology differ."
         raise HarnessError(message)
     return status
 
@@ -3918,6 +3883,7 @@ def dev_validate(args: argparse.Namespace) -> dict[str, Any]:
         WHERE company.rebuild_source_id IN (1, 8)
           AND move.state = 'posted'
           AND move.date BETWEEN DATE '2024-01-10' AND DATE '2025-09-30'
+          AND line.account_id IS NOT NULL
         GROUP BY company.rebuild_source_id
         ORDER BY company.rebuild_source_id
         """,
@@ -3984,6 +3950,7 @@ def dev_validate(args: argparse.Namespace) -> dict[str, Any]:
         WHERE company.rebuild_source_id = 1
           AND move.state = 'posted'
           AND move.date BETWEEN DATE '2025-10-01' AND DATE '2026-06-30'
+          AND line.account_id IS NOT NULL
         """,
         set_readonly_role=False,
     )
@@ -4624,6 +4591,60 @@ def dev_validate(args: argparse.Namespace) -> dict[str, Any]:
         )
         """,
     )
+    source_snapshot.pop("payment_evidence_count", None)
+    source_snapshot.pop("reconciliation_evidence_count", None)
+    source_snapshot.update(query_json(
+        SOURCE_DB,
+        """
+        WITH scoped_lines AS (
+            SELECT line.id, line.full_reconcile_id
+            FROM account_move_line line
+            JOIN account_move move ON move.id = line.move_id
+            WHERE move.company_id IN (1, 8)
+        )
+        SELECT jsonb_build_object(
+            'accounting_move_count', (
+                SELECT count(*)::text
+                FROM account_move
+                WHERE company_id IN (1, 8)
+            ),
+            'posted_move_count', (
+                SELECT count(*)::text
+                FROM account_move
+                WHERE company_id IN (1, 8)
+                  AND state = 'posted'
+            ),
+            'draft_move_count', (
+                SELECT count(*)::text
+                FROM account_move
+                WHERE company_id IN (1, 8)
+                  AND state = 'draft'
+            ),
+            'payment_count', (
+                SELECT count(*)::text
+                FROM account_payment
+                WHERE company_id IN (1, 8)
+            ),
+            'historical_no_entry_payment_count', (
+                SELECT count(*)::text
+                FROM account_payment
+                WHERE company_id IN (1, 8)
+                  AND move_id IS NULL
+            ),
+            'partial_reconcile_count', (
+                SELECT count(*)::text
+                FROM account_partial_reconcile partial
+                WHERE partial.debit_move_id IN (SELECT id FROM scoped_lines)
+                  AND partial.credit_move_id IN (SELECT id FROM scoped_lines)
+            ),
+            'full_reconcile_count', (
+                SELECT count(DISTINCT full_reconcile_id)::text
+                FROM scoped_lines
+                WHERE full_reconcile_id IS NOT NULL
+            )
+        )
+        """,
+    ))
     target_snapshot = query_json(
         DEV_QA_DB,
         """
@@ -4676,10 +4697,11 @@ def dev_validate(args: argparse.Namespace) -> dict[str, Any]:
                 WHERE company.rebuild_source_id IN (1, 8)
                   AND payment.rebuild_source_id IS NOT NULL
             ),
-            'payment_evidence_count', (
+            'historical_no_entry_payment_count', (
                 SELECT count(*)::text
-                FROM rebuild_account_payment_review
+                FROM account_payment
                 WHERE rebuild_source_id IS NOT NULL
+                  AND usl_historical_no_ledger_effect IS TRUE
             ),
             'partial_reconcile_count', (
                 SELECT count(*)::text
@@ -4689,11 +4711,6 @@ def dev_validate(args: argparse.Namespace) -> dict[str, Any]:
             'full_reconcile_count', (
                 SELECT count(*)::text
                 FROM account_full_reconcile
-                WHERE rebuild_source_id IS NOT NULL
-            ),
-            'reconciliation_evidence_count', (
-                SELECT count(*)::text
-                FROM rebuild_account_reconciliation_review
                 WHERE rebuild_source_id IS NOT NULL
             ),
             'analytic_line_count', (
@@ -5972,7 +5989,7 @@ def target_import(args: argparse.Namespace) -> dict[str, Any]:
             [
                 "import json",
                 "run = env['rebuild.account.import.run'].create({",
-                "    'name': 'USL posted accounting replay through source snapshot',",
+                "    'name': 'USL complete native accounting replay',",
                 "    'mode': 'exact_ledger_replay',",
                 "    'source_database': 'odoo_online_source_saas_19_2',",
                 f"    'source_dump_sha256': {dump_sha!r},",
@@ -6038,16 +6055,11 @@ def target_import(args: argparse.Namespace) -> dict[str, Any]:
                    source_snapshot_id, target_database, imported_company_count,
                    imported_currency_rate_count,
                    imported_account_count, imported_journal_count, imported_partner_count,
-                   imported_move_count, imported_move_line_count, imported_move_review_count,
-                   imported_move_line_review_count,
-                   document_regeneration_case_count,
-                   document_regeneration_candidate_count,
-                   document_regeneration_review_only_count,
-                   document_regeneration_blocked_count,
+                   imported_move_count, imported_move_line_count,
+                   imported_non_posted_move_count, imported_context_line_count,
                    imported_payment_count, imported_bank_statement_line_count,
-                   imported_payment_review_count, imported_analytic_line_count,
+                   imported_no_entry_payment_count, imported_analytic_line_count,
                    imported_attachment_count, imported_reconciliation_count,
-                   imported_reconciliation_review_count,
                    imported_source_report_count,
                    imported_deferred_schedule_line_count,
                    warning_count, discrepancy_count, statistics_json
@@ -6062,8 +6074,8 @@ def target_import(args: argparse.Namespace) -> dict[str, Any]:
         "generated_at": utc_now(),
         "tool_version": TOOL_VERSION,
         "stage": "validation-exact-import",
-        "status": "partial" if run_row and run_row.get("status") == "partial" else "passed",
-        "classification": "POSTED_SOURCE_REPLAY_THROUGH_SNAPSHOT",
+        "status": "passed" if run_row and run_row.get("status") == "passed" else "failed",
+        "classification": "COMPLETE_NATIVE_SOURCE_REPLAY",
         "script": str(import_script.relative_to(ROOT)),
         "import_run": run_row,
         "record_counts": target_table_counts(EXACT_VALIDATION_DB),
@@ -6139,481 +6151,68 @@ def target_idempotence(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def target_failure_tests(args: argparse.Namespace) -> dict[str, Any]:
+    """Verify native trace constraints without migration review models."""
     ensure_dirs()
-    if not table_exists(EXACT_VALIDATION_DB, "rebuild_account_move_review"):
-        status = {
-            "generated_at": utc_now(),
-            "tool_version": TOOL_VERSION,
-            "stage": "validation-exact-failure-tests",
-            "status": "failed",
-            "classification": "MISSING_TARGET_MODEL",
-            "reason": f"{EXACT_VALIDATION_DB} does not have imported rebuild account review records.",
-            "next_action": "Run make accounting-validation-exact-import before target failure tests.",
-        }
-        write_json(PRIVATE_ARTIFACTS / "validation-exact-failure-tests-status.json", status)
-        raise HarnessError(status["reason"])
-
-    before_signature = target_idempotence_signature()
-    failure_script = PRIVATE_ARTIFACTS / "validation-exact-failure-tests.py"
-    failure_script.write_text(
-        "\n".join(
-            [
-                "import json",
-                "payload = {'stage': 'validation-exact-failure-tests', 'cases': []}",
-                "Review = env['rebuild.account.move.review']",
-                "sample = Review.search([",
-                "    ('rebuild_source_model', '!=', False),",
-                "    ('rebuild_source_id', '!=', False),",
-                "], limit=1)",
-                "if not sample:",
-                "    payload['cases'].append({'name': 'duplicate_source_trace_rollback', 'status': 'failed', 'reason': 'no source-traced move review row available'})",
-                "else:",
-                "    duplicate_sql = \"\"\"",
-                "        SELECT count(*)",
-                "        FROM (",
-                "            SELECT rebuild_source_model, rebuild_source_id, rebuild_source_snapshot, count(*)",
-                "            FROM rebuild_account_move_review",
-                "            WHERE rebuild_source_model IS NOT NULL",
-                "              AND rebuild_source_id IS NOT NULL",
-                "            GROUP BY rebuild_source_model, rebuild_source_id, rebuild_source_snapshot",
-                "            HAVING count(*) > 1",
-                "        ) duplicate_rows",
-                "    \"\"\"",
-                "    env.cr.execute(duplicate_sql)",
-                "    baseline_duplicates = env.cr.fetchone()[0]",
-                "    rollback_marker = '__ROLLBACK_DUPLICATE_TRACE_PROBE__'",
-                "    injected_duplicates = 0",
-                "    try:",
-                "        with env.cr.savepoint():",
-                "            Review.create({",
-                "                'name': 'Rollback duplicate trace probe',",
-                "                'source_name': sample.source_name,",
-                "                'source_move_id': sample.source_move_id,",
-                "                'source_state': sample.source_state,",
-                "                'state': sample.state,",
-                "                'review_status': sample.review_status,",
-                "                'accounting_effect': sample.accounting_effect,",
-                "                'company_id': sample.company_id.id,",
-                "                'journal_id': sample.journal_id.id,",
-                "                'partner_id': sample.partner_id.id,",
-                "                'currency_id': sample.currency_id.id,",
-                "                'date': sample.date,",
-                "                'move_type': sample.move_type,",
-                "                'source_line_count': sample.source_line_count,",
-                "                'source_accounting_line_count': sample.source_accounting_line_count,",
-                "                'rebuild_source_database': sample.rebuild_source_database,",
-                "                'rebuild_source_model': sample.rebuild_source_model,",
-                "                'rebuild_source_id': sample.rebuild_source_id,",
-                "                'rebuild_source_snapshot': sample.rebuild_source_snapshot,",
-                "                'rebuild_import_status': 'failed',",
-                "                'note': 'Rollback-only duplicate source trace failure probe; this record must never commit.',",
-                "            })",
-                "            env.cr.execute(duplicate_sql)",
-                "            injected_duplicates = env.cr.fetchone()[0]",
-                "            raise RuntimeError(rollback_marker)",
-                "    except RuntimeError as exc:",
-                "        if str(exc) != rollback_marker:",
-                "            raise",
-                "    env.cr.execute(duplicate_sql)",
-                "    final_duplicates = env.cr.fetchone()[0]",
-                "    payload['cases'].append({",
-                "        'name': 'duplicate_source_trace_rollback',",
-                "        'status': 'passed' if baseline_duplicates == 0 and injected_duplicates > 0 and final_duplicates == 0 else 'failed',",
-                "        'baseline_duplicate_groups': baseline_duplicates,",
-                "        'injected_duplicate_groups': injected_duplicates,",
-                "        'final_duplicate_groups': final_duplicates,",
-                "        'sample_model': sample.rebuild_source_model,",
-                "        'sample_source_id': sample.rebuild_source_id,",
-                "        'sample_snapshot': sample.rebuild_source_snapshot,",
-                "    })",
-                "unbalanced_sql = \"\"\"",
-                "    SELECT count(*)",
-                "    FROM (",
-                "        SELECT am.id",
-                "        FROM account_move am",
-                "        JOIN account_move_line aml ON aml.move_id = am.id",
-                "        WHERE am.rebuild_source_model = 'account.move'",
-                "          AND am.state = 'posted'",
-                "        GROUP BY am.id",
-                "        HAVING round(sum(aml.balance)::numeric, 2) <> 0",
-                "    ) unbalanced_rows",
-                "\"\"\"",
-                "env.cr.execute(\"\"\"",
-                "    SELECT aml.id, am.id, am.rebuild_source_id",
-                "    FROM account_move_line aml",
-                "    JOIN account_move am ON am.id = aml.move_id",
-                "    WHERE am.rebuild_source_model = 'account.move'",
-                "      AND aml.rebuild_source_model = 'account.move.line'",
-                "      AND am.state = 'posted'",
-                "    ORDER BY am.date, am.id, aml.id",
-                "    LIMIT 1",
-                "\"\"\")",
-                "line_sample = env.cr.fetchone()",
-                "if not line_sample:",
-                "    payload['cases'].append({'name': 'unbalanced_posted_move_rollback', 'status': 'failed', 'reason': 'no imported posted move line available'})",
-                "else:",
-                "    line_id, move_id, source_move_id = line_sample",
-                "    env.cr.execute(unbalanced_sql)",
-                "    baseline_unbalanced = env.cr.fetchone()[0]",
-                "    rollback_marker = '__ROLLBACK_UNBALANCED_MOVE_PROBE__'",
-                "    injected_unbalanced = 0",
-                "    try:",
-                "        with env.cr.savepoint():",
-                "            env.cr.execute(",
-                "                'UPDATE account_move_line SET debit = debit + 0.01, balance = balance + 0.01 WHERE id = %s',",
-                "                [line_id],",
-                "            )",
-                "            env.cr.execute(unbalanced_sql)",
-                "            injected_unbalanced = env.cr.fetchone()[0]",
-                "            raise RuntimeError(rollback_marker)",
-                "    except RuntimeError as exc:",
-                "        if str(exc) != rollback_marker:",
-                "            raise",
-                "    env.cr.execute(unbalanced_sql)",
-                "    final_unbalanced = env.cr.fetchone()[0]",
-                "    payload['cases'].append({",
-                "        'name': 'unbalanced_posted_move_rollback',",
-                "        'status': 'passed' if baseline_unbalanced == 0 and injected_unbalanced > 0 and final_unbalanced == 0 else 'failed',",
-                "        'baseline_unbalanced_groups': baseline_unbalanced,",
-                "        'injected_unbalanced_groups': injected_unbalanced,",
-                "        'final_unbalanced_groups': final_unbalanced,",
-                "        'sample_move_id': move_id,",
-                "        'sample_move_line_id': line_id,",
-                "        'sample_source_move_id': source_move_id,",
-                "    })",
-                "missing_account_sql = \"\"\"",
-                "    SELECT count(*)",
-                "    FROM account_move_line aml",
-                "    LEFT JOIN account_account aa ON aa.id = aml.account_id",
-                "    WHERE aml.rebuild_source_model = 'account.move.line'",
-                "      AND aa.id IS NULL",
-                "\"\"\"",
-                "env.cr.execute(\"\"\"",
-                "    SELECT aml.id, aml.rebuild_source_id",
-                "    FROM account_move_line aml",
-                "    JOIN account_move am ON am.id = aml.move_id",
-                "    WHERE am.rebuild_source_model = 'account.move'",
-                "      AND aml.rebuild_source_model = 'account.move.line'",
-                "      AND am.state = 'posted'",
-                "      AND aml.account_id IS NOT NULL",
-                "    ORDER BY am.date, am.id, aml.id",
-                "    LIMIT 1",
-                "\"\"\")",
-                "account_sample = env.cr.fetchone()",
-                "if not account_sample:",
-                "    payload['cases'].append({'name': 'missing_account_fk_rollback', 'status': 'failed', 'reason': 'no imported account-backed move line available'})",
-                "else:",
-                "    account_line_id, account_source_line_id = account_sample",
-                "    env.cr.execute(missing_account_sql)",
-                "    baseline_missing_accounts = env.cr.fetchone()[0]",
-                "    rollback_marker = '__ROLLBACK_MISSING_ACCOUNT_PROBE__'",
-                "    missing_account_error = None",
-                "    try:",
-                "        with env.cr.savepoint():",
-                "            env.cr.execute(",
-                "                'UPDATE account_move_line SET account_id = 999999999 WHERE id = %s',",
-                "                [account_line_id],",
-                "            )",
-                "            raise RuntimeError(rollback_marker)",
-                "    except RuntimeError as exc:",
-                "        if str(exc) != rollback_marker:",
-                "            raise",
-                "    except Exception as exc:",
-                "        missing_account_error = f'{type(exc).__name__}: {str(exc).splitlines()[0] if str(exc) else type(exc).__name__}'",
-                "    env.cr.execute(missing_account_sql)",
-                "    final_missing_accounts = env.cr.fetchone()[0]",
-                "    payload['cases'].append({",
-                "        'name': 'missing_account_fk_rollback',",
-                "        'status': 'passed' if baseline_missing_accounts == 0 and missing_account_error and final_missing_accounts == 0 else 'failed',",
-                "        'baseline_missing_account_lines': baseline_missing_accounts,",
-                "        'final_missing_account_lines': final_missing_accounts,",
-                "        'exception': missing_account_error,",
-                "        'sample_move_line_id': account_line_id,",
-                "        'sample_source_line_id': account_source_line_id,",
-                "    })",
-                "missing_tax_sql = \"\"\"",
-                "    SELECT count(*)",
-                "    FROM account_move_line_account_tax_rel rel",
-                "    LEFT JOIN account_move_line aml ON aml.id = rel.account_move_line_id",
-                "    LEFT JOIN account_tax tax ON tax.id = rel.account_tax_id",
-                "    WHERE aml.id IS NULL OR tax.id IS NULL",
-                "\"\"\"",
-                "env.cr.execute(\"\"\"",
-                "    SELECT rel.account_move_line_id, aml.rebuild_source_id",
-                "    FROM account_move_line_account_tax_rel rel",
-                "    JOIN account_move_line aml ON aml.id = rel.account_move_line_id",
-                "    WHERE aml.rebuild_source_model = 'account.move.line'",
-                "    ORDER BY rel.account_move_line_id, rel.account_tax_id",
-                "    LIMIT 1",
-                "\"\"\")",
-                "tax_sample = env.cr.fetchone()",
-                "if not tax_sample:",
-                "    payload['cases'].append({'name': 'missing_tax_fk_rollback', 'status': 'failed', 'reason': 'no imported move-line tax relation available'})",
-                "else:",
-                "    tax_line_id, tax_source_line_id = tax_sample",
-                "    env.cr.execute(missing_tax_sql)",
-                "    baseline_missing_taxes = env.cr.fetchone()[0]",
-                "    rollback_marker = '__ROLLBACK_MISSING_TAX_PROBE__'",
-                "    missing_tax_error = None",
-                "    try:",
-                "        with env.cr.savepoint():",
-                "            env.cr.execute(",
-                "                'INSERT INTO account_move_line_account_tax_rel (account_move_line_id, account_tax_id) VALUES (%s, 999999999)',",
-                "                [tax_line_id],",
-                "            )",
-                "            raise RuntimeError(rollback_marker)",
-                "    except RuntimeError as exc:",
-                "        if str(exc) != rollback_marker:",
-                "            raise",
-                "    except Exception as exc:",
-                "        missing_tax_error = f'{type(exc).__name__}: {str(exc).splitlines()[0] if str(exc) else type(exc).__name__}'",
-                "    env.cr.execute(missing_tax_sql)",
-                "    final_missing_taxes = env.cr.fetchone()[0]",
-                "    payload['cases'].append({",
-                "        'name': 'missing_tax_fk_rollback',",
-                "        'status': 'passed' if baseline_missing_taxes == 0 and missing_tax_error and final_missing_taxes == 0 else 'failed',",
-                "        'baseline_missing_tax_relations': baseline_missing_taxes,",
-                "        'final_missing_tax_relations': final_missing_taxes,",
-                "        'exception': missing_tax_error,",
-                "        'sample_move_line_id': tax_line_id,",
-                "        'sample_source_line_id': tax_source_line_id,",
-                "    })",
-                "incomplete_reconcile_sql = \"\"\"",
-                "    SELECT count(*)",
-                "    FROM account_partial_reconcile apr",
-                "    LEFT JOIN account_move_line debit_line ON debit_line.id = apr.debit_move_id",
-                "    LEFT JOIN account_move_line credit_line ON credit_line.id = apr.credit_move_id",
-                "    WHERE apr.rebuild_source_model = 'account.partial.reconcile'",
-                "      AND (debit_line.id IS NULL OR credit_line.id IS NULL)",
-                "\"\"\"",
-                "env.cr.execute(\"\"\"",
-                "    SELECT id, rebuild_source_id, debit_move_id, credit_move_id",
-                "    FROM account_partial_reconcile",
-                "    WHERE rebuild_source_model = 'account.partial.reconcile'",
-                "    ORDER BY id",
-                "    LIMIT 1",
-                "\"\"\")",
-                "reconcile_sample = env.cr.fetchone()",
-                "if not reconcile_sample:",
-                "    payload['cases'].append({'name': 'incomplete_reconciliation_fk_rollback', 'status': 'failed', 'reason': 'no imported partial reconciliation available'})",
-                "else:",
-                "    partial_id, source_partial_id, debit_line_id, credit_line_id = reconcile_sample",
-                "    env.cr.execute(incomplete_reconcile_sql)",
-                "    baseline_incomplete_reconciliations = env.cr.fetchone()[0]",
-                "    rollback_marker = '__ROLLBACK_INCOMPLETE_RECONCILIATION_PROBE__'",
-                "    incomplete_reconciliation_error = None",
-                "    try:",
-                "        with env.cr.savepoint():",
-                "            env.cr.execute(",
-                "                'UPDATE account_partial_reconcile SET credit_move_id = 999999999 WHERE id = %s',",
-                "                [partial_id],",
-                "            )",
-                "            raise RuntimeError(rollback_marker)",
-                "    except RuntimeError as exc:",
-                "        if str(exc) != rollback_marker:",
-                "            raise",
-                "    except Exception as exc:",
-                "        incomplete_reconciliation_error = f'{type(exc).__name__}: {str(exc).splitlines()[0] if str(exc) else type(exc).__name__}'",
-                "    env.cr.execute(incomplete_reconcile_sql)",
-                "    final_incomplete_reconciliations = env.cr.fetchone()[0]",
-                "    payload['cases'].append({",
-                "        'name': 'incomplete_reconciliation_fk_rollback',",
-                "        'status': 'passed' if baseline_incomplete_reconciliations == 0 and incomplete_reconciliation_error and final_incomplete_reconciliations == 0 else 'failed',",
-                "        'baseline_incomplete_reconciliations': baseline_incomplete_reconciliations,",
-                "        'final_incomplete_reconciliations': final_incomplete_reconciliations,",
-                "        'exception': incomplete_reconciliation_error,",
-                "        'sample_partial_reconcile_id': partial_id,",
-                "        'sample_source_partial_reconcile_id': source_partial_id,",
-                "        'sample_debit_move_line_id': debit_line_id,",
-                "        'sample_credit_move_line_id': credit_line_id,",
-                "    })",
-                "attachment_metadata_mismatch_sql = \"\"\"",
-                "    SELECT count(*)",
-                "    FROM ir_attachment",
-                "    WHERE rebuild_source_model = 'ir.attachment'",
-                "      AND type = 'binary'",
-                "      AND COALESCE(checksum, '') <> ''",
-                "      AND COALESCE(store_fname, '') <> ''",
-                "      AND right(store_fname, length(checksum)) <> checksum",
-                "\"\"\"",
-                "env.cr.execute(\"\"\"",
-                "    SELECT id, rebuild_source_id, checksum, store_fname",
-                "    FROM ir_attachment",
-                "    WHERE rebuild_source_model = 'ir.attachment'",
-                "      AND type = 'binary'",
-                "      AND COALESCE(checksum, '') <> ''",
-                "      AND COALESCE(store_fname, '') <> ''",
-                "    ORDER BY file_size ASC NULLS LAST, id",
-                "    LIMIT 1",
-                "\"\"\")",
-                "attachment_sample = env.cr.fetchone()",
-                "if not attachment_sample:",
-                "    payload['cases'].append({'name': 'attachment_checksum_corruption_rollback', 'status': 'failed', 'reason': 'no imported accounting attachment with checksum metadata available'})",
-                "else:",
-                "    attachment_id, source_attachment_id, original_checksum, original_store_fname = attachment_sample",
-                "    env.cr.execute(attachment_metadata_mismatch_sql)",
-                "    baseline_attachment_mismatches = env.cr.fetchone()[0]",
-                "    rollback_marker = '__ROLLBACK_ATTACHMENT_CHECKSUM_PROBE__'",
-                "    injected_attachment_mismatches = 0",
-                "    try:",
-                "        with env.cr.savepoint():",
-                "            env.cr.execute(",
-                "                'UPDATE ir_attachment SET checksum = %s WHERE id = %s',",
-                "                ['0' * 40, attachment_id],",
-                "            )",
-                "            env.cr.execute(attachment_metadata_mismatch_sql)",
-                "            injected_attachment_mismatches = env.cr.fetchone()[0]",
-                "            raise RuntimeError(rollback_marker)",
-                "    except RuntimeError as exc:",
-                "        if str(exc) != rollback_marker:",
-                "            raise",
-                "    env.cr.execute(attachment_metadata_mismatch_sql)",
-                "    final_attachment_mismatches = env.cr.fetchone()[0]",
-                "    payload['cases'].append({",
-                "        'name': 'attachment_checksum_corruption_rollback',",
-                "        'status': 'passed' if baseline_attachment_mismatches == 0 and injected_attachment_mismatches > 0 and final_attachment_mismatches == 0 else 'failed',",
-                "        'baseline_attachment_metadata_mismatches': baseline_attachment_mismatches,",
-                "        'injected_attachment_metadata_mismatches': injected_attachment_mismatches,",
-                "        'final_attachment_metadata_mismatches': final_attachment_mismatches,",
-                "        'sample_attachment_id': attachment_id,",
-                "        'sample_source_attachment_id': source_attachment_id,",
-                "        'sample_original_checksum': original_checksum,",
-                "        'sample_original_store_fname': original_store_fname,",
-                "    })",
-                "missing_file_discrepancy_name = 'Source accounting attachment files are missing from the mounted filestore'",
-                "env.cr.execute(\"\"\"",
-                "    SELECT am.rebuild_source_id, company.rebuild_source_id, company.id",
-                "    FROM account_move am",
-                "    JOIN res_company company ON company.id = am.company_id",
-                "    WHERE am.rebuild_source_model = 'account.move'",
-                "      AND am.state = 'posted'",
-                "      AND company.rebuild_source_id IS NOT NULL",
-                "    ORDER BY am.date, am.id",
-                "    LIMIT 1",
-                "\"\"\")",
-                "missing_file_sample = env.cr.fetchone()",
-                "if not missing_file_sample:",
-                "    payload['cases'].append({'name': 'source_attachment_missing_file_discrepancy_rollback', 'status': 'failed', 'reason': 'no imported posted move available for attachment target'})",
-                "else:",
-                "    source_move_id, source_company_id, target_company_id = missing_file_sample",
-                "    Discrepancy = env['rebuild.account.discrepancy']",
-                "    baseline_missing_file_discrepancies = Discrepancy.search_count([('name', '=', missing_file_discrepancy_name), ('status', '!=', 'resolved')])",
-                "    rollback_marker = '__ROLLBACK_SOURCE_ATTACHMENT_MISSING_FILE_PROBE__'",
-                "    injected_missing_file_discrepancies = baseline_missing_file_discrepancies",
-                "    missing_file_stats = {}",
-                "    try:",
-                "        with env.cr.savepoint():",
-                "            run = env['rebuild.account.import.run'].create({",
-                "                'name': 'Rollback missing source attachment file probe',",
-                "                'mode': 'exact_ledger_replay',",
-                "                'source_database': 'odoo_online_source_saas_19_2',",
-                "                'source_dump_sha256': 'rollback-probe',",
-                f"                'source_snapshot_id': {source_snapshot_id()!r},",
-                "                'target_database': env.cr.dbname,",
-                "            })",
-                "            class FakeCursor:",
-                "                def __enter__(self):",
-                "                    return self",
-                "                def __exit__(self, exc_type, exc, tb):",
-                "                    return False",
-                "                def execute(self, query, params=None):",
-                "                    pass",
-                "                def fetchall(self):",
-                "                    return [{",
-                "                        'id': 999999001,",
-                "                        'res_model': 'account.move',",
-                "                        'res_id': source_move_id,",
-                "                        'company_id': source_company_id,",
-                "                        'name': 'Rollback missing source attachment probe.pdf',",
-                "                        'res_field': None,",
-                "                        'type': 'binary',",
-                "                        'url': None,",
-                "                        'store_fname': 'ff/missing-source-attachment-probe',",
-                "                        'checksum': 'f' * 40,",
-                "                        'file_size': 123,",
-                "                        'mimetype': 'application/pdf',",
-                "                        'description': 'Rollback-only missing source attachment probe',",
-                "                        'public': False,",
-                "                    }]",
-                "            class FakeConnection:",
-                "                def cursor(self):",
-                "                    return FakeCursor()",
-                "            company = env['res.company'].browse(target_company_id)",
-                "            missing_file_stats = run._import_attachments(",
-                "                FakeConnection(),",
-                "                {",
-                f"                    'source_snapshot_id': {source_snapshot_id()!r},",
-                "                    'source_filestore_path': '/tmp/rebuild-accounting-missing-filestore-probe',",
-                "                    'date_from': '2024-01-10',",
-                "                    'date_to': '2025-09-30',",
-                "                    'source_database': 'odoo_online_source_saas_19_2',",
-                "                },",
-                "                {source_company_id: company},",
-                "            )",
-                "            injected_missing_file_discrepancies = Discrepancy.search_count([('name', '=', missing_file_discrepancy_name), ('status', '!=', 'resolved')])",
-                "            raise RuntimeError(rollback_marker)",
-                "    except RuntimeError as exc:",
-                "        if str(exc) != rollback_marker:",
-                "            raise",
-                "    final_missing_file_discrepancies = Discrepancy.search_count([('name', '=', missing_file_discrepancy_name), ('status', '!=', 'resolved')])",
-                "    payload['cases'].append({",
-                "        'name': 'source_attachment_missing_file_discrepancy_rollback',",
-                "        'status': 'passed' if baseline_missing_file_discrepancies == 0 and missing_file_stats.get('missing_file_count') == 1 and injected_missing_file_discrepancies > baseline_missing_file_discrepancies and final_missing_file_discrepancies == baseline_missing_file_discrepancies else 'failed',",
-                "        'baseline_missing_file_discrepancies': baseline_missing_file_discrepancies,",
-                "        'injected_missing_file_discrepancies': injected_missing_file_discrepancies,",
-                "        'final_missing_file_discrepancies': final_missing_file_discrepancies,",
-                "        'missing_file_stats': missing_file_stats,",
-                "        'sample_source_move_id': source_move_id,",
-                "        'sample_source_company_id': source_company_id,",
-                "    })",
-                "payload['status'] = 'passed' if payload['cases'] and all(case['status'] == 'passed' for case in payload['cases']) else 'failed'",
-                "env.cr.commit()",
-                "print('REBUILD_TARGET_FAILURE_TESTS=' + json.dumps(payload, sort_keys=True))",
-                "",
-            ],
-        ),
-        encoding="utf-8",
+    duplicate_failures = {
+        "account_move": duplicate_target_traces("account_move"),
+        "account_move_line": duplicate_target_traces("account_move_line"),
+        "account_payment": duplicate_target_traces("account_payment"),
+        "account_partial_reconcile": duplicate_target_traces("account_partial_reconcile"),
+        "account_full_reconcile": duplicate_target_traces("account_full_reconcile"),
+    }
+    obsolete_tables = [
+        "rebuild_account_move_review",
+        "rebuild_account_move_line_review",
+        "rebuild_account_document_regeneration_case",
+        "rebuild_account_payment_review",
+        "rebuild_account_reconciliation_review",
+    ]
+    obsolete_models = [
+        "rebuild.account.move.review",
+        "rebuild.account.move.line.review",
+        "rebuild.account.document.regeneration.case",
+        "rebuild.account.payment.review",
+        "rebuild.account.reconciliation.review",
+    ]
+    unexpected_tables = [
+        table
+        for table in obsolete_tables
+        if table_exists(EXACT_VALIDATION_DB, table)
+    ]
+    unexpected_models = query_rows(
+        EXACT_VALIDATION_DB,
+        f"""
+        SELECT model
+        FROM ir_model
+        WHERE model IN ({
+            ", ".join(f"'{model}'" for model in obsolete_models)
+        })
+        ORDER BY model
+        """,
+        set_readonly_role=False,
     )
-    result = run(
-        compose_args(
-            "--profile",
-            "init",
-            "run",
-            "--rm",
-            "init-db",
-            "odoo",
-            "shell",
-            "--config=/etc/odoo/odoo.conf",
-            f"--database={EXACT_VALIDATION_DB}",
-        ),
-        input_file=failure_script,
-        check=False,
-    )
-    shell_payload = None
-    for line in (result.stdout + result.stderr).splitlines():
-        if line.startswith("REBUILD_TARGET_FAILURE_TESTS="):
-            shell_payload = json.loads(line.split("=", 1)[1])
-            break
-    after_signature = target_idempotence_signature()
     status = {
         "generated_at": utc_now(),
         "tool_version": TOOL_VERSION,
         "stage": "validation-exact-failure-tests",
-        "status": "passed" if result.returncode == 0 and shell_payload and shell_payload.get("status") == "passed" and before_signature == after_signature else "failed",
-        "classification": "TARGET_FAILURE_GUARDRAILS",
-        "script": str(failure_script.relative_to(ROOT)),
-        "exit_code": result.returncode,
-        "signature_matches_after_rollback": before_signature == after_signature,
-        "cases": (shell_payload or {}).get("cases", []),
-        "output_tail": (result.stdout + result.stderr)[-4000:] if result.returncode or not shell_payload else "",
-        "limitations": [
-            "This stage currently verifies rollback-only duplicate source-trace conflict detection, unbalanced posted-move detection, missing-account FK rejection, missing-tax FK rejection, incomplete-reconciliation FK rejection, imported attachment checksum-metadata corruption detection and source-metadata-driven missing-file discrepancy creation.",
-            "These probes are rollback-only guardrails and do not replace accountant review of real missing or corrupted evidence.",
-        ],
+        "status": (
+            "passed"
+            if (
+                not any(duplicate_failures.values())
+                and not unexpected_tables
+                and not unexpected_models
+            )
+            else "failed"
+        ),
+        "classification": "NATIVE_SOURCE_TRACE_GUARDRAILS",
+        "duplicate_failures": duplicate_failures,
+        "obsolete_table_failures": unexpected_tables,
+        "obsolete_model_failures": unexpected_models,
+        "note": "All reconstructed business objects are native Odoo records; no review-model fallback is accepted.",
     }
     write_json(PRIVATE_ARTIFACTS / "validation-exact-failure-tests-status.json", status)
     if status["status"] != "passed" and not getattr(args, "allow_errors", False):
-        raise HarnessError("Target failure guardrails did not pass")
+        raise HarnessError("Native source-trace guardrails failed")
     return status
 
 
@@ -6725,9 +6324,7 @@ def source_posted_line_amount_profile() -> dict[str, Any]:
         )
         FROM account_move_line aml
         JOIN account_move am ON am.id = aml.move_id
-        WHERE am.company_id = 1
-          AND am.state = 'posted'
-          AND am.date BETWEEN DATE '{USL_BENCHMARK_START}' AND DATE '{USL_BENCHMARK_END}'
+        WHERE am.company_id IN (1, 8)
         """,
     ) or {}
 
@@ -6876,22 +6473,24 @@ def target_full_replay_company_rows() -> list[dict[str, Any]]:
         )
         SELECT sm.source_company_id::text AS source_company_id,
                count(DISTINCT sm.id)::text AS move_count,
-               count(sl.id)::text AS accounting_line_count,
-               '0' AS non_account_line_count,
-               COALESCE(round(sum(sl.debit)::numeric, 2), 0)::text AS debit,
-               COALESCE(round(sum(sl.credit)::numeric, 2), 0)::text AS credit,
-               count(sl.id) FILTER (WHERE sl.tax_repartition_line_id IS NOT NULL)::text AS tax_repartition_line_count,
+               count(sl.id) FILTER (WHERE sl.account_id IS NOT NULL)::text AS accounting_line_count,
+               count(sl.id) FILTER (WHERE sl.account_id IS NULL)::text AS non_account_line_count,
+               COALESCE(round(sum(sl.debit) FILTER (WHERE sl.account_id IS NOT NULL)::numeric, 2), 0)::text AS debit,
+               COALESCE(round(sum(sl.credit) FILTER (WHERE sl.account_id IS NOT NULL)::numeric, 2), 0)::text AS credit,
+               count(sl.id) FILTER (WHERE sl.account_id IS NOT NULL AND sl.tax_repartition_line_id IS NOT NULL)::text AS tax_repartition_line_count,
                (
                    SELECT count(*)::text
                    FROM scoped_lines rel_line
                    JOIN account_move_line_account_tax_rel rel ON rel.account_move_line_id = rel_line.id
-                   WHERE rel_line.source_company_id = sm.source_company_id
+                     WHERE rel_line.source_company_id = sm.source_company_id
+                       AND rel_line.account_id IS NOT NULL
                ) AS tax_relation_count,
                (
                    SELECT count(*)::text
                    FROM scoped_lines tag_line
                    JOIN account_account_tag_account_move_line_rel rel ON rel.account_move_line_id = tag_line.id
-                   WHERE tag_line.source_company_id = sm.source_company_id
+                     WHERE tag_line.source_company_id = sm.source_company_id
+                       AND tag_line.account_id IS NOT NULL
                ) AS tax_tag_relation_count
         FROM scope_moves sm
         LEFT JOIN scoped_lines sl ON sl.move_id = sm.id
@@ -7017,38 +6616,37 @@ def target_no_entry_payment_rows() -> list[dict[str, Any]]:
     return query_rows(
         EXACT_VALIDATION_DB,
         f"""
-        SELECT review.rebuild_source_id::text AS source_payment_id,
-               review.name::text AS name,
+        SELECT payment.rebuild_source_id::text AS source_payment_id,
+               payment.name::text AS name,
                company.rebuild_source_id::text AS source_company_id,
                COALESCE(journal.rebuild_source_id::text, '') AS source_journal_id,
                COALESCE(partner.rebuild_source_id::text, '') AS source_partner_id,
                COALESCE(currency.name::text, '') AS currency,
-               review.date::text AS date,
-               round(review.amount::numeric, 2)::text AS amount,
-               round(review.amount_company_currency_signed::numeric, 2)::text AS amount_company_currency_signed,
-               review.source_state::text AS state,
-               COALESCE(review.payment_type::text, '') AS payment_type,
-               COALESCE(review.partner_type::text, '') AS partner_type,
-               COALESCE(review.memo::text, '') AS memo,
-               COALESCE(review.payment_reference::text, '') AS payment_reference,
-               COALESCE(outstanding.rebuild_source_id::text, '') AS source_outstanding_account_id,
-               COALESCE(destination.rebuild_source_id::text, '') AS source_destination_account_id,
-               review.source_is_reconciled_raw::text AS is_reconciled,
-               review.source_is_matched_raw::text AS is_matched,
-               review.source_is_sent_raw::text AS is_sent,
-               review.accounting_effect::text AS accounting_effect
-        FROM rebuild_account_payment_review review
-        JOIN res_company company ON company.id = review.company_id
-        LEFT JOIN account_journal journal ON journal.id = review.journal_id
-        LEFT JOIN res_partner partner ON partner.id = review.partner_id
-        LEFT JOIN res_currency currency ON currency.id = review.currency_id
-        LEFT JOIN account_account outstanding ON outstanding.id = review.outstanding_account_id
-        LEFT JOIN account_account destination ON destination.id = review.destination_account_id
-        WHERE review.rebuild_source_model = 'account.payment'
+               payment.date::text AS date,
+               round(payment.amount::numeric, 2)::text AS amount,
+               round(payment.usl_source_amount_company_currency_signed::numeric, 2)::text AS amount_company_currency_signed,
+               payment.state::text AS state,
+               COALESCE(payment.payment_type::text, '') AS payment_type,
+               COALESCE(payment.partner_type::text, '') AS partner_type,
+               COALESCE(payment.memo::text, '') AS memo,
+               COALESCE(payment.payment_reference::text, '') AS payment_reference,
+               COALESCE(NULLIF(payment.usl_source_outstanding_account_id, 0)::text, '') AS source_outstanding_account_id,
+               COALESCE(NULLIF(payment.usl_source_destination_account_id, 0)::text, '') AS source_destination_account_id,
+               payment.usl_source_is_reconciled_raw::text AS is_reconciled,
+               payment.usl_source_is_matched_raw::text AS is_matched,
+               payment.usl_source_is_sent_raw::text AS is_sent,
+               'none_no_source_move' AS accounting_effect
+        FROM account_payment payment
+        JOIN res_company company ON company.id = payment.company_id
+        LEFT JOIN account_journal journal ON journal.id = payment.journal_id
+        LEFT JOIN res_partner partner ON partner.id = payment.partner_id
+        LEFT JOIN res_currency currency ON currency.id = payment.currency_id
+        WHERE payment.rebuild_source_model = 'account.payment'
           AND company.rebuild_source_id IN (1, 8)
-          AND review.date BETWEEN DATE '{USL_BENCHMARK_START}' AND DATE '{snapshot}'
-          AND review.accounting_effect = 'none_no_source_move'
-        ORDER BY review.rebuild_source_id
+          AND payment.date BETWEEN DATE '{USL_BENCHMARK_START}' AND DATE '{snapshot}'
+          AND payment.move_id IS NULL
+          AND payment.usl_historical_no_ledger_effect IS TRUE
+        ORDER BY payment.rebuild_source_id
         """,
         set_readonly_role=False,
     )
@@ -7606,7 +7204,7 @@ def source_move_comparison_rows() -> list[dict[str, Any]]:
         SOURCE_DB,
         f"""
         SELECT am.id::text AS source_move_id,
-               am.name::text AS move_name,
+               COALESCE(am.name::text, '/') AS move_name,
                am.date::text AS date,
                COALESCE(am.sequence_prefix::text, '') AS sequence_prefix,
                am.sequence_number::text AS sequence_number,
@@ -7615,9 +7213,7 @@ def source_move_comparison_rows() -> list[dict[str, Any]]:
                COALESCE(am.partner_id::text, '') AS source_partner_id,
                am.state::text AS state
         FROM account_move am
-        WHERE am.company_id = 1
-          AND am.state = 'posted'
-          AND am.date BETWEEN DATE '{USL_BENCHMARK_START}' AND DATE '{USL_BENCHMARK_END}'
+        WHERE am.company_id IN (1, 8)
         ORDER BY am.id
         """,
     )
@@ -7651,350 +7247,12 @@ def target_move_comparison_rows(
         JOIN res_company rc ON rc.id = am.company_id
         LEFT JOIN res_partner rp ON rp.id = am.partner_id
         WHERE am.rebuild_source_model IN ({trace_model_sql})
-          AND {target_benchmark_move_where(company_alias="rc")}
+          AND rc.rebuild_source_id IN (1, 8)
         ORDER BY am.rebuild_source_id
         """,
         set_readonly_role=False,
     )
 
-
-def source_move_review_rows() -> list[dict[str, Any]]:
-    return query_rows(
-        SOURCE_DB,
-        f"""
-        SELECT am.id::text AS source_move_id,
-               COALESCE(am.name::text, '') AS source_name,
-               COALESCE(am.ref::text, '') AS ref,
-               am.state::text AS state,
-               am.move_type::text AS move_type,
-               am.journal_id::text AS source_journal_id,
-               am.company_id::text AS source_company_id,
-               COALESCE(am.partner_id::text, '') AS source_partner_id,
-               COALESCE(am.commercial_partner_id::text, '') AS source_commercial_partner_id,
-               COALESCE(currency.name::text, '') AS currency,
-               am.date::text AS date,
-               COALESCE(am.invoice_date::text, '') AS invoice_date,
-               COALESCE(am.invoice_date_due::text, '') AS invoice_date_due,
-               COALESCE(am.payment_reference::text, '') AS payment_reference,
-               COALESCE(am.payment_state::text, '') AS payment_state,
-               round(COALESCE(am.amount_untaxed_signed, 0)::numeric, 2)::text AS amount_untaxed_signed,
-               round(COALESCE(am.amount_total_signed, 0)::numeric, 2)::text AS amount_total_signed,
-               round(COALESCE(am.amount_residual_signed, 0)::numeric, 2)::text AS amount_residual_signed,
-               count(aml.id)::text AS source_line_count,
-               count(aml.id) FILTER (WHERE aml.account_id IS NOT NULL)::text AS source_accounting_line_count,
-               round(COALESCE(sum(aml.debit), 0)::numeric, 2)::text AS source_line_debit_total,
-               round(COALESCE(sum(aml.credit), 0)::numeric, 2)::text AS source_line_credit_total,
-               round(COALESCE(sum(aml.balance), 0)::numeric, 2)::text AS source_line_balance_total,
-               'none_non_posted_source_move' AS accounting_effect
-        FROM account_move am
-        LEFT JOIN account_move_line aml ON aml.move_id = am.id
-        LEFT JOIN res_currency currency ON currency.id = am.currency_id
-        WHERE am.company_id IN (1, 8)
-          AND am.state <> 'posted'
-          AND am.date >= DATE '{USL_BENCHMARK_START}'
-        GROUP BY am.id, currency.name
-        ORDER BY am.id
-        """,
-    )
-
-
-def target_move_review_rows() -> list[dict[str, Any]]:
-    return query_rows(
-        EXACT_VALIDATION_DB,
-        f"""
-        SELECT review.rebuild_source_id::text AS source_move_id,
-               COALESCE(review.source_name::text, '') AS source_name,
-               COALESCE(review.ref::text, '') AS ref,
-               review.source_state::text AS state,
-               review.move_type::text AS move_type,
-               COALESCE(journal.rebuild_source_id::text, '') AS source_journal_id,
-               company.rebuild_source_id::text AS source_company_id,
-               COALESCE(partner.rebuild_source_id::text, '') AS source_partner_id,
-               COALESCE(commercial_partner.rebuild_source_id::text, '') AS source_commercial_partner_id,
-               COALESCE(currency.name::text, '') AS currency,
-               review.date::text AS date,
-               COALESCE(review.invoice_date::text, '') AS invoice_date,
-               COALESCE(review.invoice_date_due::text, '') AS invoice_date_due,
-               COALESCE(review.payment_reference::text, '') AS payment_reference,
-               COALESCE(review.payment_state::text, '') AS payment_state,
-               round(COALESCE(review.amount_untaxed_signed, 0)::numeric, 2)::text AS amount_untaxed_signed,
-               round(COALESCE(review.amount_total_signed, 0)::numeric, 2)::text AS amount_total_signed,
-               round(COALESCE(review.amount_residual_signed, 0)::numeric, 2)::text AS amount_residual_signed,
-               review.source_line_count::text AS source_line_count,
-               review.source_accounting_line_count::text AS source_accounting_line_count,
-               round(COALESCE(review.source_line_debit_total, 0)::numeric, 2)::text AS source_line_debit_total,
-               round(COALESCE(review.source_line_credit_total, 0)::numeric, 2)::text AS source_line_credit_total,
-               round(COALESCE(review.source_line_balance_total, 0)::numeric, 2)::text AS source_line_balance_total,
-               review.accounting_effect::text AS accounting_effect
-        FROM rebuild_account_move_review review
-        JOIN res_company company ON company.id = review.company_id
-        LEFT JOIN account_journal journal ON journal.id = review.journal_id
-        LEFT JOIN res_partner partner ON partner.id = review.partner_id
-        LEFT JOIN res_partner commercial_partner ON commercial_partner.id = review.commercial_partner_id
-        LEFT JOIN res_currency currency ON currency.id = review.currency_id
-        WHERE review.rebuild_source_model = 'account.move'
-          AND company.rebuild_source_id IN (1, 8)
-          AND review.date >= DATE '{USL_BENCHMARK_START}'
-          AND review.accounting_effect = 'none_non_posted_source_move'
-        ORDER BY review.rebuild_source_id
-        """,
-        set_readonly_role=False,
-    )
-
-
-def document_regeneration_case_classification(row: dict[str, Any]) -> dict[str, str]:
-    invoice_move_types = {
-        "out_invoice",
-        "out_refund",
-        "in_invoice",
-        "in_refund",
-        "out_receipt",
-        "in_receipt",
-    }
-    state = row.get("state") or ""
-    move_type = row.get("move_type") or ""
-    if state == "cancel":
-        if (
-            int(row.get("source_accounting_line_count") or 0) > 0
-            and int(row.get("source_line_count") or 0) > 0
-        ):
-            return {
-                "generation_scope": "cancelled_source_record",
-                "case_status": "candidate_ready",
-                "generation_status": "not_generated",
-            }
-        return {
-            "generation_scope": "cancelled_source_record",
-            "case_status": "review_only_cancelled_source",
-            "generation_status": "not_applicable",
-        }
-    if state != "draft":
-        return {
-            "generation_scope": "unsupported_source_record",
-            "case_status": "blocked_non_draft_state",
-            "generation_status": "blocked",
-        }
-    if int(row.get("source_accounting_line_count") or 0) <= 0 or int(row.get("source_line_count") or 0) <= 0:
-        has_amount = any(
-            Decimal(str(row.get(field_name) or "0")) != Decimal("0")
-            for field_name in (
-                "amount_total_signed",
-                "amount_residual_signed",
-                "source_line_debit_total",
-                "source_line_credit_total",
-            )
-        )
-        if (
-            not has_amount
-            and move_type in invoice_move_types
-            and row.get("has_source_attachment")
-        ):
-            return {
-                "generation_scope": "draft_business_document",
-                "case_status": "candidate_ready",
-                "generation_status": "not_generated",
-            }
-        if not has_amount:
-            return {
-                "generation_scope": "unsupported_source_record",
-                "case_status": "review_only_no_accounting_lines",
-                "generation_status": "not_applicable",
-            }
-        return {
-            "generation_scope": "unsupported_source_record",
-            "case_status": "blocked_missing_source_lines",
-            "generation_status": "blocked",
-        }
-    if move_type in invoice_move_types:
-        return {
-            "generation_scope": "draft_business_document",
-            "case_status": "candidate_ready",
-            "generation_status": "not_generated",
-        }
-    if move_type == "entry":
-        return {
-            "generation_scope": "draft_journal_entry",
-            "case_status": "candidate_ready",
-            "generation_status": "not_generated",
-        }
-    return {
-        "generation_scope": "unsupported_source_record",
-        "case_status": "blocked_unsupported_move_type",
-        "generation_status": "blocked",
-    }
-
-
-def source_document_regeneration_case_rows() -> list[dict[str, Any]]:
-    attachment_move_ids = {
-        str(row["linked_source_res_id"])
-        for row in source_accounting_attachment_rows()
-        if row.get("linked_source_res_id")
-    }
-    rows = []
-    for row in source_move_review_rows():
-        classification_row = {
-            **row,
-            "has_source_attachment": (
-                str(row["source_move_id"]) in attachment_move_ids
-            ),
-        }
-        classification = document_regeneration_case_classification(
-            classification_row,
-        )
-        rows.append({
-            "source_move_id": row["source_move_id"],
-            "state": row["state"],
-            "move_type": row["move_type"],
-            "source_company_id": row["source_company_id"],
-            "date": row["date"],
-            "source_line_count": row["source_line_count"],
-            "source_accounting_line_count": row["source_accounting_line_count"],
-            "source_line_review_count": row["source_line_count"],
-            **classification,
-        })
-    return rows
-
-
-def target_document_regeneration_case_rows() -> list[dict[str, Any]]:
-    if not table_exists(EXACT_VALIDATION_DB, "rebuild_account_document_regeneration_case"):
-        return []
-    return query_rows(
-        EXACT_VALIDATION_DB,
-        f"""
-        SELECT case_record.rebuild_source_id::text AS source_move_id,
-               COALESCE(case_record.source_state::text, '') AS state,
-               COALESCE(case_record.move_type::text, '') AS move_type,
-               company.rebuild_source_id::text AS source_company_id,
-               case_record.date::text AS date,
-               case_record.source_line_count::text AS source_line_count,
-               case_record.source_accounting_line_count::text AS source_accounting_line_count,
-               count(line_review.id)::text AS source_line_review_count,
-               case_record.generation_scope::text AS generation_scope,
-               case_record.case_status::text AS case_status,
-               case_record.generation_status::text AS generation_status
-        FROM rebuild_account_document_regeneration_case case_record
-        JOIN res_company company ON company.id = case_record.company_id
-        LEFT JOIN rebuild_account_move_line_review line_review
-               ON line_review.imported_move_review_id = case_record.move_review_id
-        WHERE case_record.active IS TRUE
-          AND case_record.rebuild_source_model = 'account.move'
-          AND company.rebuild_source_id IN (1, 8)
-          AND case_record.date >= DATE '{USL_BENCHMARK_START}'
-        GROUP BY case_record.id, company.rebuild_source_id
-        ORDER BY case_record.rebuild_source_id
-        """,
-        set_readonly_role=False,
-    )
-
-
-def source_move_line_review_rows() -> list[dict[str, Any]]:
-    snapshot = source_snapshot_date() or USL_BENCHMARK_END
-    return query_rows(
-        SOURCE_DB,
-        f"""
-        SELECT aml.id::text AS source_move_line_id,
-               aml.move_id::text AS source_move_id,
-               COALESCE(am.name::text, '') AS source_move_name,
-               am.state::text AS source_move_state,
-               am.move_type::text AS source_move_type,
-               am.company_id::text AS source_company_id,
-               am.journal_id::text AS source_journal_id,
-               COALESCE(aml.partner_id::text, '') AS source_partner_id,
-               am.date::text AS date,
-               COALESCE(aml.date_maturity::text, '') AS date_maturity,
-               aml.sequence::text AS sequence,
-               COALESCE(aml.account_id::text, '') AS source_account_id,
-               COALESCE(aml.display_type::text, '') AS display_type,
-               COALESCE(aml.name::text, '') AS label,
-               COALESCE(aml.ref::text, '') AS ref,
-               round(COALESCE(aml.debit, 0)::numeric, 2)::text AS debit,
-               round(COALESCE(aml.credit, 0)::numeric, 2)::text AS credit,
-               round(COALESCE(aml.balance, 0)::numeric, 2)::text AS balance,
-               round(COALESCE(aml.amount_currency, 0)::numeric, 2)::text AS amount_currency,
-               round(COALESCE(aml.tax_base_amount, 0)::numeric, 2)::text AS tax_base_amount,
-               COALESCE((
-                   SELECT string_agg(rel.account_tax_id::text, ',' ORDER BY rel.account_tax_id)
-                   FROM account_move_line_account_tax_rel rel
-                   WHERE rel.account_move_line_id = aml.id
-               ), '') AS source_tax_ids,
-               COALESCE((
-                   SELECT string_agg(rel.account_account_tag_id::text, ',' ORDER BY rel.account_account_tag_id)
-                   FROM account_account_tag_account_move_line_rel rel
-                   WHERE rel.account_move_line_id = aml.id
-               ), '') AS source_tax_tag_ids,
-               CASE
-                   WHEN am.state = 'posted' THEN 'none_non_account_display_line'
-                   ELSE 'none_non_posted_source_line'
-               END AS accounting_effect
-        FROM account_move_line aml
-        JOIN account_move am ON am.id = aml.move_id
-        WHERE am.company_id IN (1, 8)
-          AND (
-                (
-                    am.state = 'posted'
-                    AND am.date BETWEEN DATE '{USL_BENCHMARK_START}' AND DATE '{snapshot}'
-                    AND aml.account_id IS NULL
-                )
-                OR
-                (
-                    am.state <> 'posted'
-                    AND am.date >= DATE '{USL_BENCHMARK_START}'
-                )
-          )
-        ORDER BY aml.id
-        """,
-    )
-
-
-def target_move_line_review_rows() -> list[dict[str, Any]]:
-    snapshot = source_snapshot_date() or USL_BENCHMARK_END
-    return query_rows(
-        EXACT_VALIDATION_DB,
-        f"""
-        SELECT review.rebuild_source_id::text AS source_move_line_id,
-               review.source_move_id::text AS source_move_id,
-               COALESCE(review.source_move_name::text, '') AS source_move_name,
-               COALESCE(review.source_move_state::text, '') AS source_move_state,
-               COALESCE(review.source_move_type::text, '') AS source_move_type,
-               company.rebuild_source_id::text AS source_company_id,
-               COALESCE(journal.rebuild_source_id::text, '') AS source_journal_id,
-               COALESCE(partner.rebuild_source_id::text, '') AS source_partner_id,
-               review.date::text AS date,
-               COALESCE(review.date_maturity::text, '') AS date_maturity,
-               review.sequence::text AS sequence,
-               COALESCE(NULLIF(review.source_account_id, 0)::text, '') AS source_account_id,
-               COALESCE(review.display_type::text, '') AS display_type,
-               COALESCE(review.label::text, '') AS label,
-               COALESCE(review.ref::text, '') AS ref,
-               round(COALESCE(review.debit, 0)::numeric, 2)::text AS debit,
-               round(COALESCE(review.credit, 0)::numeric, 2)::text AS credit,
-               round(COALESCE(review.balance, 0)::numeric, 2)::text AS balance,
-               round(COALESCE(review.amount_currency, 0)::numeric, 2)::text AS amount_currency,
-               round(COALESCE(review.tax_base_amount, 0)::numeric, 2)::text AS tax_base_amount,
-               COALESCE(review.source_tax_ids::text, '') AS source_tax_ids,
-               COALESCE(review.source_tax_tag_ids::text, '') AS source_tax_tag_ids,
-               review.accounting_effect::text AS accounting_effect
-        FROM rebuild_account_move_line_review review
-        JOIN res_company company ON company.id = review.company_id
-        LEFT JOIN account_journal journal ON journal.id = review.journal_id
-        LEFT JOIN res_partner partner ON partner.id = review.partner_id
-        WHERE review.rebuild_source_model = 'account.move.line'
-          AND company.rebuild_source_id IN (1, 8)
-          AND (
-                (
-                    review.accounting_effect = 'none_non_account_display_line'
-                    AND review.date BETWEEN DATE '{USL_BENCHMARK_START}' AND DATE '{snapshot}'
-                )
-                OR
-                (
-                    review.accounting_effect = 'none_non_posted_source_line'
-                    AND review.date >= DATE '{USL_BENCHMARK_START}'
-                )
-          )
-        ORDER BY review.rebuild_source_id
-        """,
-        set_readonly_role=False,
-    )
 
 
 def source_line_comparison_rows() -> list[dict[str, Any]]:
@@ -8003,7 +7261,7 @@ def source_line_comparison_rows() -> list[dict[str, Any]]:
         f"""
         SELECT aml.id::text AS source_line_id,
                aml.move_id::text AS source_move_id,
-               aml.account_id::text AS source_account_id,
+               COALESCE(aml.account_id::text, '') AS source_account_id,
                COALESCE(aml.partner_id::text, '') AS source_partner_id,
                COALESCE(rc.name::text, '') AS currency,
                round(aml.debit::numeric, 2)::text AS debit,
@@ -8014,9 +7272,7 @@ def source_line_comparison_rows() -> list[dict[str, Any]]:
         FROM account_move_line aml
         JOIN account_move am ON am.id = aml.move_id
         LEFT JOIN res_currency rc ON rc.id = aml.currency_id
-        WHERE am.company_id = 1
-          AND am.state = 'posted'
-          AND am.date BETWEEN DATE '{USL_BENCHMARK_START}' AND DATE '{USL_BENCHMARK_END}'
+        WHERE am.company_id IN (1, 8)
         ORDER BY aml.id
         """,
     )
@@ -8028,7 +7284,7 @@ def target_line_comparison_rows() -> list[dict[str, Any]]:
         """
         SELECT aml.rebuild_source_id::text AS source_line_id,
                am.rebuild_source_id::text AS source_move_id,
-               aa.rebuild_source_id::text AS source_account_id,
+               COALESCE(aa.rebuild_source_id::text, '') AS source_account_id,
                COALESCE(rp.rebuild_source_id::text, '') AS source_partner_id,
                COALESCE(rc.name::text, '') AS currency,
                round(aml.debit::numeric, 2)::text AS debit,
@@ -8038,14 +7294,14 @@ def target_line_comparison_rows() -> list[dict[str, Any]]:
                COALESCE(aml.date_maturity::text, '') AS date_maturity
         FROM account_move_line aml
         JOIN account_move am ON am.id = aml.move_id
-        JOIN account_account aa ON aa.id = aml.account_id
+        LEFT JOIN account_account aa ON aa.id = aml.account_id
         JOIN res_company company ON company.id = am.company_id
         LEFT JOIN res_partner rp ON rp.id = aml.partner_id
         LEFT JOIN res_currency rc ON rc.id = aml.currency_id
         WHERE aml.rebuild_source_model = 'account.move.line'
-          AND {benchmark_where}
+          AND company.rebuild_source_id IN (1, 8)
         ORDER BY aml.rebuild_source_id
-        """.format(benchmark_where=target_benchmark_move_where()),
+        """,
         set_readonly_role=False,
     )
 
@@ -8321,200 +7577,6 @@ def target_full_reconcile_rows() -> list[dict[str, Any]]:
         set_readonly_role=False,
     )
 
-
-def source_reconciliation_review_rows() -> list[dict[str, Any]]:
-    snapshot = source_snapshot_date() or USL_BENCHMARK_END
-    return query_rows(
-        SOURCE_DB,
-        f"""
-        WITH imported AS (
-            SELECT aml.id
-            FROM account_move_line aml
-            JOIN account_move am ON am.id = aml.move_id
-            WHERE am.company_id IN (1, 8)
-              AND am.state = 'posted'
-              AND am.date BETWEEN DATE '{USL_BENCHMARK_START}' AND DATE '{snapshot}'
-        ),
-        partial_reviews AS (
-            SELECT 'account.partial.reconcile:' || pr.id::text AS source_reconciliation_review_key,
-                   'partial' AS reconciliation_kind,
-                   pr.id::text AS source_partial_reconcile_id,
-                   COALESCE(pr.full_reconcile_id::text, '') AS source_full_reconcile_id,
-                   pr.company_id::text AS source_company_id,
-                   array_to_string(ARRAY(
-                       SELECT DISTINCT company_id
-                       FROM (VALUES (debit_move.company_id), (credit_move.company_id)) AS companies(company_id)
-                       WHERE company_id IS NOT NULL
-                       ORDER BY company_id
-                   ), ',') AS source_company_ids,
-                   pr.debit_move_id::text AS source_debit_line_id,
-                   pr.credit_move_id::text AS source_credit_line_id,
-                   debit_move.id::text AS source_debit_move_id,
-                   credit_move.id::text AS source_credit_move_id,
-                   debit_move.date::text AS source_debit_move_date,
-                   credit_move.date::text AS source_credit_move_date,
-                   debit_move.state::text AS source_debit_move_state,
-                   credit_move.state::text AS source_credit_move_state,
-                   debit_move.company_id::text AS source_debit_company_id,
-                   credit_move.company_id::text AS source_credit_company_id,
-                   (pr.debit_move_id IN (SELECT id FROM imported))::text AS debit_line_imported,
-                   (pr.credit_move_id IN (SELECT id FROM imported))::text AS credit_line_imported,
-                   COALESCE(pr.exchange_move_id::text, '') AS source_exchange_move_id,
-                   pr.max_date::text AS max_date,
-                   round(pr.amount::numeric, 2)::text AS amount,
-                   round(pr.debit_amount_currency::numeric, 2)::text AS debit_amount_currency,
-                   round(pr.credit_amount_currency::numeric, 2)::text AS credit_amount_currency,
-                   '0' AS total_line_count,
-                   '0' AS imported_line_count,
-                   '0' AS missing_line_count,
-                   '' AS source_line_ids,
-                   '' AS imported_source_line_ids,
-                   '' AS missing_source_line_ids,
-                   '' AS missing_source_move_ids,
-                   '' AS missing_source_move_states,
-                   '' AS missing_source_move_dates,
-                   '' AS missing_source_company_ids,
-                   '' AS source_partial_reconcile_ids,
-                   'review_only_cross_boundary' AS accounting_effect
-            FROM account_partial_reconcile pr
-            JOIN account_move_line debit_line ON debit_line.id = pr.debit_move_id
-            JOIN account_move debit_move ON debit_move.id = debit_line.move_id
-            JOIN account_move_line credit_line ON credit_line.id = pr.credit_move_id
-            JOIN account_move credit_move ON credit_move.id = credit_line.move_id
-            WHERE (pr.debit_move_id IN (SELECT id FROM imported)
-                OR pr.credit_move_id IN (SELECT id FROM imported))
-              AND NOT (
-                    pr.debit_move_id IN (SELECT id FROM imported)
-                AND pr.credit_move_id IN (SELECT id FROM imported)
-              )
-        ),
-        full_lines AS (
-            SELECT aml.full_reconcile_id,
-                   count(*) AS total_line_count,
-                   count(*) FILTER (WHERE aml.id IN (SELECT id FROM imported)) AS imported_line_count,
-                   array_agg(aml.id ORDER BY aml.id) AS source_line_ids,
-                   array_agg(aml.id ORDER BY aml.id) FILTER (WHERE aml.id IN (SELECT id FROM imported)) AS imported_source_line_ids,
-                   array_agg(aml.id ORDER BY aml.id) FILTER (WHERE aml.id NOT IN (SELECT id FROM imported)) AS missing_source_line_ids,
-                   array_agg(am.id ORDER BY aml.id) FILTER (WHERE aml.id NOT IN (SELECT id FROM imported)) AS missing_source_move_ids,
-                   array_agg(am.state ORDER BY aml.id) FILTER (WHERE aml.id NOT IN (SELECT id FROM imported)) AS missing_source_move_states,
-                   array_agg(am.date::text ORDER BY aml.id) FILTER (WHERE aml.id NOT IN (SELECT id FROM imported)) AS missing_source_move_dates,
-                   array_agg(am.company_id ORDER BY aml.id) FILTER (WHERE aml.id NOT IN (SELECT id FROM imported)) AS missing_source_company_ids,
-                   min(am.company_id) FILTER (WHERE aml.id IN (SELECT id FROM imported)) AS source_company_id,
-                   array_agg(DISTINCT am.company_id ORDER BY am.company_id) AS source_company_ids
-            FROM account_move_line aml
-            JOIN account_move am ON am.id = aml.move_id
-            WHERE aml.full_reconcile_id IS NOT NULL
-            GROUP BY aml.full_reconcile_id
-        ),
-        full_reviews AS (
-            SELECT 'account.full.reconcile:' || fl.full_reconcile_id::text AS source_reconciliation_review_key,
-                   'full' AS reconciliation_kind,
-                   '' AS source_partial_reconcile_id,
-                   fl.full_reconcile_id::text AS source_full_reconcile_id,
-                   fl.source_company_id::text AS source_company_id,
-                   array_to_string(fl.source_company_ids, ',') AS source_company_ids,
-                   '' AS source_debit_line_id,
-                   '' AS source_credit_line_id,
-                   '' AS source_debit_move_id,
-                   '' AS source_credit_move_id,
-                   '' AS source_debit_move_date,
-                   '' AS source_credit_move_date,
-                   '' AS source_debit_move_state,
-                   '' AS source_credit_move_state,
-                   '' AS source_debit_company_id,
-                   '' AS source_credit_company_id,
-                   'false' AS debit_line_imported,
-                   'false' AS credit_line_imported,
-                   '' AS source_exchange_move_id,
-                   COALESCE(max(pr.max_date)::text, '') AS max_date,
-                   round(COALESCE(sum(pr.amount), 0)::numeric, 2)::text AS amount,
-                   round(COALESCE(sum(pr.debit_amount_currency), 0)::numeric, 2)::text AS debit_amount_currency,
-                   round(COALESCE(sum(pr.credit_amount_currency), 0)::numeric, 2)::text AS credit_amount_currency,
-                   fl.total_line_count::text AS total_line_count,
-                   fl.imported_line_count::text AS imported_line_count,
-                   (fl.total_line_count - fl.imported_line_count)::text AS missing_line_count,
-                   array_to_string(fl.source_line_ids, ',') AS source_line_ids,
-                   array_to_string(fl.imported_source_line_ids, ',') AS imported_source_line_ids,
-                   array_to_string(fl.missing_source_line_ids, ',') AS missing_source_line_ids,
-                   array_to_string(fl.missing_source_move_ids, ',') AS missing_source_move_ids,
-                   array_to_string(fl.missing_source_move_states, ',') AS missing_source_move_states,
-                   array_to_string(fl.missing_source_move_dates, ',') AS missing_source_move_dates,
-                   array_to_string(fl.missing_source_company_ids, ',') AS missing_source_company_ids,
-                   array_to_string(array_remove(array_agg(pr.id ORDER BY pr.id), NULL), ',') AS source_partial_reconcile_ids,
-                   'review_only_cross_boundary' AS accounting_effect
-            FROM full_lines fl
-            LEFT JOIN account_partial_reconcile pr ON pr.full_reconcile_id = fl.full_reconcile_id
-            WHERE fl.imported_line_count > 0
-              AND fl.imported_line_count < fl.total_line_count
-            GROUP BY fl.full_reconcile_id,
-                     fl.source_company_id,
-                     fl.source_company_ids,
-                     fl.total_line_count,
-                     fl.imported_line_count,
-                     fl.source_line_ids,
-                     fl.imported_source_line_ids,
-                     fl.missing_source_line_ids,
-                     fl.missing_source_move_ids,
-                     fl.missing_source_move_states,
-                     fl.missing_source_move_dates,
-                     fl.missing_source_company_ids
-        )
-        SELECT *
-        FROM partial_reviews
-        UNION ALL
-        SELECT *
-        FROM full_reviews
-        ORDER BY source_reconciliation_review_key
-        """,
-    )
-
-
-def target_reconciliation_review_rows() -> list[dict[str, Any]]:
-    if not table_exists(EXACT_VALIDATION_DB, "rebuild_account_reconciliation_review"):
-        return []
-    return query_rows(
-        EXACT_VALIDATION_DB,
-        """
-        SELECT review.rebuild_source_model || ':' || review.rebuild_source_id::text AS source_reconciliation_review_key,
-               review.reconciliation_kind::text AS reconciliation_kind,
-               COALESCE(NULLIF(review.source_partial_reconcile_id, 0)::text, '') AS source_partial_reconcile_id,
-               COALESCE(NULLIF(review.source_full_reconcile_id, 0)::text, '') AS source_full_reconcile_id,
-               review.source_company_id::text AS source_company_id,
-               COALESCE(review.source_company_ids::text, '') AS source_company_ids,
-               COALESCE(NULLIF(review.source_debit_line_id, 0)::text, '') AS source_debit_line_id,
-               COALESCE(NULLIF(review.source_credit_line_id, 0)::text, '') AS source_credit_line_id,
-               COALESCE(NULLIF(review.source_debit_move_id, 0)::text, '') AS source_debit_move_id,
-               COALESCE(NULLIF(review.source_credit_move_id, 0)::text, '') AS source_credit_move_id,
-               COALESCE(review.source_debit_move_date::text, '') AS source_debit_move_date,
-               COALESCE(review.source_credit_move_date::text, '') AS source_credit_move_date,
-               COALESCE(review.source_debit_move_state::text, '') AS source_debit_move_state,
-               COALESCE(review.source_credit_move_state::text, '') AS source_credit_move_state,
-               COALESCE(NULLIF(review.source_debit_company_id, 0)::text, '') AS source_debit_company_id,
-               COALESCE(NULLIF(review.source_credit_company_id, 0)::text, '') AS source_credit_company_id,
-               review.debit_line_imported::text AS debit_line_imported,
-               review.credit_line_imported::text AS credit_line_imported,
-               COALESCE(NULLIF(review.source_exchange_move_id, 0)::text, '') AS source_exchange_move_id,
-               COALESCE(review.max_date::text, '') AS max_date,
-               round(review.amount::numeric, 2)::text AS amount,
-               round(review.debit_amount_currency::numeric, 2)::text AS debit_amount_currency,
-               round(review.credit_amount_currency::numeric, 2)::text AS credit_amount_currency,
-               review.total_line_count::text AS total_line_count,
-               review.imported_line_count::text AS imported_line_count,
-               review.missing_line_count::text AS missing_line_count,
-               COALESCE(review.source_line_ids::text, '') AS source_line_ids,
-               COALESCE(review.imported_source_line_ids::text, '') AS imported_source_line_ids,
-               COALESCE(review.missing_source_line_ids::text, '') AS missing_source_line_ids,
-               COALESCE(review.missing_source_move_ids::text, '') AS missing_source_move_ids,
-               COALESCE(review.missing_source_move_states::text, '') AS missing_source_move_states,
-               COALESCE(review.missing_source_move_dates::text, '') AS missing_source_move_dates,
-               COALESCE(review.missing_source_company_ids::text, '') AS missing_source_company_ids,
-               COALESCE(review.source_partial_reconcile_ids::text, '') AS source_partial_reconcile_ids,
-               review.accounting_effect::text AS accounting_effect
-        FROM rebuild_account_reconciliation_review review
-        ORDER BY source_reconciliation_review_key
-        """,
-        set_readonly_role=False,
-    )
 
 
 def source_report_rows() -> list[dict[str, Any]]:
@@ -9783,12 +8845,6 @@ def target_validate(args: argparse.Namespace) -> dict[str, Any]:
 
     source_moves = source_move_comparison_rows()
     target_moves = target_move_comparison_rows()
-    source_move_reviews = source_move_review_rows()
-    target_move_reviews = target_move_review_rows()
-    source_document_regeneration_cases = source_document_regeneration_case_rows()
-    target_document_regeneration_cases = target_document_regeneration_case_rows()
-    source_move_line_reviews = source_move_line_review_rows()
-    target_move_line_reviews = target_move_line_review_rows()
     source_lines = source_line_comparison_rows()
     target_lines = target_line_comparison_rows()
     source_accounts = source_account_balance_rows()
@@ -9799,8 +8855,6 @@ def target_validate(args: argparse.Namespace) -> dict[str, Any]:
     target_partials = target_partial_reconcile_rows()
     source_fulls = source_full_reconcile_rows()
     target_fulls = target_full_reconcile_rows()
-    source_reconciliation_reviews = source_reconciliation_review_rows()
-    target_reconciliation_reviews = target_reconciliation_review_rows()
     source_reports = source_report_rows()
     target_source_reports = target_source_report_rows()
     source_report_lines = source_report_line_rows()
@@ -9881,8 +8935,12 @@ def target_validate(args: argparse.Namespace) -> dict[str, Any]:
     target_analytic_lines = target_analytic_line_rows()
     source_accounting_attachments = source_accounting_attachment_rows()
     target_accounting_attachments = target_accounting_attachment_rows()
-    source_sequence_chronology = sequence_chronology_summary(source_moves)
-    target_sequence_chronology = sequence_chronology_summary(target_moves)
+    source_sequence_chronology = sequence_chronology_summary(
+        [row for row in source_moves if row["state"] == "posted"],
+    )
+    target_sequence_chronology = sequence_chronology_summary(
+        [row for row in target_moves if row["state"] == "posted"],
+    )
     sequence_chronology_matches = (
         source_sequence_chronology == target_sequence_chronology
     )
@@ -9930,82 +8988,7 @@ def target_validate(args: argparse.Namespace) -> dict[str, Any]:
                 "state",
             ],
         ),
-        "move_reviews": compare_rows(
-            source_move_reviews,
-            target_move_reviews,
-            key="source_move_id",
-            fields=[
-                "source_name",
-                "ref",
-                "state",
-                "move_type",
-                "source_journal_id",
-                "source_company_id",
-                "source_partner_id",
-                "source_commercial_partner_id",
-                "currency",
-                "date",
-                "invoice_date",
-                "invoice_date_due",
-                "payment_reference",
-                "payment_state",
-                "amount_untaxed_signed",
-                "amount_total_signed",
-                "amount_residual_signed",
-                "source_line_count",
-                "source_accounting_line_count",
-                "source_line_debit_total",
-                "source_line_credit_total",
-                "source_line_balance_total",
-                "accounting_effect",
-            ],
-        ),
-        "document_regeneration_cases": compare_rows(
-            source_document_regeneration_cases,
-            target_document_regeneration_cases,
-            key="source_move_id",
-            fields=[
-                "state",
-                "move_type",
-                "source_company_id",
-                "date",
-                "source_line_count",
-                "source_accounting_line_count",
-                "source_line_review_count",
-                "generation_scope",
-                "case_status",
-            ],
-        ),
-        "move_line_reviews": compare_rows(
-            source_move_line_reviews,
-            target_move_line_reviews,
-            key="source_move_line_id",
-            fields=[
-                "source_move_id",
-                "source_move_name",
-                "source_move_state",
-                "source_move_type",
-                "source_company_id",
-                "source_journal_id",
-                "source_partner_id",
-                "date",
-                "date_maturity",
-                "sequence",
-                "source_account_id",
-                "display_type",
-                "label",
-                "ref",
-                "debit",
-                "credit",
-                "balance",
-                "amount_currency",
-                "tax_base_amount",
-                "source_tax_ids",
-                "source_tax_tag_ids",
-                "accounting_effect",
-            ],
-        ),
-        "move_lines": compare_rows(
+         "move_lines": compare_rows(
             source_lines,
             target_lines,
             key="source_line_id",
@@ -10054,48 +9037,7 @@ def target_validate(args: argparse.Namespace) -> dict[str, Any]:
             key="source_full_reconcile_id",
             fields=["source_line_ids", "source_partial_reconcile_ids"],
         ),
-        "reconciliation_reviews": compare_rows(
-            source_reconciliation_reviews,
-            target_reconciliation_reviews,
-            key="source_reconciliation_review_key",
-            fields=[
-                "reconciliation_kind",
-                "source_partial_reconcile_id",
-                "source_full_reconcile_id",
-                "source_company_id",
-                "source_company_ids",
-                "source_debit_line_id",
-                "source_credit_line_id",
-                "source_debit_move_id",
-                "source_credit_move_id",
-                "source_debit_move_date",
-                "source_credit_move_date",
-                "source_debit_move_state",
-                "source_credit_move_state",
-                "source_debit_company_id",
-                "source_credit_company_id",
-                "debit_line_imported",
-                "credit_line_imported",
-                "source_exchange_move_id",
-                "max_date",
-                "amount",
-                "debit_amount_currency",
-                "credit_amount_currency",
-                "total_line_count",
-                "imported_line_count",
-                "missing_line_count",
-                "source_line_ids",
-                "imported_source_line_ids",
-                "missing_source_line_ids",
-                "missing_source_move_ids",
-                "missing_source_move_states",
-                "missing_source_move_dates",
-                "missing_source_company_ids",
-                "source_partial_reconcile_ids",
-                "accounting_effect",
-            ],
-        ),
-        "source_reports": compare_rows(
+         "source_reports": compare_rows(
             source_reports,
             target_source_reports,
             key="source_report_key",
@@ -10266,7 +9208,7 @@ def target_validate(args: argparse.Namespace) -> dict[str, Any]:
                 "origin_linked",
             ],
         ),
-        "no_entry_payment_reviews": compare_rows(
+        "native_no_entry_payments": compare_rows(
             source_no_entry_payments,
             target_no_entry_payments,
             key="source_payment_id",
@@ -10486,20 +9428,15 @@ def target_validate(args: argparse.Namespace) -> dict[str, Any]:
     invariant_failures = {
         "target_unbalanced_posted_moves": target_unbalanced_moves(),
         "duplicate_move_traces": duplicate_target_traces("account_move"),
-        "duplicate_move_review_traces": duplicate_target_traces("rebuild_account_move_review"),
-        "duplicate_document_regeneration_case_traces": duplicate_target_traces("rebuild_account_document_regeneration_case"),
-        "duplicate_move_line_review_traces": duplicate_target_traces("rebuild_account_move_line_review"),
         "duplicate_move_line_traces": duplicate_target_traces("account_move_line"),
         "duplicate_partial_reconcile_traces": duplicate_target_traces("account_partial_reconcile"),
         "duplicate_full_reconcile_traces": duplicate_target_traces("account_full_reconcile"),
-        "duplicate_reconciliation_review_traces": duplicate_target_traces("rebuild_account_reconciliation_review"),
         "duplicate_source_report_traces": duplicate_target_traces("rebuild_account_source_report"),
         "duplicate_source_report_line_traces": duplicate_target_traces("rebuild_account_source_report_line"),
         "duplicate_source_report_expression_traces": duplicate_target_traces("rebuild_account_source_report_expression"),
         "duplicate_source_report_column_traces": duplicate_target_traces("rebuild_account_source_report_column"),
         "duplicate_deferred_schedule_traces": duplicate_target_traces("rebuild_account_deferred_schedule_line"),
         "duplicate_payment_traces": duplicate_target_traces("account_payment"),
-        "duplicate_payment_review_traces": duplicate_target_traces("rebuild_account_payment_review"),
         "duplicate_bank_statement_line_traces": duplicate_target_traces("account_bank_statement_line"),
         "duplicate_attachment_traces": duplicate_target_traces("ir_attachment"),
         "duplicate_tax_group_traces": duplicate_target_traces("account_tax_group"),
@@ -10525,20 +9462,15 @@ def target_validate(args: argparse.Namespace) -> dict[str, Any]:
         and sequence_chronology_matches
         and not invariant_failures["target_unbalanced_posted_moves"]
         and not invariant_failures["duplicate_move_traces"]
-        and not invariant_failures["duplicate_move_review_traces"]
-        and not invariant_failures["duplicate_document_regeneration_case_traces"]
-        and not invariant_failures["duplicate_move_line_review_traces"]
         and not invariant_failures["duplicate_move_line_traces"]
         and not invariant_failures["duplicate_partial_reconcile_traces"]
         and not invariant_failures["duplicate_full_reconcile_traces"]
-        and not invariant_failures["duplicate_reconciliation_review_traces"]
         and not invariant_failures["duplicate_source_report_traces"]
         and not invariant_failures["duplicate_source_report_line_traces"]
         and not invariant_failures["duplicate_source_report_expression_traces"]
         and not invariant_failures["duplicate_source_report_column_traces"]
         and not invariant_failures["duplicate_deferred_schedule_traces"]
         and not invariant_failures["duplicate_payment_traces"]
-        and not invariant_failures["duplicate_payment_review_traces"]
         and not invariant_failures["duplicate_bank_statement_line_traces"]
         and not invariant_failures["duplicate_attachment_traces"]
         and not invariant_failures["duplicate_tax_group_traces"]
@@ -10568,7 +9500,7 @@ def target_validate(args: argparse.Namespace) -> dict[str, Any]:
             "source_company_id": 1,
             "period_start": USL_BENCHMARK_START,
             "period_end": USL_BENCHMARK_END,
-            "posted_only": True,
+            "complete_native_company_replay": True,
             "import_mode": "exact_ledger_replay",
         },
         "source_posted_summary": source_posted_summary(),
@@ -10602,10 +9534,10 @@ def target_validate(args: argparse.Namespace) -> dict[str, Any]:
         "invariant_failures": invariant_failures,
         "lock_enforcement": lock_enforcement,
         "limitations": [
-            "This validation covers posted USL benchmark journal entries and journal items only.",
-            "The target database contains a broader posted replay through the source snapshot date for source companies 1 and 8; this comparison intentionally scopes to the closed USL benchmark period.",
+            "Native move, line, payment and reconciliation comparisons cover every source state for companies 1 and 8; balance benchmarks remain scoped to posted entries.",
+            "The target database contains the complete replay through the source snapshot date for source companies 1 and 8.",
             "Currency-rate parity is intentionally broader than the posted benchmark slice because native Track B invoices, payments and exchange differences require the restored rates through the source snapshot date.",
-            "Non-posted source move workflow review records, document-regeneration workbench cases, posted source non-account display-line review records, cross-boundary reconciliation review records, source report catalogue/line/expression/column records, move-backed source payment records, no-entry payment workflow review records, source bank statement line records, source analytic line records, scoped accounting attachments and source asset depreciation schedule evidence are compared in the broad replay controls; the exact €942 DGFiP statement-line residual and reconciliation state are normalized only when the confirmed source-traced VAT correction control passes; generated target drafts are validated by the separate document-regeneration stage and excluded from posted ledger replay controls; final report-variant acceptance remains outside the automated validation scope.",
+            "Source report definitions, all native payments, bank statement lines, analytic lines, scoped accounting attachments and asset depreciation evidence are compared in the broad replay controls. The exact €942 DGFiP statement-line residual and reconciliation state are normalized only when the confirmed source-traced VAT correction control passes. Final report-variant acceptance remains outside this data-parity control.",
         ],
         "status": "passed" if passed else "failed",
         "classification": "POSTED_LEDGER_SLICE_PARITY" if passed else "TRANSFER_DEFECT",
@@ -12434,7 +11366,7 @@ def seed_review_decision_records() -> dict[str, Any]:
         "\n".join(
             [
                 "import json",
-                "Decision = env['rebuild.account.review.decision'].sudo()",
+                "Decision = env['rebuild.account.assurance.decision'].sudo()",
                 "SourceReport = env['rebuild.account.source.report'].sudo()",
                 "Discrepancy = env['rebuild.account.discrepancy'].sudo()",
                 "ExternalValue = env['rebuild.account.external.report.value'].sudo()",
@@ -12683,43 +11615,32 @@ def odoo_accountant_access_controls() -> dict[str, Any]:
                 "Report = env['rebuild.account.trial.balance.line'].with_user(user)",
                 "French = env['rebuild.account.french.statement.line'].with_user(user)",
                 "Discrepancy = env['rebuild.account.discrepancy'].with_user(user)",
-                "MoveReview = env['rebuild.account.move.review'].with_user(user)",
-                "MoveReviewSudo = env['rebuild.account.move.review'].sudo()",
-                "DocumentCase = env['rebuild.account.document.regeneration.case'].with_user(user)",
-                "DocumentCaseSudo = env['rebuild.account.document.regeneration.case'].sudo()",
-                "MoveLineReview = env['rebuild.account.move.line.review'].with_user(user)",
-                "MoveLineReviewSudo = env['rebuild.account.move.line.review'].sudo()",
-                "PaymentReview = env['rebuild.account.payment.review'].with_user(user)",
-                "PaymentReviewSudo = env['rebuild.account.payment.review'].sudo()",
-                "ReconciliationReview = env['rebuild.account.reconciliation.review'].with_user(user)",
-                "ReconciliationReviewSudo = env['rebuild.account.reconciliation.review'].sudo()",
                 "SourceReport = env['rebuild.account.source.report'].with_user(user)",
                 "SourceReportSudo = env['rebuild.account.source.report'].sudo()",
-                "ReviewDecision = env['rebuild.account.review.decision'].with_user(user)",
-                "ReviewDecisionSudo = env['rebuild.account.review.decision'].sudo()",
+                "ReviewDecision = env['rebuild.account.assurance.decision'].with_user(user)",
+                "ReviewDecisionSudo = env['rebuild.account.assurance.decision'].sudo()",
                 "ExternalValue = env['rebuild.account.external.report.value'].with_user(user)",
                 "ExternalValueSudo = env['rebuild.account.external.report.value'].sudo()",
                 "Attachment = env['ir.attachment'].with_user(user)",
                 "AttachmentSudo = env['ir.attachment'].sudo()",
                 "DeferredSchedule = env['rebuild.account.deferred.schedule.line'].with_user(user)",
                 "DeferredScheduleSudo = env['rebuild.account.deferred.schedule.line'].sudo()",
-                "ReviewSummary = env['rebuild.account.review.summary'].with_user(user)",
+                "ReviewSummary = env['rebuild.account.overview'].with_user(user)",
                 "MoveLine = env['account.move.line'].with_user(user)",
                 "report_count = Report.search_count([('company_id', '=', company.id)])",
                 "french_count = French.search_count([('company_id', '=', company.id)])",
                 "discrepancy_count = Discrepancy.search_count([])",
                 "summary = ReviewSummary.search([('company_id', '=', company.id)], limit=1)",
-                "summary_ok = bool(summary and summary.open_discrepancy_count >= summary.open_p0_count and summary.pending_external_report_value_count >= 1 and summary.document_regeneration_case_count >= 1)",
+                "summary_ok = bool(summary and summary.open_discrepancy_count >= summary.open_p0_count and summary.pending_external_report_value_count >= 1)",
                 "summary_actions_ok = False",
                 "summary_payload = {}",
                 "if summary:",
                 "    discrepancy_action = summary.action_open_open_discrepancies()",
                 "    decision_action = summary.action_open_review_decisions()",
                 "    external_value_action = summary.action_open_external_report_values()",
-                "    document_case_action = summary.action_open_document_regeneration_cases()",
                 "    journal_action = summary.action_open_imported_journal_items()",
                 "    report_action = summary.action_open_report_export_wizard()",
-                "    summary_actions_ok = discrepancy_action.get('res_model') == 'rebuild.account.discrepancy' and decision_action.get('res_model') == 'rebuild.account.review.decision' and external_value_action.get('res_model') == 'rebuild.account.external.report.value' and document_case_action.get('res_model') == 'rebuild.account.document.regeneration.case' and journal_action.get('res_model') == 'account.move.line' and report_action.get('res_model') == 'rebuild.account.report.export.wizard'",
+                "    summary_actions_ok = discrepancy_action.get('res_model') == 'rebuild.account.discrepancy' and decision_action.get('res_model') == 'rebuild.account.assurance.decision' and external_value_action.get('res_model') == 'rebuild.account.external.report.value' and journal_action.get('res_model') == 'account.move.line' and report_action.get('res_model') == 'rebuild.account.report.export.wizard'",
                 "    summary_payload = {",
                 "        'company': summary.company_id.display_name,",
                 "        'source_company_id': summary.source_company_id,",
@@ -12730,16 +11651,11 @@ def odoo_accountant_access_controls() -> dict[str, Any]:
                 "        'open_p0_count': summary.open_p0_count,",
                 "        'open_p1_count': summary.open_p1_count,",
                 "        'open_discrepancy_count': summary.open_discrepancy_count,",
-                "        'review_record_count': summary.review_record_count,",
                 "        'review_decision_count': summary.review_decision_count,",
                 "        'pending_review_decision_count': summary.pending_review_decision_count,",
                 "        'recorded_review_decision_count': summary.recorded_review_decision_count,",
                 "        'external_report_value_count': summary.external_report_value_count,",
                 "        'pending_external_report_value_count': summary.pending_external_report_value_count,",
-                "        'document_regeneration_case_count': summary.document_regeneration_case_count,",
-                "        'document_regeneration_candidate_count': summary.document_regeneration_candidate_count,",
-                "        'document_regeneration_review_only_count': summary.document_regeneration_review_only_count,",
-                "        'document_regeneration_blocked_count': summary.document_regeneration_blocked_count,",
                 "        'source_report_count': summary.source_report_count,",
                 "        'mandatory_report_count': summary.mandatory_report_count,",
                 "        'partial_report_equivalent_count': summary.partial_report_equivalent_count,",
@@ -12749,24 +11665,10 @@ def odoo_accountant_access_controls() -> dict[str, Any]:
                 "            'discrepancies': discrepancy_action.get('res_model'),",
                 "            'review_decisions': decision_action.get('res_model'),",
                 "            'external_values': external_value_action.get('res_model'),",
-                "            'document_cases': document_case_action.get('res_model'),",
                 "            'journal_items': journal_action.get('res_model'),",
                 "            'report_export': report_action.get('res_model'),",
                 "        },",
                 "    }",
-                "move_review_count = MoveReview.search_count([('company_id', '=', company.id)])",
-                "expected_move_review_count = MoveReviewSudo.search_count([('company_id', '=', company.id)])",
-                "document_case_count = DocumentCase.search_count([('company_id', '=', company.id), ('active', '=', True)])",
-                "expected_document_case_count = DocumentCaseSudo.search_count([('company_id', '=', company.id), ('active', '=', True)])",
-                "document_case_candidate_count = DocumentCase.search_count([('company_id', '=', company.id), ('active', '=', True), ('case_status', '=', 'candidate_ready')])",
-                "document_case_review_only_count = DocumentCase.search_count([('company_id', '=', company.id), ('active', '=', True), ('generation_status', '=', 'not_applicable')])",
-                "document_case_blocked_count = DocumentCase.search_count([('company_id', '=', company.id), ('active', '=', True), ('generation_status', '=', 'blocked')])",
-                "move_line_review_count = MoveLineReview.search_count([('company_id', '=', company.id)])",
-                "expected_move_line_review_count = MoveLineReviewSudo.search_count([('company_id', '=', company.id)])",
-                "payment_review_count = PaymentReview.search_count([('company_id', '=', company.id)])",
-                "expected_payment_review_count = PaymentReviewSudo.search_count([('company_id', '=', company.id)])",
-                "reconciliation_review_count = ReconciliationReview.search_count([('company_id', '=', company.id)])",
-                "expected_reconciliation_review_count = ReconciliationReviewSudo.search_count([('company_id', '=', company.id)])",
                 "source_report_count = SourceReport.search_count([])",
                 "expected_source_report_count = SourceReportSudo.search_count([])",
                 "external_value_count = ExternalValue.search_count([('company_id', '=', company.id), ('active', '=', True)])",
@@ -12926,7 +11828,7 @@ def odoo_accountant_access_controls() -> dict[str, Any]:
                 "    write_blocked = True",
                 "    write_exception_type = type(exc).__name__",
                 "payload = {",
-                "    'status': 'passed' if report_count > 0 and french_count > 0 and summary_ok and summary_actions_ok and move_review_count == expected_move_review_count and document_case_count == expected_document_case_count and document_case_count > 0 and document_case_candidate_count > 0 and document_case_review_only_count > 0 and document_case_blocked_count == 0 and move_line_review_count == expected_move_line_review_count and payment_review_count == expected_payment_review_count and reconciliation_review_count == expected_reconciliation_review_count and source_report_count == expected_source_report_count and source_report_count > 0 and external_value_count == expected_external_value_count and pending_external_value_count > 0 and attachment_count == expected_attachment_count and attachment_count > 0 and attachment_binary_ok and privacy_probe_blocked and review_decision_ok and review_decision_access == {'read': True, 'write': False, 'create': False, 'unlink': False} and external_value_access == {'read': True, 'write': False, 'create': False, 'unlink': False} and review_mutation_probe.get('status') == 'passed' and review_mutation_probe.get('rolled_back') and deferred_schedule_count == expected_deferred_schedule_count and deferred_schedule_count > 0 and line_count > 0 and media_line_count == 0 and export_ok and write_blocked else 'failed',",
+                "    'status': 'passed' if report_count > 0 and french_count > 0 and summary_ok and summary_actions_ok and source_report_count == expected_source_report_count and source_report_count > 0 and external_value_count == expected_external_value_count and pending_external_value_count > 0 and attachment_count == expected_attachment_count and attachment_count > 0 and attachment_binary_ok and privacy_probe_blocked and review_decision_ok and review_decision_access == {'read': True, 'write': False, 'create': False, 'unlink': False} and external_value_access == {'read': True, 'write': False, 'create': False, 'unlink': False} and review_mutation_probe.get('status') == 'passed' and review_mutation_probe.get('rolled_back') and deferred_schedule_count == expected_deferred_schedule_count and deferred_schedule_count > 0 and line_count > 0 and media_line_count == 0 and export_ok and write_blocked else 'failed',",
                 "    'classification': 'ACCOUNTANT_REVIEW_ACCESS_CHECKS',",
                 "    'scope': {'company': 'Unstatic Labs', 'source_company_id': 1, 'restricted_source_company_ids': [8]},",
                 "    'review_group_xmlid': 'rebuild_account_migration.group_rebuild_accountant_reviewer',",
@@ -12936,19 +11838,6 @@ def odoo_accountant_access_controls() -> dict[str, Any]:
                 "    'french_statement_count': french_count,",
                 "    'review_summary': summary_payload,",
                 "    'discrepancy_count': discrepancy_count,",
-                "    'move_review_count': move_review_count,",
-                "    'expected_move_review_count': expected_move_review_count,",
-                "    'document_regeneration_case_count': document_case_count,",
-                "    'expected_document_regeneration_case_count': expected_document_case_count,",
-                "    'document_regeneration_candidate_count': document_case_candidate_count,",
-                "    'document_regeneration_review_only_count': document_case_review_only_count,",
-                "    'document_regeneration_blocked_count': document_case_blocked_count,",
-                "    'move_line_review_count': move_line_review_count,",
-                "    'expected_move_line_review_count': expected_move_line_review_count,",
-                "    'payment_review_count': payment_review_count,",
-                "    'expected_payment_review_count': expected_payment_review_count,",
-                "    'reconciliation_review_count': reconciliation_review_count,",
-                "    'expected_reconciliation_review_count': expected_reconciliation_review_count,",
                 "    'source_report_count': source_report_count,",
                 "    'expected_source_report_count': expected_source_report_count,",
                 "    'external_report_value_count': external_value_count,",
@@ -14097,7 +12986,7 @@ def fec(args: argparse.Namespace) -> dict[str, Any]:
         "limitations": [
             "Generated through Odoo l10n_fr_account in fec_test_mode=True; this does not set or change fiscal lock dates.",
             "This is not an official DGFiP validator result and is not accountant acceptance.",
-            "The FEC file is scoped to the closed benchmark period; the target database also contains posted current-period and USL Media replay through the source snapshot date. Non-posted source moves, posted display lines without accounts, cross-boundary source reconciliations and source payments without journal entries are represented as review records outside the FEC ledger; full native draft/cancelled document regeneration remains open and is validated separately from FEC replay.",
+            "The FEC file is scoped to the closed benchmark period and posted accounting lines, as required. The target database separately preserves current-period and USL Media entries, native draft/cancelled documents, display-only lines, the complete reconciliation graph and historical no-entry payments.",
         ],
     }
     write_json(PRIVATE_ARTIFACTS / "fec-status.json", status)
@@ -14785,19 +13674,15 @@ def compare(args: argparse.Namespace) -> dict[str, Any]:
             "full_replay_company_controls": controls["comparisons"]["full_replay_company_controls"],
             "trial_balance": controls["comparisons"]["account_balances"],
             "general_ledger": controls["comparisons"]["move_lines"],
-            "move_reviews": controls["comparisons"]["move_reviews"],
-            "document_regeneration_cases": controls["comparisons"]["document_regeneration_cases"],
-            "move_line_reviews": controls["comparisons"]["move_line_reviews"],
             "partial_reconciliations": controls["comparisons"]["partial_reconciliations"],
             "full_reconciliations": controls["comparisons"]["full_reconciliations"],
-            "reconciliation_reviews": controls["comparisons"]["reconciliation_reviews"],
             "source_reports": controls["comparisons"]["source_reports"],
             "source_report_lines": controls["comparisons"]["source_report_lines"],
             "source_report_expressions": controls["comparisons"]["source_report_expressions"],
             "source_report_columns": controls["comparisons"]["source_report_columns"],
             "deferred_schedules": controls["comparisons"]["deferred_schedules"],
             "move_backed_payments": controls["comparisons"]["move_backed_payments"],
-            "no_entry_payment_reviews": controls["comparisons"]["no_entry_payment_reviews"],
+            "native_no_entry_payments": controls["comparisons"]["native_no_entry_payments"],
             "tax_groups": controls["comparisons"]["tax_groups"],
             "tax_tags": controls["comparisons"]["tax_tags"],
             "taxes": controls["comparisons"]["taxes"],
@@ -14814,503 +13699,6 @@ def compare(args: argparse.Namespace) -> dict[str, Any]:
         raise HarnessError("Source-target comparison failed. See artifacts/accounting-compat/private/compare-status.json")
     return comparison
 
-
-def document_regeneration(args: argparse.Namespace) -> dict[str, Any]:
-    ensure_dirs()
-    script_path = PRIVATE_ARTIFACTS / "document-regeneration-check.py"
-    script_path.write_text(
-        "\n".join(
-            [
-                "import json",
-                "Case = env['rebuild.account.document.regeneration.case']",
-                "payload = {",
-                "    'classification': 'DOCUMENT_REGENERATION_READY_CASES',",
-                "    'scope_summary': {},",
-                "    'processed_examples': [],",
-                "    'failure_examples': [],",
-                "    'mismatch_examples': [],",
-                "}",
-                "processed_count = 0",
-                "created_count = 0",
-                "reused_count = 0",
-                "for scope in ['draft_business_document', 'draft_journal_entry', 'cancelled_source_record']:",
-                "    cases = Case.search([('active', '=', True), ('case_status', '=', 'candidate_ready'), ('generation_scope', '=', scope)], order='date, id')",
-                "    payload['scope_summary'][scope] = {",
-                "        'candidate_count': len(cases),",
-                "        'processed_count': 0,",
-                "        'validated_count': 0,",
-                "        'mismatch_count': 0,",
-                "        'failure_count': 0,",
-                "        'created_count': 0,",
-                "        'reused_count': 0,",
-                "        'source_line_count': 0,",
-                "        'generated_line_count': 0,",
-                "        'source_debit_total': 0.0,",
-                "        'source_credit_total': 0.0,",
-                "        'generated_debit_total': 0.0,",
-                "        'generated_credit_total': 0.0,",
-                "    }",
-                "    for case in cases:",
-                "        before_move_id = case.target_move_id.id",
-                "        try:",
-                "            action = case.action_generate_draft_move()",
-                "            move = case.target_move_id",
-                "            expected_state = 'cancel' if scope == 'cancelled_source_record' else 'draft'",
-                "            source_lines = case.move_review_id.move_line_review_ids.filtered(lambda line: line.accounting_effect == 'none_non_posted_source_line')",
-                "            source_debit = sum(source_lines.mapped('debit'))",
-                "            source_credit = sum(source_lines.mapped('credit'))",
-                "            record = {",
-                "                'scope': scope,",
-                "                'status': 'passed' if move and case.generation_status == 'validated' and move.state == expected_state and move.rebuild_source_model == 'account.move.document_regeneration' else 'failed',",
-                "                'case_id': case.id,",
-                "                'source_move_id': case.source_move_id,",
-                "                'source_name': case.source_name or case.name,",
-                "                'target_move_id': move.id if move else False,",
-                "                'target_move_state': move.state if move else '',",
-                "                'target_move_type': move.move_type if move else '',",
-                "                'created_this_run': bool(move and move.id != before_move_id),",
-                "                'action_model': action.get('res_model') if isinstance(action, dict) else '',",
-                "                'generation_status': case.generation_status,",
-                "                'source_line_count': len(source_lines),",
-                "                'generated_line_count': case.generated_line_count,",
-                "                'source_debit_total': source_debit,",
-                "                'source_credit_total': source_credit,",
-                "                'generated_debit_total': case.generated_debit_total,",
-                "                'generated_credit_total': case.generated_credit_total,",
-                "                'validation_note': case.validation_note or '',",
-                "            }",
-                "            summary = payload['scope_summary'][scope]",
-                "            processed_count += 1",
-                "            summary['processed_count'] += 1",
-                "            summary['source_line_count'] += len(source_lines)",
-                "            summary['generated_line_count'] += case.generated_line_count",
-                "            summary['source_debit_total'] += source_debit",
-                "            summary['source_credit_total'] += source_credit",
-                "            summary['generated_debit_total'] += case.generated_debit_total",
-                "            summary['generated_credit_total'] += case.generated_credit_total",
-                "            if record['created_this_run']:",
-                "                created_count += 1",
-                "                summary['created_count'] += 1",
-                "            else:",
-                "                reused_count += 1",
-                "                summary['reused_count'] += 1",
-                "            if record['status'] == 'passed':",
-                "                summary['validated_count'] += 1",
-                "                if len(payload['processed_examples']) < 20:",
-                "                    payload['processed_examples'].append(record)",
-                "            else:",
-                "                summary['mismatch_count'] += 1",
-                "                if len(payload['mismatch_examples']) < 20:",
-                "                    payload['mismatch_examples'].append(record)",
-                "        except Exception as exc:",
-                "            payload['scope_summary'][scope]['failure_count'] += 1",
-                "            if len(payload['failure_examples']) < 20:",
-                "                payload['failure_examples'].append({",
-                "                    'scope': scope,",
-                "                    'status': 'failed',",
-                "                    'case_id': case.id,",
-                "                    'source_move_id': case.source_move_id,",
-                "                    'exception_type': type(exc).__name__,",
-                "                    'exception_message': str(exc),",
-                "                })",
-                "generated_domain = [('rebuild_source_model', '=', 'account.move.document_regeneration')]",
-                "payload['case_count'] = Case.search_count([('active', '=', True)])",
-                "payload['candidate_count'] = Case.search_count([('active', '=', True), ('case_status', '=', 'candidate_ready')])",
-                "payload['validated_count'] = Case.search_count([('active', '=', True), ('generation_status', '=', 'validated')])",
-                "payload['mismatch_count'] = Case.search_count([('active', '=', True), ('generation_status', '=', 'mismatch')])",
-                "payload['blocked_count'] = Case.search_count([('active', '=', True), ('generation_status', '=', 'blocked')])",
-                "payload['review_only_count'] = Case.search_count([('active', '=', True), ('generation_status', '=', 'not_applicable')])",
-                "payload['not_generated_count'] = Case.search_count([('active', '=', True), ('generation_status', '=', 'not_generated')])",
-                "payload['processed_count'] = processed_count",
-                "payload['created_count'] = created_count",
-                "payload['reused_count'] = reused_count",
-                "payload['generated_move_count'] = env['account.move'].search_count(generated_domain)",
-                "payload['posted_generated_move_count'] = env['account.move'].search_count(generated_domain + [('state', '=', 'posted')])",
-                "Review = env['rebuild.account.reconciliation.review']",
-                "Line = env['account.move.line']",
-                "coverage_summary = {",
-                "    'review_count': 0,",
-                "    'reviews_with_missing_endpoints': 0,",
-                "    'all_generated_draft_count': 0,",
-                "    'partial_generated_draft_count': 0,",
-                "    'not_generated_count': 0,",
-                "    'none_required_count': 0,",
-                "    'missing_endpoint_source_line_count': 0,",
-                "    'generated_missing_endpoint_source_line_count': 0,",
-                "    'examples': [],",
-                "}",
-                "for review in Review.search([('accounting_effect', '=', 'review_only_cross_boundary')], order='id'):",
-                "    missing_source_ids = []",
-                "    if review.reconciliation_kind == 'partial':",
-                "        if not review.debit_line_imported and review.source_debit_line_id:",
-                "            missing_source_ids.append(review.source_debit_line_id)",
-                "        if not review.credit_line_imported and review.source_credit_line_id:",
-                "            missing_source_ids.append(review.source_credit_line_id)",
-                "    else:",
-                "        missing_source_ids.extend(",
-                "            int(item)",
-                "            for item in (review.missing_source_line_ids or '').replace(' ', '').split(',')",
-                "            if item.isdigit()",
-                "        )",
-                "    missing_source_ids = sorted(set(missing_source_ids))",
-                "    generated_lines = Line.search([",
-                "        ('rebuild_source_model', '=', 'account.move.line.document_regeneration'),",
-                "        ('rebuild_source_snapshot', '=', review.rebuild_source_snapshot),",
-                "        ('rebuild_source_id', 'in', missing_source_ids or [0]),",
-                "    ])",
-                "    generated_source_ids = sorted(set(generated_lines.mapped('rebuild_source_id')))",
-                "    if not missing_source_ids:",
-                "        coverage = 'none_required'",
-                "    elif len(generated_source_ids) == len(missing_source_ids):",
-                "        coverage = 'all_generated_draft'",
-                "    elif generated_source_ids:",
-                "        coverage = 'partial_generated_draft'",
-                "    else:",
-                "        coverage = 'not_generated'",
-                "    review.write({",
-                "        'generated_missing_line_count': len(generated_source_ids),",
-                "        'generated_missing_source_line_ids': ','.join(str(item) for item in generated_source_ids),",
-                "        'missing_endpoint_coverage': coverage,",
-                "        'review_status': 'represented_review_only' if coverage in ('none_required', 'all_generated_draft') else 'review_required',",
-                "    })",
-                "    coverage_summary['review_count'] += 1",
-                "    coverage_summary[coverage + '_count'] += 1",
-                "    if missing_source_ids:",
-                "        coverage_summary['reviews_with_missing_endpoints'] += 1",
-                "    coverage_summary['missing_endpoint_source_line_count'] += len(missing_source_ids)",
-                "    coverage_summary['generated_missing_endpoint_source_line_count'] += len(generated_source_ids)",
-                "    if len(coverage_summary['examples']) < 20:",
-                "        coverage_summary['examples'].append({",
-                "            'review_id': review.id,",
-                "            'kind': review.reconciliation_kind,",
-                "            'source_reconcile_id': review.source_partial_reconcile_id or review.source_full_reconcile_id,",
-                "            'missing_source_line_ids': missing_source_ids,",
-                "            'generated_source_line_ids': generated_source_ids,",
-                "            'coverage': coverage,",
-                "        })",
-                "payload['reconciliation_endpoint_coverage'] = coverage_summary",
-                "cross_discrepancy = env['rebuild.account.discrepancy'].search([('name', '=', 'Cross-boundary reconciliations are review-only until missing endpoints are in scope'), ('status', 'in', ['open', 'investigating'])], limit=1)",
-                "if cross_discrepancy:",
-                "    all_generated = coverage_summary['reviews_with_missing_endpoints'] == coverage_summary['all_generated_draft_count'] and coverage_summary['reviews_with_missing_endpoints'] > 0",
-                "    cross_discrepancy.write({",
-                "        'severity': 'P1',",
-                "        'classification': 'period_or_scope_difference',",
-                "        'source_value': str(coverage_summary['review_count']),",
-                "        'target_value': (",
-                "            f\"{coverage_summary['all_generated_draft_count']} review rows have generated draft endpoint coverage\"",
-                "            if all_generated",
-                "            else f\"{coverage_summary['all_generated_draft_count']} of {coverage_summary['reviews_with_missing_endpoints']} review rows have generated draft endpoint coverage\"",
-                "        ),",
-                "        'difference': 'Native target reconciliation graph remains review-only because generated missing endpoints are draft records.',",
-                "        'accounting_impact': 'Every cross-boundary source reconciliation is preserved as a review record. Missing endpoint source lines are represented by generated target draft lines where available, but Odoo native reconciliation is not applied to draft endpoints in the exact posted replay baseline.',",
-                "        'legal_or_tax_impact': 'No posted closed-year ledger totals are changed. Full reconciliation-fidelity acceptance still requires accountant or product approval of the review-only treatment for draft endpoints.',",
-                "        'evidence': json.dumps({'reconciliation_endpoint_coverage': coverage_summary}, ensure_ascii=False, sort_keys=True),",
-                "        'recommendation': 'Review the generated draft endpoint coverage from the reconciliation review rows. Accept review-only treatment for source draft endpoints or explicitly choose a separate posted/native reconciliation scenario.'",
-                "    })",
-                "discrepancy = env['rebuild.account.discrepancy'].search([('name', '=', 'Non-posted source moves have regeneration cases but native generation remains incomplete'), ('status', 'in', ['open', 'investigating'])], limit=1)",
-                "if discrepancy:",
-                "    remaining_count = payload['case_count'] - payload['validated_count'] - payload['review_only_count']",
-                "    all_candidates_validated = payload['candidate_count'] == payload['validated_count'] and payload['not_generated_count'] == 0 and payload['mismatch_count'] == 0 and payload['blocked_count'] == 0 and not payload['failure_examples']",
-                "    evidence_payload = json.dumps({",
-                "            'document_regeneration_stage': {",
-                "                'case_count': payload['case_count'],",
-                "                'candidate_count': payload['candidate_count'],",
-                "                'validated_count': payload['validated_count'],",
-                "                'mismatch_count': payload['mismatch_count'],",
-                "                'blocked_count': payload['blocked_count'],",
-                "                'review_only_count': payload['review_only_count'],",
-                "                'generated_move_count': payload['generated_move_count'],",
-                "                'posted_generated_move_count': payload['posted_generated_move_count'],",
-                "                'scope_summary': payload['scope_summary'],",
-                "                'processed_examples': payload['processed_examples'],",
-                "                'failure_examples': payload['failure_examples'],",
-                "                'mismatch_examples': payload['mismatch_examples'],",
-                "            }",
-                "        }, ensure_ascii=False, sort_keys=True),",
-                "    if all_candidates_validated:",
-                "        discrepancy.write({",
-                "            'status': 'resolved',",
-                "            'severity': 'P2',",
-                "            'classification': 'period_or_scope_difference',",
-                "            'source_value': str(payload['case_count']),",
-                "            'target_value': f\"{payload['validated_count']} candidate drafts validated; {payload['review_only_count']} review-only cases marked not applicable\",",
-                "            'difference': 'No candidate-ready document-regeneration case remains unvalidated or blocked.',",
-                "            'accounting_impact': 'Every candidate-ready non-posted source move is represented by a native target draft with matching preserved source line counts and debit/credit totals. Cancelled or empty non-posted records are retained as review evidence and explicitly marked not applicable for native draft generation.',",
-                "            'legal_or_tax_impact': 'No posted closed-year ledger effect is introduced by generated drafts.',",
-                "            'recommendation': 'Keep review-only cases visible in the document-regeneration workbench; no technical generation blocker remains for the current source perimeter.',",
-                "            'evidence': evidence_payload,",
-                "        })",
-                "    else:",
-                "        discrepancy.write({",
-                "            'severity': 'P1',",
-                "            'classification': 'missing_capability',",
-                "            'source_value': str(payload['case_count']),",
-                "            'target_value': f\"{payload['validated_count']} validated of {payload['case_count']}\",",
-                "            'difference': f\"{remaining_count} cases are not validated as native generated drafts\",",
-                "            'accounting_impact': 'Non-posted source records are visible, traceable and classified for regeneration, but native draft generation and generated-line comparison are not complete for every ready case.',",
-                "            'recommendation': 'Use the document-regeneration case workbench to select supported draft records, then implement isolated native draft generation and generated-line comparison outside the exact replay baseline.',",
-                "            'evidence': evidence_payload,",
-                "        })",
-                "payload['status'] = 'passed' if payload['candidate_count'] == payload['validated_count'] and payload['mismatch_count'] == 0 and payload['blocked_count'] == 0 and payload['not_generated_count'] == 0 and not payload['failure_examples'] and payload['posted_generated_move_count'] == 0 else 'failed'",
-                "env.cr.commit()",
-                "print('REBUILD_DOCUMENT_REGENERATION=' + json.dumps(payload, sort_keys=True, default=str))",
-                "",
-            ],
-        ),
-        encoding="utf-8",
-    )
-    result = run(
-        compose_args(
-            "--profile",
-            "init",
-            "run",
-            "--rm",
-            "init-db",
-            "odoo",
-            "shell",
-            "--config=/etc/odoo/odoo.conf",
-            f"--database={EXACT_VALIDATION_DB}",
-        ),
-        input_file=script_path,
-        check=False,
-    )
-    marker = None
-    for line in (result.stdout + result.stderr).splitlines():
-        if line.startswith("REBUILD_DOCUMENT_REGENERATION="):
-            marker = line.removeprefix("REBUILD_DOCUMENT_REGENERATION=")
-    if result.returncode or not marker:
-        status = {
-            "generated_at": utc_now(),
-            "tool_version": TOOL_VERSION,
-            "stage": "document-regeneration",
-            "status": "failed",
-            "classification": "DOCUMENT_REGENERATION_EXECUTION_DEFECT",
-            "script": str(script_path.relative_to(ROOT)),
-            "exit_code": result.returncode,
-            "output_tail": (result.stdout + result.stderr)[-8000:],
-            "next_action": "Inspect the Odoo document-regeneration action failure and source move-line case data.",
-        }
-        write_json(PRIVATE_ARTIFACTS / "document-regeneration-status.json", status)
-        if not getattr(args, "allow_errors", False):
-            raise HarnessError("Document regeneration failed. See artifacts/accounting-compat/private/document-regeneration-status.json")
-        return status
-    payload = json.loads(marker)
-    status = {
-        "generated_at": utc_now(),
-        "tool_version": TOOL_VERSION,
-        "stage": "document-regeneration",
-        "script": str(script_path.relative_to(ROOT)),
-        **payload,
-    }
-    write_json(PRIVATE_ARTIFACTS / "document-regeneration-status.json", status)
-    if status["status"] != "passed" and not getattr(args, "allow_errors", False):
-        raise HarnessError("Document regeneration failed. See artifacts/accounting-compat/private/document-regeneration-status.json")
-    return status
-
-
-def target_reconciliation_probe(args: argparse.Namespace) -> dict[str, Any]:
-    ensure_dirs()
-    script_path = PRIVATE_ARTIFACTS / "validation-exact-reconciliation-probe.py"
-    script_path.write_text(
-        "\n".join(
-            [
-                "import json",
-                "from odoo.exceptions import UserError, ValidationError",
-                "Review = env['rebuild.account.reconciliation.review']",
-                "Line = env['account.move.line']",
-                "Partial = env['account.partial.reconcile']",
-                "Discrepancy = env['rebuild.account.discrepancy']",
-                "payload = {",
-                "    'classification': 'NATIVE_RECONCILIATION_DRAFT_ENDPOINT_PROBE',",
-                "    'coverage_summary': {},",
-                "    'probe': {},",
-                "}",
-                "def generated_line(snapshot, source_line_id):",
-                "    return Line.search([",
-                "        ('rebuild_source_model', '=', 'account.move.line.document_regeneration'),",
-                "        ('rebuild_source_snapshot', '=', snapshot),",
-                "        ('rebuild_source_id', '=', source_line_id or 0),",
-                "    ], limit=1)",
-                "def endpoint_line(review, side):",
-                "    if side == 'debit':",
-                "        return review.debit_move_line_id if review.debit_line_imported else generated_line(review.rebuild_source_snapshot, review.source_debit_line_id)",
-                "    return review.credit_move_line_id if review.credit_line_imported else generated_line(review.rebuild_source_snapshot, review.source_credit_line_id)",
-                "coverage_summary = {",
-                "    'review_count': Review.search_count([('accounting_effect', '=', 'review_only_cross_boundary')]),",
-                "    'all_generated_draft_count': Review.search_count([('accounting_effect', '=', 'review_only_cross_boundary'), ('missing_endpoint_coverage', '=', 'all_generated_draft')]),",
-                "    'partial_review_count': Review.search_count([('accounting_effect', '=', 'review_only_cross_boundary'), ('reconciliation_kind', '=', 'partial')]),",
-                "    'full_review_count': Review.search_count([('accounting_effect', '=', 'review_only_cross_boundary'), ('reconciliation_kind', '=', 'full')]),",
-                "    'review_required_count': Review.search_count([('accounting_effect', '=', 'review_only_cross_boundary'), ('review_status', '=', 'review_required')]),",
-                "}",
-                "payload['coverage_summary'] = coverage_summary",
-                "review = Review.search([",
-                "    ('accounting_effect', '=', 'review_only_cross_boundary'),",
-                "    ('reconciliation_kind', '=', 'partial'),",
-                "    ('missing_endpoint_coverage', '=', 'all_generated_draft'),",
-                "], order='id', limit=1)",
-                "if not review:",
-                "    payload['probe'] = {",
-                "        'status': 'blocked',",
-                "        'reason': 'No partial cross-boundary reconciliation review with generated draft endpoint coverage is available.',",
-                "    }",
-                "else:",
-                "    debit_line = endpoint_line(review, 'debit')",
-                "    credit_line = endpoint_line(review, 'credit')",
-                "    payload['probe'] = {",
-                "        'status': 'failed',",
-                "        'source_partial_reconcile_id': review.source_partial_reconcile_id,",
-                "        'review_id': review.id,",
-                "        'source_debit_line_id': review.source_debit_line_id,",
-                "        'source_credit_line_id': review.source_credit_line_id,",
-                "        'debit_line_id': debit_line.id if debit_line else False,",
-                "        'credit_line_id': credit_line.id if credit_line else False,",
-                "        'debit_parent_state': debit_line.parent_state if debit_line else '',",
-                "        'credit_parent_state': credit_line.parent_state if credit_line else '',",
-                "        'amount': float(review.amount or 0.0),",
-                "    }",
-                "    if not debit_line or not credit_line:",
-                "        payload['probe'].update({",
-                "            'status': 'blocked',",
-                "            'reason': 'The sampled review row does not resolve to both imported/generated target endpoints.',",
-                "        })",
-                "    else:",
-                "        pair_domain = [('debit_move_id', '=', debit_line.id), ('credit_move_id', '=', credit_line.id)]",
-                "        baseline_pair_count = Partial.search_count(pair_domain)",
-                "        baseline_total_count = Partial.search_count([])",
-                "        rollback_marker = 'REBUILD_NATIVE_RECONCILIATION_PROBE_ROLLBACK'",
-                "        try:",
-                "            with env.cr.savepoint():",
-                "                partial = Partial.with_context(no_exchange_difference=True, no_cash_basis=True).create({",
-                "                    'debit_move_id': debit_line.id,",
-                "                    'credit_move_id': credit_line.id,",
-                "                    'amount': abs(review.amount or 0.0),",
-                "                    'debit_amount_currency': abs(review.debit_amount_currency or review.amount or 0.0),",
-                "                    'credit_amount_currency': abs(review.credit_amount_currency or review.amount or 0.0),",
-                "                })",
-                "                payload['probe'].update({",
-                "                    'status': 'passed',",
-                "                    'created_partial_id': partial.id,",
-                "                    'created_partial_full_reconcile_id': partial.full_reconcile_id.id if partial.full_reconcile_id else False,",
-                "                    'created_partial_max_date': str(partial.max_date) if partial.max_date else '',",
-                "                })",
-                "                raise RuntimeError(rollback_marker)",
-                "        except RuntimeError as exc:",
-                "            if str(exc) != rollback_marker:",
-                "                payload['probe'].update({",
-                "                    'status': 'failed',",
-                "                    'exception_type': type(exc).__name__,",
-                "                    'exception_message': str(exc),",
-                "                })",
-                "        except (UserError, ValidationError, Exception) as exc:",
-                "            payload['probe'].update({",
-                "                'status': 'failed',",
-                "                'exception_type': type(exc).__name__,",
-                "                'exception_message': str(exc),",
-                "            })",
-                "        final_pair_count = Partial.search_count(pair_domain)",
-                "        final_total_count = Partial.search_count([])",
-                "        payload['probe'].update({",
-                "            'baseline_pair_partial_count': baseline_pair_count,",
-                "            'final_pair_partial_count': final_pair_count,",
-                "            'baseline_total_partial_count': baseline_total_count,",
-                "            'final_total_partial_count': final_total_count,",
-                "            'rolled_back': baseline_pair_count == final_pair_count and baseline_total_count == final_total_count,",
-                "        })",
-                "discrepancy = Discrepancy.search([('name', '=', 'Cross-boundary reconciliations are review-only until missing endpoints are in scope'), ('status', 'in', ['open', 'investigating'])], limit=1)",
-                "if discrepancy:",
-                "    existing_evidence = {}",
-                "    try:",
-                "        existing_evidence = json.loads(discrepancy.evidence or '{}')",
-                "    except Exception:",
-                "        existing_evidence = {'previous_evidence_parse_error': discrepancy.evidence or ''}",
-                "    existing_evidence['native_reconciliation_probe'] = {",
-                "        'coverage_summary': coverage_summary,",
-                "        'probe': payload['probe'],",
-                "    }",
-                "    probe_passed = payload['probe'].get('status') == 'passed' and payload['probe'].get('rolled_back')",
-                "    discrepancy.write({",
-                "        'target_value': (",
-                "            f\"{coverage_summary['all_generated_draft_count']} review rows have generated draft endpoint coverage; rollback-only native partial probe passed\"",
-                "            if probe_passed",
-                "            else f\"{coverage_summary['all_generated_draft_count']} review rows have generated draft endpoint coverage; rollback-only native partial probe {payload['probe'].get('status')}\"",
-                "        ),",
-                "        'difference': (",
-                "            'Native target reconciliation graph remains review-only by policy/accounting scope, not because the sampled generated draft endpoint cannot technically be partially reconciled.'",
-                "            if probe_passed",
-                "            else 'Native target reconciliation graph remains review-only; sampled generated draft endpoint reconciliation did not pass the rollback-only probe.'",
-                "        ),",
-                "        'accounting_impact': (",
-                "            'Every cross-boundary source reconciliation is preserved as a review record, and every missing endpoint source line is represented by a generated target draft line. A rollback-only probe proves one representative posted-to-draft native partial reconciliation can be created and fully rolled back, but applying this graph would intentionally modify target residual/matching state outside the exact posted replay baseline.'",
-                "            if probe_passed",
-                "            else discrepancy.accounting_impact",
-                "        ),",
-                "        'legal_or_tax_impact': 'No posted closed-year ledger totals are changed by this probe. Authorizing native draft-endpoint reconciliation remains an accountant/product decision because it affects reconciliation presentation and residual state outside the exact posted replay baseline.',",
-                "        'evidence': json.dumps(existing_evidence, ensure_ascii=False, sort_keys=True),",
-                "        'recommendation': (",
-                "            'Prepared decision: either accept review-only treatment for draft/future reconciliation endpoints, or authorize a separate native draft-endpoint reconciliation workflow after accountant/product approval. Do not silently apply these partials in the exact posted replay baseline.'",
-                "            if probe_passed",
-                "            else 'Keep the cross-boundary reconciliation graph review-only and investigate why native draft-endpoint reconciliation failed before considering a native workflow.'",
-                "        ),",
-                "    })",
-                "payload['status'] = 'passed' if coverage_summary['review_count'] and coverage_summary['review_count'] == coverage_summary['all_generated_draft_count'] and payload['probe'].get('status') == 'passed' and payload['probe'].get('rolled_back') else 'blocked'",
-                "env.cr.commit()",
-                "print('REBUILD_TARGET_RECONCILIATION_PROBE=' + json.dumps(payload, sort_keys=True, default=str))",
-                "",
-            ],
-        ),
-        encoding="utf-8",
-    )
-    result = run(
-        compose_args(
-            "--profile",
-            "init",
-            "run",
-            "--rm",
-            "init-db",
-            "odoo",
-            "shell",
-            "--config=/etc/odoo/odoo.conf",
-            f"--database={EXACT_VALIDATION_DB}",
-        ),
-        input_file=script_path,
-        check=False,
-    )
-    marker = None
-    for line in (result.stdout + result.stderr).splitlines():
-        if line.startswith("REBUILD_TARGET_RECONCILIATION_PROBE="):
-            marker = line.removeprefix("REBUILD_TARGET_RECONCILIATION_PROBE=")
-    if result.returncode or not marker:
-        status = {
-            "generated_at": utc_now(),
-            "tool_version": TOOL_VERSION,
-            "stage": "validation-exact-reconciliation-probe",
-            "status": "failed",
-            "classification": "NATIVE_RECONCILIATION_PROBE_EXECUTION_DEFECT",
-            "script": str(script_path.relative_to(ROOT)),
-            "exit_code": result.returncode,
-            "output_tail": (result.stdout + result.stderr)[-8000:],
-            "next_action": "Inspect the Odoo shell output for the native reconciliation capability probe.",
-        }
-        write_json(PRIVATE_ARTIFACTS / "validation-exact-reconciliation-probe-status.json", status)
-        if not getattr(args, "allow_errors", False):
-            raise HarnessError(
-                "Target reconciliation probe failed. See artifacts/accounting-compat/private/validation-exact-reconciliation-probe-status.json"
-            )
-        return status
-    payload = json.loads(marker)
-    status = {
-        "generated_at": utc_now(),
-        "tool_version": TOOL_VERSION,
-        "stage": "validation-exact-reconciliation-probe",
-        "script": str(script_path.relative_to(ROOT)),
-        **payload,
-    }
-    write_json(PRIVATE_ARTIFACTS / "validation-exact-reconciliation-probe-status.json", status)
-    if status["status"] != "passed" and not getattr(args, "allow_errors", False):
-        raise HarnessError(
-            "Target reconciliation probe did not pass. See artifacts/accounting-compat/private/validation-exact-reconciliation-probe-status.json"
-        )
-    return status
 
 
 def currency_rate_provider(args: argparse.Namespace) -> dict[str, Any]:
@@ -15566,51 +13954,14 @@ def target_discrepancy_rows() -> list[dict[str, Any]]:
     )
 
 
-PRODUCT_DRAFT_REGENERATION_DISCREPANCY = (
-    "Non-posted source moves have regeneration cases but native generation remains incomplete"
-)
-
-
-def apply_product_import_discrepancy_evidence(
-    discrepancy_rows: list[dict[str, Any]],
-    dev_import: dict[str, Any],
-) -> list[dict[str, Any]]:
-    """Remove an exact-replay draft warning once product-native drafts prove complete.
-
-    The exact validation database deliberately excludes non-posted source moves, while
-    ``odoo_dev`` reconstructs those records as native drafts.  Readiness spans both
-    isolated proofs, so the current product-import artifact is authoritative for this
-    one product-only capability.
-    """
-    draft_statistics = dev_import.get("draft_statistics") or {}
-    checks = dev_import.get("checks") or {}
-    candidate_count = int(draft_statistics.get("candidate_count") or 0)
-    product_drafts_complete = (
-        dev_import.get("status") == "passed"
-        and checks.get("draft_regeneration_matches") is True
-        and candidate_count > 0
-        and int(draft_statistics.get("validated_count") or 0) == candidate_count
-        and int(draft_statistics.get("mismatch_count") or 0) == 0
-        and int(draft_statistics.get("blocked_count") or 0) == 0
-        and int(draft_statistics.get("incomplete_count") or 0) == 0
-    )
-    if not product_drafts_complete:
-        return discrepancy_rows
-    return [
-        row
-        for row in discrepancy_rows
-        if row.get("name") != PRODUCT_DRAFT_REGENERATION_DISCREPANCY
-    ]
-
-
 def target_review_decision_summary() -> list[dict[str, Any]]:
-    if not table_exists(EXACT_VALIDATION_DB, "rebuild_account_review_decision"):
+    if not table_exists(EXACT_VALIDATION_DB, "rebuild_account_assurance_decision"):
         return []
     return query_rows(
         EXACT_VALIDATION_DB,
         """
         SELECT gate, state, conclusion, count(*)::text AS count
-        FROM rebuild_account_review_decision
+        FROM rebuild_account_assurance_decision
         GROUP BY gate, state, conclusion
         ORDER BY gate, state, conclusion
         """,
@@ -15619,7 +13970,7 @@ def target_review_decision_summary() -> list[dict[str, Any]]:
 
 
 def target_review_summary_rows() -> list[dict[str, Any]]:
-    if not table_exists(EXACT_VALIDATION_DB, "rebuild_account_review_summary"):
+    if not table_exists(EXACT_VALIDATION_DB, "rebuild_account_overview"):
         return []
     return query_rows(
         EXACT_VALIDATION_DB,
@@ -15642,10 +13993,6 @@ def target_review_summary_rows() -> list[dict[str, Any]]:
                summary.pending_review_decision_count::text AS pending_review_decision_count,
                summary.recorded_review_decision_count::text AS recorded_review_decision_count,
                summary.pending_external_report_value_count::text AS pending_external_report_value_count,
-               summary.document_regeneration_case_count::text AS document_regeneration_case_count,
-               summary.document_regeneration_candidate_count::text AS document_regeneration_candidate_count,
-               summary.document_regeneration_review_only_count::text AS document_regeneration_review_only_count,
-               summary.document_regeneration_blocked_count::text AS document_regeneration_blocked_count,
                summary.journal_count::text AS journal_count,
                summary.cash_journal_count::text AS cash_journal_count,
                round(summary.bank_balance::numeric, 2)::text AS bank_balance,
@@ -15678,7 +14025,7 @@ def target_review_summary_rows() -> list[dict[str, Any]]:
                summary.upcoming_declaration_count::text AS upcoming_declaration_count,
                summary.valentin_action_count::text AS valentin_action_count,
                summary.accountant_action_count::text AS accountant_action_count
-        FROM rebuild_account_review_summary summary
+        FROM rebuild_account_overview summary
         JOIN res_company company ON company.id = summary.company_id
         ORDER BY company.name
         """,
@@ -15716,7 +14063,6 @@ def readiness(args: argparse.Namespace) -> dict[str, Any]:
         "target_validate": PRIVATE_ARTIFACTS / "validation-exact-validate-status.json",
         "target_idempotence": PRIVATE_ARTIFACTS / "validation-exact-idempotence-status.json",
         "target_failure_tests": PRIVATE_ARTIFACTS / "validation-exact-failure-tests-status.json",
-        "document_regeneration": PRIVATE_ARTIFACTS / "document-regeneration-status.json",
         "native_validation_reset": PRIVATE_ARTIFACTS / "validation-native-reset-status.json",
         "native_validation_expenses": PRIVATE_ARTIFACTS / "validation-native-expenses-status.json",
         "native_validation_documents": PRIVATE_ARTIFACTS / "validation-native-documents-status.json",
@@ -15755,7 +14101,6 @@ def readiness(args: argparse.Namespace) -> dict[str, Any]:
         "native_validation_bank_external": (
             PRIVATE_ARTIFACTS / "validation-native-bank-external-status.json"
         ),
-        "target_reconciliation_probe": PRIVATE_ARTIFACTS / "validation-exact-reconciliation-probe-status.json",
         "currency_rate_provider": (
             PRIVATE_ARTIFACTS / "currency-rate-provider-status.json"
         ),
@@ -15775,10 +14120,6 @@ def readiness(args: argparse.Namespace) -> dict[str, Any]:
         "accounting_hygiene_browser": (
             PRIVATE_ARTIFACTS
             / "accounting-hygiene-browser-status.json"
-        ),
-        "reconciliation_review_browser": (
-            PRIVATE_ARTIFACTS
-            / "reconciliation-review-browser-status.json"
         ),
         "dev_reset": (
             PRIVATE_ARTIFACTS / "dev-reset-status.json"
@@ -15816,7 +14157,6 @@ def readiness(args: argparse.Namespace) -> dict[str, Any]:
         "target_validate": {"passed"},
         "target_idempotence": {"passed"},
         "target_failure_tests": {"passed"},
-        "document_regeneration": {"passed"},
         "native_validation_reset": {"passed"},
         "native_validation_expenses": {"passed"},
         "native_validation_documents": {"passed"},
@@ -15832,14 +14172,12 @@ def readiness(args: argparse.Namespace) -> dict[str, Any]:
         "native_validation_general_reconciliation": {"passed"},
         "native_validation_bank_categorization": {"passed"},
         "native_validation_bank_external": {"passed"},
-        "target_reconciliation_probe": {"passed"},
         "currency_rate_provider": {"passed"},
         "currency_rate_provider_browser": {"passed"},
         "reports": {"passed", "partial"},
         "dynamic_report_browser": {"passed"},
         "accounting_home_browser": {"passed"},
         "accounting_hygiene_browser": {"passed"},
-        "reconciliation_review_browser": {"passed"},
         "dev_reset": {"passed"},
         "dev_import": {"passed"},
         "dev_validate": {"passed", "partial"},
@@ -15858,15 +14196,7 @@ def readiness(args: argparse.Namespace) -> dict[str, Any]:
     if target_import_status not in {"passed", "partial"}:
         technical_failures.append("target_import")
 
-    dev_import_payload = (
-        read_json(PRIVATE_ARTIFACTS / "dev-import-status.json")
-        if (PRIVATE_ARTIFACTS / "dev-import-status.json").exists()
-        else {}
-    )
-    open_discrepancies = apply_product_import_discrepancy_evidence(
-        target_discrepancy_rows(),
-        dev_import_payload,
-    )
+    open_discrepancies = target_discrepancy_rows()
     open_p0 = [row for row in open_discrepancies if row["severity"] == "P0"]
     open_p1 = [row for row in open_discrepancies if row["severity"] == "P1"]
     open_p2 = [row for row in open_discrepancies if row["severity"] == "P2"]
@@ -16011,7 +14341,6 @@ def evidence(args: argparse.Namespace) -> dict[str, Any]:
         "target_validate": PRIVATE_ARTIFACTS / "validation-exact-validate-status.json",
         "target_idempotence": PRIVATE_ARTIFACTS / "validation-exact-idempotence-status.json",
         "target_failure_tests": PRIVATE_ARTIFACTS / "validation-exact-failure-tests-status.json",
-        "document_regeneration": PRIVATE_ARTIFACTS / "document-regeneration-status.json",
         "native_validation_reset": PRIVATE_ARTIFACTS / "validation-native-reset-status.json",
         "native_validation_expenses": PRIVATE_ARTIFACTS / "validation-native-expenses-status.json",
         "native_validation_documents": PRIVATE_ARTIFACTS / "validation-native-documents-status.json",
@@ -16050,7 +14379,6 @@ def evidence(args: argparse.Namespace) -> dict[str, Any]:
         "native_validation_bank_external": (
             PRIVATE_ARTIFACTS / "validation-native-bank-external-status.json"
         ),
-        "target_reconciliation_probe": PRIVATE_ARTIFACTS / "validation-exact-reconciliation-probe-status.json",
         "currency_rate_provider": (
             PRIVATE_ARTIFACTS / "currency-rate-provider-status.json"
         ),
@@ -16070,10 +14398,6 @@ def evidence(args: argparse.Namespace) -> dict[str, Any]:
         "accounting_hygiene_browser": (
             PRIVATE_ARTIFACTS
             / "accounting-hygiene-browser-status.json"
-        ),
-        "reconciliation_review_browser": (
-            PRIVATE_ARTIFACTS
-            / "reconciliation-review-browser-status.json"
         ),
         "dev_reset": (
             PRIVATE_ARTIFACTS / "dev-reset-status.json"
@@ -16147,7 +14471,6 @@ def run_all(args: argparse.Namespace) -> dict[str, Any]:
         "validation_exact_validate": target_validate(args),
         "validation_exact_idempotence": target_idempotence(args),
         "validation_exact_failure_tests": target_failure_tests(args),
-        "document_regeneration": document_regeneration(args),
         "validation_native_reset": native_validation_reset(args),
         "validation_native_expenses": native_validation_expenses(args),
         "validation_native_documents": native_validation_documents(args),
@@ -16165,7 +14488,6 @@ def run_all(args: argparse.Namespace) -> dict[str, Any]:
         "attachment_reconstruction_audit": attachment_reconstruction_audit(
             args,
         ),
-        "validation_exact_reconciliation_probe": target_reconciliation_probe(args),
         "currency_rate_provider": currency_rate_provider(args),
         "reports": reports(args),
         "fec": fec(args),
@@ -16193,7 +14515,6 @@ def build_parser() -> argparse.ArgumentParser:
         "validation-exact-validate",
         "validation-exact-idempotence",
         "validation-exact-failure-tests",
-        "document-regeneration",
         "validation-native-reset",
         "validation-native-expenses",
         "validation-native-documents",
@@ -16209,7 +14530,6 @@ def build_parser() -> argparse.ArgumentParser:
         "dev-import",
         "dev-validate",
         "dev-attachments",
-        "validation-exact-reconciliation-probe",
         "currency-rate-provider",
         "reports",
         "fec",
@@ -16254,8 +14574,6 @@ def main(argv: list[str] | None = None) -> int:
             print_summary(args.stage, target_idempotence(args))
         elif args.stage == "validation-exact-failure-tests":
             print_summary(args.stage, target_failure_tests(args))
-        elif args.stage == "document-regeneration":
-            print_summary(args.stage, document_regeneration(args))
         elif args.stage == "validation-native-reset":
             print_summary(args.stage, native_validation_reset(args))
         elif args.stage == "validation-native-expenses":
@@ -16286,8 +14604,6 @@ def main(argv: list[str] | None = None) -> int:
             print_summary(args.stage, dev_validate(args))
         elif args.stage == "dev-attachments":
             print_summary(args.stage, dev_attachment_replay(args))
-        elif args.stage == "validation-exact-reconciliation-probe":
-            print_summary(args.stage, target_reconciliation_probe(args))
         elif args.stage == "currency-rate-provider":
             print_summary(args.stage, currency_rate_provider(args))
         elif args.stage == "reports":

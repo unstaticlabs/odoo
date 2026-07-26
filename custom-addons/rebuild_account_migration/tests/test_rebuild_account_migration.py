@@ -9,7 +9,7 @@ from unittest.mock import patch
 from lxml import etree
 
 from odoo import Command, fields
-from odoo.exceptions import AccessError, UserError
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import TransactionCase, tagged
 from odoo.tools import format_date
 from odoo.tools.safe_eval import safe_eval
@@ -91,6 +91,48 @@ class TestRebuildAccountMigration(TransactionCase):
             filename=filename,
         )
         return message.as_bytes()
+
+    def test_historical_no_entry_payment_is_native_and_immutable(self):
+        journal = self._journal("bank")
+        method_line = journal.inbound_payment_method_line_ids[:1]
+        receivable = self._account(
+            "T411901",
+            "Historical Payment Receivable",
+            "asset_receivable",
+        )
+        partner = self.env["res.partner"].create({
+            "name": "Historical Payment Partner",
+        })
+        payment = self.env["account.payment"].with_context(
+            usl_import_no_ledger_payment=True,
+        ).create({
+            "name": "PAY-LEGACY-TEST",
+            "company_id": self.company.id,
+            "currency_id": self.company.currency_id.id,
+            "journal_id": journal.id,
+            "partner_id": partner.id,
+            "payment_method_line_id": method_line.id,
+            "destination_account_id": receivable.id,
+            "date": fields.Date.today(),
+            "amount": 125.0,
+            "payment_type": "inbound",
+            "partner_type": "customer",
+            "state": "draft",
+            "usl_historical_no_ledger_effect": True,
+            "usl_source_is_reconciled": True,
+            "usl_source_is_matched": True,
+            "rebuild_source_model": "account.payment",
+            "rebuild_source_id": 900001,
+            "rebuild_source_snapshot": "unit-test",
+        })
+
+        self.assertFalse(payment.move_id)
+        self.assertFalse(payment.outstanding_account_id)
+        self.assertTrue(payment.is_reconciled)
+        self.assertTrue(payment.is_matched)
+        payment = self.env["account.payment"].browse(payment.id)
+        with self.assertRaises(ValidationError):
+            payment.write({"amount": 126.0})
 
     def test_supported_interface_languages_use_european_dates(self):
         sample_date = fields.Date.to_date("2026-06-10")
@@ -626,14 +668,14 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(dashboard_action.path, "accounting")
 
         home_action = self.env[
-            "rebuild.account.review.summary"
+            "rebuild.account.overview"
         ].action_open_accounting_home()
-        home = self.env["rebuild.account.review.summary"].search([
+        home = self.env["rebuild.account.overview"].search([
             ("company_id", "=", self.company.id),
         ])
         self.assertTrue(home)
         self.assertEqual(home.name, "Overview")
-        self.assertEqual(home_action["res_model"], "rebuild.account.review.summary")
+        self.assertEqual(home_action["res_model"], "rebuild.account.overview")
         self.assertEqual(home_action["res_id"], home.id)
         self.assertEqual(
             home_action["view_id"],
@@ -653,20 +695,20 @@ class TestRebuildAccountMigration(TransactionCase):
             ],
         )
         review_action = self.env.ref(
-            "rebuild_account_migration.action_rebuild_account_review_summary",
+            "rebuild_account_migration.action_rebuild_account_overview",
         )
         self.assertEqual(
             [tuple(view) for view in review_action.views],
             [
                 (
                     self.env.ref(
-                        "rebuild_account_migration.view_rebuild_account_review_summary_list",
+                        "rebuild_account_migration.view_rebuild_account_overview_list",
                     ).id,
                     "list",
                 ),
                 (
                     self.env.ref(
-                        "rebuild_account_migration.view_rebuild_account_review_summary_form",
+                        "rebuild_account_migration.view_rebuild_account_overview_form",
                     ).id,
                     "form",
                 ),
@@ -869,11 +911,11 @@ class TestRebuildAccountMigration(TransactionCase):
         self.env.flush_all()
 
         visible = self.env[
-            "rebuild.account.review.summary"
+            "rebuild.account.overview"
         ].with_user(reviewer).search([])
         self.assertEqual(visible.mapped("company_id"), self.company)
 
-        hidden = self.env["rebuild.account.review.summary"].browse(
+        hidden = self.env["rebuild.account.overview"].browse(
             other_company.id,
         )
         with self.assertRaises(AccessError):
@@ -1059,7 +1101,7 @@ class TestRebuildAccountMigration(TransactionCase):
         bill.action_post()
         self.env.flush_all()
 
-        home = self.env["rebuild.account.review.summary"].search([
+        home = self.env["rebuild.account.overview"].search([
             ("company_id", "=", company.id),
         ])
         self.assertEqual(home.cash_position_journal_count, 1)
@@ -1869,39 +1911,6 @@ class TestRebuildAccountMigration(TransactionCase):
             self.env["account.account.reconcile"]._description,
             "General Reconciliation",
         )
-        boundary_action = self.env.ref(
-            "rebuild_account_migration.action_rebuild_account_reconciliation_review",
-        )
-        self.assertEqual(
-            safe_eval(boundary_action.context),
-            {"search_default_pending_policy_review": 1},
-        )
-        boundary_list_arch = etree.fromstring(
-            self.env.ref(
-                "rebuild_account_migration.view_rebuild_account_reconciliation_review_list",
-            ).arch_db,
-        )
-        boundary_form_arch = etree.fromstring(
-            self.env.ref(
-                "rebuild_account_migration.view_rebuild_account_reconciliation_review_form",
-            ).arch_db,
-        )
-        for arch in (boundary_list_arch, boundary_form_arch):
-            self.assertEqual(arch.get("create"), "0")
-            self.assertEqual(arch.get("edit"), "0")
-            self.assertEqual(arch.get("delete"), "0")
-        full_preview_buttons = boundary_form_arch.xpath(
-            ".//button[@name='action_preview_native_full_reconciliation_scope']",
-        )
-        self.assertEqual(len(full_preview_buttons), 1)
-        apply_buttons = boundary_form_arch.xpath(
-            ".//button[@name='action_apply_native_partial_reconciliation']",
-        )
-        self.assertEqual(len(apply_buttons), 1)
-        self.assertEqual(
-            apply_buttons[0].get("groups"),
-            "account.group_account_manager",
-        )
 
     def test_accounting_hygiene_refresh_requires_manager_access(self):
         reviewer = self.env["res.users"].with_context(
@@ -1914,7 +1923,7 @@ class TestRebuildAccountMigration(TransactionCase):
             "company_ids": [Command.set([self.company.id])],
             "group_ids": [Command.set([self.reviewer_group.id])],
         })
-        hygiene = self.env["rebuild.account.review.summary"].search([
+        hygiene = self.env["rebuild.account.overview"].search([
             ("company_id", "=", self.company.id),
         ], limit=1)
         hygiene_form = self.env.ref(
@@ -5335,14 +5344,14 @@ class TestRebuildAccountMigration(TransactionCase):
             })
 
         with self.assertRaises(AccessError):
-            self.env["rebuild.account.review.decision"].with_user(reviewer).create({
+            self.env["rebuild.account.assurance.decision"].with_user(reviewer).create({
                 "gate": "discrepancy_acceptance",
                 "conclusion": "pending",
                 "required_authority": "accountant",
                 "discrepancy_id": discrepancy.id,
                 "decision_summary": "Reviewer cannot create review decisions.",
             })
-        decision = self.env["rebuild.account.review.decision"].create({
+        decision = self.env["rebuild.account.assurance.decision"].create({
             "gate": "discrepancy_acceptance",
             "conclusion": "pending",
             "required_authority": "accountant",
@@ -5476,7 +5485,7 @@ class TestRebuildAccountMigration(TransactionCase):
         discrepancy_action = discrepancy.action_record_review_decision()
         discrepancy_context = discrepancy_action["context"]
 
-        self.assertEqual(discrepancy_action["res_model"], "rebuild.account.review.decision")
+        self.assertEqual(discrepancy_action["res_model"], "rebuild.account.assurance.decision")
         self.assertEqual(discrepancy_context["default_gate"], "tax_external_value")
         self.assertEqual(discrepancy_context["default_discrepancy_id"], discrepancy.id)
         self.assertEqual(discrepancy_context["default_source_value"], "1960.00")
@@ -5496,7 +5505,7 @@ class TestRebuildAccountMigration(TransactionCase):
         report_action = source_report.action_record_review_decision()
         report_context = report_action["context"]
 
-        self.assertEqual(report_action["res_model"], "rebuild.account.review.decision")
+        self.assertEqual(report_action["res_model"], "rebuild.account.assurance.decision")
         self.assertEqual(report_context["default_gate"], "scope_exclusion")
         self.assertEqual(report_context["default_conclusion"], "not_applicable")
         self.assertEqual(report_context["default_source_report_id"], source_report.id)
@@ -5521,13 +5530,13 @@ class TestRebuildAccountMigration(TransactionCase):
         external_action = external_value.action_record_review_decision()
         external_context = external_action["context"]
 
-        self.assertEqual(external_action["res_model"], "rebuild.account.review.decision")
+        self.assertEqual(external_action["res_model"], "rebuild.account.assurance.decision")
         self.assertEqual(external_context["default_gate"], "tax_external_value")
         self.assertEqual(external_context["default_external_value_id"], external_value.id)
         self.assertEqual(external_context["default_discrepancy_id"], discrepancy.id)
         self.assertEqual(external_context["default_source_value"], "1960.00")
 
-        decision = self.env["rebuild.account.review.decision"].create({
+        decision = self.env["rebuild.account.assurance.decision"].create({
             "gate": "scope_exclusion",
             "conclusion": "not_applicable",
             "required_authority": "accountant",
@@ -5575,7 +5584,7 @@ class TestRebuildAccountMigration(TransactionCase):
             "review_status": "pending_review",
             "discrepancy_id": discrepancy.id,
         })
-        pending_decision = self.env["rebuild.account.review.decision"].create({
+        pending_decision = self.env["rebuild.account.assurance.decision"].create({
             "gate": "report_parity",
             "conclusion": "pending",
             "required_authority": "accountant",
@@ -5585,7 +5594,7 @@ class TestRebuildAccountMigration(TransactionCase):
         with self.assertRaises(UserError):
             pending_decision.action_record()
 
-        decision = self.env["rebuild.account.review.decision"].create({
+        decision = self.env["rebuild.account.assurance.decision"].create({
             "gate": "tax_external_value",
             "conclusion": "accepted_with_difference",
             "required_authority": "accountant",
@@ -5642,11 +5651,11 @@ class TestRebuildAccountMigration(TransactionCase):
         with self.assertRaises(AccessError):
             discrepancy.with_user(reviewer).write({"status": "accepted"})
         with self.assertRaises(AccessError):
-            self.env["rebuild.account.review.decision"].with_user(reviewer).create(
+            self.env["rebuild.account.assurance.decision"].with_user(reviewer).create(
                 decision_values,
             )
 
-        decision = self.env["rebuild.account.review.decision"].create(
+        decision = self.env["rebuild.account.assurance.decision"].create(
             decision_values,
         )
         with self.assertRaises(AccessError):
@@ -5663,18 +5672,13 @@ class TestRebuildAccountMigration(TransactionCase):
                 ("action_record_review_decision",),
             ),
             (
-                "rebuild.account.review.decision",
-                "rebuild_account_migration.view_rebuild_account_review_decision_form",
+                "rebuild.account.assurance.decision",
+                "rebuild_account_migration.view_rebuild_account_assurance_decision_form",
                 ("action_record", "action_supersede"),
             ),
             (
                 "rebuild.account.external.report.value",
                 "rebuild_account_migration.view_rebuild_account_external_report_value_form",
-                ("action_record_review_decision",),
-            ),
-            (
-                "rebuild.account.reconciliation.review",
-                "rebuild_account_migration.view_rebuild_account_reconciliation_review_form",
                 ("action_record_review_decision",),
             ),
             (
@@ -6744,7 +6748,7 @@ class TestRebuildAccountMigration(TransactionCase):
             "target_action_xmlid": "rebuild_account_migration.action_rebuild_account_report_export_trial_balance",
             "parity_level": "level_3_semantic_partial",
         })
-        self.env["rebuild.account.review.decision"].create({
+        self.env["rebuild.account.assurance.decision"].create({
             "name": "Unit pending review decision",
             "gate": "report_parity",
             "conclusion": "pending",
@@ -6767,7 +6771,7 @@ class TestRebuildAccountMigration(TransactionCase):
         })
         self.env.flush_all()
 
-        summary = self.env["rebuild.account.review.summary"].search([
+        summary = self.env["rebuild.account.overview"].search([
             ("company_id", "=", summary_company.id),
         ], limit=1)
 
@@ -6796,7 +6800,7 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(discrepancy_action["context"]["create"], False)
 
         decision_action = summary.action_open_review_decisions()
-        self.assertEqual(decision_action["res_model"], "rebuild.account.review.decision")
+        self.assertEqual(decision_action["res_model"], "rebuild.account.assurance.decision")
         self.assertIn(("company_id", "=", summary_company.id), decision_action["domain"])
         self.assertEqual(decision_action["context"]["default_company_id"], summary_company.id)
         self.assertEqual(decision_action["context"]["delete"], False)
@@ -6902,7 +6906,7 @@ class TestRebuildAccountMigration(TransactionCase):
         })
         self.env.flush_all()
 
-        home = self.env["rebuild.account.review.summary"].search([
+        home = self.env["rebuild.account.overview"].search([
             ("company_id", "=", home_company.id),
         ])
         self.assertTrue(home)
@@ -7245,650 +7249,3 @@ class TestRebuildAccountMigration(TransactionCase):
             self.company.fiscalyear_lock_date,
             fields.Date.from_string("2099-12-31"),
         )
-
-    def test_reconciliation_review_action_uses_only_source_traced_endpoints(self):
-        expense_account = self._account("T600003", "Generated Endpoint Expense", "expense")
-        payable_account = self._account("T401003", "Generated Endpoint Payable", "liability_payable")
-        imported_move = self.env["account.move"].create({
-            "move_type": "entry",
-            "journal_id": self._journal().id,
-            "date": fields.Date.from_string("2025-09-30"),
-            "company_id": self.company.id,
-            "line_ids": [
-                Command.create({
-                    "name": "Imported endpoint",
-                    "account_id": payable_account.id,
-                    "debit": 12.34,
-                    "rebuild_source_model": "account.move.line",
-                    "rebuild_source_id": 10,
-                    "rebuild_source_snapshot": "test-snapshot",
-                }),
-                Command.create({
-                    "name": "Imported counterpart",
-                    "account_id": expense_account.id,
-                    "credit": 12.34,
-                }),
-            ],
-        })
-        imported_move.action_post()
-        generated_move = self.env["account.move"].create({
-            "move_type": "entry",
-            "journal_id": self._journal().id,
-            "date": fields.Date.from_string("2025-10-31"),
-            "company_id": self.company.id,
-            "rebuild_source_model": "account.move.document_regeneration",
-            "rebuild_source_id": 99,
-            "rebuild_source_snapshot": "test-snapshot",
-            "line_ids": [
-                Command.create({
-                    "name": "Generated missing endpoint",
-                    "account_id": payable_account.id,
-                    "credit": 12.34,
-                    "rebuild_source_model": "account.move.line.document_regeneration",
-                    "rebuild_source_id": 11,
-                    "rebuild_source_snapshot": "test-snapshot",
-                }),
-                Command.create({
-                    "name": "Generated counterpart",
-                    "account_id": expense_account.id,
-                    "debit": 12.34,
-                    "rebuild_source_model": "account.move.line.document_regeneration",
-                    "rebuild_source_id": 12,
-                    "rebuild_source_snapshot": "test-snapshot",
-                }),
-            ],
-        })
-        review = self.env["rebuild.account.reconciliation.review"].create({
-            "name": "Cross-boundary reconciliation",
-            "reconciliation_kind": "partial",
-            "company_id": self.company.id,
-            "source_partial_reconcile_id": 42,
-            "source_debit_line_id": 10,
-            "source_credit_line_id": 11,
-            "imported_source_line_ids": "10",
-            "missing_source_line_ids": "11",
-            "missing_source_move_ids": "99",
-            "missing_source_move_states": "draft",
-            "missing_source_move_dates": "2025-10-31",
-            "generated_missing_line_count": 1,
-            "generated_missing_source_line_ids": "11",
-            "missing_endpoint_coverage": "all_generated_draft",
-            "amount": 12.34,
-            "max_date": "2025-10-31",
-            "rebuild_source_model": "account.partial.reconcile",
-            "rebuild_source_id": 42,
-            "rebuild_source_snapshot": "test-snapshot",
-        })
-
-        action = review.action_open_imported_journal_items()
-
-        self.assertEqual(action["res_model"], "account.move.line")
-        self.assertEqual(action["context"]["create"], False)
-        self.assertEqual(action["context"]["delete"], False)
-        self.assertIn(("rebuild_source_snapshot", "=", "test-snapshot"), action["domain"])
-        self.assertIn(("rebuild_source_id", "in", [10, 11]), action["domain"])
-
-        generated_action = review.action_open_generated_missing_endpoint_items()
-
-        self.assertEqual(generated_action["res_model"], "account.move.line")
-        self.assertEqual(generated_action["context"]["create"], False)
-        self.assertEqual(generated_action["context"]["delete"], False)
-        self.assertIn(("rebuild_source_model", "=", "account.move.line.document_regeneration"), generated_action["domain"])
-        self.assertIn(("rebuild_source_snapshot", "=", "test-snapshot"), generated_action["domain"])
-        self.assertIn(("rebuild_source_id", "in", [11]), generated_action["domain"])
-        self.assertEqual(generated_move.state, "draft")
-
-        full_review = self.env[
-            "rebuild.account.reconciliation.review"
-        ].create({
-            "name": "Full cross-boundary reconciliation",
-            "reconciliation_kind": "full",
-            "company_id": self.company.id,
-            "source_full_reconcile_id": 77,
-            "source_line_ids": "10,11",
-            "imported_source_line_ids": "10",
-            "missing_source_line_ids": "11",
-            "generated_missing_line_count": 1,
-            "generated_missing_source_line_ids": "11",
-            "missing_endpoint_coverage": "all_generated_draft",
-            "total_line_count": 2,
-            "imported_line_count": 1,
-            "missing_line_count": 1,
-            "max_date": "2025-10-31",
-            "rebuild_source_model": "account.full.reconcile",
-            "rebuild_source_id": 77,
-            "rebuild_source_snapshot": "test-snapshot",
-        })
-        full_preview = (
-            full_review.action_preview_native_full_reconciliation_scope()
-        )
-        imported_endpoint = imported_move.line_ids.filtered(
-            lambda line: line.rebuild_source_id == 10,
-        )
-        generated_endpoint = generated_move.line_ids.filtered(
-            lambda line: line.rebuild_source_id == 11,
-        )
-        self.assertEqual(full_preview["res_model"], "account.move.line")
-        self.assertEqual(full_preview["context"]["create"], False)
-        self.assertEqual(full_preview["context"]["edit"], False)
-        self.assertEqual(full_preview["context"]["delete"], False)
-        self.assertEqual(
-            full_preview["context"]["rebuild_source_full_reconcile_id"],
-            77,
-        )
-        self.assertIn(
-            (
-                "id",
-                "in",
-                sorted((imported_endpoint | generated_endpoint).ids),
-            ),
-            full_preview["domain"],
-        )
-        full_decision = full_review.action_record_review_decision()
-        self.assertEqual(
-            full_decision["context"]["default_evidence_key"],
-            "source_full_reconcile:77",
-        )
-        self.assertIn(
-            "review-only treatment",
-            full_decision["context"]["default_decision_summary"],
-        )
-        self.assertIn(
-            "separately authorized workflow",
-            full_decision["context"]["default_remaining_risk"],
-        )
-
-    def test_reconciliation_review_native_partial_requires_recorded_decision(self):
-        payable_account = self._account("T401004", "Native Boundary Payable", "liability_payable")
-        expense_account = self._account("T600004", "Native Boundary Expense", "expense")
-        bank_account = self._account("T512004", "Native Boundary Bank", "asset_cash")
-        journal = self._journal()
-        posted_move = self.env["account.move"].create({
-            "move_type": "entry",
-            "journal_id": journal.id,
-            "date": fields.Date.from_string("2025-09-30"),
-            "company_id": self.company.id,
-            "line_ids": [
-                Command.create({
-                    "name": "Imported payable endpoint",
-                    "account_id": payable_account.id,
-                    "debit": 100.00,
-                    "rebuild_source_model": "account.move.line",
-                    "rebuild_source_id": 210,
-                    "rebuild_source_snapshot": "test-snapshot",
-                }),
-                Command.create({
-                    "name": "Imported counterpart",
-                    "account_id": bank_account.id,
-                    "credit": 100.00,
-                }),
-            ],
-        })
-        posted_move.action_post()
-        generated_move = self.env["account.move"].create({
-            "move_type": "entry",
-            "journal_id": journal.id,
-            "date": fields.Date.from_string("2025-10-31"),
-            "company_id": self.company.id,
-            "line_ids": [
-                Command.create({
-                    "name": "Generated draft endpoint",
-                    "account_id": payable_account.id,
-                    "credit": 100.00,
-                    "rebuild_source_model": "account.move.line.document_regeneration",
-                    "rebuild_source_id": 211,
-                    "rebuild_source_snapshot": "test-snapshot",
-                }),
-                Command.create({
-                    "name": "Generated draft counterpart",
-                    "account_id": expense_account.id,
-                    "debit": 100.00,
-                }),
-            ],
-        })
-        debit_line = posted_move.line_ids.filtered(lambda line: line.account_id == payable_account)
-        credit_line = generated_move.line_ids.filtered(lambda line: line.account_id == payable_account)
-        review = self.env["rebuild.account.reconciliation.review"].create({
-            "name": "Native partial boundary reconciliation",
-            "reconciliation_kind": "partial",
-            "review_status": "represented_review_only",
-            "company_id": self.company.id,
-            "source_partial_reconcile_id": 4200,
-            "source_debit_line_id": 210,
-            "source_credit_line_id": 211,
-            "source_debit_move_state": "posted",
-            "source_credit_move_state": "draft",
-            "imported_source_line_ids": "210",
-            "missing_source_line_ids": "211",
-            "generated_missing_line_count": 1,
-            "generated_missing_source_line_ids": "211",
-            "missing_endpoint_coverage": "all_generated_draft",
-            "amount": 40.00,
-            "debit_amount_currency": 40.00,
-            "credit_amount_currency": 40.00,
-            "max_date": "2025-10-31",
-            "rebuild_source_database": "unit-source",
-            "rebuild_source_model": "account.partial.reconcile",
-            "rebuild_source_id": 4200,
-            "rebuild_source_snapshot": "test-snapshot",
-        })
-
-        preview_action = review.action_preview_native_partial_reconciliation()
-        self.assertEqual(preview_action["res_model"], "account.move.line")
-        self.assertIn(("id", "in", [debit_line.id, credit_line.id]), preview_action["domain"])
-        decision_action = review.action_record_review_decision()
-        self.assertEqual(decision_action["res_model"], "rebuild.account.review.decision")
-        self.assertEqual(decision_action["context"]["default_reconciliation_review_id"], review.id)
-        self.assertEqual(decision_action["context"]["default_evidence_key"], "source_partial_reconcile:4200")
-
-        reviewer = self.env["res.users"].with_context(no_reset_password=True).create({
-            "name": "Boundary Reviewer",
-            "login": "boundary.reviewer@example.invalid",
-            "email": "boundary.reviewer@example.invalid",
-            "company_id": self.company.id,
-            "company_ids": [Command.set([self.company.id])],
-            "group_ids": [Command.set([self.reviewer_group.id])],
-        })
-        with self.assertRaisesRegex(UserError, "Only an Accounting Manager"):
-            review.with_user(reviewer).action_apply_native_partial_reconciliation()
-        with self.assertRaisesRegex(UserError, "Record an accepted review decision"):
-            review.action_apply_native_partial_reconciliation()
-
-        decision = self.env["rebuild.account.review.decision"].create({
-            "gate": "discrepancy_acceptance",
-            "conclusion": "accepted_with_difference",
-            "required_authority": "accountant",
-            "company_id": self.company.id,
-            "reconciliation_review_id": review.id,
-            "decision_summary": "Accept native application for this rollback-free unit boundary case.",
-        })
-        decision.action_record()
-
-        apply_action = review.action_apply_native_partial_reconciliation()
-        partial = self.env["account.partial.reconcile"].search([
-            ("rebuild_source_model", "=", "account.partial.reconcile"),
-            ("rebuild_source_id", "=", 4200),
-            ("rebuild_source_snapshot", "=", "test-snapshot"),
-        ])
-        self.assertEqual(len(partial), 1)
-        self.assertEqual(partial.amount, 40.00)
-        self.assertEqual(partial.debit_move_id, debit_line)
-        self.assertEqual(partial.credit_move_id, credit_line)
-        self.assertEqual(review.review_status, "native_reconciliation_applied")
-        self.assertIn(("id", "=", partial.id), apply_action["domain"])
-
-        second_action = review.action_apply_native_partial_reconciliation()
-        self.assertEqual(self.env["account.partial.reconcile"].search_count([
-            ("rebuild_source_model", "=", "account.partial.reconcile"),
-            ("rebuild_source_id", "=", 4200),
-            ("rebuild_source_snapshot", "=", "test-snapshot"),
-        ]), 1)
-        self.assertEqual(second_action["domain"], [("id", "=", partial.id)])
-
-    def test_move_line_review_preserves_non_posted_source_amounts(self):
-        move_review = self.env["rebuild.account.move.review"].create({
-            "name": "Draft source move",
-            "source_move_id": 500,
-            "source_state": "draft",
-            "state": "draft",
-            "company_id": self.company.id,
-            "currency_id": self.company.currency_id.id,
-            "date": fields.Date.from_string("2025-10-31"),
-            "move_type": "entry",
-            "source_line_count": 1,
-            "source_accounting_line_count": 1,
-        })
-        line_review = self.env["rebuild.account.move.line.review"].create({
-            "name": "Draft source line",
-            "source_move_line_id": 900,
-            "source_move_id": 500,
-            "imported_move_review_id": move_review.id,
-            "company_id": self.company.id,
-            "line_currency_id": self.company.currency_id.id,
-            "date": fields.Date.from_string("2025-10-31"),
-            "source_move_state": "draft",
-            "source_move_type": "entry",
-            "sequence": 1,
-            "display_type": "product",
-            "label": "Draft line kept for review",
-            "accounting_effect": "none_non_posted_source_line",
-            "review_status": "review_required",
-            "debit": 100.00,
-            "credit": 0.00,
-            "balance": 100.00,
-            "amount_currency": 100.00,
-            "source_account_id": 123,
-            "source_tax_ids": "1,2",
-            "source_tax_tag_ids": "7",
-            "rebuild_source_model": "account.move.line",
-            "rebuild_source_id": 900,
-            "rebuild_source_snapshot": "test-snapshot",
-        })
-
-        self.assertEqual(line_review.imported_move_review_id, move_review)
-        self.assertFalse(line_review.imported_move_id)
-        self.assertEqual(line_review.accounting_effect, "none_non_posted_source_line")
-        self.assertEqual(line_review.source_move_state, "draft")
-        self.assertEqual(line_review.debit, 100.00)
-        self.assertEqual(line_review.source_tax_ids, "1,2")
-        self.assertEqual(move_review.move_line_review_count, 1)
-
-        action = move_review.action_open_source_line_reviews()
-
-        self.assertEqual(action["res_model"], "rebuild.account.move.line.review")
-        self.assertIn(("imported_move_review_id", "=", move_review.id), action["domain"])
-        self.assertEqual(action["context"]["create"], False)
-        self.assertEqual(action["context"]["delete"], False)
-        self.assertEqual(action["context"]["search_default_non_posted"], 1)
-
-    def test_document_regeneration_cases_classify_non_posted_source_moves(self):
-        import_run = self.env["rebuild.account.import.run"].create({
-            "name": "Document regeneration case sync",
-            "source_snapshot_id": "test-snapshot",
-        })
-        expense_account = self._account("T600001", "Migration Test Expense", "expense")
-        payable_account = self._account("T401001", "Migration Test Payable", "liability_payable")
-        draft_review = self.env["rebuild.account.move.review"].create({
-            "name": "Draft vendor bill",
-            "source_name": "BILL/DRAFT/001",
-            "source_move_id": 501,
-            "source_state": "draft",
-            "state": "draft",
-            "company_id": self.company.id,
-            "journal_id": self._journal("purchase").id,
-            "currency_id": self.company.currency_id.id,
-            "date": fields.Date.from_string("2025-11-15"),
-            "move_type": "in_invoice",
-            "source_line_count": 2,
-            "source_accounting_line_count": 2,
-            "amount_total_signed": -120.00,
-            "amount_residual_signed": -120.00,
-            "source_line_debit_total": 120.00,
-            "source_line_credit_total": 120.00,
-            "source_line_balance_total": 0.00,
-            "rebuild_source_model": "account.move",
-            "rebuild_source_id": 501,
-            "rebuild_source_snapshot": "test-snapshot",
-        })
-        self.env["rebuild.account.move.line.review"].create({
-            "name": "Draft vendor bill line",
-            "source_move_line_id": 901,
-            "source_move_id": 501,
-            "imported_move_review_id": draft_review.id,
-            "company_id": self.company.id,
-            "line_currency_id": self.company.currency_id.id,
-            "date": fields.Date.from_string("2025-11-15"),
-            "source_move_state": "draft",
-            "source_move_type": "in_invoice",
-            "sequence": 1,
-            "account_id": expense_account.id,
-            "accounting_effect": "none_non_posted_source_line",
-            "debit": 120.00,
-            "credit": 0.00,
-            "balance": 120.00,
-            "amount_currency": 120.00,
-            "source_account_id": 600001,
-            "rebuild_source_model": "account.move.line",
-            "rebuild_source_id": 901,
-            "rebuild_source_snapshot": "test-snapshot",
-        })
-        self.env["rebuild.account.move.line.review"].create({
-            "name": "Draft vendor bill payable line",
-            "source_move_line_id": 902,
-            "source_move_id": 501,
-            "imported_move_review_id": draft_review.id,
-            "company_id": self.company.id,
-            "line_currency_id": self.company.currency_id.id,
-            "date": fields.Date.from_string("2025-11-15"),
-            "source_move_state": "draft",
-            "source_move_type": "in_invoice",
-            "sequence": 2,
-            "account_id": payable_account.id,
-            "display_type": "payment_term",
-            "accounting_effect": "none_non_posted_source_line",
-            "debit": 0.00,
-            "credit": 120.00,
-            "balance": -120.00,
-            "amount_currency": -120.00,
-            "source_account_id": 401001,
-            "rebuild_source_model": "account.move.line",
-            "rebuild_source_id": 902,
-            "rebuild_source_snapshot": "test-snapshot",
-        })
-        cancelled_review = self.env["rebuild.account.move.review"].create({
-            "name": "Cancelled source move",
-            "source_name": "CANCEL/001",
-            "source_move_id": 502,
-            "source_state": "cancel",
-            "state": "cancel",
-            "company_id": self.company.id,
-            "journal_id": self._journal().id,
-            "currency_id": self.company.currency_id.id,
-            "date": fields.Date.from_string("2025-11-16"),
-            "move_type": "entry",
-            "source_line_count": 0,
-            "source_accounting_line_count": 0,
-            "rebuild_source_model": "account.move",
-            "rebuild_source_id": 502,
-            "rebuild_source_snapshot": "test-snapshot",
-        })
-
-        stats = import_run._sync_document_regeneration_cases({"source_snapshot_id": "test-snapshot"})
-        second_stats = import_run._sync_document_regeneration_cases({"source_snapshot_id": "test-snapshot"})
-
-        self.assertEqual(stats["document_regeneration_case_count"], 2)
-        self.assertEqual(stats["candidate_ready_count"], 1)
-        self.assertEqual(stats["review_only_count"], 1)
-        self.assertEqual(stats["blocked_count"], 0)
-        self.assertEqual(second_stats["document_regeneration_case_count"], 2)
-        draft_case = self.env["rebuild.account.document.regeneration.case"].search([
-            ("move_review_id", "=", draft_review.id),
-        ])
-        cancelled_case = self.env["rebuild.account.document.regeneration.case"].search([
-            ("move_review_id", "=", cancelled_review.id),
-        ])
-        self.assertEqual(draft_case.case_status, "candidate_ready")
-        self.assertEqual(draft_case.generation_scope, "draft_business_document")
-        self.assertEqual(draft_case.generation_status, "not_generated")
-        self.assertEqual(draft_case.source_line_review_count, 2)
-        self.assertEqual(cancelled_case.case_status, "review_only_cancelled_source")
-        self.assertEqual(cancelled_case.generation_status, "not_applicable")
-        regeneration_discrepancy = self.env[
-            "rebuild.account.discrepancy"
-        ].create({
-            "name": (
-                "Non-posted source moves have regeneration cases but "
-                "native generation remains incomplete"
-            ),
-            "import_run_id": import_run.id,
-            "severity": "P1",
-            "classification": "missing_capability",
-            "status": "open",
-        })
-        draft_attachment = self.env["ir.attachment"].sudo().create({
-            "name": "draft-vendor-bill.pdf",
-            "res_model": draft_review._name,
-            "res_id": draft_review.id,
-            "type": "binary",
-            "raw": b"%PDF-1.4 draft source evidence",
-            "company_id": self.company.id,
-            "rebuild_source_model": "ir.attachment",
-            "rebuild_source_id": 990501,
-            "rebuild_source_snapshot": "test-snapshot",
-            "rebuild_source_attachment_res_model": "account.move",
-            "rebuild_source_attachment_res_id": 501,
-            "rebuild_source_message_id": 880501,
-            "rebuild_source_is_main": True,
-        })
-        draft_review._message_set_main_attachment_id(
-            draft_attachment,
-            force=True,
-            filter_xml=False,
-        )
-        restored_message = draft_review.message_post(
-            body="Supporting file restored from the source record's chatter.",
-            message_type="comment",
-            subtype_xmlid="mail.mt_note",
-            attachment_ids=draft_attachment.ids,
-        )
-
-        generated_action = draft_case.action_generate_draft_move()
-        generated_move = draft_case.target_move_id
-        completion = import_run.finalize_product_draft_regeneration()
-
-        self.assertEqual(generated_action["res_model"], "account.move")
-        self.assertEqual(generated_action["res_id"], generated_move.id)
-        self.assertEqual(generated_move.state, "draft")
-        self.assertEqual(generated_move.move_type, "in_invoice")
-        self.assertEqual(generated_move.rebuild_source_model, "account.move.document_regeneration")
-        self.assertEqual(generated_move.rebuild_source_id, 501)
-        self.assertEqual(draft_attachment.res_model, "account.move")
-        self.assertEqual(draft_attachment.res_id, generated_move.id)
-        self.assertEqual(
-            generated_move.message_main_attachment_id,
-            draft_attachment,
-        )
-        self.assertEqual(restored_message.model, "account.move")
-        self.assertEqual(restored_message.res_id, generated_move.id)
-        self.assertEqual(draft_case.generation_status, "validated")
-        self.assertEqual(draft_case.generated_line_count, 2)
-        self.assertEqual(draft_case.generated_debit_total, 120.00)
-        self.assertEqual(draft_case.generated_credit_total, 120.00)
-        self.assertEqual(draft_case.generated_balance_total, 0.00)
-        self.assertEqual(
-            completion,
-            {
-                "candidate_count": 1,
-                "validated_count": 1,
-                "review_only_count": 1,
-                "mismatch_count": 0,
-                "blocked_count": 0,
-                "incomplete_count": 0,
-            },
-        )
-        self.assertEqual(regeneration_discrepancy.status, "resolved")
-        self.assertEqual(
-            regeneration_discrepancy.classification,
-            "period_or_scope_difference",
-        )
-        self.assertEqual(regeneration_discrepancy.severity, "P2")
-        self.assertEqual(
-            set(generated_move.line_ids.mapped("rebuild_source_model")),
-            {"account.move.line.document_regeneration"},
-        )
-        target_move_id = generated_move.id
-        draft_case.action_generate_draft_move()
-        self.assertEqual(draft_case.target_move_id.id, target_move_id)
-        self.assertEqual(draft_case.generation_status, "validated")
-
-        line_action = draft_case.action_open_source_line_reviews()
-        self.assertEqual(line_action["res_model"], "rebuild.account.move.line.review")
-        self.assertIn(("imported_move_review_id", "=", draft_review.id), line_action["domain"])
-        move_action = draft_case.action_open_source_move_review()
-        self.assertEqual(move_action["res_model"], "rebuild.account.move.review")
-        self.assertEqual(move_action["res_id"], draft_review.id)
-
-        reviewer = self.env["res.users"].with_context(no_reset_password=True).create({
-            "name": "Document Case Reviewer",
-            "login": "document.case.reviewer@example.invalid",
-            "email": "document.case.reviewer@example.invalid",
-            "company_id": self.company.id,
-            "company_ids": [Command.set([self.company.id])],
-            "group_ids": [Command.set([self.reviewer_group.id])],
-        })
-        other_company = self.env["res.company"].create({
-            "name": "Document Case Hidden Company",
-            "currency_id": self.company.currency_id.id,
-        })
-        other_review = self.env["rebuild.account.move.review"].sudo().create({
-            "name": "Other company draft",
-            "source_move_id": 503,
-            "source_state": "draft",
-            "state": "draft",
-            "company_id": other_company.id,
-            "currency_id": self.company.currency_id.id,
-            "date": fields.Date.from_string("2025-11-17"),
-            "move_type": "entry",
-            "source_line_count": 1,
-            "source_accounting_line_count": 1,
-            "rebuild_source_model": "account.move",
-            "rebuild_source_id": 503,
-            "rebuild_source_snapshot": "test-snapshot",
-        })
-        self.env["rebuild.account.document.regeneration.case"].sudo().create({
-            "name": "Other company document case",
-            "move_review_id": other_review.id,
-            "generation_scope": "draft_journal_entry",
-            "case_status": "candidate_ready",
-            "generation_status": "not_generated",
-            "rebuild_source_model": "account.move",
-            "rebuild_source_id": 503,
-            "rebuild_source_snapshot": "test-snapshot",
-        })
-        visible_cases = self.env["rebuild.account.document.regeneration.case"].with_user(reviewer).search([
-            ("rebuild_source_id", "in", [501, 502, 503]),
-        ])
-        self.assertEqual(visible_cases, draft_case | cancelled_case)
-
-    def test_attachment_only_source_bill_becomes_native_draft(self):
-        snapshot = "unit-attachment-only-draft"
-        import_run = self.env["rebuild.account.import.run"].create({
-            "name": "Attachment-only draft bill replay",
-            "source_snapshot_id": snapshot,
-        })
-        review = self.env["rebuild.account.move.review"].create({
-            "name": "Uploaded supplier document",
-            "source_name": "/",
-            "source_move_id": 990601,
-            "source_state": "draft",
-            "state": "draft",
-            "company_id": self.company.id,
-            "journal_id": self._journal("purchase").id,
-            "currency_id": self.company.currency_id.id,
-            "date": fields.Date.today(),
-            "move_type": "in_invoice",
-            "source_line_count": 0,
-            "source_accounting_line_count": 0,
-            "rebuild_source_model": "account.move",
-            "rebuild_source_id": 990601,
-            "rebuild_source_snapshot": snapshot,
-        })
-        attachment = self.env["ir.attachment"].sudo().create({
-            "name": "supplier-upload.pdf",
-            "res_model": review._name,
-            "res_id": review.id,
-            "type": "binary",
-            "raw": b"%PDF-1.4 source supplier upload",
-            "company_id": self.company.id,
-            "rebuild_source_model": "ir.attachment",
-            "rebuild_source_id": 990602,
-            "rebuild_source_snapshot": snapshot,
-            "rebuild_source_is_main": True,
-        })
-        review._message_set_main_attachment_id(
-            attachment,
-            force=True,
-            filter_xml=False,
-        )
-
-        stats = import_run._sync_document_regeneration_cases({
-            "source_snapshot_id": snapshot,
-        })
-        case = self.env[
-            "rebuild.account.document.regeneration.case"
-        ].search([
-            ("move_review_id", "=", review.id),
-        ])
-        case.action_generate_draft_move()
-
-        self.assertEqual(stats["candidate_ready_count"], 1)
-        self.assertEqual(case.generation_status, "validated")
-        self.assertEqual(case.target_move_id.state, "draft")
-        self.assertEqual(case.target_move_id.move_type, "in_invoice")
-        self.assertFalse(case.target_move_id.line_ids)
-        self.assertEqual(
-            case.target_move_id.message_main_attachment_id,
-            attachment,
-        )
-        self.assertEqual(attachment.res_model, "account.move")
-        self.assertEqual(attachment.res_id, case.target_move_id.id)
