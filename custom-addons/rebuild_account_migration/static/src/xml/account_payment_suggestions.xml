@@ -3,14 +3,26 @@
     <t t-name="rebuild_account_migration.AccountPaymentSuggestions"
        t-inherit="account.AccountPaymentField"
        t-inherit-mode="extension">
-        <xpath expr="//a[hasclass('open_account_move')]" position="after">
-            <div t-if="line.match_reason"
-                 class="small text-muted text-wrap px-2 pb-1"
-                 style="max-width: 18rem;">
-                <span t-if="line.is_best_match"
-                      class="badge text-bg-primary me-1">Best match</span>
-                <span t-out="line.match_reason"/>
-            </div>
+        <xpath expr="//strong[@id='outstanding']" position="attributes">
+            <attribute name="class" add="text-nowrap" separator=" "/>
+        </xpath>
+        <xpath expr="//t[@t-foreach='info.lines']/tr" position="attributes">
+            <attribute name="t-att-class">
+                {'o_rebuild_payment_suggestion': info.outstanding}
+            </attribute>
+        </xpath>
+        <xpath expr="//t[@t-foreach='info.lines']/tr" position="after">
+            <tr t-if="info.outstanding and line.match_reason"
+                class="o_rebuild_payment_suggestion_detail">
+                <td/>
+                <td colspan="3" class="text-start text-wrap pt-0 pb-2 px-2">
+                    <span t-if="line.is_best_match"
+                          class="badge rounded-pill text-bg-primary me-1">
+                        Best match
+                    </span>
+                    <span class="small text-muted" t-out="line.match_reason"/>
+                </td>
+            </tr>
         </xpath>
         <xpath expr="//a[hasclass('outstanding_credit_assign')]" position="replace">
             <a t-if="line.can_assign !== false"
@@ -22,9 +34,10 @@
                data-bs-toggle="tooltip"
                t-on-click.prevent="() => this.assignOutstandingCredit(info.moveId, line.id)">Add</a>
             <span t-else=""
-                  class="badge text-bg-light border text-muted text-wrap"
+                  class="small text-muted text-nowrap"
+                  aria-disabled="true"
                   title="The bill must be posted before accounting entries can be reconciled.">
-                Post to match
+                Available after posting
             </span>
         </xpath>
     </t>
