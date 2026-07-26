@@ -64,8 +64,10 @@ The collapsed **View estimate details** section keeps the daily card focused on
 its two cash figures. Expanding it exposes the signed calculation and its
 audit routes:
 
-- **Included bank accounts** opens exactly the journals included in Cash on
-  banks.
+- Select the **Cash on banks** amount to open exactly the journals included in
+  that balance.
+- Select the **Projected after settlement** amount to open the bank,
+  receivable and payable accounts used by the estimate.
 - **Expected receipts** and **Expected payments** open the residual journal
   items used in the projection.
 - **Unresolved items** opens the other receivable/payable residuals

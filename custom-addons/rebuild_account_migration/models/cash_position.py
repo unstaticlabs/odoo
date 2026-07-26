@@ -170,6 +170,23 @@ class RebuildAccountReviewSummary(models.Model):
         ]
         return action
 
+    def action_open_projected_cash_accounts(self):
+        self.ensure_one()
+        receipt_lines, payment_lines, _unresolved_lines = (
+            self._cash_position_lines()
+        )
+        accounts = (
+            self._cash_position_journals().default_account_id
+            | receipt_lines.account_id
+            | payment_lines.account_id
+        )
+        action = self.env["ir.actions.actions"]._for_xml_id(
+            "account.action_account_form",
+        )
+        action["name"] = "Projected cash accounts"
+        action["domain"] = [("id", "in", accounts.ids)]
+        return action
+
     def _cash_projection_line_action(self, name, domain):
         self.ensure_one()
         list_view = self.env.ref(
