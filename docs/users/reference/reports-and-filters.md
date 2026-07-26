@@ -40,7 +40,9 @@ Less common journal, account, partner and analytic choices are under
 **Filtres**. Active choices appear as removable pills and **Effacer** removes
 optional filters without losing the company or selected period. Accounting
 statements consistently use `DD/MM/YYYY` and French number separators, even
-when the user's general Odoo interface language is different.
+when the user's general Odoo interface language is different. The same
+day-first date convention applies throughout the normal application; English
+human-readable dates use forms such as `10 Jun 2026`.
 
 ## Reading results
 
