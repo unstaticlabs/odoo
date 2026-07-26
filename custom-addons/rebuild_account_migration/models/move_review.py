@@ -4,7 +4,10 @@ from odoo import fields, models
 class RebuildAccountMoveReview(models.Model):
     _name = "rebuild.account.move.review"
     _description = "USL Source Move Workflow Review"
-    _inherit = ["rebuild.source.trace.mixin"]
+    _inherit = [
+        "rebuild.source.trace.mixin",
+        "mail.thread.main.attachment",
+    ]
     _order = "date, source_move_id"
 
     name = fields.Char(required=True, index=True)

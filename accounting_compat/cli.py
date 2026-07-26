@@ -1981,6 +1981,667 @@ def attachment_counts(db: str) -> list[dict[str, Any]]:
     )
 
 
+def attachment_reconstruction_audit(args: argparse.Namespace) -> dict[str, Any]:
+    ensure_dirs()
+    package = source_package(args.source_dir)
+    if not table_exists(SOURCE_DB, "ir_attachment"):
+        raise HarnessError(
+            "The read-only source database is not restored. "
+            "Run `make accounting-source-restore` first.",
+        )
+
+    source_rows = query_rows(
+        SOURCE_DB,
+        """
+        SELECT attachment.id,
+               attachment.res_model,
+               attachment.res_id,
+               attachment.store_fname,
+               attachment.checksum,
+               attachment.file_size,
+               attachment.type,
+               CASE
+                   WHEN attachment.res_model IN (
+                       'account.move',
+                       'account.move.line',
+                       'account.payment',
+                       'account.bank.statement',
+                       'account.bank.statement.line',
+                       'account.asset',
+                       'hr.expense',
+                       'hr.expense.sheet'
+                   ) THEN 'accounting_direct'
+                   WHEN EXISTS (
+                       SELECT 1
+                         FROM message_attachment_rel relation
+                         JOIN mail_message message
+                           ON message.id = relation.message_id
+                        WHERE relation.attachment_id = attachment.id
+                          AND message.model IN (
+                              'account.move',
+                              'account.move.line',
+                              'account.payment',
+                              'account.bank.statement',
+                              'account.bank.statement.line',
+                              'account.asset',
+                              'hr.expense',
+                              'hr.expense.sheet'
+                          )
+                   ) THEN 'accounting_chatter'
+                   WHEN attachment.res_model IN (
+                       'ir.ui.view',
+                       'ir.ui.menu',
+                       'ir.attachment',
+                       'payment.method',
+                       'payment.provider',
+                       'onboarding.onboarding.step',
+                       'res.lang',
+                       'spreadsheet.dashboard'
+                   ) THEN 'regenerable_or_technical'
+                   ELSE 'other_business'
+               END AS reconstruction_class
+          FROM ir_attachment attachment
+         WHERE attachment.type = 'binary'
+         ORDER BY attachment.id
+        """,
+    )
+
+    metadata_by_path: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    rows_without_file_reference = []
+    for row in source_rows:
+        store_fname = row.get("store_fname")
+        if store_fname:
+            metadata_by_path[store_fname].append(row)
+        else:
+            rows_without_file_reference.append(row)
+
+    filestore_root = package.filestore_path.resolve()
+    missing_files = []
+    unreadable_files = []
+    checksum_mismatches = []
+    size_mismatches = []
+    verified_paths = set()
+    for store_fname, rows in sorted(metadata_by_path.items()):
+        source_path = (filestore_root / store_fname).resolve()
+        if filestore_root not in source_path.parents:
+            unreadable_files.append({
+                "store_fname": store_fname,
+                "reason": "path escapes the source filestore",
+                "attachment_ids": [row["id"] for row in rows],
+            })
+            continue
+        if not source_path.is_file():
+            missing_files.append({
+                "store_fname": store_fname,
+                "attachment_ids": [row["id"] for row in rows],
+                "classes": sorted({
+                    row["reconstruction_class"]
+                    for row in rows
+                }),
+            })
+            continue
+        try:
+            raw = source_path.read_bytes()
+        except OSError as exc:
+            unreadable_files.append({
+                "store_fname": store_fname,
+                "reason": str(exc),
+                "attachment_ids": [row["id"] for row in rows],
+            })
+            continue
+        verified_paths.add(store_fname)
+        actual_checksum = hashlib.sha1(raw).hexdigest()
+        actual_size = len(raw)
+        expected_checksums = {
+            row["checksum"] for row in rows if row.get("checksum")
+        }
+        expected_sizes = {
+            int(row["file_size"])
+            for row in rows
+            if row.get("file_size") is not None
+        }
+        if expected_checksums and expected_checksums != {actual_checksum}:
+            checksum_mismatches.append({
+                "store_fname": store_fname,
+                "attachment_ids": [row["id"] for row in rows],
+                "expected_checksums": sorted(expected_checksums),
+                "actual_checksum": actual_checksum,
+            })
+        if expected_sizes and expected_sizes != {actual_size}:
+            size_mismatches.append({
+                "store_fname": store_fname,
+                "attachment_ids": [row["id"] for row in rows],
+                "expected_sizes": sorted(expected_sizes),
+                "actual_size": actual_size,
+            })
+
+    physical_paths = {
+        str(path.relative_to(package.filestore_path))
+        for path in package.filestore_path.rglob("*")
+        if path.is_file()
+    }
+    orphaned_paths = sorted(physical_paths - set(metadata_by_path))
+    relevant_rows = [
+        row
+        for row in source_rows
+        if row["reconstruction_class"] in {
+            "accounting_direct",
+            "accounting_chatter",
+        }
+    ]
+    relevant_ids = {int(row["id"]) for row in relevant_rows}
+
+    target_rows = []
+    if table_exists(DEV_QA_DB, "ir_attachment"):
+        target_rows = query_rows(
+            DEV_QA_DB,
+            """
+            SELECT id,
+                   rebuild_source_id,
+                   rebuild_source_message_id,
+                   res_model,
+                   res_id,
+                   checksum,
+                   file_size,
+                   store_fname,
+                   EXISTS (
+                       SELECT 1
+                         FROM message_attachment_rel relation
+                        WHERE relation.attachment_id = ir_attachment.id
+                   ) AS linked_to_chatter
+              FROM ir_attachment
+             WHERE rebuild_source_model = 'ir.attachment'
+             ORDER BY rebuild_source_id, id
+            """,
+            set_readonly_role=False,
+        )
+    target_ids = {
+        int(row["rebuild_source_id"])
+        for row in target_rows
+        if row.get("rebuild_source_id")
+    }
+    target_duplicate_source_ids = sorted(
+        source_id
+        for source_id, count in {
+            source_id: sum(
+                int(row.get("rebuild_source_id") or 0) == source_id
+                for row in target_rows
+            )
+            for source_id in target_ids
+        }.items()
+        if count > 1
+    )
+    target_metadata_mismatches = [
+        {
+            "target_attachment_id": row["id"],
+            "source_attachment_id": row["rebuild_source_id"],
+        }
+        for row in target_rows
+        if (
+            not row.get("checksum")
+            or not row.get("store_fname")
+            or not row.get("file_size")
+            or not row["store_fname"].endswith(row["checksum"])
+        )
+    ]
+    source_rows_by_id = {
+        int(row["id"]): row
+        for row in relevant_rows
+    }
+    target_source_metadata_mismatches = [
+        {
+            "target_attachment_id": row["id"],
+            "source_attachment_id": row["rebuild_source_id"],
+            "source_checksum": source_row.get("checksum"),
+            "target_checksum": row.get("checksum"),
+            "source_file_size": source_row.get("file_size"),
+            "target_file_size": row.get("file_size"),
+        }
+        for row in target_rows
+        if (
+            (source_row := source_rows_by_id.get(
+                int(row.get("rebuild_source_id") or 0),
+            ))
+            and (
+                source_row.get("checksum") != row.get("checksum")
+                or int(source_row.get("file_size") or 0)
+                != int(row.get("file_size") or 0)
+            )
+        )
+    ]
+    missing_target_chatter_links = [
+        int(row["rebuild_source_id"])
+        for row in target_rows
+        if (
+            row.get("rebuild_source_message_id")
+            and not row.get("linked_to_chatter")
+        )
+    ]
+    target_binary_script = (
+        PRIVATE_ARTIFACTS / "attachment-target-binary-audit.py"
+    )
+    target_binary_script.write_text(
+        "\n".join([
+            "import hashlib",
+            "import json",
+            "env.cr.execute(\"\"\"",
+            "    SELECT id",
+            "      FROM ir_attachment",
+            "     WHERE rebuild_source_model = 'ir.attachment'",
+            "     ORDER BY id",
+            "\"\"\")",
+            "attachments = env['ir.attachment'].sudo().browse([",
+            "    row[0] for row in env.cr.fetchall()",
+            "])",
+            "missing = []",
+            "mismatches = []",
+            "for attachment in attachments:",
+            "    try:",
+            "        raw = attachment.raw",
+            "    except Exception as exc:",
+            "        missing.append({",
+            "            'target_attachment_id': attachment.id,",
+            "            'source_attachment_id': attachment.rebuild_source_id,",
+            "            'reason': type(exc).__name__,",
+            "        })",
+            "        continue",
+            "    if not raw:",
+            "        missing.append({",
+            "            'target_attachment_id': attachment.id,",
+            "            'source_attachment_id': attachment.rebuild_source_id,",
+            "            'reason': 'empty binary',",
+            "        })",
+            "        continue",
+            "    actual_checksum = hashlib.sha1(raw).hexdigest()",
+            "    if (",
+            "        actual_checksum != attachment.checksum",
+            "        or len(raw) != attachment.file_size",
+            "    ):",
+            "        mismatches.append({",
+            "            'target_attachment_id': attachment.id,",
+            "            'source_attachment_id': attachment.rebuild_source_id,",
+            "            'expected_checksum': attachment.checksum,",
+            "            'actual_checksum': actual_checksum,",
+            "            'expected_size': attachment.file_size,",
+            "            'actual_size': len(raw),",
+            "        })",
+            "print('REBUILD_ATTACHMENT_BINARY_AUDIT=' + json.dumps({",
+            "    'attachment_count': len(attachments),",
+            "    'readable_attachment_count': (",
+            "        len(attachments) - len(missing)",
+            "    ),",
+            "    'missing': missing,",
+            "    'mismatches': mismatches,",
+            "}, sort_keys=True))",
+            "",
+        ]),
+        encoding="utf-8",
+    )
+    target_binary_result = run(
+        compose_args(
+            "--profile",
+            "init",
+            "run",
+            "--rm",
+            "-e",
+            f"ODOO_ADDONS_PATH={TARGET_ODOO_ADDONS_PATH}",
+            "init-db",
+            "odoo",
+            "shell",
+            "--config=/etc/odoo/odoo.conf",
+            f"--database={DEV_QA_DB}",
+        ),
+        input_file=target_binary_script,
+        check=False,
+    )
+    target_binary_payload = None
+    for line in (
+        target_binary_result.stdout + target_binary_result.stderr
+    ).splitlines():
+        if line.startswith("REBUILD_ATTACHMENT_BINARY_AUDIT="):
+            target_binary_payload = json.loads(
+                line.removeprefix("REBUILD_ATTACHMENT_BINARY_AUDIT="),
+            )
+    if target_binary_payload is None:
+        target_binary_payload = {
+            "attachment_count": len(target_rows),
+            "readable_attachment_count": 0,
+            "missing": [{
+                "reason": (
+                    "target binary audit did not complete; exit code "
+                    f"{target_binary_result.returncode}"
+                ),
+            }],
+            "mismatches": [],
+        }
+    missing_relevant_target_ids = sorted(relevant_ids - target_ids)
+    source_integrity_issue_count = (
+        len(rows_without_file_reference)
+        + len(missing_files)
+        + len(unreadable_files)
+        + len(checksum_mismatches)
+        + len(size_mismatches)
+    )
+    target_issue_count = (
+        len(missing_relevant_target_ids)
+        + len(target_duplicate_source_ids)
+        + len(target_metadata_mismatches)
+        + len(target_source_metadata_mismatches)
+        + len(missing_target_chatter_links)
+        + len(target_binary_payload["missing"])
+        + len(target_binary_payload["mismatches"])
+    )
+    class_counts: dict[str, int] = defaultdict(int)
+    for row in source_rows:
+        class_counts[row["reconstruction_class"]] += 1
+    payload = {
+        "generated_at": utc_now(),
+        "tool_version": TOOL_VERSION,
+        "stage": "attachment-reconstruction-audit",
+        "status": (
+            "passed"
+            if not source_integrity_issue_count and not target_issue_count
+            else "partial"
+        ),
+        "source_database": SOURCE_DB,
+        "target_database": DEV_QA_DB,
+        "source_filestore": {
+            "physical_file_count": len(physical_paths),
+            "metadata_row_count": len(source_rows),
+            "referenced_unique_file_count": len(metadata_by_path),
+            "verified_unique_file_count": len(verified_paths),
+            "orphaned_file_count": len(orphaned_paths),
+            "orphaned_files_classification": (
+                "No database attachment references these files; they are "
+                "excluded from target replay and are not business-data blockers."
+            ),
+            "orphaned_file_examples": orphaned_paths[:20],
+            "duplicate_blob_reference_group_count": sum(
+                len(rows) > 1
+                for rows in metadata_by_path.values()
+            ),
+            "attachment_class_counts": dict(sorted(class_counts.items())),
+            "rows_without_file_reference_count": len(
+                rows_without_file_reference,
+            ),
+            "missing_file_count": len(missing_files),
+            "unreadable_file_count": len(unreadable_files),
+            "checksum_mismatch_count": len(checksum_mismatches),
+            "size_mismatch_count": len(size_mismatches),
+        },
+        "accounting_scope": {
+            "source_attachment_count": len(relevant_rows),
+            "target_source_traced_attachment_count": len(
+                relevant_ids & target_ids,
+            ),
+            "missing_target_attachment_count": len(
+                missing_relevant_target_ids,
+            ),
+            "missing_target_attachment_ids": missing_relevant_target_ids,
+            "duplicate_target_source_id_count": len(
+                target_duplicate_source_ids,
+            ),
+            "duplicate_target_source_ids": target_duplicate_source_ids,
+            "target_metadata_mismatch_count": len(
+                target_metadata_mismatches,
+            ),
+            "target_metadata_mismatch_examples": (
+                target_metadata_mismatches[:20]
+            ),
+            "source_target_metadata_mismatch_count": len(
+                target_source_metadata_mismatches,
+            ),
+            "source_target_metadata_mismatch_examples": (
+                target_source_metadata_mismatches[:20]
+            ),
+            "missing_target_chatter_link_count": len(
+                missing_target_chatter_links,
+            ),
+            "missing_target_chatter_link_source_ids": (
+                missing_target_chatter_links[:50]
+            ),
+            "target_binary_read": {
+                "attachment_count": target_binary_payload[
+                    "attachment_count"
+                ],
+                "readable_attachment_count": target_binary_payload[
+                    "readable_attachment_count"
+                ],
+                "missing_count": len(target_binary_payload["missing"]),
+                "missing_examples": target_binary_payload["missing"][:20],
+                "checksum_or_size_mismatch_count": len(
+                    target_binary_payload["mismatches"],
+                ),
+                "checksum_or_size_mismatch_examples": (
+                    target_binary_payload["mismatches"][:20]
+                ),
+            },
+        },
+        "source_integrity_issues": {
+            "rows_without_file_reference": rows_without_file_reference[:20],
+            "missing_files": missing_files[:20],
+            "unreadable_files": unreadable_files[:20],
+            "checksum_mismatches": checksum_mismatches[:20],
+            "size_mismatches": size_mismatches[:20],
+        },
+        "policy": {
+            "replay": (
+                "Verified Accounting files are recreated through the target "
+                "ORM and inherit access from their native target record."
+            ),
+            "excluded": (
+                "Regenerable technical assets, unrelated business files, and "
+                "orphaned physical blobs are not copied into Accounting."
+            ),
+        },
+    }
+    write_json(
+        PRIVATE_ARTIFACTS / "attachment-reconstruction-status.json",
+        payload,
+    )
+    if payload["status"] != "passed" and not getattr(
+        args,
+        "allow_errors",
+        False,
+    ):
+        raise HarnessError(
+            "Attachment reconstruction audit is incomplete. See "
+            "artifacts/accounting-compat/private/"
+            "attachment-reconstruction-status.json",
+        )
+    return payload
+
+
+def dev_attachment_replay(args: argparse.Namespace) -> dict[str, Any]:
+    ensure_dirs()
+    validation = validate_source(args)
+    dump_sha = validation["dump"]["sha256"] or "unknown"
+    snapshot_id = f"source-{dump_sha[:12]}"
+    source_date_to = scalar(
+        SOURCE_DB,
+        "SELECT max(date)::text FROM account_move",
+    ) or date.today().isoformat()
+    source_company_ids = [
+        int(row["id"])
+        for row in query_rows(
+            SOURCE_DB,
+            "SELECT id FROM res_company ORDER BY id",
+        )
+    ]
+    if not table_exists(DEV_QA_DB, "rebuild_account_import_run"):
+        raise HarnessError(
+            "The odoo_dev Accounting product database is not initialized.",
+        )
+
+    script_path = PRIVATE_ARTIFACTS / "dev-attachment-replay.py"
+    script_path.write_text(
+        "\n".join([
+            "import json",
+            "run = env['rebuild.account.import.run'].create({",
+            "    'name': 'USL development attachment replay',",
+            "    'mode': 'exact_ledger_replay',",
+            "    'source_database': 'odoo_online_source_saas_19_2',",
+            f"    'source_dump_sha256': {dump_sha!r},",
+            f"    'source_snapshot_id': {snapshot_id!r},",
+            "    'source_version': 'Odoo Online Enterprise saas~19.2',",
+            f"    'target_database': {DEV_QA_DB!r},",
+            "    'status': 'running',",
+            "})",
+            "options = {",
+            "    'source_database': 'odoo_online_source_saas_19_2',",
+            f"    'source_dump_sha256': {dump_sha!r},",
+            f"    'source_snapshot_id': {snapshot_id!r},",
+            "    'source_version': 'Odoo Online Enterprise saas~19.2',",
+            f"    'target_database': {DEV_QA_DB!r},",
+            f"    'date_from': {USL_BENCHMARK_START!r},",
+            f"    'date_to': {source_date_to!r},",
+            f"    'source_company_ids': {source_company_ids!r},",
+            "    'source_filestore_path': '/mnt/accounting-source/filestore',",
+            "}",
+            "companies = {",
+            "    company.rebuild_source_id: company",
+            "    for company in env['res.company'].with_context(active_test=False).search([",
+            "        ('rebuild_source_id', 'in', options['source_company_ids']),",
+            "    ])",
+            "}",
+            "connection = run._source_connection(options)",
+            "try:",
+            "    accounting_stats = run._import_attachments(",
+            "        connection, options, companies,",
+            "    )",
+            "    expense_stats = run._import_attachments(",
+            "        connection,",
+            "        {",
+            "            **options,",
+            "            'attachment_target_trace_models': {",
+            "                'hr.expense': ['hr.expense'],",
+            "            },",
+            "        },",
+            "        companies,",
+            "        rows=run._native_replay_expense_attachment_rows(",
+            "            connection, options,",
+            "        ),",
+            "    )",
+            "finally:",
+            "    connection.close()",
+            "issue_count = (",
+            "    run._attachment_issue_count(accounting_stats)",
+            "    + run._attachment_issue_count(expense_stats)",
+            ")",
+            "regeneration_sync = run._sync_document_regeneration_cases(",
+            "    options,",
+            ")",
+            "attachment_only_cases = env[",
+            "    'rebuild.account.document.regeneration.case'",
+            "].search([",
+            "    ('rebuild_source_snapshot', '=', options['source_snapshot_id']),",
+            "    ('case_status', '=', 'candidate_ready'),",
+            "    ('generation_status', '=', 'not_generated'),",
+            "    ('source_accounting_line_count', '=', 0),",
+            "    ('move_type', 'in', [",
+            "        'out_invoice', 'out_refund',",
+            "        'in_invoice', 'in_refund',",
+            "        'out_receipt', 'in_receipt',",
+            "    ]),",
+            "])",
+            "for case in attachment_only_cases:",
+            "    case.action_generate_draft_move()",
+            "regeneration_completion = (",
+            "    run.finalize_product_draft_regeneration()",
+            ")",
+            "stats = {",
+            "    'accounting_documents_and_assets': accounting_stats,",
+            "    'expenses': expense_stats,",
+            "    'source_attachment_count': (",
+            "        accounting_stats['source_attachment_count']",
+            "        + expense_stats['source_attachment_count']",
+            "    ),",
+            "    'imported_attachment_count': (",
+            "        accounting_stats['imported_attachment_count']",
+            "        + expense_stats['imported_attachment_count']",
+            "    ),",
+            "    'document_regeneration_sync': regeneration_sync,",
+            "    'document_regeneration_completion': (",
+            "        regeneration_completion",
+            "    ),",
+            "    'generated_attachment_only_draft_count': len(",
+            "        attachment_only_cases",
+            "    ),",
+            "}",
+            "run.write({",
+            "    'status': 'passed' if not issue_count else 'partial',",
+            "    'imported_attachment_count': stats['imported_attachment_count'],",
+            "    'warning_count': issue_count,",
+            "    'discrepancy_count': issue_count,",
+            "    'statistics_json': {'attachments': stats},",
+            "})",
+            "env.cr.commit()",
+            "print('REBUILD_DEV_ATTACHMENT_RESULT=' + json.dumps({",
+            "    'run_id': run.id,",
+            "    'status': run.status,",
+            "    'stats': stats,",
+            "}, sort_keys=True, default=str))",
+            "",
+        ]),
+        encoding="utf-8",
+    )
+    result = run(
+        compose_args(
+            "--profile",
+            "init",
+            "run",
+            "--rm",
+            "-e",
+            f"ODOO_ADDONS_PATH={TARGET_ODOO_ADDONS_PATH}",
+            "init-db",
+            "odoo",
+            "shell",
+            "--config=/etc/odoo/odoo.conf",
+            f"--database={DEV_QA_DB}",
+        ),
+        input_file=script_path,
+        check=False,
+    )
+    marker = None
+    for line in (result.stdout + result.stderr).splitlines():
+        if line.startswith("REBUILD_DEV_ATTACHMENT_RESULT="):
+            marker = line.removeprefix(
+                "REBUILD_DEV_ATTACHMENT_RESULT=",
+            )
+    artifact_path = PRIVATE_ARTIFACTS / "dev-attachment-replay-status.json"
+    if result.returncode or not marker:
+        payload = {
+            "generated_at": utc_now(),
+            "tool_version": TOOL_VERSION,
+            "stage": "dev-attachment-replay",
+            "status": "failed",
+            "database": DEV_QA_DB,
+            "exit_code": result.returncode,
+            "output_tail": (result.stdout + result.stderr)[-12000:],
+        }
+    else:
+        replay_result = json.loads(marker)
+        payload = {
+            "generated_at": utc_now(),
+            "tool_version": TOOL_VERSION,
+            "stage": "dev-attachment-replay",
+            "database": DEV_QA_DB,
+            **replay_result,
+        }
+    write_json(artifact_path, payload)
+    if payload["status"] != "passed" and not getattr(
+        args,
+        "allow_errors",
+        False,
+    ):
+        raise HarnessError(
+            "Development attachment replay failed. See "
+            "artifacts/accounting-compat/private/"
+            "dev-attachment-replay-status.json",
+        )
+    return payload
+
+
 def tax_grid_totals(db: str) -> list[dict[str, Any]]:
     if not table_exists(db, "account_account_tag_account_move_line_rel") or not table_exists(db, "account_move_line"):
         return []
@@ -6642,37 +7303,88 @@ def source_accounting_attachment_rows() -> list[dict[str, Any]]:
     return query_rows(
         SOURCE_DB,
         f"""
-        SELECT ia.id::text AS source_attachment_id,
-               ia.res_model::text AS source_res_model,
-               ia.res_id::text AS source_res_id,
-               COALESCE(ia.name::text, '') AS name,
-               COALESCE(ia.mimetype::text, '') AS mimetype,
-               COALESCE(ia.checksum::text, '') AS checksum,
-               COALESCE(ia.file_size::text, '') AS file_size,
-               COALESCE(ia.store_fname::text, '') AS store_fname,
-               COALESCE(ia.type::text, '') AS type
-        FROM ir_attachment ia
-        LEFT JOIN account_move am
-               ON ia.res_model = 'account.move'
-              AND ia.res_id = am.id
-        LEFT JOIN account_asset asset
-               ON ia.res_model = 'account.asset'
-              AND ia.res_id = asset.id
-        WHERE ia.type = 'binary'
-          AND (
-                (
-                    ia.res_model = 'account.move'
-                    AND am.company_id IN (1, 8)
-                    AND am.state = 'posted'
-                    AND am.date BETWEEN DATE '{USL_BENCHMARK_START}' AND DATE '{snapshot}'
-                )
-                OR
-                (
-                    ia.res_model = 'account.asset'
-                    AND asset.company_id IN (1, 8)
-                )
-          )
-        ORDER BY ia.id
+        WITH eligible_moves AS (
+            SELECT id
+              FROM account_move
+             WHERE company_id IN (1, 8)
+               AND (
+                    (
+                        state = 'posted'
+                        AND date BETWEEN DATE '{USL_BENCHMARK_START}'
+                                     AND DATE '{snapshot}'
+                    )
+                    OR (
+                        state <> 'posted'
+                        AND date >= DATE '{USL_BENCHMARK_START}'
+                    )
+               )
+        ),
+        attachment_scope AS (
+            SELECT ia.id,
+                   ia.res_model AS source_res_model,
+                   ia.res_id AS source_res_id,
+                   ia.res_id AS linked_source_res_id,
+                   ia.name,
+                   ia.mimetype,
+                   ia.checksum,
+                   ia.file_size,
+                   ia.store_fname,
+                   ia.type
+              FROM ir_attachment ia
+              LEFT JOIN account_asset asset
+                ON ia.res_model = 'account.asset'
+               AND ia.res_id = asset.id
+             WHERE ia.type = 'binary'
+               AND (
+                    (
+                        ia.res_model = 'account.move'
+                        AND ia.res_id IN (SELECT id FROM eligible_moves)
+                    )
+                    OR (
+                        ia.res_model = 'account.asset'
+                        AND asset.company_id IN (1, 8)
+                    )
+               )
+            UNION ALL
+            SELECT ia.id,
+                   ia.res_model AS source_res_model,
+                   ia.res_id AS source_res_id,
+                   message.res_id AS linked_source_res_id,
+                   ia.name,
+                   ia.mimetype,
+                   ia.checksum,
+                   ia.file_size,
+                   ia.store_fname,
+                   ia.type
+              FROM ir_attachment ia
+              JOIN LATERAL (
+                   SELECT candidate.res_id
+                     FROM message_attachment_rel relation
+                     JOIN mail_message candidate
+                       ON candidate.id = relation.message_id
+                    WHERE relation.attachment_id = ia.id
+                      AND candidate.model = 'account.move'
+                      AND candidate.res_id IN (
+                          SELECT id FROM eligible_moves
+                      )
+                    ORDER BY candidate.date, candidate.id
+                    LIMIT 1
+              ) message ON TRUE
+             WHERE ia.type = 'binary'
+               AND ia.res_model IS NULL
+        )
+        SELECT id::text AS source_attachment_id,
+               COALESCE(source_res_model::text, '') AS source_res_model,
+               COALESCE(NULLIF(source_res_id, 0)::text, '') AS source_res_id,
+               linked_source_res_id::text AS linked_source_res_id,
+               COALESCE(name::text, '') AS name,
+               COALESCE(mimetype::text, '') AS mimetype,
+               COALESCE(checksum::text, '') AS checksum,
+               COALESCE(file_size::text, '') AS file_size,
+               COALESCE(store_fname::text, '') AS store_fname,
+               COALESCE(type::text, '') AS type
+          FROM attachment_scope
+         ORDER BY id
         """,
     )
 
@@ -6682,16 +7394,14 @@ def target_accounting_attachment_rows() -> list[dict[str, Any]]:
         EXACT_VALIDATION_DB,
         """
         SELECT ia.rebuild_source_id::text AS source_attachment_id,
-               CASE
-                   WHEN ia.res_model = 'account.move' THEN 'account.move'
-                   WHEN ia.res_model = 'rebuild.account.asset' THEN 'account.asset'
-                   ELSE COALESCE(ia.res_model::text, '')
-               END AS source_res_model,
-               CASE
-                   WHEN ia.res_model = 'account.move' THEN move.rebuild_source_id::text
-                   WHEN ia.res_model = 'rebuild.account.asset' THEN asset.rebuild_source_id::text
-                   ELSE COALESCE(ia.res_id::text, '')
-               END AS source_res_id,
+               COALESCE(
+                   ia.rebuild_source_attachment_res_model::text,
+                   ''
+               ) AS source_res_model,
+               COALESCE(
+                   NULLIF(ia.rebuild_source_attachment_res_id, 0)::text,
+                   ''
+               ) AS source_res_id,
                COALESCE(ia.name::text, '') AS name,
                COALESCE(ia.mimetype::text, '') AS mimetype,
                COALESCE(ia.checksum::text, '') AS checksum,
@@ -6699,12 +7409,6 @@ def target_accounting_attachment_rows() -> list[dict[str, Any]]:
                COALESCE(ia.store_fname::text, '') AS store_fname,
                COALESCE(ia.type::text, '') AS type
         FROM ir_attachment ia
-        LEFT JOIN account_move move
-               ON ia.res_model = 'account.move'
-              AND ia.res_id = move.id
-        LEFT JOIN rebuild_account_asset asset
-               ON ia.res_model = 'rebuild.account.asset'
-              AND ia.res_id = asset.id
         WHERE ia.rebuild_source_model = 'ir.attachment'
         ORDER BY ia.rebuild_source_id
         """,
@@ -7041,6 +7745,16 @@ def document_regeneration_case_classification(row: dict[str, Any]) -> dict[str, 
                 "source_line_credit_total",
             )
         )
+        if (
+            not has_amount
+            and move_type in invoice_move_types
+            and row.get("has_source_attachment")
+        ):
+            return {
+                "generation_scope": "draft_business_document",
+                "case_status": "candidate_ready",
+                "generation_status": "not_generated",
+            }
         if not has_amount:
             return {
                 "generation_scope": "unsupported_source_record",
@@ -7072,9 +7786,22 @@ def document_regeneration_case_classification(row: dict[str, Any]) -> dict[str, 
 
 
 def source_document_regeneration_case_rows() -> list[dict[str, Any]]:
+    attachment_move_ids = {
+        str(row["linked_source_res_id"])
+        for row in source_accounting_attachment_rows()
+        if row.get("linked_source_res_id")
+    }
     rows = []
     for row in source_move_review_rows():
-        classification = document_regeneration_case_classification(row)
+        classification_row = {
+            **row,
+            "has_source_attachment": (
+                str(row["source_move_id"]) in attachment_move_ids
+            ),
+        }
+        classification = document_regeneration_case_classification(
+            classification_row,
+        )
         rows.append({
             "source_move_id": row["source_move_id"],
             "state": row["state"],
@@ -15023,6 +15750,12 @@ def readiness(args: argparse.Namespace) -> dict[str, Any]:
         "dev_validate": (
             PRIVATE_ARTIFACTS / "dev-validate-status.json"
         ),
+        "dev_attachment_replay": (
+            PRIVATE_ARTIFACTS / "dev-attachment-replay-status.json"
+        ),
+        "attachment_reconstruction": (
+            PRIVATE_ARTIFACTS / "attachment-reconstruction-status.json"
+        ),
         "dev_browser": (
             PRIVATE_ARTIFACTS / "replacement-browser-status.json"
         ),
@@ -15312,6 +16045,12 @@ def evidence(args: argparse.Namespace) -> dict[str, Any]:
         "dev_validate": (
             PRIVATE_ARTIFACTS / "dev-validate-status.json"
         ),
+        "dev_attachment_replay": (
+            PRIVATE_ARTIFACTS / "dev-attachment-replay-status.json"
+        ),
+        "attachment_reconstruction": (
+            PRIVATE_ARTIFACTS / "attachment-reconstruction-status.json"
+        ),
         "dev_browser": (
             PRIVATE_ARTIFACTS / "replacement-browser-status.json"
         ),
@@ -15384,6 +16123,9 @@ def run_all(args: argparse.Namespace) -> dict[str, Any]:
         "dev_reset": dev_reset(args),
         "dev_import": dev_import(args),
         "dev_validate": dev_validate(args),
+        "attachment_reconstruction_audit": attachment_reconstruction_audit(
+            args,
+        ),
         "validation_exact_reconciliation_probe": target_reconciliation_probe(args),
         "currency_rate_provider": currency_rate_provider(args),
         "reports": reports(args),
@@ -15404,6 +16146,7 @@ def build_parser() -> argparse.ArgumentParser:
         "source-restore",
         "source-inspect",
         "source-controls",
+        "attachment-audit",
         "failure-tests",
         "extract",
         "validation-exact-reset",
@@ -15426,6 +16169,7 @@ def build_parser() -> argparse.ArgumentParser:
         "dev-reset",
         "dev-import",
         "dev-validate",
+        "dev-attachments",
         "validation-exact-reconciliation-probe",
         "currency-rate-provider",
         "reports",
@@ -15452,6 +16196,11 @@ def main(argv: list[str] | None = None) -> int:
             print_summary(args.stage, inspect_source(args))
         elif args.stage == "source-controls":
             print_summary(args.stage, source_controls(args))
+        elif args.stage == "attachment-audit":
+            print_summary(
+                args.stage,
+                attachment_reconstruction_audit(args),
+            )
         elif args.stage == "failure-tests":
             print_summary(args.stage, failure_tests(args))
         elif args.stage == "extract":
@@ -15496,6 +16245,8 @@ def main(argv: list[str] | None = None) -> int:
             print_summary(args.stage, dev_import(args))
         elif args.stage == "dev-validate":
             print_summary(args.stage, dev_validate(args))
+        elif args.stage == "dev-attachments":
+            print_summary(args.stage, dev_attachment_replay(args))
         elif args.stage == "validation-exact-reconciliation-probe":
             print_summary(args.stage, target_reconciliation_probe(args))
         elif args.stage == "currency-rate-provider":

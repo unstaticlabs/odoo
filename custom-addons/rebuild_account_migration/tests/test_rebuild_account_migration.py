@@ -3031,6 +3031,13 @@ class TestRebuildAccountMigration(TransactionCase):
                     "description": "Source invoice evidence",
                     "public": False,
                     "is_main": True,
+                    "source_attachment_res_model": "account.move",
+                    "source_attachment_res_id": source_move_id,
+                    "source_message_id": 990023,
+                    "source_message_date": fields.Datetime.from_string(
+                        "2026-07-20 09:30:00",
+                    ),
+                    "source_message_subject": "Original supplier evidence",
                 }],
             )
 
@@ -3043,11 +3050,23 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(stats["imported_attachment_count"], 1)
         self.assertEqual(stats["source_main_attachment_count"], 1)
         self.assertEqual(stats["imported_main_attachment_count"], 1)
+        self.assertEqual(stats["source_chatter_attachment_count"], 1)
+        self.assertEqual(stats["imported_chatter_attachment_count"], 1)
         self.assertEqual(import_run._attachment_issue_count(stats), 0)
         self.assertEqual(attachment.raw, raw)
         self.assertEqual(attachment.res_model, "account.move")
         self.assertEqual(attachment.res_id, move.id)
         self.assertEqual(move.message_main_attachment_id, attachment)
+        restored_message = self.env["mail.message"].search([
+            ("model", "=", "account.move"),
+            ("res_id", "=", move.id),
+            ("attachment_ids", "in", attachment.ids),
+        ])
+        self.assertEqual(len(restored_message), 1)
+        self.assertEqual(
+            restored_message.subject,
+            "Original supplier evidence",
+        )
         reviewer = self.env["res.users"].with_context(
             no_reset_password=True,
         ).create({
@@ -5097,6 +5116,21 @@ class TestRebuildAccountMigration(TransactionCase):
             "rebuild_source_id": 990001,
         })
         self.assertEqual(accounting_attachment.with_user(reviewer).raw, b"accounting evidence")
+        with self.assertRaises(AccessError):
+            move.with_user(reviewer).message_post(body="Reviewer cannot post")
+        with self.assertRaises(AccessError):
+            self.env["ir.attachment"].with_user(reviewer).create({
+                "name": "Reviewer upload.txt",
+                "res_model": "account.move",
+                "res_id": move.id,
+                "raw": b"not allowed",
+            })
+        with self.assertRaises(AccessError):
+            accounting_attachment.with_user(reviewer).write({
+                "name": "Changed evidence.txt",
+            })
+        with self.assertRaises(AccessError):
+            accounting_attachment.with_user(reviewer).unlink()
 
         private_owner = self.env["ir.config_parameter"].sudo().create({
             "key": "rebuild.account_migration.private_attachment_probe",
@@ -7264,6 +7298,32 @@ class TestRebuildAccountMigration(TransactionCase):
             "classification": "missing_capability",
             "status": "open",
         })
+        draft_attachment = self.env["ir.attachment"].sudo().create({
+            "name": "draft-vendor-bill.pdf",
+            "res_model": draft_review._name,
+            "res_id": draft_review.id,
+            "type": "binary",
+            "raw": b"%PDF-1.4 draft source evidence",
+            "company_id": self.company.id,
+            "rebuild_source_model": "ir.attachment",
+            "rebuild_source_id": 990501,
+            "rebuild_source_snapshot": "test-snapshot",
+            "rebuild_source_attachment_res_model": "account.move",
+            "rebuild_source_attachment_res_id": 501,
+            "rebuild_source_message_id": 880501,
+            "rebuild_source_is_main": True,
+        })
+        draft_review._message_set_main_attachment_id(
+            draft_attachment,
+            force=True,
+            filter_xml=False,
+        )
+        restored_message = draft_review.message_post(
+            body="Supporting file restored from the source record's chatter.",
+            message_type="comment",
+            subtype_xmlid="mail.mt_note",
+            attachment_ids=draft_attachment.ids,
+        )
 
         generated_action = draft_case.action_generate_draft_move()
         generated_move = draft_case.target_move_id
@@ -7275,6 +7335,14 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(generated_move.move_type, "in_invoice")
         self.assertEqual(generated_move.rebuild_source_model, "account.move.document_regeneration")
         self.assertEqual(generated_move.rebuild_source_id, 501)
+        self.assertEqual(draft_attachment.res_model, "account.move")
+        self.assertEqual(draft_attachment.res_id, generated_move.id)
+        self.assertEqual(
+            generated_move.message_main_attachment_id,
+            draft_attachment,
+        )
+        self.assertEqual(restored_message.model, "account.move")
+        self.assertEqual(restored_message.res_id, generated_move.id)
         self.assertEqual(draft_case.generation_status, "validated")
         self.assertEqual(draft_case.generated_line_count, 2)
         self.assertEqual(draft_case.generated_debit_total, 120.00)
@@ -7354,3 +7422,66 @@ class TestRebuildAccountMigration(TransactionCase):
             ("rebuild_source_id", "in", [501, 502, 503]),
         ])
         self.assertEqual(visible_cases, draft_case | cancelled_case)
+
+    def test_attachment_only_source_bill_becomes_native_draft(self):
+        snapshot = "unit-attachment-only-draft"
+        import_run = self.env["rebuild.account.import.run"].create({
+            "name": "Attachment-only draft bill replay",
+            "source_snapshot_id": snapshot,
+        })
+        review = self.env["rebuild.account.move.review"].create({
+            "name": "Uploaded supplier document",
+            "source_name": "/",
+            "source_move_id": 990601,
+            "source_state": "draft",
+            "state": "draft",
+            "company_id": self.company.id,
+            "journal_id": self._journal("purchase").id,
+            "currency_id": self.company.currency_id.id,
+            "date": fields.Date.today(),
+            "move_type": "in_invoice",
+            "source_line_count": 0,
+            "source_accounting_line_count": 0,
+            "rebuild_source_model": "account.move",
+            "rebuild_source_id": 990601,
+            "rebuild_source_snapshot": snapshot,
+        })
+        attachment = self.env["ir.attachment"].sudo().create({
+            "name": "supplier-upload.pdf",
+            "res_model": review._name,
+            "res_id": review.id,
+            "type": "binary",
+            "raw": b"%PDF-1.4 source supplier upload",
+            "company_id": self.company.id,
+            "rebuild_source_model": "ir.attachment",
+            "rebuild_source_id": 990602,
+            "rebuild_source_snapshot": snapshot,
+            "rebuild_source_is_main": True,
+        })
+        review._message_set_main_attachment_id(
+            attachment,
+            force=True,
+            filter_xml=False,
+        )
+
+        stats = import_run._sync_document_regeneration_cases({
+            "source_snapshot_id": snapshot,
+        })
+        case = self.env[
+            "rebuild.account.document.regeneration.case"
+        ].search([
+            ("move_review_id", "=", review.id),
+        ])
+        case.action_generate_draft_move()
+
+        self.assertEqual(stats["candidate_ready_count"], 1)
+        self.assertEqual(case.generation_status, "validated")
+        self.assertEqual(case.target_move_id.state, "draft")
+        self.assertEqual(case.target_move_id.move_type, "in_invoice")
+        self.assertFalse(case.target_move_id.line_ids)
+        self.assertEqual(
+            case.target_move_id.message_main_attachment_id,
+            attachment,
+        )
+        self.assertEqual(attachment.res_model, "account.move")
+        self.assertEqual(attachment.res_id, case.target_move_id.id)

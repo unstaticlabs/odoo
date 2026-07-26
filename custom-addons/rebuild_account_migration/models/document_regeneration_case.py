@@ -192,6 +192,18 @@ class RebuildAccountDocumentRegenerationCase(models.Model):
                 or currency.compare_amounts(review.source_line_credit_total or 0.0, 0.0) != 0
             )
             if not has_amount:
+                if review.move_type in invoice_move_types:
+                    return {
+                        "generation_scope": "draft_business_document",
+                        "case_status": "candidate_ready",
+                        "generation_status": "not_generated",
+                        "blocker_reason": "",
+                        "recommended_action": (
+                            "Create a native empty draft document so its "
+                            "uploaded evidence remains available in the "
+                            "ordinary invoice or bill workflow."
+                        ),
+                    }
                 return {
                     "generation_scope": "unsupported_source_record",
                     "case_status": "review_only_no_accounting_lines",
@@ -403,7 +415,15 @@ class RebuildAccountDocumentRegenerationCase(models.Model):
             self._validate_generated_move(self.target_move_id)
             return self.action_open_generated_move()
         source_lines = self._source_accounting_line_reviews()
-        if not source_lines:
+        invoice_move_types = {
+            "out_invoice",
+            "out_refund",
+            "in_invoice",
+            "in_refund",
+            "out_receipt",
+            "in_receipt",
+        }
+        if not source_lines and self.move_type not in invoice_move_types:
             self.write({
                 "case_status": "blocked_missing_source_lines",
                 "generation_status": "blocked",
@@ -418,7 +438,7 @@ class RebuildAccountDocumentRegenerationCase(models.Model):
             skip_account_move_synchronization=True,
             skip_invoice_sync=True,
         )
-        move = Move.create({
+        move_values = {
             "move_type": self.move_type if self.move_type in {
                 "entry",
                 "out_invoice",
@@ -437,10 +457,44 @@ class RebuildAccountDocumentRegenerationCase(models.Model):
             "invoice_date_due": move_review.invoice_date_due,
             "ref": move_review.ref or move_review.source_name or self.name,
             "payment_reference": move_review.payment_reference,
-            "line_ids": [self._line_command_from_review(line_review) for line_review in source_lines],
             **self._trace_values("account.move.document_regeneration", self.source_move_id),
-        })
+        }
+        if source_lines:
+            move_values["line_ids"] = [
+                self._line_command_from_review(line_review)
+                for line_review in source_lines
+            ]
+        move = Move.create(move_values)
         if move_review.state == "cancel" or move_review.source_state == "cancel":
             move.button_cancel()
+        source_attachments = self.env["ir.attachment"].sudo().search([
+            ("res_model", "=", move_review._name),
+            ("res_id", "=", move_review.id),
+            ("rebuild_source_model", "=", "ir.attachment"),
+            ("rebuild_source_snapshot", "=", self.rebuild_source_snapshot),
+        ])
+        source_messages = self.env["mail.message"].sudo().search([
+            ("model", "=", move_review._name),
+            ("res_id", "=", move_review.id),
+            ("attachment_ids", "in", source_attachments.ids),
+        ]) if source_attachments else self.env["mail.message"]
+        if source_attachments:
+            source_attachments.write({
+                "res_model": move._name,
+                "res_id": move.id,
+            })
+            source_messages.write({
+                "model": move._name,
+                "res_id": move.id,
+            })
+            main_attachment = source_attachments.filtered(
+                "rebuild_source_is_main",
+            )[:1]
+            if main_attachment:
+                move.sudo()._message_set_main_attachment_id(
+                    main_attachment,
+                    force=True,
+                    filter_xml=False,
+                )
         self._validate_generated_move(move)
         return self.action_open_generated_move()

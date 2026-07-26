@@ -470,6 +470,13 @@ class IrAttachment(models.Model):
     _name = "ir.attachment"
     _inherit = ["ir.attachment", "rebuild.source.trace.mixin"]
 
+    rebuild_source_attachment_res_model = fields.Char(index=True, copy=False)
+    rebuild_source_attachment_res_id = fields.Integer(index=True, copy=False)
+    rebuild_source_message_id = fields.Integer(index=True, copy=False)
+    rebuild_source_message_date = fields.Datetime(copy=False)
+    rebuild_source_message_subject = fields.Char(copy=False)
+    rebuild_source_is_main = fields.Boolean(copy=False)
+
 
 class AccountPayment(models.Model):
     _name = "account.payment"

@@ -7,7 +7,7 @@ from datetime import date
 import psycopg2
 import psycopg2.extras
 
-from odoo import Command, fields, models
+from odoo import Command, _, fields, models
 
 from odoo.addons.account.models.account_move import BYPASS_LOCK_CHECK
 
@@ -3462,36 +3462,128 @@ class RebuildAccountImportRun(models.Model):
         return self._fetchall(
             conn,
             """
-            SELECT ia.id, ia.res_model, ia.res_id, ia.company_id, ia.name,
-                   ia.res_field, ia.type, ia.url, ia.store_fname,
-                   ia.checksum, ia.file_size, ia.mimetype,
-                   ia.description, ia.public,
-                   (
-                       ia.res_model = 'account.move'
-                       AND ia.id = am.message_main_attachment_id
-                   ) AS is_main
-            FROM ir_attachment ia
-            LEFT JOIN account_move am
-                   ON ia.res_model = 'account.move'
-                  AND ia.res_id = am.id
-            LEFT JOIN account_asset asset
-                   ON ia.res_model = 'account.asset'
-                  AND ia.res_id = asset.id
-            WHERE ia.type = 'binary'
-              AND (
-                    (
-                        ia.res_model = 'account.move'
-                        AND am.company_id = ANY(%(source_company_ids)s)
-                        AND am.state = 'posted'
-                        AND am.date BETWEEN %(date_from)s AND %(date_to)s
-                    )
-                    OR
-                    (
-                        ia.res_model = 'account.asset'
-                        AND asset.company_id = ANY(%(source_company_ids)s)
-                    )
-              )
-            ORDER BY ia.id
+            WITH direct_attachments AS (
+                SELECT ia.id,
+                       ia.res_model,
+                       ia.res_id,
+                       ia.res_model AS source_attachment_res_model,
+                       ia.res_id AS source_attachment_res_id,
+                       ia.company_id,
+                       ia.name,
+                       ia.res_field,
+                       ia.type,
+                       ia.url,
+                       ia.store_fname,
+                       ia.checksum,
+                       ia.file_size,
+                       ia.mimetype,
+                       ia.description,
+                       ia.public,
+                       (
+                           ia.res_model = 'account.move'
+                           AND ia.id = move.message_main_attachment_id
+                       ) AS is_main,
+                       source_message.id AS source_message_id,
+                       source_message.date AS source_message_date,
+                       source_message.subject AS source_message_subject
+                  FROM ir_attachment ia
+                  LEFT JOIN account_move move
+                    ON ia.res_model = 'account.move'
+                   AND ia.res_id = move.id
+                  LEFT JOIN account_asset asset
+                    ON ia.res_model = 'account.asset'
+                   AND ia.res_id = asset.id
+                  LEFT JOIN LATERAL (
+                       SELECT message.id, message.date, message.subject
+                         FROM message_attachment_rel relation
+                         JOIN mail_message message
+                           ON message.id = relation.message_id
+                        WHERE relation.attachment_id = ia.id
+                          AND message.model = ia.res_model
+                          AND message.res_id = ia.res_id
+                        ORDER BY message.date, message.id
+                        LIMIT 1
+                  ) source_message ON TRUE
+                 WHERE ia.type = 'binary'
+                   AND (
+                        (
+                            ia.res_model = 'account.move'
+                            AND move.company_id = ANY(%(source_company_ids)s)
+                            AND (
+                                (
+                                    move.state = 'posted'
+                                    AND move.date BETWEEN %(date_from)s AND %(date_to)s
+                                )
+                                OR (
+                                    move.state <> 'posted'
+                                    AND move.date >= %(date_from)s
+                                )
+                            )
+                        )
+                        OR (
+                            ia.res_model = 'account.asset'
+                            AND asset.company_id = ANY(%(source_company_ids)s)
+                        )
+                   )
+            ),
+            chatter_only_attachments AS (
+                SELECT ia.id,
+                       message.model AS res_model,
+                       message.res_id,
+                       ia.res_model AS source_attachment_res_model,
+                       ia.res_id AS source_attachment_res_id,
+                       ia.company_id,
+                       ia.name,
+                       ia.res_field,
+                       ia.type,
+                       ia.url,
+                       ia.store_fname,
+                       ia.checksum,
+                       ia.file_size,
+                       ia.mimetype,
+                       ia.description,
+                       ia.public,
+                       FALSE AS is_main,
+                       message.id AS source_message_id,
+                       message.date AS source_message_date,
+                       message.subject AS source_message_subject
+                  FROM ir_attachment ia
+                  JOIN LATERAL (
+                       SELECT candidate.id,
+                              candidate.model,
+                              candidate.res_id,
+                              candidate.date,
+                              candidate.subject
+                         FROM message_attachment_rel relation
+                         JOIN mail_message candidate
+                           ON candidate.id = relation.message_id
+                         JOIN account_move move
+                           ON candidate.model = 'account.move'
+                          AND candidate.res_id = move.id
+                        WHERE relation.attachment_id = ia.id
+                          AND move.company_id = ANY(%(source_company_ids)s)
+                          AND (
+                              (
+                                  move.state = 'posted'
+                                  AND move.date BETWEEN %(date_from)s AND %(date_to)s
+                              )
+                              OR (
+                                  move.state <> 'posted'
+                                  AND move.date >= %(date_from)s
+                              )
+                          )
+                        ORDER BY candidate.date, candidate.id
+                        LIMIT 1
+                  ) message ON TRUE
+                 WHERE ia.type = 'binary'
+                   AND ia.res_model IS NULL
+            )
+            SELECT *
+              FROM direct_attachments
+            UNION ALL
+            SELECT *
+              FROM chatter_only_attachments
+             ORDER BY id
             """,
             options,
         )
@@ -3501,14 +3593,28 @@ class RebuildAccountImportRun(models.Model):
         if row["res_model"] == "account.move":
             account_move_trace_models = trace_models.get(
                 "account.move",
-                ["account.move"],
+                [
+                    "account.move.document_regeneration",
+                    "account.move.native_engine_replay",
+                    "account.move.native_expense_replay",
+                    "account.move",
+                ],
             )
             target = self.env["account.move"].with_context(active_test=False).search([
                 ("rebuild_source_model", "in", account_move_trace_models),
                 ("rebuild_source_id", "=", row["res_id"]),
                 ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
             ], limit=1)
-            return "account.move", target
+            if target:
+                return "account.move", target
+            review = self.env["rebuild.account.move.review"].with_context(
+                active_test=False,
+            ).search([
+                ("rebuild_source_model", "=", "account.move"),
+                ("rebuild_source_id", "=", row["res_id"]),
+                ("rebuild_source_snapshot", "=", options["source_snapshot_id"]),
+            ], limit=1)
+            return "rebuild.account.move.review", review
         if row["res_model"] == "hr.expense":
             expense_trace_models = trace_models.get(
                 "hr.expense",
@@ -3544,6 +3650,8 @@ class RebuildAccountImportRun(models.Model):
         duplicate_traces = []
         main_attachment_mismatches = []
         imported_main_attachment_count = 0
+        imported_chatter_attachment_count = 0
+        chatter_groups = defaultdict(list)
         for row in rows:
             target_model, target_record = self._target_for_attachment(row, options)
             if not target_model or not target_record:
@@ -3603,6 +3711,18 @@ class RebuildAccountImportRun(models.Model):
                 "mimetype": row["mimetype"],
                 "description": row["description"],
                 "public": bool(row["public"]),
+                "rebuild_source_attachment_res_model": (
+                    row.get("source_attachment_res_model")
+                ),
+                "rebuild_source_attachment_res_id": (
+                    row.get("source_attachment_res_id")
+                ),
+                "rebuild_source_message_id": row.get("source_message_id"),
+                "rebuild_source_message_date": row.get("source_message_date"),
+                "rebuild_source_message_subject": (
+                    row.get("source_message_subject")
+                ),
+                "rebuild_source_is_main": bool(row.get("is_main")),
                 "company_id": (
                     companies[row["company_id"]].id if row["company_id"] in companies
                     else getattr(target_record, "company_id", self.env.company).id
@@ -3657,7 +3777,60 @@ class RebuildAccountImportRun(models.Model):
                     })
                     continue
                 imported_main_attachment_count += 1
+            if row.get("source_message_id"):
+                chatter_groups[
+                    target_model,
+                    target_record.id,
+                    row["source_message_id"],
+                ].append(attachment)
             imported |= attachment
+
+        for (
+            target_model,
+            target_id,
+            _source_message_id,
+        ), attachments in chatter_groups.items():
+            target_record = self.env[target_model].browse(target_id).exists()
+            if not target_record or not hasattr(target_record, "message_post"):
+                continue
+            attachment_recordset = self.env["ir.attachment"].concat(
+                *attachments,
+            )
+            existing_message = self.env["mail.message"].sudo().search([
+                ("model", "=", target_model),
+                ("res_id", "=", target_id),
+                ("attachment_ids", "in", attachment_recordset[:1].ids),
+            ], limit=1)
+            if existing_message:
+                missing_attachments = attachment_recordset - existing_message.attachment_ids
+                if missing_attachments:
+                    existing_message.attachment_ids = [
+                        Command.link(attachment.id)
+                        for attachment in missing_attachments
+                    ]
+            else:
+                representative = attachment_recordset[:1]
+                existing_message = target_record.sudo().with_context(
+                    tracking_disable=True,
+                    mail_create_nolog=True,
+                    mail_create_nosubscribe=True,
+                    mail_notify_force_send=False,
+                ).message_post(
+                    body=_(
+                        "Supporting file restored from the source record's "
+                        "chatter.",
+                    ),
+                    subject=representative.rebuild_source_message_subject
+                    or _("Restored accounting evidence"),
+                    message_type="comment",
+                    subtype_xmlid="mail.mt_note",
+                    attachment_ids=attachment_recordset.ids,
+                )
+                if representative.rebuild_source_message_date:
+                    existing_message.sudo().write({
+                        "date": representative.rebuild_source_message_date,
+                    })
+            imported_chatter_attachment_count += len(attachment_recordset)
 
         if duplicate_traces:
             self.env["rebuild.account.discrepancy"].create({
@@ -3782,6 +3955,13 @@ class RebuildAccountImportRun(models.Model):
             "duplicate_trace_count": len(duplicate_traces),
             "main_attachment_mismatch_count": len(main_attachment_mismatches),
             "source_total_bytes": sum(int(row["file_size"] or 0) for row in rows),
+            "source_chatter_attachment_count": sum(
+                bool(row.get("source_message_id"))
+                for row in rows
+            ),
+            "imported_chatter_attachment_count": (
+                imported_chatter_attachment_count
+            ),
         }
 
     def _native_replay_document_attachment_rows(self, conn, options):
@@ -3791,6 +3971,8 @@ class RebuildAccountImportRun(models.Model):
             SELECT attachment.id,
                    attachment.res_model,
                    attachment.res_id,
+                   attachment.res_model AS source_attachment_res_model,
+                   attachment.res_id AS source_attachment_res_id,
                    attachment.company_id,
                    attachment.name,
                    attachment.res_field,
@@ -3804,11 +3986,25 @@ class RebuildAccountImportRun(models.Model):
                    attachment.public,
                    (
                        attachment.id = move.message_main_attachment_id
-                   ) AS is_main
+                   ) AS is_main,
+                   source_message.id AS source_message_id,
+                   source_message.date AS source_message_date,
+                   source_message.subject AS source_message_subject
               FROM ir_attachment attachment
               JOIN account_move move
-                ON attachment.res_model = 'account.move'
+               ON attachment.res_model = 'account.move'
                AND attachment.res_id = move.id
+              LEFT JOIN LATERAL (
+                   SELECT message.id, message.date, message.subject
+                     FROM message_attachment_rel relation
+                     JOIN mail_message message
+                       ON message.id = relation.message_id
+                    WHERE relation.attachment_id = attachment.id
+                      AND message.model = 'account.move'
+                      AND message.res_id = move.id
+                    ORDER BY message.date, message.id
+                    LIMIT 1
+              ) source_message ON TRUE
              WHERE attachment.type = 'binary'
                AND move.company_id = ANY(%(source_company_ids)s)
                AND move.state = 'posted'
@@ -3833,6 +4029,8 @@ class RebuildAccountImportRun(models.Model):
             SELECT attachment.id,
                    attachment.res_model,
                    attachment.res_id,
+                   attachment.res_model AS source_attachment_res_model,
+                   attachment.res_id AS source_attachment_res_id,
                    attachment.company_id,
                    attachment.name,
                    attachment.res_field,
@@ -3846,11 +4044,25 @@ class RebuildAccountImportRun(models.Model):
                    attachment.public,
                    (
                        attachment.id = expense.message_main_attachment_id
-                   ) AS is_main
+                   ) AS is_main,
+                   source_message.id AS source_message_id,
+                   source_message.date AS source_message_date,
+                   source_message.subject AS source_message_subject
               FROM ir_attachment attachment
               JOIN hr_expense expense
-                ON attachment.res_model = 'hr.expense'
+               ON attachment.res_model = 'hr.expense'
                AND attachment.res_id = expense.id
+              LEFT JOIN LATERAL (
+                   SELECT message.id, message.date, message.subject
+                     FROM message_attachment_rel relation
+                     JOIN mail_message message
+                       ON message.id = relation.message_id
+                    WHERE relation.attachment_id = attachment.id
+                      AND message.model = 'hr.expense'
+                      AND message.res_id = expense.id
+                    ORDER BY message.date, message.id
+                    LIMIT 1
+              ) source_message ON TRUE
              WHERE attachment.type = 'binary'
                AND expense.company_id = ANY(%(source_company_ids)s)
                AND expense.date BETWEEN %(date_from)s AND %(date_to)s
@@ -6821,18 +7033,8 @@ class RebuildAccountImportRun(models.Model):
                         "checks": checks,
                     })
 
-            # The current source package deliberately excludes the Odoo
-            # filestore. Missing binaries are therefore a documented product
-            # boundary, while mapping, checksum and duplication defects remain
-            # release-relevant.
-            attachment_issue_count = sum(
-                attachment_stats.get(key, 0)
-                for key in (
-                    "checksum_mismatch_count",
-                    "duplicate_trace_count",
-                    "main_attachment_mismatch_count",
-                    "unmapped_target_count",
-                )
+            attachment_issue_count = self._attachment_issue_count(
+                attachment_stats,
             )
             status = (
                 "passed"
@@ -6860,9 +7062,6 @@ class RebuildAccountImportRun(models.Model):
                 "blocked_case_count": len(blocked_cases),
                 "state_counts": dict(sorted(state_counts.items())),
                 "attachments": attachment_stats,
-                "accepted_missing_attachment_count": (
-                    attachment_stats.get("missing_file_count", 0)
-                ),
                 "mismatch_examples": mismatch_cases[:20],
                 "blocked_examples": blocked_cases[:20],
             }

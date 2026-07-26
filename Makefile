@@ -7,7 +7,7 @@ USER_DOCS_HOST ?= 127.0.0.1
 USER_DOCS_PORT ?= 8079
 ODOO_DEV ?= scripts/odoo-dev
 
-.PHONY: dev deploy rebuild oca-addons-sync accounting-compat accounting-source-package-validate accounting-source-validate accounting-source-restore accounting-source-inspect accounting-extract accounting-source-validate-ledger accounting-failure-tests accounting-validation-exact-reset accounting-validation-exact-import accounting-validation-exact-validate accounting-validation-exact-idempotence accounting-validation-exact-failure-tests accounting-document-regeneration accounting-validation-native-reset accounting-validation-native-expenses accounting-validation-native-documents accounting-validation-native-assets accounting-validation-native-deferrals accounting-validation-native-analytics accounting-validation-native-expense-settlement accounting-validation-native-document-settlement accounting-validation-native-general-reconciliation accounting-validation-native-bank-categorization accounting-validation-native-bank-external accounting-dev-reset accounting-dev-import accounting-dev-validate accounting-validation-exact-reconciliation-probe accounting-currency-rate-provider accounting-reports accounting-fec accounting-fec-preflight accounting-fec-validate accounting-compare accounting-readiness accounting-evidence accounting-addon-tests user-docs-serve user-docs-build
+.PHONY: dev deploy rebuild oca-addons-sync accounting-compat accounting-source-package-validate accounting-source-validate accounting-source-restore accounting-source-inspect accounting-attachment-audit accounting-extract accounting-source-validate-ledger accounting-failure-tests accounting-validation-exact-reset accounting-validation-exact-import accounting-validation-exact-validate accounting-validation-exact-idempotence accounting-validation-exact-failure-tests accounting-document-regeneration accounting-validation-native-reset accounting-validation-native-expenses accounting-validation-native-documents accounting-validation-native-assets accounting-validation-native-deferrals accounting-validation-native-analytics accounting-validation-native-expense-settlement accounting-validation-native-document-settlement accounting-validation-native-general-reconciliation accounting-validation-native-bank-categorization accounting-validation-native-bank-external accounting-dev-reset accounting-dev-import accounting-dev-validate accounting-dev-attachments accounting-validation-exact-reconciliation-probe accounting-currency-rate-provider accounting-reports accounting-fec accounting-fec-preflight accounting-fec-validate accounting-compare accounting-readiness accounting-evidence accounting-addon-tests user-docs-serve user-docs-build
 
 dev:
 	$(ODOO_DEV) start
@@ -35,6 +35,9 @@ accounting-source-restore:
 
 accounting-source-inspect:
 	$(ACCOUNTING_COMPAT) source-inspect
+
+accounting-attachment-audit:
+	$(ACCOUNTING_COMPAT) attachment-audit
 
 accounting-extract:
 	$(ACCOUNTING_COMPAT) extract
@@ -104,6 +107,9 @@ accounting-dev-import:
 
 accounting-dev-validate:
 	$(ACCOUNTING_COMPAT) dev-validate
+
+accounting-dev-attachments:
+	$(ACCOUNTING_COMPAT) dev-attachments
 
 accounting-validation-exact-reconciliation-probe:
 	$(ACCOUNTING_COMPAT) validation-exact-reconciliation-probe
