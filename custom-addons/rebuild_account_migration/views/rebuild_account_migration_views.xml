@@ -1910,21 +1910,40 @@
                             <field name="last_detected_at" readonly="1"/>
                         </group>
                     </group>
-                    <group string="What needs attention">
-                        <field name="description" nolabel="1" readonly="1"/>
-                    </group>
-                    <group string="Why it matters">
-                        <field name="why_it_matters" nolabel="1" readonly="1"/>
-                    </group>
-                    <group string="Recommended next action">
-                        <field name="recommended_action" nolabel="1" readonly="1"/>
-                    </group>
-                    <group string="Accounting consequence">
-                        <field name="accounting_consequence" nolabel="1" readonly="1"/>
-                    </group>
-                    <group string="Evidence used by this control">
-                        <field name="evidence" nolabel="1" readonly="1"/>
-                    </group>
+                    <div class="o_usl_control_narrative">
+                        <div class="row g-3">
+                            <section class="col-12 col-lg-6">
+                                <div class="o_usl_control_card o_usl_control_card_attention">
+                                    <h3 class="o_usl_control_card_title">What needs attention</h3>
+                                    <field name="description" nolabel="1" readonly="1"/>
+                                </div>
+                            </section>
+                            <section class="col-12 col-lg-6">
+                                <div class="o_usl_control_card o_usl_control_card_action">
+                                    <h3 class="o_usl_control_card_title">Recommended next action</h3>
+                                    <field name="recommended_action" nolabel="1" readonly="1"/>
+                                </div>
+                            </section>
+                            <section class="col-12 col-lg-6">
+                                <div class="o_usl_control_card">
+                                    <h3 class="o_usl_control_card_title">Why it matters</h3>
+                                    <field name="why_it_matters" nolabel="1" readonly="1"/>
+                                </div>
+                            </section>
+                            <section class="col-12 col-lg-6">
+                                <div class="o_usl_control_card">
+                                    <h3 class="o_usl_control_card_title">Accounting consequence</h3>
+                                    <field name="accounting_consequence" nolabel="1" readonly="1"/>
+                                </div>
+                            </section>
+                            <section class="col-12">
+                                <div class="o_usl_control_card o_usl_control_card_evidence">
+                                    <h3 class="o_usl_control_card_title">Evidence used by this control</h3>
+                                    <field name="evidence" nolabel="1" readonly="1"/>
+                                </div>
+                            </section>
+                        </div>
+                    </div>
                     <group string="Resolution history" invisible="status == 'open'">
                         <field name="resolved_at" readonly="1" invisible="status != 'resolved'"/>
                         <field name="dismissed_at" readonly="1" invisible="status != 'dismissed'"/>

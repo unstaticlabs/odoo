@@ -1977,6 +1977,56 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(len(color_fields), 1)
         self.assertEqual(color_fields[0].get("column_invisible"), "True")
 
+    def test_hygiene_results_and_control_definitions_use_readable_narratives(self):
+        expected_issue_fields = {
+            "description",
+            "recommended_action",
+            "why_it_matters",
+            "accounting_consequence",
+            "evidence",
+        }
+        issue_arch = self.env.ref(
+            "rebuild_account_migration.view_rebuild_account_hygiene_issue_form",
+        )._get_combined_arch()
+        narrative = issue_arch.xpath(
+            "//div[contains(concat(' ', normalize-space(@class), ' '), "
+            "' o_usl_control_narrative ')]",
+        )
+
+        self.assertEqual(len(narrative), 1)
+        self.assertEqual(
+            {
+                field.get("name")
+                for field in narrative[0].xpath(".//field")
+            },
+            expected_issue_fields,
+        )
+        self.assertFalse(
+            issue_arch.xpath(
+                "//group//field[@name='description' or "
+                "@name='recommended_action' or @name='why_it_matters' or "
+                "@name='accounting_consequence' or @name='evidence']",
+            ),
+        )
+
+        definition_arch = self.env.ref(
+            "rebuild_account_migration."
+            "view_rebuild_account_closing_control_definition_form",
+        )._get_combined_arch()
+        definition_narrative = definition_arch.xpath(
+            "//page[@string='Business Purpose']"
+            "//div[contains(concat(' ', normalize-space(@class), ' '), "
+            "' o_usl_control_narrative ')]",
+        )
+        self.assertEqual(len(definition_narrative), 1)
+        self.assertEqual(
+            {
+                field.get("name")
+                for field in definition_narrative[0].xpath(".//field")
+            },
+            {"description", "expected_resolution", "accounting_consequence"},
+        )
+
     def test_accounting_status_badges_use_semantic_colors(self):
         expected_decorations = {
             "hygiene_status": {

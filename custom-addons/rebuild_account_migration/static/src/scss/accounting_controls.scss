@@ -1,0 +1,67 @@
+.o_form_view .o_usl_control_narrative {
+    max-width: 1100px;
+    margin: 1.5rem auto 0;
+
+    .o_usl_control_card {
+        height: 100%;
+        padding: 1rem 1.1rem;
+        border: 1px solid $border-color;
+        border-radius: 0.65rem;
+        background: $o-view-background-color;
+    }
+
+    .o_usl_control_card_attention,
+    .o_usl_control_card_action {
+        border-left-width: 3px;
+    }
+
+    .o_usl_control_card_attention {
+        border-left-color: $warning;
+    }
+
+    .o_usl_control_card_action {
+        border-left-color: $o-brand-primary;
+    }
+
+    .o_usl_control_card_evidence {
+        background: $o-gray-100;
+        color: $text-muted;
+        font-size: 0.88rem;
+    }
+
+    .o_usl_control_card_title {
+        margin: 0 0 0.45rem;
+        color: $text-muted;
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.035em;
+        line-height: 1.25;
+        text-transform: uppercase;
+    }
+
+    .o_field_widget {
+        display: block;
+        width: 100%;
+        margin: 0;
+    }
+
+    .o_field_text {
+        min-height: 0;
+        color: inherit;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        white-space: pre-line;
+
+        textarea {
+            min-height: 5rem;
+            line-height: 1.5;
+            resize: vertical;
+        }
+    }
+}
+
+@media (max-width: 991.98px) {
+    .o_form_view .o_usl_control_narrative {
+        margin-top: 1rem;
+    }
+}
