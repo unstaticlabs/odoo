@@ -14,7 +14,7 @@ Accounting managers use **Configuration** for:
 
 ## Accounting Framework
 
-Open **Configuration > Accounting > Accounting Framework**. Its three
+Open **Configuration > Accounting Framework**. Its three
 catalogues show the business definitions used by the operational Accounting
 product:
 
@@ -40,7 +40,7 @@ it does not post or reconcile transactions automatically.
 
 ## Accounting Controls
 
-Open **Configuration > Accounting > Accounting Framework > Controls**. The catalogue shows every configured control
+Open **Configuration > Accounting Framework > Controls**. The catalogue shows every configured control
 used by Accounting Hygiene or Closing. Each definition explains what it checks,
 why it matters, the expected resolution, its responsible role, its origin and
 its readiness effect.

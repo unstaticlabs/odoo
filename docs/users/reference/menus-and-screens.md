@@ -34,7 +34,7 @@ open any aggregate to its source records.
 
 The canonical designed financial, partner, tax, asset, management and
 analytical statements. **Analytic Profit and Loss** is the governed analytical
-statement; use **Analysis > Analytic Reporting** for free-form pivot
+statement; use **Reporting > Analytic Reporting** for free-form pivot
 exploration.
 
 ## Declarations

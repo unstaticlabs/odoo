@@ -1134,8 +1134,6 @@ class TestRebuildAccountMigration(TransactionCase):
             "account.menu_finance_payables": ("Vendors", 3),
             "account.menu_finance_entries": ("Accounting", 4),
             "account.account_audit_menu": ("Review", 7),
-            "rebuild_account_migration.menu_rebuild_account_analysis":
-                ("Analysis", 15),
             "account.menu_finance_reports": ("Reporting", 20),
             "account.menu_finance_configuration": ("Configuration", 35),
         }
@@ -1146,6 +1144,12 @@ class TestRebuildAccountMigration(TransactionCase):
             self.assertEqual(menu.parent_id, finance_menu)
             self.assertEqual(menu.name, name)
             self.assertEqual(menu.sequence, sequence)
+
+        self.assertFalse(
+            self.env.ref(
+                "rebuild_account_migration.menu_rebuild_account_analysis",
+            ).active,
+        )
 
         declarations_menu = self.env.ref(
             "rebuild_account_migration.menu_rebuild_account_declarations_root",
@@ -1313,10 +1317,9 @@ class TestRebuildAccountMigration(TransactionCase):
         )
         self.assertEqual(
             menu.parent_id,
-            self.env.ref(
-                "rebuild_account_migration.menu_rebuild_account_analysis",
-            ),
+            self.env.ref("account.menu_finance_reports"),
         )
+        self.assertEqual(menu.sequence, 0)
         self.assertEqual(menu.action, action)
 
     def test_accounting_configuration_and_review_navigation(self):
@@ -1339,8 +1342,9 @@ class TestRebuildAccountMigration(TransactionCase):
         )
         self.assertEqual(
             accounting_framework_menu.parent_id,
-            self.env.ref("account.account_account_menu"),
+            self.env.ref("account.menu_finance_configuration"),
         )
+        self.assertEqual(accounting_framework_menu.sequence, 5)
         self.assertEqual(
             declaration_rules_menu.parent_id,
             accounting_framework_menu,
@@ -2137,7 +2141,7 @@ class TestRebuildAccountMigration(TransactionCase):
             1,
         )
 
-    def test_native_expenses_are_available_from_accounting_payables(self):
+    def test_native_expenses_use_the_expenses_app_not_vendor_navigation(self):
         expenses_menu = self.env.ref("hr_expense.menu_hr_expense_account_employee_expenses")
         expense_action = self.env.ref("hr_expense.action_hr_expense_account")
         expense_list = self.env.ref(
@@ -2146,6 +2150,7 @@ class TestRebuildAccountMigration(TransactionCase):
 
         self.assertEqual(expenses_menu.parent_id, self.env.ref("account.menu_finance_payables"))
         self.assertEqual(expenses_menu.name, "Expenses")
+        self.assertFalse(expenses_menu.active)
         self.assertEqual(expenses_menu.action, expense_action)
         self.assertEqual(expense_action.name, "Expenses")
         self.assertEqual(expense_action.view_id, expense_list)

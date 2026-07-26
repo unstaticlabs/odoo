@@ -250,8 +250,8 @@
     <menuitem
         id="menu_rebuild_account_framework"
         name="Accounting Framework"
-        parent="account.account_account_menu"
-        sequence="29"
+        parent="account.menu_finance_configuration"
+        sequence="5"
         groups="account.group_account_manager"/>
     <menuitem
         id="menu_rebuild_account_report_definitions"

@@ -700,6 +700,7 @@
     </record>
     <record id="hr_expense.menu_hr_expense_account_employee_expenses" model="ir.ui.menu">
         <field name="name">Expenses</field>
+        <field name="active" eval="False"/>
     </record>
     <menuitem
         id="menu_rebuild_account_matched_items"
