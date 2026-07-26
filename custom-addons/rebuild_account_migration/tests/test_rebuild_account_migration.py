@@ -11,6 +11,7 @@ from lxml import etree
 from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError
 from odoo.tests import TransactionCase, tagged
+from odoo.tools import format_date
 from odoo.tools.safe_eval import safe_eval
 
 from odoo.addons.rebuild_account_migration.controllers import user_docs
@@ -90,6 +91,16 @@ class TestRebuildAccountMigration(TransactionCase):
             filename=filename,
         )
         return message.as_bytes()
+
+    def test_supported_interface_languages_use_european_dates(self):
+        sample_date = fields.Date.to_date("2026-06-10")
+        for language_code in ("en_US", "fr_FR"):
+            language = self.env["res.lang"]._get_data(code=language_code)
+            self.assertEqual(language.date_format, "%d/%m/%Y")
+            self.assertEqual(
+                format_date(self.env, sample_date, lang_code=language_code),
+                "10/06/2026",
+            )
 
     def test_native_email_gateway_creates_draft_bill_with_source_evidence(self):
         supplier = self.env["res.partner"].create({
@@ -221,7 +232,7 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertFalse(posted_widget["draft_suggestions"])
         self.assertTrue(posted_best["can_assign"])
         unrelated_payable_line = other_payment.move_id.line_ids.filtered(
-            lambda line: line.account_id == supplier.property_account_payable_id
+            lambda line: line.account_id == supplier.property_account_payable_id,
         )
         with self.assertRaisesRegex(
             UserError,
