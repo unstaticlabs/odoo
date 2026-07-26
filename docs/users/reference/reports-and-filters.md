@@ -42,7 +42,8 @@ optional filters without losing the company or selected period. Accounting
 statements consistently use `DD/MM/YYYY` and French number separators, even
 when the user's general Odoo interface language is different. The same
 day-first date convention applies throughout the normal application; English
-human-readable dates use forms such as `10 Jun 2026`.
+human-readable dates use `10 Jun` in the current year and include the year for
+any other year.
 
 ## Reading results
 

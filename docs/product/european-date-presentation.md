@@ -2,14 +2,14 @@
 
 ## Product decision
 
-USL Accounting displays complete numeric dates as `DD/MM/YYYY`. A date such as
+USL Accounting presents dates day-first. A complete numeric date such as
 10 June 2026 is therefore `10/06/2026`, never `06/10/2026`.
 
-The convention applies to date and datetime fields in normal Odoo lists and
-forms, Accounting screens, filters, generated documents and exports.
-Human-readable English dates in contextual prose use day-first European
-ordering, for example `10 Jun 2026`. Time-zone conversion and the underlying
-stored date or UTC datetime are unchanged.
+Normal lists and read-only fields keep Odoo's compact convention: `10 Jun` when
+the date is in the current year and `10 Jun 2025` otherwise. Editable numeric
+fields, filters, generated documents and exports use the complete
+`DD/MM/YYYY` form. Time-zone conversion and the underlying stored date or UTC
+datetime are unchanged.
 
 ## Language policy
 
@@ -22,15 +22,15 @@ Interface language and date convention are separate product choices:
 
 The `rebuild_account_migration` module governs the English and French
 `res.lang` date formats. Its backend date service maps only English-US
-human-readable rendering to European English ordering, and its shared field
-formatters keep the year visible. This avoids hardcoded user changes and avoids
-a fork-level patch to Odoo's web client.
+human-readable rendering to European English ordering. This avoids hardcoded
+user changes and avoids a fork-level patch to Odoo's web client.
 
 ## Upgrade and regression contract
 
 Module installation or update reapplies the supported-language configuration.
 The backend regression test verifies Odoo/QWeb formatting, and the frontend
-test verifies numeric dates, datetimes and native human-readable dates.
+test verifies numeric dates, datetimes, day-first ordering and native
+current-year omission.
 
 Any deliberate future change must update both tests and this decision record.
 Per-view US month-first overrides are not permitted.
