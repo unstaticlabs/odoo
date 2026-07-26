@@ -52,6 +52,7 @@
             "rebuild_account_migration/static/src/xml/hr_expense_reviewer_controls.xml",
         ],
         "web.assets_unit_tests": [
+            "rebuild_account_migration/static/tests/payment_suggestions.test.js",
             "rebuild_account_migration/static/tests/transactions_navigation.test.js",
         ],
     },
