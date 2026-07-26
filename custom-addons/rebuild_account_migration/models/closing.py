@@ -1501,6 +1501,11 @@ class RebuildAccountClosingControlDefinition(models.Model):
         return self.search([("company_id", "=", company.id)])
 
     def write(self, vals):
+        vals = dict(vals)
+        if "description" in vals and "business_purpose" not in vals:
+            vals["business_purpose"] = vals["description"]
+        if "expected_resolution" in vals and "expected_outcome" not in vals:
+            vals["expected_outcome"] = vals["expected_resolution"]
         business_fields = {
             "enabled",
             "name",

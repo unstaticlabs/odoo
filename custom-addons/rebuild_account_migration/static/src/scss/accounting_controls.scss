@@ -60,6 +60,47 @@
     }
 }
 
+.o_form_view .o_usl_hygiene_issue_form {
+    .oe_title {
+        margin-bottom: 1.25rem;
+    }
+
+    .o_usl_hygiene_issue_source {
+        display: flex;
+        align-items: baseline;
+        gap: 0.5rem;
+        margin-top: 0.35rem;
+        color: $text-muted;
+        font-size: 0.9rem;
+
+        > span {
+            font-weight: 600;
+        }
+
+        .o_field_widget {
+            color: $body-color;
+        }
+    }
+}
+
+.o_form_view .o_usl_control_traceability {
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid $border-color;
+    color: $text-muted;
+
+    > summary {
+        width: fit-content;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    &[open] > summary {
+        margin-bottom: 0.75rem;
+    }
+}
+
 @media (max-width: 991.98px) {
     .o_form_view .o_usl_control_narrative {
         margin-top: 1rem;

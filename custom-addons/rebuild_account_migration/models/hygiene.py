@@ -8,6 +8,7 @@ from odoo.tools import date_utils
 class RebuildAccountHygieneIssue(models.Model):
     _name = "rebuild.account.hygiene.issue"
     _description = "Accounting Hygiene Issue"
+    _rec_name = "title"
     _order = "severity, issue_date desc, id desc"
 
     _unique_hygiene_issue = models.Constraint(
@@ -44,6 +45,7 @@ class RebuildAccountHygieneIssue(models.Model):
         ],
         required=True,
         index=True,
+        string="Area",
     )
     severity = fields.Selection(
         [
@@ -88,6 +90,7 @@ class RebuildAccountHygieneIssue(models.Model):
         default="accounting",
         index=True,
         readonly=True,
+        string="Result Type",
     )
     owner_role = fields.Selection(
         [
@@ -104,17 +107,34 @@ class RebuildAccountHygieneIssue(models.Model):
         string="Assigned User",
         domain="[('company_ids', 'in', [company_id])]",
     )
-    issue_date = fields.Date(index=True)
-    amount = fields.Monetary(currency_field="currency_id")
+    issue_date = fields.Date(index=True, string="Detected On")
+    amount = fields.Monetary(
+        currency_field="currency_id",
+        string="Amount Affected",
+    )
     target_model = fields.Char(readonly=True)
     target_res_id = fields.Integer(readonly=True)
     target_res_ids_json = fields.Text(readonly=True)
-    source_label = fields.Char(readonly=True)
-    first_detected_at = fields.Datetime(required=True, default=fields.Datetime.now, readonly=True)
-    last_detected_at = fields.Datetime(required=True, default=fields.Datetime.now, readonly=True)
+    source_label = fields.Char(readonly=True, string="Related Record")
+    first_detected_at = fields.Datetime(
+        required=True,
+        default=fields.Datetime.now,
+        readonly=True,
+        string="First Detected",
+    )
+    last_detected_at = fields.Datetime(
+        required=True,
+        default=fields.Datetime.now,
+        readonly=True,
+        string="Last Checked",
+    )
     resolved_at = fields.Datetime(readonly=True)
     dismissed_at = fields.Datetime(readonly=True)
     dismissed_by_id = fields.Many2one("res.users", readonly=True)
+
+    @staticmethod
+    def _counted(count, singular, plural=None):
+        return f"{count} {singular if count == 1 else (plural or singular + 's')}"
 
     @api.model
     def _issue_values(
@@ -174,18 +194,23 @@ class RebuildAccountHygieneIssue(models.Model):
         if bank_lines:
             line = bank_lines.sorted(lambda item: (item.date or now, item.id))[0]
             residual = sum(abs(value) for value in bank_lines.mapped("amount_residual"))
+            bank_transaction_label = self._counted(
+                len(bank_lines),
+                "bank transaction",
+            )
+            bank_line_label = self._counted(len(bank_lines), "bank line")
             candidates.append(self._issue_values(
                 company,
                 "bank:unmatched",
                 "hygiene_bank_unmatched",
                 "reconciliation",
                 "2_warning",
-                f"Match {len(bank_lines)} bank transactions",
+                f"Match {bank_transaction_label}",
                 "These bank transactions still have no complete accounting counterpart.",
                 "Until they are matched, cash movements and their business purpose remain disconnected.",
                 "Open the affected transactions, then use Bank Matching with the closest amount and date suggestions to match or categorize each one.",
                 "Cash may be correct while counterpart accounts, partners, taxes or open-item statuses remain incomplete.",
-                f"{len(bank_lines)} unreconciled bank lines; combined absolute residual {residual:.2f} {company.currency_id.name}.",
+                f"{bank_line_label} {'is' if len(bank_lines) == 1 else 'are'} included in this result.",
                 line,
                 amount=residual,
                 owner_role="finance_operator",
@@ -205,6 +230,10 @@ class RebuildAccountHygieneIssue(models.Model):
         )
         if missing_vendor_evidence:
             move = missing_vendor_evidence.sorted("id")[0]
+            supplier_document_label = self._counted(
+                len(missing_vendor_evidence),
+                "supplier document",
+            )
             total = sum(
                 abs(value)
                 for value in missing_vendor_evidence.mapped("amount_total_signed")
@@ -215,12 +244,12 @@ class RebuildAccountHygieneIssue(models.Model):
                 "hygiene_vendor_evidence",
                 "evidence",
                 "2_warning",
-                f"Add evidence to {len(missing_vendor_evidence)} supplier documents",
+                f"Add evidence to {supplier_document_label}",
                 "These new supplier documents have no main invoice, receipt or supporting file attached.",
                 "The accounting entries can be correct but remain difficult to review or substantiate.",
                 "Open the affected documents and attach each supplier invoice, receipt or a note explaining why evidence is unavailable.",
                 "Deductibility, VAT support and the audit trail may be challenged without source evidence.",
-                f"{len(missing_vendor_evidence)} non-imported supplier documents; combined absolute total {total:.2f} {company.currency_id.name}. Imported source documents are excluded because historical attachments were deliberately outside dump parity.",
+                f"{supplier_document_label.capitalize()} without imported source evidence {'is' if len(missing_vendor_evidence) == 1 else 'are'} included. Imported source documents are excluded because historical attachments were deliberately outside dump parity.",
                 move,
                 amount=total,
                 owner_role="finance_operator",
@@ -235,6 +264,10 @@ class RebuildAccountHygieneIssue(models.Model):
         )
         if stale_documents:
             move = stale_documents.sorted("id")[0]
+            stale_document_label = self._counted(
+                len(stale_documents),
+                "stale draft document",
+            )
             total = sum(
                 abs(value)
                 for value in stale_documents.mapped("amount_total_signed")
@@ -245,12 +278,12 @@ class RebuildAccountHygieneIssue(models.Model):
                 "hygiene_stale_documents",
                 "draft",
                 "3_attention",
-                f"Finish or discard {len(stale_documents)} stale draft documents",
+                f"Finish or discard {stale_document_label}",
                 "These draft business documents have remained unposted for more than 30 days.",
                 "Old drafts are easily forgotten and may hide missing liabilities, receivables or corrections.",
                 "Open the affected drafts, correct their business fields and taxes, then post or cancel each one with a documented reason.",
                 "The ledger and reports exclude drafts unless explicitly requested, so the period may appear incomplete.",
-                f"{len(stale_documents)} drafts older than {cutoff}; combined absolute total {total:.2f} {company.currency_id.name}.",
+                f"{stale_document_label.capitalize()} older than 30 days {'is' if len(stale_documents) == 1 else 'are'} included in this result.",
                 move,
                 amount=total,
                 owner_role="finance_operator",
@@ -268,6 +301,10 @@ class RebuildAccountHygieneIssue(models.Model):
         )
         if missing_expense_evidence:
             expense = missing_expense_evidence.sorted("id")[0]
+            expense_label = self._counted(
+                len(missing_expense_evidence),
+                "expense",
+            )
             total = sum(
                 abs(value)
                 for value in missing_expense_evidence.mapped("total_amount")
@@ -278,12 +315,12 @@ class RebuildAccountHygieneIssue(models.Model):
                 "hygiene_expense_evidence",
                 "evidence",
                 "2_warning",
-                f"Add receipts to {len(missing_expense_evidence)} expenses",
+                f"Add receipts to {expense_label}",
                 "These new expenses have no receipt or supporting file attached.",
                 "Receipts are needed to review business purpose, tax and reimbursable amounts.",
                 "Open the affected expenses and attach each receipt, or document why evidence cannot be obtained.",
                 "Expenses and deductible VAT may be unsupported.",
-                f"{len(missing_expense_evidence)} non-imported expenses; combined company-currency total {total:.2f} {company.currency_id.name}. Imported expenses are excluded because historical attachments were deliberately outside dump parity.",
+                f"{expense_label.capitalize()} without imported source evidence {'is' if len(missing_expense_evidence) == 1 else 'are'} included. Imported expenses are excluded because historical attachments were deliberately outside dump parity.",
                 expense,
                 amount=total,
                 owner_role="finance_operator",
@@ -297,6 +334,10 @@ class RebuildAccountHygieneIssue(models.Model):
         )
         if stale_expenses:
             expense = stale_expenses.sorted("id")[0]
+            stale_expense_label = self._counted(
+                len(stale_expenses),
+                "stale expense workflow",
+            )
             total = sum(
                 abs(value) for value in stale_expenses.mapped("total_amount")
             )
@@ -306,12 +347,12 @@ class RebuildAccountHygieneIssue(models.Model):
                 "hygiene_stale_expenses",
                 "draft",
                 "3_attention",
-                f"Continue {len(stale_expenses)} stale expense workflows",
+                f"Continue {stale_expense_label}",
                 "These expense workflows have not reached accounting for more than 30 days.",
                 "Unfinished expenses can delay reimbursement and omit costs from management reporting.",
                 "Open the affected expenses, complete their fields and evidence, then submit, approve or refuse them.",
                 "Expense, VAT, payable and analytic reporting may remain incomplete.",
-                f"{len(stale_expenses)} expenses older than {cutoff}; combined company-currency total {total:.2f} {company.currency_id.name}.",
+                f"{stale_expense_label.capitalize()} older than 30 days {'is' if len(stale_expenses) == 1 else 'are'} included in this result.",
                 expense,
                 amount=total,
                 owner_role="finance_operator",
@@ -331,6 +372,10 @@ class RebuildAccountHygieneIssue(models.Model):
         ])
         if analytic_lines:
             line = analytic_lines.sorted("id")[0]
+            journal_item_label = self._counted(
+                len(analytic_lines),
+                "journal item",
+            )
             total = sum(abs(value) for value in analytic_lines.mapped("balance"))
             candidates.append(self._issue_values(
                 company,
@@ -338,12 +383,12 @@ class RebuildAccountHygieneIssue(models.Model):
                 "hygiene_analytic_allocation",
                 "analytic",
                 "3_attention",
-                f"Review analytic allocation on {len(analytic_lines)} journal items",
+                f"Review analytic allocation on {journal_item_label}",
                 "These posted profit-and-loss lines have no analytic distribution.",
                 "General accounting remains balanced, but activity and brand reporting is incomplete.",
                 "Open the affected journal items or source documents and add the appropriate analytic allocation where the line is in scope.",
                 "Revenue vs Spending and analytic profitability omit these amounts from configured dimensions.",
-                f"{len(analytic_lines)} posted lines; combined absolute balance {total:.2f} {company.currency_id.name}.",
+                f"{journal_item_label.capitalize()} {'is' if len(analytic_lines) == 1 else 'are'} included in this result.",
                 line,
                 amount=total,
                 owner_role="finance_operator",

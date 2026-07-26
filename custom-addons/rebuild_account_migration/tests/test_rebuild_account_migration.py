@@ -2008,6 +2008,32 @@ class TestRebuildAccountMigration(TransactionCase):
                 "@name='accounting_consequence' or @name='evidence']",
             ),
         )
+        self.assertEqual(
+            self.env["rebuild.account.hygiene.issue"]._rec_name,
+            "title",
+        )
+        self.assertEqual(
+            len(issue_arch.xpath("//details[@class='o_usl_control_traceability']")),
+            1,
+        )
+
+        issue_list_arch = self.env.ref(
+            "rebuild_account_migration.view_rebuild_account_hygiene_issue_list",
+        )._get_combined_arch()
+        self.assertFalse(issue_list_arch.xpath("//button"))
+        self.assertEqual(
+            issue_list_arch.xpath("//field[@name='currency_id']")[0].get(
+                "column_invisible",
+            ),
+            "True",
+        )
+        for field_name in ("definition_id", "result_kind", "confidence"):
+            self.assertEqual(
+                issue_list_arch.xpath(
+                    f"//field[@name='{field_name}']",
+                )[0].get("optional"),
+                "hide",
+            )
 
         definition_arch = self.env.ref(
             "rebuild_account_migration."
@@ -2025,6 +2051,27 @@ class TestRebuildAccountMigration(TransactionCase):
                 for field in definition_narrative[0].xpath(".//field")
             },
             {"description", "expected_resolution", "accounting_consequence"},
+        )
+        self.assertFalse(
+            definition_arch.xpath(
+                "//group[@string='Framework purpose']",
+            ),
+        )
+        self.assertFalse(
+            definition_arch.xpath(
+                "//page[@string='Business Purpose']"
+                "//field[@name='business_purpose' or "
+                "@name='expected_outcome']",
+            ),
+        )
+        self.assertEqual(
+            len(
+                definition_arch.xpath(
+                    "//page[@string='Advanced Logic']"
+                    "//field[@name='code']",
+                ),
+            ),
+            1,
         )
 
     def test_accounting_status_badges_use_semantic_colors(self):

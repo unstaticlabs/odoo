@@ -334,16 +334,16 @@
                         groups="account.group_account_manager"
                         title="Recalculate every open closing workspace and Accounting Hygiene using the enabled controls and policies shown here."/>
                 </header>
-                <field name="enabled" widget="boolean_toggle"/>
-                <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
-                <field name="category"/>
                 <field name="name"/>
-                <field name="origin"/>
+                <field name="enabled" widget="boolean_toggle"/>
+                <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}" optional="hide"/>
+                <field name="category" optional="show"/>
+                <field name="origin" optional="show"/>
                 <field name="applies_to_hygiene"/>
                 <field name="applies_to_closing"/>
                 <field name="impact_policy"/>
-                <field name="owner"/>
-                <field name="description" optional="show"/>
+                <field name="owner" optional="show"/>
+                <field name="description" optional="hide"/>
                 <field name="accounting_consequence" optional="hide"/>
                 <field name="closing_result_count" optional="hide"/>
                 <field name="hygiene_result_count" optional="hide"/>
@@ -387,9 +387,7 @@
                         </group>
                         <group>
                             <field name="enabled"/>
-                            <field name="sequence"/>
-                            <field name="accountant_visible"/>
-                            <field name="code" readonly="1"/>
+                            <field name="sequence" string="Display Order"/>
                         </group>
                     </group>
                     <notebook>
@@ -430,14 +428,15 @@
                                 </group>
                             </group>
                             <div class="alert alert-info" role="alert">
-                                Dynamic impact preserves contextual evaluator outcomes.
-                                A fixed policy consistently maps detected exceptions to information,
-                                advisory warnings or readiness blockers. Technical failures remain
-                                separate and always prevent a false Ready result.
+                                The readiness effect controls how a failed result appears.
+                                Dynamic uses the control's own severity; Information never blocks;
+                                Advisory needs review; Blocking prevents Ready. A technical failure
+                                always prevents Ready because the check did not complete.
                             </div>
                         </page>
                         <page string="Advanced Logic" groups="base.group_system">
                             <group>
+                                <field name="code" readonly="1"/>
                                 <field name="evaluator_key"/>
                                 <field name="technical_model"/>
                                 <field name="source_module"/>
@@ -476,20 +475,21 @@
         <field name="model">rebuild.account.closing.control</field>
         <field name="arch" type="xml">
             <list create="false" delete="false" decoration-danger="status in ['block', 'technical_error']" decoration-warning="status == 'warning'" decoration-info="status == 'info'" decoration-success="status == 'pass'" decoration-muted="status == 'not_applicable'">
-                <field name="category"/>
                 <field name="name"/>
-                <field name="definition_id" optional="show"/>
+                <field name="category" optional="hide"/>
                 <field name="status" widget="badge"
                     decoration-success="status == 'pass'"
                     decoration-info="status == 'info'"
                     decoration-warning="status == 'warning'"
                     decoration-danger="status in ['block', 'technical_error']"
                     decoration-muted="status == 'not_applicable'"/>
-                <field name="result_kind" optional="show"/>
                 <field name="record_count"/>
+                <field name="currency_id" column_invisible="True"/>
                 <field name="amount" optional="show"/>
                 <field name="owner" string="Responsible Role"/>
-                <field name="summary" optional="show"/>
+                <field name="summary" string="Finding" optional="show"/>
+                <field name="definition_id" optional="hide"/>
+                <field name="result_kind" optional="hide"/>
                 <field name="next_action" optional="hide"/>
                 <button name="action_open_records" type="object" string="Review" icon="fa-search"/>
             </list>

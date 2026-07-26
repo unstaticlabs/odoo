@@ -807,6 +807,8 @@ class TestDeclarationAndClosing(TransactionCase):
         )
         self.assertEqual(evidence_issue.confidence, "high")
         self.assertEqual(evidence_issue.owner_role, "finance_operator")
+        self.assertIn("1 supplier document", evidence_issue.evidence)
+        self.assertNotIn(company.currency_id.name, evidence_issue.evidence)
         self.assertEqual(
             evidence_issue.control_code,
             "hygiene_vendor_evidence",
@@ -829,6 +831,19 @@ class TestDeclarationAndClosing(TransactionCase):
         self.assertEqual(evidence_issue.severity, "1_blocking")
         self.assertEqual(evidence_issue.owner_role, "accounting_manager")
         self.assertEqual(evidence_definition.origin, "company")
+
+        evidence_definition.write({
+            "description": "Checks supplier evidence after review.",
+            "expected_resolution": "Every supplier document is supported.",
+        })
+        self.assertEqual(
+            evidence_definition.business_purpose,
+            "Checks supplier evidence after review.",
+        )
+        self.assertEqual(
+            evidence_definition.expected_outcome,
+            "Every supplier document is supported.",
+        )
 
         evidence_definition.impact_policy = "informational"
         Issue.sync_for_company(company)
