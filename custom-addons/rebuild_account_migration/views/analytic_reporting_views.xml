@@ -105,7 +105,7 @@
             'search_default_current_fiscal_year': 1,
             'search_default_profit_loss_accounts': 1,
             'pivot_row_groupby': ['account_id'],
-            'pivot_column_groupby': ['date:month'],
+            'pivot_column_groupby': ['date:quarter'],
             'pivot_measures': ['rebuild_net_contribution'],
         }</field>
         <field name="help" type="html">
