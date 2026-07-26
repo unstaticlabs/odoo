@@ -8,6 +8,13 @@ The daily starting point. It summarizes cash, documents, reconciliation, Hygiene
 
 The native journal dashboard. Use journal cards to open entries, documents, full-width bank transactions or Bank Matching.
 
+## Transactions
+
+The complete bank-transaction history. Clicking a row opens the bank
+transaction. **Linked document or entry** opens the matched invoice, bill,
+refund or journal entry; **Open Entry** opens the bank transaction's own journal
+entry. **Match** opens an unreconciled line in Bank Matching.
+
 ## Customers and Vendors
 
 Customer invoices, credit notes, payments, supplier bills, refunds and vendor payments.
@@ -23,19 +30,14 @@ Accounting Hygiene and other focused review work. Technical audit tools are avai
 **Electronic Invoice Reception** lists every approved-platform payload and its
 draft bill, duplicate, rejection or technical-failure evidence.
 
-## Analysis
-
-**Analytic Reporting** is the native exploratory pivot over analytic items.
-Combine configured analytic plans with dates, financial accounts, partners,
-products, journals and companies; switch between pivot, list and graph; and
-open any aggregate to its source records.
-
 ## Reporting
 
 The canonical designed financial, partner, tax, asset, management and
 analytical statements. **Analytic Profit and Loss** is the governed analytical
 statement; use **Reporting > Analytic Reporting** for free-form pivot
-exploration.
+exploration. Combine configured analytic plans with dates, financial accounts,
+partners, products, journals and companies; switch between pivot, list and
+graph; and open any aggregate to its source records.
 
 ## Declarations
 

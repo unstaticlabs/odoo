@@ -70,6 +70,16 @@ VOLUME ["/var/lib/odoo", "/mnt/custom-addons"]
 ENTRYPOINT ["odoo-entrypoint"]
 CMD ["odoo", "--config=/etc/odoo/odoo.conf"]
 
+FROM base AS test
+
+USER root
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends chromium \
+    && pip install websocket-client==1.9.0 \
+    && rm -rf /var/lib/apt/lists/*
+
+USER odoo
+
 FROM base AS dev
 
 USER root
