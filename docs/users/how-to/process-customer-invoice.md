@@ -9,6 +9,6 @@
 7. In the bank journal, open **Bank Matching** and match the receipt to the payment or invoice.
 8. For a partial collection, confirm the remaining residual and keep it open.
 9. Check payment state and residual on the invoice.
-10. Inspect Partner Ledger, Aged Receivable and Profit and Loss.
+10. Inspect Grand livre auxiliaire, Balance âgée clients and Compte de résultat.
 
 Create a credit note from the original invoice when correcting billed revenue. This preserves the document chain.

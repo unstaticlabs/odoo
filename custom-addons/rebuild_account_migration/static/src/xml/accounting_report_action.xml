@@ -35,7 +35,7 @@
 
             <div class="o_usl_report_filters">
                 <label t-if="showCompanyFilter">
-                    <span>Company</span>
+                    <span>Société</span>
                     <select name="company_id" t-on-change="onFilterChange">
                         <t t-foreach="state.data.options.companies" t-as="option" t-key="option.value">
                             <option t-att-value="option.value" t-att-selected="option.value === state.filters.company_id" t-esc="option.label"/>
@@ -156,7 +156,7 @@
                           t-key="group.field + '-' + recordId">
                         <t t-esc="optionLabel(group.option, recordId)"/>
                         <button type="button" t-on-click="() => this.removeFilter(group.field, recordId)"
-                                t-att-title="'Remove ' + optionLabel(group.option, recordId)">
+                                t-att-title="'Retirer ' + optionLabel(group.option, recordId)">
                             <i class="fa fa-times"/>
                         </button>
                     </span>
@@ -175,9 +175,9 @@
             </div>
             <div class="alert alert-info mx-3" t-if="state.data.truncated">
                 <i class="fa fa-info-circle me-2"/>
-                Showing the first <t t-esc="state.data.lines.length"/> of
-                <t t-esc="state.data.row_count"/> lines. Use search or filters to focus the report;
-                PDF and XLSX exports still include the complete result.
+                Affichage des <t t-esc="state.data.lines.length"/> premières lignes sur
+                <t t-esc="state.data.row_count"/>. Utilisez la recherche ou les filtres pour cibler le rapport ;
+                les exports PDF et XLSX incluent toujours le résultat complet.
             </div>
 
             <div class="o_usl_report_table_wrap">
@@ -189,14 +189,14 @@
                             <th t-if="isDetailedLedger">Journal</th>
                             <th t-if="isDetailedLedger">Écriture</th>
                             <th class="text-end" t-if="isDetailedLedger">Solde d'ouverture</th>
-                            <th class="text-end" t-if="isDetailedLedger">Devise d'origine</th>
+                            <th class="text-end" t-if="isDetailedLedger and showForeignCurrency">Devise d'origine</th>
                             <th class="text-end" t-if="isTrialBalance">Ouverture</th>
                             <th class="text-end" t-if="isTrialBalance or isDetailedLedger">Débit</th>
                             <th class="text-end" t-if="isTrialBalance or isDetailedLedger">Crédit</th>
                             <th class="text-end" t-if="isDetailedLedger">Solde progressif</th>
                             <th class="text-end" t-if="isTrialBalance">Clôture</th>
                             <th class="text-end" t-if="isDetailedLedger and showResidual">Résiduel</th>
-                            <th t-if="isDetailedLedger">Lettrage</th>
+                            <th t-if="isDetailedLedger and showMatching">Lettrage</th>
                             <th t-if="isDynamicReport" t-foreach="state.data.columns" t-as="column"
                                 t-key="column.key"
                                 t-att-class="column.type === 'currency' or column.type === 'number' ? 'text-end' : ''"
@@ -208,7 +208,7 @@
                     <tbody>
                         <tr t-foreach="state.data.lines" t-as="line" t-key="line.id" t-att-class="rowClass(line)">
                             <td class="o_usl_report_label" t-att-style="'padding-left:' + (0.75 + line.level * 1.25) + 'rem'">
-                                <button t-if="line.is_group" class="btn btn-sm btn-link o_usl_report_fold" t-on-click="() => this.toggleGroup(line)" title="Expand or collapse">
+                                <button t-if="line.is_group" class="btn btn-sm btn-link o_usl_report_fold" t-on-click="() => this.toggleGroup(line)" title="Déplier ou replier">
                                     <i t-att-class="'fa ' + (line.collapsed ? 'fa-chevron-right' : 'fa-chevron-down')"/>
                                 </button>
                                 <span class="o_usl_report_code" t-if="line.account_code" t-esc="line.account_code"/>
@@ -223,7 +223,7 @@
                             </td>
                             <td t-att-class="amountClass(line.opening_balance)" t-if="isDetailedLedger"
                                 t-esc="line.opening_balance ? formatAmount(line.opening_balance) : ''"/>
-                            <td class="text-end text-nowrap" t-if="isDetailedLedger"
+                            <td class="text-end text-nowrap" t-if="isDetailedLedger and showForeignCurrency"
                                 t-esc="line.currency ? formatForeignAmount(line.amount_currency, line.currency) : ''"/>
                             <td t-att-class="amountClass(line.opening_balance)" t-if="isTrialBalance" t-esc="formatAmount(line.opening_balance)"/>
                             <td t-att-class="amountClass(line.debit)" t-if="isTrialBalance or isDetailedLedger" t-esc="formatAmount(line.debit)"/>
@@ -231,7 +231,7 @@
                             <td t-att-class="amountClass(line.running_balance, 'fw-semibold')" t-if="isDetailedLedger" t-esc="formatAmount(line.running_balance)"/>
                             <td t-att-class="amountClass(line.closing_balance, 'fw-semibold')" t-if="isTrialBalance" t-esc="formatAmount(line.closing_balance)"/>
                             <td t-att-class="amountClass(line.residual, 'fw-semibold')" t-if="isDetailedLedger and showResidual" t-esc="formatAmount(line.residual)"/>
-                            <td t-if="isDetailedLedger">
+                            <td t-if="isDetailedLedger and showMatching">
                                 <span t-if="line.matching_number"
                                       t-att-class="'o_usl_matching_chip ' + matchingColor(line.matching_number)"
                                       t-esc="line.matching_number"/>
@@ -243,7 +243,7 @@
                             <td t-att-class="amountClass(line.comparison_value)" t-if="isTrialBalance and showComparison" t-esc="formatAmount(line.comparison_value)"/>
                             <td class="text-end o_usl_report_action">
                                 <button t-if="line.can_drilldown" class="btn btn-sm btn-link"
-                                        t-on-click="() => this.openSources(line)" title="Open contributing entries">
+                                        t-on-click="() => this.openSources(line)" title="Ouvrir les écritures sources">
                                     <i class="fa fa-external-link"/>
                                 </button>
                             </td>
@@ -254,7 +254,7 @@
         </t>
         <div class="o_usl_report_loading" t-if="state.loading">
             <i class="fa fa-circle-o-notch fa-spin"/>
-            <span>Updating report…</span>
+            <span>Actualisation du rapport…</span>
         </div>
     </div>
 </templates>

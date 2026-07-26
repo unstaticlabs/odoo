@@ -1,6 +1,6 @@
 # Milestone 13 final Accounting v1 candidate
 
-Status date: 25 July 2026
+Status date: 26 July 2026
 
 Branch: `saas-19.2-usl-feat-accounting`
 
@@ -39,14 +39,14 @@ decisions outside this engineering release.
 The final release harness restored the current source, completed independent
 exact and native validation tracks, and reconstructed the product candidate
 from scratch. `dev-validate-status.json` was generated at
-`2026-07-25T21:02:13Z`.
+`2026-07-26T13:30:43Z`.
 
 | Object | Verified count |
 | --- | ---: |
-| Accounting moves | 5,039 |
-| Posted / draft moves | 4,849 / 189 |
+| Accounting moves | 5,043 |
+| Posted / draft moves | 4,849 / 193 |
 | Imported posted move lines | 11,404 |
-| Business documents | 344 |
+| Business documents | 348 |
 | Native expenses | 360 |
 | Payments / payment-evidence records | 97 / 13 |
 | Bank statement lines | 3,046 |
@@ -55,7 +55,7 @@ from scratch. `dev-validate-status.json` was generated at
 | Analytic lines | 632 |
 | Assets / schedule lines / posted depreciation links | 3 / 91 / 28 |
 | Deferred schedule lines / posted entries | 110 / 37 |
-| Imported / main attachments | 332 / 224 |
+| Accounting attachments reconstructed / readable | 704 / 704 |
 
 For 1 October 2025 through 30 June 2026, source and target both contain
 2,694 posted moves and 6,319 journal items with EUR 1,708,270.52 debit and
@@ -76,11 +76,12 @@ flows, historical currencies and analytics. It is proof of reproducibility in
 - Accounting Hygiene and Closing use the same 21 configurable, versioned
   controls. Reports and Declarations are also governed definitions under
   Accounting Configuration.
-- The canonical report workbench provides period/comparison filters, compact
+- The canonical report workbench uses professional French accounting
+  terminology and provides period/comparison filters, compact
   hierarchy, search, fold/unfold, journal-item drill-down and screen-consistent
   PDF/XLSX. All 38 source report definitions have accepted level-4 technical
   evidence; unused association reports are explicitly excluded.
-- Analytical Reporting uses native list, pivot and graph views over 632
+- Analyse analytique uses native list, pivot and graph views over 632
   analytic lines. Analytic Profit and Loss remains the designed financial
   statement; Revenue vs Spending shows net contribution as a derived measure.
 - The Accounting Manager retains operational actions. The scoped accountant
@@ -103,7 +104,7 @@ Local structural preflight reports zero invalid rows, chronology decreases or
 unbalanced entries. The official DGFiP Test Compta Demat source validator
 exited 0 with zero blocking logs.
 
-Dynamic report smoke checks, drill-downs and CSV/PDF/XLSX exports pass. Trusted
+Dynamic report smoke checks, drill-downs and PDF/XLSX exports pass. Trusted
 French statement anchors include EUR 69,680.16 total assets/passif,
 EUR 56,222.98 net result, EUR 66,180.70 operating result and
 EUR 57,899.03 CAF. These are technical ledger-derived results, not an
@@ -118,9 +119,10 @@ unsupported claim of filed or professionally approved statements.
 | Reports and exports | `make accounting-reports` | `reports-status.json`, `parity-matrix-v1.json`, generated report files |
 | Currency provider | `make accounting-currency-rate-provider` | `currency-rate-provider-status.json` |
 | FEC | `make accounting-fec`; `make accounting-fec-preflight`; `make accounting-fec-validate` | `fec-status.json`, `fec-structural-preflight.json`, `fec-validation-status.json`, `fec-dgfip-source-validation/` |
-| Add-on regression | `make accounting-addon-tests` | 104 tests passed |
+| Add-on regression | `make accounting-addon-tests` | 111 tests passed |
 | Harness regression | `python3 -m unittest discover -s accounting_compat/tests -v` | 10 tests passed |
-| Role browser acceptance | focused manager/reviewer walkthrough | `replacement-browser-status.json` |
+| Role browser acceptance | focused manager/reviewer walkthrough | `replacement-browser-status.json`, `final-polish-browser-status.json` |
+| Attachment reconstruction | `make accounting-dev-attachments`; `make accounting-attachment-audit` | `dev-attachment-replay-status.json`, `attachment-reconstruction-status.json` |
 | Release gate | `make accounting-readiness`; `make accounting-evidence` | `readiness-assessment.json`, `readiness-assessment.md`, `evidence-index.json` |
 
 Private evidence is under `artifacts/accounting-compat/private/` and remains

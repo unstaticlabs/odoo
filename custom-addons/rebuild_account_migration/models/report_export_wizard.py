@@ -787,15 +787,31 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 }],
             }
         if self.report_type == "balance_sheet":
+            asset_sections = {
+                "Immobilisations",
+                "Actif circulant",
+                # Preserve old report sessions created before the French
+                # presentation labels were introduced.
+                "Fixed assets",
+                "Current assets",
+            }
+
+            def is_asset(row):
+                account_type = str(row.get("account_type") or "")
+                return (
+                    account_type.startswith("asset")
+                    or str(row.get("section") or "") in asset_sections
+                )
+
             assets = float(sum(
                 _amount(row.get("amount"))
                 for row in rows
-                if str(row.get("section") or "").endswith("assets")
+                if is_asset(row)
             ))
             liabilities = float(sum(
                 _amount(row.get("amount"))
                 for row in rows
-                if not str(row.get("section") or "").endswith("assets")
+                if not is_asset(row)
             ))
             difference = round(assets - liabilities, 2)
             return {
@@ -1206,7 +1222,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         self._attach_generated_closing_package(payload, filename)
         return {
             "type": "ir.actions.act_window",
-            "name": f"{self._report_type_label()} Export",
+            "name": f"Export — {self._report_type_label()}",
             "res_model": self._name,
             "res_id": self.id,
             "view_mode": "form",
@@ -1950,6 +1966,13 @@ class RebuildAccountReportExportWizard(models.TransientModel):
     @staticmethod
     def _row_account_codes(row):
         codes = []
+        codes.extend(
+            code.strip()
+            for code in str(
+                row.get("drilldown_account_codes") or "",
+            ).split(",")
+            if code.strip()
+        )
         for key in (
             "account_code",
             "asset_account",
@@ -3179,6 +3202,13 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 "label": bucket["label"],
                 "record_count": str(len(children)),
             }
+            account_codes = sorted({
+                code
+                for child in children
+                for code in self._row_account_codes(child)
+            })
+            if account_codes:
+                group_row["drilldown_account_codes"] = ",".join(account_codes)
             for field_name in self._summable_report_fields():
                 if (
                     summary_row
@@ -4214,7 +4244,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 continue
             amount = _amount(row["balance"])
             rows.append({
-                "statement": "Balance Sheet",
+                "statement": "Bilan",
                 "section": self._balance_sheet_section(account_type),
                 "account_code": row["account_code"],
                 "account_name": row["account_name"],
@@ -4227,10 +4257,10 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             if (row["account_type"] or "").startswith(("income", "expense"))
         )
         rows.append({
-            "statement": "Balance Sheet",
-            "section": "Current-year result",
+            "statement": "Bilan",
+            "section": "Résultat de l’exercice",
             "account_code": "RESULT",
-            "account_name": "Current-year result",
+            "account_name": "Résultat de l’exercice",
             "account_type": "equity_current_year_result",
             "amount": _amount_text(result),
         })
@@ -4245,34 +4275,34 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             balance = _amount(row["balance"])
             amount = -balance if account_type.startswith("income") else balance
             rows.append({
-                "statement": "Profit and Loss",
-                "section": "Income" if account_type.startswith("income") else "Expenses",
+                "statement": "Compte de résultat",
+                "section": "Produits" if account_type.startswith("income") else "Charges",
                 "account_code": row["account_code"],
                 "account_name": row["account_name"],
                 "account_type": account_type,
                 "amount": _amount_text(amount),
             })
         rows.append({
-            "statement": "Profit and Loss",
-            "section": "Result",
+            "statement": "Compte de résultat",
+            "section": "Résultat",
             "account_code": "RESULT",
-            "account_name": "Net result",
+            "account_name": "Résultat net",
             "account_type": "result",
-            "amount": _amount_text(sum(_amount(row["amount"]) for row in rows if row["section"] == "Income") - sum(_amount(row["amount"]) for row in rows if row["section"] == "Expenses")),
+            "amount": _amount_text(sum(_amount(row["amount"]) for row in rows if row["section"] == "Produits") - sum(_amount(row["amount"]) for row in rows if row["section"] == "Charges")),
         })
         return rows
 
     @staticmethod
     def _balance_sheet_section(account_type):
         if account_type in ("asset_fixed", "asset_non_current"):
-            return "Fixed assets"
+            return "Immobilisations"
         if account_type.startswith("asset"):
-            return "Current assets"
+            return "Actif circulant"
         if account_type.startswith("equity"):
-            return "Equity"
+            return "Capitaux propres"
         if account_type.startswith("liability"):
-            return "Liabilities"
-        return "Other"
+            return "Dettes et passifs"
+        return "Autres postes"
 
     def _tax_report_rows(self):
         rows = self._tax_report_group_rows("account_tax")

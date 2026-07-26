@@ -9,6 +9,12 @@ def _is_accounting_evidence_model(model_name):
     )
 
 
+def _is_persistent_accounting_evidence_model(env, model_name):
+    if not _is_accounting_evidence_model(model_name):
+        return False
+    return model_name not in env or not env[model_name].is_transient()
+
+
 def _is_scoped_reviewer(env):
     user = env.user
     return (
@@ -42,7 +48,10 @@ class IrAttachment(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         if _is_scoped_reviewer(self.env) and any(
-            _is_accounting_evidence_model(vals.get("res_model", ""))
+            _is_persistent_accounting_evidence_model(
+                self.env,
+                vals.get("res_model", ""),
+            )
             for vals in vals_list
         ):
             raise AccessError(
@@ -54,7 +63,10 @@ class IrAttachment(models.Model):
 
     def write(self, vals):
         if _is_scoped_reviewer(self.env) and any(
-            _is_accounting_evidence_model(attachment.res_model or "")
+            _is_persistent_accounting_evidence_model(
+                self.env,
+                attachment.res_model or "",
+            )
             for attachment in self
         ):
             raise AccessError(
@@ -66,7 +78,10 @@ class IrAttachment(models.Model):
 
     def unlink(self):
         if _is_scoped_reviewer(self.env) and any(
-            _is_accounting_evidence_model(attachment.res_model or "")
+            _is_persistent_accounting_evidence_model(
+                self.env,
+                attachment.res_model or "",
+            )
             for attachment in self
         ):
             raise AccessError(

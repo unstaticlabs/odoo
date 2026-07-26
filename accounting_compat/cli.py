@@ -4371,6 +4371,20 @@ def dev_validate(args: argparse.Namespace) -> dict[str, Any]:
                           WHERE line.move_id = move.id
                             AND line.account_id IS NOT NULL
                       )
+                      OR (
+                          move.state = 'draft'
+                          AND move.move_type IN (
+                              'out_invoice', 'out_refund', 'in_invoice',
+                              'in_refund', 'out_receipt', 'in_receipt'
+                          )
+                          AND EXISTS (
+                              SELECT 1
+                              FROM ir_attachment attachment
+                              WHERE attachment.res_model = 'account.move'
+                                AND attachment.res_id = move.id
+                                AND attachment.type = 'binary'
+                          )
+                      )
                   )
             ),
             'posted_move_count', (
@@ -4386,11 +4400,26 @@ def dev_validate(args: argparse.Namespace) -> dict[str, Any]:
                 WHERE move.company_id IN (1, 8)
                   AND move.state = 'draft'
                   AND move.date >= DATE '2024-01-10'
-                  AND EXISTS (
-                      SELECT 1
-                      FROM account_move_line line
-                      WHERE line.move_id = move.id
-                        AND line.account_id IS NOT NULL
+                  AND (
+                      EXISTS (
+                          SELECT 1
+                          FROM account_move_line line
+                          WHERE line.move_id = move.id
+                            AND line.account_id IS NOT NULL
+                      )
+                      OR (
+                          move.move_type IN (
+                              'out_invoice', 'out_refund', 'in_invoice',
+                              'in_refund', 'out_receipt', 'in_receipt'
+                          )
+                          AND EXISTS (
+                              SELECT 1
+                              FROM ir_attachment attachment
+                              WHERE attachment.res_model = 'account.move'
+                                AND attachment.res_id = move.id
+                                AND attachment.type = 'binary'
+                          )
+                      )
                   )
             ),
             'business_document_count', (
@@ -4409,6 +4438,16 @@ def dev_validate(args: argparse.Namespace) -> dict[str, Any]:
                           FROM account_move_line line
                           WHERE line.move_id = move.id
                             AND line.account_id IS NOT NULL
+                      )
+                      OR (
+                          move.state = 'draft'
+                          AND EXISTS (
+                              SELECT 1
+                              FROM ir_attachment attachment
+                              WHERE attachment.res_model = 'account.move'
+                                AND attachment.res_id = move.id
+                                AND attachment.type = 'binary'
+                          )
                       )
                   )
             ),
@@ -12733,7 +12772,7 @@ def odoo_accountant_access_controls() -> dict[str, Any]:
                 "external_value_count = ExternalValue.search_count([('company_id', '=', company.id), ('active', '=', True)])",
                 "expected_external_value_count = ExternalValueSudo.search_count([('company_id', '=', company.id), ('active', '=', True)])",
                 "pending_external_value_count = ExternalValue.search_count([('company_id', '=', company.id), ('active', '=', True), ('review_status', '=', 'pending_review')])",
-                "attachment_domain = [('rebuild_source_model', '=', 'ir.attachment'), ('company_id', '=', company.id)]",
+                "attachment_domain = [('rebuild_source_model', '=', 'ir.attachment'), ('company_id', '=', company.id), ('res_model', '!=', False)]",
                 "attachment_count = Attachment.search_count(attachment_domain)",
                 "expected_attachment_count = AttachmentSudo.search_count(attachment_domain)",
                 "sample_attachment = Attachment.search(attachment_domain + [('file_size', '>', 0)], order='file_size asc, id', limit=1)",

@@ -428,6 +428,18 @@ export class AccountingReportAction extends Component {
         ].includes(this.reportType);
     }
 
+    get showForeignCurrency() {
+        return Boolean(
+            this.state.data?.lines?.some((line) => line.currency),
+        );
+    }
+
+    get showMatching() {
+        return Boolean(
+            this.state.data?.lines?.some((line) => line.matching_number),
+        );
+    }
+
     get showClosing() {
         return this.isTrialBalance;
     }

@@ -5769,27 +5769,27 @@
         groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
 
     <record id="action_rebuild_interactive_trial_balance" model="ir.actions.client">
-        <field name="name">Trial Balance</field>
+        <field name="name">Balance générale</field>
         <field name="tag">rebuild_accounting_report</field>
         <field name="context">{'report_type': 'trial_balance'}</field>
     </record>
     <record id="action_rebuild_interactive_general_ledger" model="ir.actions.client">
-        <field name="name">General Ledger</field>
+        <field name="name">Grand livre</field>
         <field name="tag">rebuild_accounting_report</field>
         <field name="context">{'report_type': 'general_ledger'}</field>
     </record>
     <record id="action_rebuild_interactive_journal_report" model="ir.actions.client">
-        <field name="name">Journal Report</field>
+        <field name="name">Journal comptable</field>
         <field name="tag">rebuild_accounting_report</field>
         <field name="context">{'report_type': 'journal_report'}</field>
     </record>
     <record id="action_rebuild_interactive_balance_sheet" model="ir.actions.client">
-        <field name="name">Balance Sheet</field>
+        <field name="name">Bilan</field>
         <field name="tag">rebuild_accounting_report</field>
         <field name="context">{'report_type': 'balance_sheet'}</field>
     </record>
     <record id="action_rebuild_interactive_profit_loss" model="ir.actions.client">
-        <field name="name">Profit and Loss</field>
+        <field name="name">Compte de résultat</field>
         <field name="tag">rebuild_accounting_report</field>
         <field name="context">{'report_type': 'profit_loss'}</field>
     </record>
@@ -5814,112 +5814,112 @@
         <field name="context">{'report_type': 'sig_caf_2024'}</field>
     </record>
     <record id="action_rebuild_interactive_bank_reconciliation" model="ir.actions.client">
-        <field name="name">Bank Reconciliation Report</field>
+        <field name="name">État de rapprochement bancaire</field>
         <field name="tag">rebuild_accounting_report</field>
         <field name="context">{'report_type': 'bank_reconciliation'}</field>
     </record>
     <record id="action_rebuild_interactive_currency_report" model="ir.actions.client">
-        <field name="name">Currency Gains, Losses and Exposure</field>
+        <field name="name">Gains, pertes et exposition de change</field>
         <field name="tag">rebuild_accounting_report</field>
         <field name="context">{'report_type': 'currency_report'}</field>
     </record>
     <record id="action_rebuild_interactive_fixed_assets" model="ir.actions.client">
-        <field name="name">Fixed Asset Register</field>
+        <field name="name">Registre des immobilisations</field>
         <field name="tag">rebuild_accounting_report</field>
         <field name="context">{'report_type': 'fixed_assets'}</field>
     </record>
     <record id="action_rebuild_interactive_depreciation_schedule" model="ir.actions.client">
-        <field name="name">Depreciation Schedule</field>
+        <field name="name">Plan d’amortissement</field>
         <field name="tag">rebuild_accounting_report</field>
         <field name="context">{'report_type': 'depreciation_schedule'}</field>
     </record>
     <record id="action_rebuild_interactive_deferred_schedule" model="ir.actions.client">
-        <field name="name">Deferred Expense and Revenue Schedule</field>
+        <field name="name">Charges et produits constatés d’avance</field>
         <field name="tag">rebuild_accounting_report</field>
         <field name="context">{'report_type': 'deferred_schedule'}</field>
     </record>
     <record id="action_rebuild_interactive_partner_ledger" model="ir.actions.client">
-        <field name="name">Partner Ledger</field>
+        <field name="name">Grand livre auxiliaire</field>
         <field name="tag">rebuild_accounting_report</field>
         <field name="context">{'report_type': 'partner_ledger'}</field>
     </record>
     <record id="action_rebuild_interactive_customer_statement" model="ir.actions.client">
-        <field name="name">Customer Statement</field>
+        <field name="name">Relevé client</field>
         <field name="tag">rebuild_accounting_report</field>
         <field name="context">{'report_type': 'customer_statement'}</field>
     </record>
     <record id="action_rebuild_interactive_open_items" model="ir.actions.client">
-        <field name="name">Open Items</field>
+        <field name="name">Écritures ouvertes</field>
         <field name="tag">rebuild_accounting_report</field>
         <field name="context">{'report_type': 'open_items'}</field>
     </record>
     <record id="action_rebuild_interactive_aged_receivable" model="ir.actions.client">
-        <field name="name">Aged Receivable</field>
+        <field name="name">Balance âgée clients</field>
         <field name="tag">rebuild_accounting_report</field>
         <field name="context">{'report_type': 'aged_receivable'}</field>
     </record>
     <record id="action_rebuild_interactive_aged_payable" model="ir.actions.client">
-        <field name="name">Aged Payable</field>
+        <field name="name">Balance âgée fournisseurs</field>
         <field name="tag">rebuild_accounting_report</field>
         <field name="context">{'report_type': 'aged_payable'}</field>
     </record>
     <record id="action_rebuild_interactive_cash_flow" model="ir.actions.client">
-        <field name="name">Cash Flow Statement</field>
+        <field name="name">Tableau des flux de trésorerie</field>
         <field name="tag">rebuild_accounting_report</field>
         <field name="context">{'report_type': 'cash_flow'}</field>
     </record>
     <record id="action_rebuild_interactive_executive_summary" model="ir.actions.client">
-        <field name="name">Executive Summary</field>
+        <field name="name">Synthèse de gestion</field>
         <field name="tag">rebuild_accounting_report</field>
         <field name="context">{'report_type': 'executive_summary'}</field>
     </record>
     <record id="action_rebuild_interactive_analytic_report" model="ir.actions.client">
-        <field name="name">Analytic Profit and Loss</field>
+        <field name="name">Compte de résultat analytique</field>
         <field name="tag">rebuild_accounting_report</field>
         <field name="context">{'report_type': 'analytic_report'}</field>
     </record>
     <record id="action_rebuild_interactive_tax_report" model="ir.actions.client">
-        <field name="name">VAT and Tax Report</field>
+        <field name="name">TVA et taxes</field>
         <field name="tag">rebuild_accounting_report</field>
         <field name="context">{'report_type': 'tax_report'}</field>
     </record>
     <record id="action_rebuild_interactive_french_tax_package" model="ir.actions.client">
-        <field name="name">French Tax Package and CA12</field>
+        <field name="name">Liasse fiscale française et CA12</field>
         <field name="tag">rebuild_accounting_report</field>
         <field name="context">{'report_type': 'french_tax_package'}</field>
     </record>
 
     <menuitem
         id="menu_rebuild_account_report_trial_balance_launcher"
-        name="Trial Balance"
+        name="Balance générale"
         parent="account.account_reports_legal_statements_menu"
         action="action_rebuild_interactive_trial_balance"
         sequence="1"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_general_ledger_launcher"
-        name="General Ledger"
+        name="Grand livre"
         parent="account.account_reports_legal_statements_menu"
         action="action_rebuild_interactive_general_ledger"
         sequence="2"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_journal_report_launcher"
-        name="Journal Report"
+        name="Journal comptable"
         parent="account.account_reports_legal_statements_menu"
         action="action_rebuild_interactive_journal_report"
         sequence="3"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_balance_sheet_launcher"
-        name="Balance Sheet"
+        name="Bilan"
         parent="account.account_reports_legal_statements_menu"
         action="action_rebuild_interactive_balance_sheet"
         sequence="4"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_profit_loss_launcher"
-        name="Profit and Loss"
+        name="Compte de résultat"
         parent="account.account_reports_legal_statements_menu"
         action="action_rebuild_interactive_profit_loss"
         sequence="5"
@@ -5961,42 +5961,42 @@
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_bank_reconciliation_launcher"
-        name="Bank Reconciliation Report"
+        name="État de rapprochement bancaire"
         parent="account.account_reports_legal_statements_menu"
         action="action_rebuild_interactive_bank_reconciliation"
         sequence="8"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_currency_launcher"
-        name="Currency Gains, Losses and Exposure"
+        name="Gains, pertes et exposition de change"
         parent="account.account_reports_legal_statements_menu"
         action="action_rebuild_interactive_currency_report"
         sequence="9"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_fixed_assets_launcher"
-        name="Fixed Asset Register"
+        name="Registre des immobilisations"
         parent="account.account_reports_legal_statements_menu"
         action="action_rebuild_interactive_fixed_assets"
         sequence="10"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_fixed_asset_group_account_launcher"
-        name="Fixed Asset Register by Account"
+        name="Immobilisations par compte"
         parent="account.account_reports_legal_statements_menu"
         action="action_rebuild_account_report_export_fixed_asset_group_account"
         sequence="11"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_depreciation_schedule_launcher"
-        name="Depreciation Schedule"
+        name="Plan d’amortissement"
         parent="account.account_reports_legal_statements_menu"
         action="action_rebuild_interactive_depreciation_schedule"
         sequence="12"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_deferred_schedule_launcher"
-        name="Deferred Expense and Revenue Schedule"
+        name="Charges et produits constatés d’avance"
         parent="account.account_reports_legal_statements_menu"
         action="action_rebuild_interactive_deferred_schedule"
         sequence="13"
@@ -6004,35 +6004,35 @@
 
     <menuitem
         id="menu_rebuild_account_report_partner_ledger_launcher"
-        name="Partner Ledger"
+        name="Grand livre auxiliaire"
         parent="account.account_reports_partners_reports_menu"
         action="action_rebuild_interactive_partner_ledger"
         sequence="1"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_customer_statement_launcher"
-        name="Customer Statement"
+        name="Relevé client"
         parent="account.account_reports_partners_reports_menu"
         action="action_rebuild_interactive_customer_statement"
         sequence="2"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_open_items_launcher"
-        name="Open Items"
+        name="Écritures ouvertes"
         parent="account.account_reports_partners_reports_menu"
         action="action_rebuild_interactive_open_items"
         sequence="3"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_aged_receivable_launcher"
-        name="Aged Receivable"
+        name="Balance âgée clients"
         parent="account.account_reports_partners_reports_menu"
         action="action_rebuild_interactive_aged_receivable"
         sequence="4"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_aged_payable_launcher"
-        name="Aged Payable"
+        name="Balance âgée fournisseurs"
         parent="account.account_reports_partners_reports_menu"
         action="action_rebuild_interactive_aged_payable"
         sequence="5"
@@ -6040,21 +6040,21 @@
 
     <menuitem
         id="menu_rebuild_account_report_cash_flow_launcher"
-        name="Cash Flow Statement"
+        name="Tableau des flux de trésorerie"
         parent="account.account_reports_management_menu"
         action="action_rebuild_interactive_cash_flow"
         sequence="1"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_executive_summary_launcher"
-        name="Executive Summary"
+        name="Synthèse de gestion"
         parent="account.account_reports_management_menu"
         action="action_rebuild_interactive_executive_summary"
         sequence="2"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_analytic_launcher"
-        name="Analytic Profit and Loss"
+        name="Compte de résultat analytique"
         parent="account.account_reports_management_menu"
         action="action_rebuild_interactive_analytic_report"
         sequence="3"
@@ -6062,14 +6062,14 @@
 
     <menuitem
         id="menu_rebuild_account_report_tax_launcher"
-        name="VAT and Tax Report"
+        name="TVA et taxes"
         parent="account.account_reports_taxes_and_fiscal_menu"
         action="action_rebuild_interactive_tax_report"
         sequence="1"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_french_tax_package_launcher"
-        name="French Tax Package and CA12"
+        name="Liasse fiscale française et CA12"
         parent="account.account_reports_taxes_and_fiscal_menu"
         action="action_rebuild_interactive_french_tax_package"
         sequence="2"
