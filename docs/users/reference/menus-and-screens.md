@@ -38,6 +38,14 @@ types without changing or duplicating the underlying accounting records.
 
 Employee expense claims remain in the separate **Expenses** application.
 
+## Action explanations
+
+Consequential or non-obvious Accounting buttons provide a concise explanation
+when you pause the pointer over them. The explanation states whether the action
+posts accounting, creates a draft, changes workflow state, opens supporting
+records, or contacts an external service. Confirmation dialogs remain reserved
+for actions that are difficult to reverse.
+
 ## Accounting
 
 Journal entries, journal items, payments, assets, general reconciliation and closing workspaces.

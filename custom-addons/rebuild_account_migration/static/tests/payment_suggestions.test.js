@@ -111,5 +111,9 @@ test("posted bill keeps Odoo's native Add matching action", async () => {
     expect("#outstanding").toHaveClass("text-nowrap");
     expect(".outstanding_credit_assign").toHaveCount(1);
     expect(".outstanding_credit_assign").toHaveText("Add");
+    expect(".outstanding_credit_assign").toHaveAttribute(
+        "title",
+        "Match this existing payment to the posted invoice or bill."
+    );
     expect("[aria-disabled='true']").toHaveCount(0);
 });

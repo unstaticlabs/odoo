@@ -19,3 +19,7 @@
 10. Open **Grand livre**, Compte de résultat and VAT for the period to inspect the result.
 
 Use **Manual Operation** only when no existing document, payment or journal item is the correct counterpart—for example a bank fee, transfer or direct account category.
+
+On a posted bill, **Pay** opens payment registration; it does not initiate a
+bank transfer. **Credit Note** creates a linked draft supplier refund. Review
+and post that refund separately—the original posted bill is preserved.
