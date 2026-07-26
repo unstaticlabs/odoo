@@ -29,6 +29,11 @@ configuration screen does not execute arbitrary Python. Accounting Managers can
 govern business policy; only Technical Administrators see evaluator details.
 Editing business policy changes the origin to **Company-specific**.
 
+The Control form provides one canonical business-purpose surface: **What this
+checks**, **Why it matters** and **Expected resolution**. These values are
+mirrored into the framework snapshot fields when edited; duplicate technical
+purpose fields are deliberately not exposed in the normal form.
+
 The initial USL implementation groups the deterministic Hygiene checks in one
 evaluator and retains one evaluator per Closing check. This preserves the tested
 accounting queries while removing the hidden execution list. A maintained OCA

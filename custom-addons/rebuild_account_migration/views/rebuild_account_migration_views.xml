@@ -1840,6 +1840,7 @@
         <field name="model">rebuild.account.hygiene.issue</field>
         <field name="arch" type="xml">
             <list create="false" delete="false" decoration-danger="severity == '1_blocking' and status == 'open'" decoration-warning="severity == '2_warning' and status == 'open'" decoration-info="result_kind == 'technical' and status == 'open'" decoration-muted="status != 'open'">
+                <field name="currency_id" column_invisible="True"/>
                 <field
                     name="severity"
                     widget="badge"
@@ -1847,13 +1848,13 @@
                     decoration-warning="severity == '2_warning'"
                     decoration-info="severity in ['3_attention', '4_information']"/>
                 <field name="title"/>
-                <field name="definition_id" optional="show"/>
-                <field name="result_kind" optional="show"/>
-                <field name="issue_type"/>
-                <field name="issue_date"/>
-                <field name="amount" optional="show"/>
-                <field name="owner_role"/>
-                <field name="owner_user_id" optional="show"/>
+                <field name="issue_type" optional="show"/>
+                <field name="issue_date" string="Detected"/>
+                <field name="amount" string="Amount" optional="show" sum="Total amount affected"/>
+                <field name="owner_role" optional="show"/>
+                <field name="owner_user_id" optional="hide"/>
+                <field name="definition_id" optional="hide"/>
+                <field name="result_kind" optional="hide"/>
                 <field name="confidence" optional="hide"/>
                 <field
                     name="status"
@@ -1861,8 +1862,6 @@
                     decoration-info="status == 'open'"
                     decoration-success="status == 'resolved'"
                     decoration-muted="status == 'dismissed'"/>
-                <button name="action_open_source" type="object" string="Open Related Record" icon="fa-external-link" title="Open the accounting record or control configuration related to this result. This does not modify it."/>
-                <button name="action_check_resolution" type="object" string="Check" icon="fa-check-circle" groups="account.group_account_manager" invisible="status != 'open'" title="Re-run the deterministic control. The issue resolves only when its underlying condition is fixed."/>
             </list>
         </field>
     </record>
@@ -1878,19 +1877,25 @@
                     <button name="action_dismiss" type="object" string="Dismiss" groups="account.group_account_manager" invisible="status != 'open'" confirm="Dismiss this issue without changing the underlying accounting record? It remains traceable and can be reviewed later." title="Record that this deterministic signal has been reviewed and deliberately dismissed."/>
                     <field name="status" widget="statusbar" statusbar_visible="open,resolved,dismissed"/>
                 </header>
-                <sheet>
+                <sheet class="o_usl_hygiene_issue_form">
                     <field name="currency_id" invisible="1"/>
+                    <field name="result_kind" invisible="1"/>
                     <widget name="web_ribbon" title="Resolved" bg_color="text-bg-success" invisible="status != 'resolved'"/>
                     <widget name="web_ribbon" title="Dismissed" bg_color="text-bg-secondary" invisible="status != 'dismissed'"/>
                     <div class="oe_title">
                         <h1><field name="title"/></h1>
-                        <h2><field name="source_label" readonly="1"/></h2>
+                        <div class="o_usl_hygiene_issue_source">
+                            <span>Related record</span>
+                            <field name="source_label" readonly="1"/>
+                        </div>
+                    </div>
+                    <div class="alert alert-danger" role="alert" invisible="result_kind != 'technical'">
+                        This control could not produce an accounting conclusion.
+                        Open its configuration to inspect the installed evaluator, then refresh the results.
                     </div>
                     <group>
                         <group>
-                            <field name="company_id" readonly="1" groups="base.group_multi_company"/>
                             <field name="definition_id" readonly="1"/>
-                            <field name="result_kind" readonly="1"/>
                             <field name="issue_type" readonly="1"/>
                             <field
                                 name="severity"
@@ -1900,14 +1905,11 @@
                                 decoration-warning="severity == '2_warning'"
                                 decoration-info="severity in ['3_attention', '4_information']"/>
                             <field name="issue_date" readonly="1"/>
-                            <field name="amount" readonly="1"/>
                         </group>
                         <group>
+                            <field name="amount" readonly="1"/>
                             <field name="owner_role"/>
                             <field name="owner_user_id" options="{'no_create': True}"/>
-                            <field name="confidence" readonly="1"/>
-                            <field name="first_detected_at" readonly="1"/>
-                            <field name="last_detected_at" readonly="1"/>
                         </group>
                     </group>
                     <div class="o_usl_control_narrative">
@@ -1949,6 +1951,20 @@
                         <field name="dismissed_at" readonly="1" invisible="status != 'dismissed'"/>
                         <field name="dismissed_by_id" readonly="1" invisible="status != 'dismissed'"/>
                     </group>
+                    <details class="o_usl_control_traceability">
+                        <summary>Control and detection details</summary>
+                        <group>
+                            <group>
+                                <field name="result_kind" readonly="1"/>
+                                <field name="confidence" readonly="1"/>
+                                <field name="company_id" readonly="1" groups="base.group_multi_company"/>
+                            </group>
+                            <group>
+                                <field name="first_detected_at" readonly="1"/>
+                                <field name="last_detected_at" readonly="1"/>
+                            </group>
+                        </group>
+                    </details>
                 </sheet>
             </form>
         </field>

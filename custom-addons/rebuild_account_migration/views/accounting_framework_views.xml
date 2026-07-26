@@ -223,8 +223,8 @@
         <field name="inherit_id" ref="view_rebuild_account_closing_control_definition_list"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='origin']" position="after">
-                <field name="definition_version" optional="show"/>
-                <field name="lifecycle" widget="badge" optional="show"/>
+                <field name="definition_version" optional="hide"/>
+                <field name="lifecycle" widget="badge" optional="hide"/>
             </xpath>
         </field>
     </record>
@@ -234,15 +234,9 @@
         <field name="model">rebuild.account.closing.control.definition</field>
         <field name="inherit_id" ref="view_rebuild_account_closing_control_definition_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='origin']" position="after">
-                <field name="definition_version"/>
+            <xpath expr="//field[@name='enabled']" position="after">
+                <field name="definition_version" string="Business Version"/>
                 <field name="lifecycle"/>
-            </xpath>
-            <xpath expr="//page[.//field[@name='description']]" position="inside">
-                <group string="Framework purpose">
-                    <field name="business_purpose" nolabel="1"/>
-                    <field name="expected_outcome" nolabel="1"/>
-                </group>
             </xpath>
         </field>
     </record>
