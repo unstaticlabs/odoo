@@ -2135,7 +2135,7 @@ Scope note: payment-provider product support is not a Milestone 13 requirement. 
 - [ ] Execute the migration.
 - [ ] Deploy exact approved release.
 - [ ] Execute database transformations.
-- [ ] Restore and verify filestore.
+- [x] Restore and verify the Accounting filestore through deterministic ORM replay and source/target binary integrity controls.
 - [ ] Run automated migration checks.
 - [ ] Run accounting golden-report checks.
 - [ ] Run FEC comparison.

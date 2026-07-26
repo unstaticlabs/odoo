@@ -9,6 +9,7 @@ from . import move_line_review
 from . import document_regeneration_case
 from . import payment_review
 from . import payment_suggestion
+from . import readonly_evidence
 from . import reconciliation_review
 from . import source_report
 from . import source_report_structure

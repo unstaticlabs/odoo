@@ -11,6 +11,7 @@ make accounting-source-package-validate
 make accounting-source-validate
 make accounting-source-restore
 make accounting-source-inspect
+make accounting-attachment-audit
 make accounting-extract
 make accounting-failure-tests
 make accounting-validation-exact-reset
@@ -54,6 +55,7 @@ source package validation
 → non-destructive source-package failure guardrails
 → isolated source restore
 → source inspection and controls
+→ complete filestore and Accounting attachment audit
 → private accounting extract
 → disposable target reset
 → exact posted-ledger replay through the target ORM
@@ -129,6 +131,7 @@ Stage dependencies:
 | Command | Reads | Writes | Why it must run here |
 | --- | --- | --- | --- |
 | `make accounting-source-restore` | `usl-online-dump/dump.sql`, `usl-online-dump/filestore/` | `odoo_online_source_saas_19_2` in `accounting-source-db`; source restore status artifacts | It creates the source database that every later source read depends on. |
+| `make accounting-attachment-audit` | Restored source attachment metadata, complete source filestore and reconstructed `odoo_dev` | Private source/target integrity, relationship, chatter and exclusion evidence | It verifies every referenced source blob, reads every imported target binary through Odoo storage and blocks material Accounting omissions. See [Accounting attachment reconstruction](attachment-reconstruction.md). |
 | `make accounting-extract` | Restored source database through read-only SQL | Private canonical snapshot and extraction artifacts | It converts the physical SaaS database into the durable transfer package used by the target importer. |
 | `make accounting-validation-exact-reset` | Compose target PostgreSQL service `db` | Fresh `odoo_saas_19_2_validation_exact` database | It removes old target state so the import is deterministic and not mixed with previous attempts. |
 | `make accounting-validation-exact-import` | Canonical snapshot; source database for source metadata; clean target database | Target Odoo records and source-trace metadata | It reconstructs the complete source Accounting state through the target Odoo ORM. |
@@ -255,7 +258,8 @@ As of the latest clean rehearsal on 2026-07-23:
 - imported analytic plans: `2`;
 - imported analytic accounts: `14`;
 - imported analytic lines: `632` (`577` linked to imported journal items and `55` standalone source analytic lines);
-- imported scoped accounting attachments: `332`;
+- material Accounting attachments in the latest source package: `704`
+  (`663` direct and `41` chatter-only), all reconstructed once in `odoo_dev`;
 - imported assets: `3`;
 - imported source asset depreciation schedule lines: `91`;
 - benchmark source and target debit: `1,064,045.02`;
