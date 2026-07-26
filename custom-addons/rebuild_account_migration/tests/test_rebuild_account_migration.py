@@ -697,6 +697,33 @@ class TestRebuildAccountMigration(TransactionCase):
                 "/form/header/button[@name='action_open_hygiene_issues']",
             ),
         )
+        cash_breakdown = home_arch.xpath(
+            "//details[contains(@class, 'o_usl_cash_breakdown')]",
+        )
+        self.assertEqual(len(cash_breakdown), 1)
+        self.assertEqual(
+            cash_breakdown[0].xpath("normalize-space(summary)"),
+            "View estimate details",
+        )
+        self.assertEqual(
+            {
+                button.get("name")
+                for button in cash_breakdown[0].xpath(".//button")
+            },
+            {
+                "action_open_expected_receipts",
+                "action_open_expected_payments",
+                "action_open_cash_projection_unresolved",
+                "action_open_cash_position_journals",
+            },
+        )
+        self.assertTrue(
+            home_arch.xpath(
+                "//div[contains(@class, 'o_usl_cash_position_card')]"
+                "/div[contains(@class, 'o_usl_overview_projection')]"
+                "/strong/field[@name='projected_cash_after_settlement']",
+            ),
+        )
         review_buttons = home_arch.xpath(
             "//button[@name='action_open_bank_review']",
         )

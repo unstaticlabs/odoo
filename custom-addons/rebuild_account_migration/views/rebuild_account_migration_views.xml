@@ -1307,31 +1307,48 @@
 
                         <section class="o_usl_overview_section">
                             <h3 class="o_usl_overview_section_title">Cash and bank</h3>
-                            <div class="row g-3">
+                            <div class="row g-3 align-items-start">
                                 <div class="col-12 col-md-6">
-                                    <div class="o_usl_overview_card">
+                                    <div class="o_usl_overview_card o_usl_cash_position_card">
                                         <h4 class="o_usl_overview_card_title">Cash on banks</h4>
                                         <span class="o_usl_overview_value">
                                             <field name="cash_on_banks" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                                         </span>
-                                        <div class="o_usl_overview_projection">
-                                            Projected after settlement:
-                                            <field name="projected_cash_after_settlement" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                        <div
+                                            class="o_usl_overview_projection"
+                                            title="Estimate after identified receipts and payments effective through today.">
+                                            <span>Projected after settlement</span>
+                                            <strong>
+                                                <field name="projected_cash_after_settlement" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                            </strong>
                                         </div>
-                                        <div class="o_usl_overview_detail">
-                                            <button name="action_open_expected_receipts" type="object" string="Expected receipts" class="btn-link"/>
-                                            &#160;
-                                            <field name="expected_receipt_amount" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                                            ·
-                                            <button name="action_open_expected_payments" type="object" string="Expected payments" class="btn-link"/>
-                                            &#160;
-                                            <field name="expected_payment_amount" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                                        </div>
-                                        <div class="o_usl_overview_detail" invisible="cash_projection_unresolved_count == 0">
-                                            <button name="action_open_cash_projection_unresolved" type="object" string="Review unresolved items" class="btn-link"/>
-                                            (<field name="cash_projection_unresolved_count" nolabel="1"/> excluded from the estimate)
-                                        </div>
-                                        <button name="action_open_cash_position_journals" type="object" string="View bank accounts" class="btn-link"/>
+                                        <details class="o_usl_cash_breakdown">
+                                            <summary>View estimate details</summary>
+                                            <div class="o_usl_cash_breakdown_body">
+                                                <div class="o_usl_cash_breakdown_row">
+                                                    <button name="action_open_expected_receipts" type="object" string="Expected receipts" class="btn-link"/>
+                                                    <span class="o_usl_cash_breakdown_amount o_usl_cash_breakdown_positive">
+                                                        <field name="expected_receipt_amount" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                                    </span>
+                                                </div>
+                                                <div class="o_usl_cash_breakdown_row">
+                                                    <button name="action_open_expected_payments" type="object" string="Expected payments" class="btn-link"/>
+                                                    <span class="o_usl_cash_breakdown_amount o_usl_cash_breakdown_negative">
+                                                        <field name="expected_payment_amount" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                                    </span>
+                                                </div>
+                                                <div class="o_usl_cash_breakdown_row o_usl_cash_breakdown_unresolved" invisible="cash_projection_unresolved_count == 0">
+                                                    <button name="action_open_cash_projection_unresolved" type="object" string="Unresolved items" class="btn-link"/>
+                                                    <span>
+                                                        <field name="cash_projection_unresolved_count" nolabel="1"/>
+                                                        excluded
+                                                    </span>
+                                                </div>
+                                                <div class="o_usl_cash_breakdown_footer">
+                                                    <button name="action_open_cash_position_journals" type="object" string="Included bank accounts" class="btn-link"/>
+                                                </div>
+                                            </div>
+                                        </details>
                                     </div>
                                 </div>
                                 <div class="col-12 col-md-6">
