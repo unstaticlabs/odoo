@@ -2,7 +2,9 @@
 
 1. Open **Review > Accounting Hygiene**.
 2. Keep the default **Open** filter. Prioritize Blocking, then Warning, then Attention.
-3. Open an issue and read all five parts: condition, reason, recommendation, consequence and evidence.
+3. Open an issue. Start with **What needs attention** and **Recommended next
+   action**, then use **Why it matters**, **Accounting consequence** and
+   **Evidence used by this control** for review context.
 4. Assign a user when one person owns the follow-up.
 5. Select **Open Related Record** and correct the underlying draft, evidence, reconciliation or analytic allocation. A technical result opens its control configuration instead.
 6. Return and select **Check Resolution**.

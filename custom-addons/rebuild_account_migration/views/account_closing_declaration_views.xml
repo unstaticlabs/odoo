@@ -394,15 +394,28 @@
                     </group>
                     <notebook>
                         <page string="Business Purpose">
-                            <group string="What this checks">
-                                <field name="description" nolabel="1"/>
-                            </group>
-                            <group string="Why it matters">
-                                <field name="accounting_consequence" nolabel="1"/>
-                            </group>
-                            <group string="Expected resolution">
-                                <field name="expected_resolution" nolabel="1"/>
-                            </group>
+                            <div class="o_usl_control_narrative">
+                                <div class="row g-3">
+                                    <section class="col-12 col-lg-6">
+                                        <div class="o_usl_control_card o_usl_control_card_attention">
+                                            <h3 class="o_usl_control_card_title">What this checks</h3>
+                                            <field name="description" nolabel="1"/>
+                                        </div>
+                                    </section>
+                                    <section class="col-12 col-lg-6">
+                                        <div class="o_usl_control_card o_usl_control_card_action">
+                                            <h3 class="o_usl_control_card_title">Expected resolution</h3>
+                                            <field name="expected_resolution" nolabel="1"/>
+                                        </div>
+                                    </section>
+                                    <section class="col-12">
+                                        <div class="o_usl_control_card">
+                                            <h3 class="o_usl_control_card_title">Why it matters</h3>
+                                            <field name="accounting_consequence" nolabel="1"/>
+                                        </div>
+                                    </section>
+                                </div>
+                            </div>
                         </page>
                         <page string="Applicability and Readiness">
                             <group>
