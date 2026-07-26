@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="usl_expense_batch.ListButtons"
+       t-inherit="hr_expense.ListButtons"
+       t-inherit-mode="extension">
+        <xpath expr="//button[@t-if='displaySubmit()']" position="replace">
+            <button class="d-none d-md-block btn btn-primary"
+                    t-on-click="onOpenExpenseBatchWizard">
+                Create expense batch
+            </button>
+        </xpath>
+        <xpath expr="//button[hasclass('o_list_button_add')]" position="before">
+            <button t-if="!model.root.selection.length"
+                    class="d-none d-md-block btn btn-secondary"
+                    t-on-click="onOpenExpenseBatchWizard">
+                Submit ready expenses
+            </button>
+        </xpath>
+    </t>
+</templates>

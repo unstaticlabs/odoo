@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_expense_batch_create_wizard_form" model="ir.ui.view">
+        <field name="name">usl.expense.batch.create.wizard.form</field>
+        <field name="model">usl.expense.batch.create.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Create expense batch">
+                <field name="company_id" invisible="1"/>
+                <field name="employee_id" invisible="1"/>
+                <field name="currency_id" invisible="1"/>
+                <div class="alert alert-warning" role="alert" invisible="incomplete_count == 0">
+                    <strong>
+                        <field name="incomplete_count" class="oe_inline"/>
+                        expense(s) need information.
+                    </strong>
+                    You can save the batch now, but all lines must be complete before submission.
+                </div>
+                <group>
+                    <group string="Claim">
+                        <field name="name" required="1" placeholder="e.g. Toronto trip — June/July 2026"/>
+                        <field name="purpose" required="1" placeholder="Common business purpose and review context"/>
+                        <field name="main_analytic_activity" readonly="1"/>
+                    </group>
+                    <group string="Preview">
+                        <field name="expense_count"/>
+                        <field name="date_from"/>
+                        <field name="date_to"/>
+                        <field name="total_amount"/>
+                        <field name="employee_paid_total"/>
+                        <field name="company_paid_total"/>
+                    </group>
+                </group>
+                <field name="expense_ids" nolabel="1">
+                    <list create="false" edit="false" delete="true">
+                        <field name="date"/>
+                        <field name="name"/>
+                        <field name="product_id"/>
+                        <field name="payment_mode"/>
+                        <field name="batch_readiness" widget="badge"
+                               decoration-success="batch_readiness == 'ready'"
+                               decoration-warning="batch_readiness == 'incomplete'"/>
+                        <field name="batch_incomplete_reason" optional="show"/>
+                        <field name="total_amount" sum="Total"/>
+                        <field name="company_currency_id" column_invisible="True"/>
+                    </list>
+                </field>
+                <footer>
+                    <button name="action_create_and_submit"
+                            string="Submit batch"
+                            type="object"
+                            class="btn-primary"
+                            data-hotkey="q"
+                            invisible="incomplete_count != 0"/>
+                    <button name="action_create_batch"
+                            string="Save as draft"
+                            type="object"
+                            class="btn-secondary"/>
+                    <button string="Cancel" special="cancel" class="btn-secondary" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

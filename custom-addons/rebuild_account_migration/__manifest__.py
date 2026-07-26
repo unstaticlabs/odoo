@@ -24,6 +24,7 @@
         "l10n_fr_account",
         "l10n_fr_pdp",
         "partner_statement",
+        "usl_expense_batch",
     ],
     "data": [
         "data/european_date_format.xml",

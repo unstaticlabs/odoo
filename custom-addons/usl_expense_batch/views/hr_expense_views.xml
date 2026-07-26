@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_hr_expense_list_batch" model="ir.ui.view">
+        <field name="name">hr.expense.list.batch</field>
+        <field name="model">hr.expense</field>
+        <field name="inherit_id" ref="hr_expense.hr_expense_view_expenses_analysis_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='state']" position="before">
+                <field name="batch_readiness"
+                       widget="badge"
+                       optional="show"
+                       decoration-success="batch_readiness == 'ready'"
+                       decoration-warning="batch_readiness == 'incomplete'"
+                       decoration-info="batch_readiness == 'batched'"/>
+                <field name="expense_batch_id" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_hr_expense_search_batch" model="ir.ui.view">
+        <field name="name">hr.expense.search.batch</field>
+        <field name="model">hr.expense</field>
+        <field name="inherit_id" ref="hr_expense.hr_expense_view_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='draft']" position="before">
+                <filter name="batch_ready"
+                        string="Ready to submit"
+                        domain="[('state', '=', 'draft'), ('batch_readiness', '=', 'ready')]"/>
+                <filter name="batch_incomplete"
+                        string="Needs information"
+                        domain="[('state', '=', 'draft'), ('batch_readiness', '=', 'incomplete')]"/>
+                <filter name="already_batched"
+                        string="Already in a batch"
+                        domain="[('batch_readiness', '=', 'batched')]"/>
+                <separator/>
+            </xpath>
+            <xpath expr="//group" position="inside">
+                <filter name="expense_batch"
+                        string="Expense Batch"
+                        domain="[]"
+                        context="{'group_by': 'expense_batch_id'}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_hr_expense_form_batch" model="ir.ui.view">
+        <field name="name">hr.expense.form.batch</field>
+        <field name="model">hr.expense</field>
+        <field name="inherit_id" ref="hr_expense.hr_expense_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_open_expense_batch"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-folder-open"
+                        invisible="not expense_batch_id">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Expense Batch</span>
+                    </div>
+                </button>
+            </xpath>
+            <xpath expr="//field[@name='nb_attachment'][@invisible='1']" position="after">
+                <field name="expense_batch_id" invisible="1"/>
+                <field name="batch_readiness" invisible="1"/>
+                <field name="batch_incomplete_reason" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='employee_id']" position="after">
+                <field name="expense_batch_id"
+                       readonly="state != 'draft'"
+                       domain="[('employee_id', '=', employee_id), ('company_id', '=', company_id), ('state', '=', 'draft')]"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
