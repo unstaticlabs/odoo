@@ -139,7 +139,7 @@ historical alignment evidence; they are not current deployment targets.
 | FEC | `fec`, structural preflight and official DGFiP source validator | Passed: 4,781 data rows and EUR 1,064,045.02 debit and credit |
 | Focused manager browser | Overview, Journals, Transactions, linked entry, Bank Matching, Trial Balance and drill-down | Passed; the cached Transactions compatibility alias remains because the target view still exercises it |
 | Focused reviewer browser | Overview, Transactions and Trial Balance/XLSX | Passed; Accounting Configuration and Match actions are absent while inspection and permitted exports remain available |
-| Final readiness/evidence | `make accounting-readiness && make accounting-evidence` | `ready_with_documented_assumptions`; no P0 or technical failure, with the 75 cross-boundary records and chronology exceptions retained as advisory review items |
+| Final readiness/evidence | `make accounting-readiness && make accounting-evidence` | Requires a clean native replay with no P0/P1 import defect; the complete reconciliation graph is native and source chronology exceptions remain assurance evidence |
 
 ## Current source and parity baseline
 
@@ -147,22 +147,22 @@ The freshly validated source package is newer than the numeric checkpoint
 quoted in the initial execution request. Acceptance therefore uses the
 source-derived controls keyed by dump SHA-256, not stale lower counts. The
 current source contains 5,044 moves across both companies: 4,849 posted, 193
-draft and 2 cancelled. Exact replay imports the 4,849 posted moves and 11,404
-accounting lines; the one posted display-only note remains explicit review
-evidence rather than a fabricated accounting line.
+draft and 2 cancelled. Exact replay imports all 5,044 moves and 11,871 native
+move lines; the one posted display-only note remains a native `line_note`
+rather than being fabricated as an accounting line.
 
 The passed broad controls include:
 
-- 97 move-backed payments plus 13 no-entry payment review records;
+- 97 move-backed payments plus 13 native immutable no-entry payments;
 - 3,046 bank statement lines;
-- 2,531 fully-contained partial and 1,210 fully-contained full
-  reconciliations, plus the preserved 39 partial and 36 full cross-boundary
-  review records;
+- all 2,584 partial and 1,260 full reconciliations, with no source endpoint
+  represented by a migration placeholder;
 - 1,889 historical currency rates;
 - 632 analytic lines;
 - 3 assets, 91 depreciation schedule lines and 28 imported depreciation moves;
 - 110 deferred lines and 37 posted deferral entries;
-- 332 accounting attachments and 224 source-designated main attachments.
+- 414 accounting attachments, including 265 source-designated main
+  attachments, all readable and checksum-matched.
 
 The closed benchmark slice currently present in this source dump is 2,046
 posted moves, 4,809 accounting lines, and EUR 1,064,045.02 debit and credit.
@@ -202,7 +202,7 @@ source and passed a clean debug-assets reload of the reconciliation detail and
 Chatter tab.
 
 The alignment implementation gates are now complete. The result remains an
-internal development candidate, not authorization to replace `odoo_dev` or
-the Odoo 19 product. The preserved source anomaly review, the 75
-cross-boundary reconciliation decisions and professional accountant
-acceptance remain required before any production promotion.
+internal development candidate until the clean final replay and release audit
+are accepted. Source chronology anomalies remain visible assurance evidence;
+professional accountant acceptance is deliberately outside the engineering
+migration.

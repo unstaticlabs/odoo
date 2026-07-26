@@ -932,7 +932,7 @@ class RebuildAccountClosingPeriod(models.Model):
         return {
             "type": "ir.actions.act_window",
             "name": "Closing Review Decision",
-            "res_model": "rebuild.account.review.decision",
+            "res_model": "rebuild.account.assurance.decision",
             "view_mode": "form",
             "target": "current",
             "context": {
@@ -1076,7 +1076,7 @@ class RebuildAccountClosingPeriod(models.Model):
                 "Only an Accounting Manager can capture accepted closing "
                 "snapshots."
             )
-        decision = self.env["rebuild.account.review.decision"].search([
+        decision = self.env["rebuild.account.assurance.decision"].search([
             ("closing_period_id", "=", self.id),
             ("gate", "=", "closing_review"),
             ("state", "=", "recorded"),
@@ -1145,7 +1145,7 @@ class RebuildAccountClosingSnapshot(models.Model):
         index=True,
     )
     review_decision_id = fields.Many2one(
-        "rebuild.account.review.decision",
+        "rebuild.account.assurance.decision",
         required=True,
         index=True,
         ondelete="restrict",
@@ -1193,7 +1193,7 @@ class RebuildAccountClosingSnapshot(models.Model):
             closing = self.env["rebuild.account.closing.period"].browse(
                 vals.get("closing_period_id"),
             ).exists()
-            decision = self.env["rebuild.account.review.decision"].browse(
+            decision = self.env["rebuild.account.assurance.decision"].browse(
                 vals.get("review_decision_id"),
             ).exists()
             attachment = self.env["ir.attachment"].browse(

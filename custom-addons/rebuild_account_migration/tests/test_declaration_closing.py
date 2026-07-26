@@ -189,7 +189,7 @@ class TestDeclarationAndClosing(TransactionCase):
         with self.assertRaises(AccessError):
             closing.with_user(reviewer).write({"state": "ready"})
 
-        decision_model = self.env["rebuild.account.review.decision"]
+        decision_model = self.env["rebuild.account.assurance.decision"]
         self.assertTrue(decision_model.with_user(reviewer).has_access("read"))
         self.assertFalse(decision_model.with_user(reviewer).has_access("write"))
         self.assertFalse(decision_model.with_user(reviewer).has_access("create"))
@@ -352,7 +352,7 @@ class TestDeclarationAndClosing(TransactionCase):
             "target_move": "posted",
             "export_format": "xlsx",
         })
-        closing_decision = self.env["rebuild.account.review.decision"].create({
+        closing_decision = self.env["rebuild.account.assurance.decision"].create({
             "gate": "closing_review",
             "conclusion": "accepted",
             "required_authority": "accountant",
@@ -569,7 +569,7 @@ class TestDeclarationAndClosing(TransactionCase):
         self.assertEqual(set(account_domain[2]), {liability.id, cash.id, income.id})
         self.assertEqual(action["context"]["search_default_group_by_account"], 1)
         self.env.flush_all()
-        hygiene = self.env["rebuild.account.review.summary"].search([
+        hygiene = self.env["rebuild.account.overview"].search([
             ("company_id", "=", company.id),
         ], limit=1)
         self.assertEqual(hygiene.unusual_balance_count, 3)

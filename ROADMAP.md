@@ -50,21 +50,19 @@ are recorded in
 
 ## Deliberately inactive or deferred
 
-These items are not Accounting v1 defects:
+These five items are not Accounting v1 defects:
 
-- production deployment and cutover from the disposable development
-  environment;
-- professional accountant approval and external filing;
-- selection, registration and activation of a production approved
-  electronic-invoicing platform;
-- live tax or e-reporting submission;
-- live bank synchronization and payment-provider ingestion;
-- probabilistic or autonomous AI matching and posting;
-- Enterprise-only applications outside the Accounting rebuild.
+1. professional accountant sign-off and live tax/electronic filing;
+2. selection, registration and activation of a production approved
+   electronic-invoicing platform;
+3. live bank synchronization and payment-provider ingestion;
+4. probabilistic or autonomous AI matching and posting;
+5. production deployment and cutover from the disposable development
+   environment.
 
-The 75 cross-boundary reconciliation records and preserved source chronology
-exceptions remain explicit review evidence; they do not create unexplained
-ledger differences.
+The complete source reconciliation graph is now materialized natively.
+Preserved source chronology exceptions remain explicit assurance evidence;
+the target must not introduce any additional exception.
 
 ## Next release gates
 

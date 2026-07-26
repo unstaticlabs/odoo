@@ -35,7 +35,8 @@ pixel-for-pixel reproduction is not required.
 - The source has no customer-credit-note case in the bounded native replay;
   normal Odoo credit-note creation remains available and tested by module
   behavior, while three supplier refunds are production-derived.
-- Seventy-five cross-boundary source reconciliation references remain
+- The complete source reconciliation graph is represented by native partial
+  and full reconciliation records; no boundary placeholder remains.
   review evidence because a missing endpoint is draft or outside the exact
   posted slice. They do not change posted totals.
 - Sixteen source sequence gaps and 104 source date-order decreases are

@@ -1224,11 +1224,11 @@
         </field>
     </record>
 
-    <record id="view_rebuild_account_review_summary_list" model="ir.ui.view">
-        <field name="name">rebuild.account.review.summary.list</field>
-        <field name="model">rebuild.account.review.summary</field>
+    <record id="view_rebuild_account_overview_list" model="ir.ui.view">
+        <field name="name">rebuild.account.overview.list</field>
+        <field name="model">rebuild.account.overview</field>
         <field name="arch" type="xml">
-            <list string="Accounting Reconstruction Review" create="0" edit="0" delete="0">
+            <list string="Accounting Assurance Overview" create="0" edit="0" delete="0">
                 <field name="company_id"/>
                 <field name="source_company_id"/>
                 <field name="readiness_status"/>
@@ -1242,15 +1242,10 @@
                 <field name="open_p0_count"/>
                 <field name="open_p1_count"/>
                 <field name="open_discrepancy_count"/>
-                <field name="review_record_count"/>
                 <field name="pending_review_decision_count"/>
                 <field name="recorded_review_decision_count"/>
                 <field name="external_report_value_count"/>
                 <field name="pending_external_report_value_count"/>
-                <field name="document_regeneration_case_count"/>
-                <field name="document_regeneration_candidate_count"/>
-                <field name="document_regeneration_review_only_count"/>
-                <field name="document_regeneration_blocked_count"/>
                 <field name="source_report_count"/>
                 <field name="mandatory_report_count"/>
                 <field name="partial_report_equivalent_count"/>
@@ -1259,7 +1254,6 @@
                 <button name="action_open_open_discrepancies" type="object" string="Discrepancies" icon="fa-exclamation-triangle"/>
                 <button name="action_open_review_decisions" type="object" string="Decisions" icon="fa-check-square-o"/>
                 <button name="action_open_external_report_values" type="object" string="External Values" icon="fa-pencil-square-o"/>
-                <button name="action_open_document_regeneration_cases" type="object" string="Document Cases" icon="fa-file-text-o"/>
                 <button name="action_open_imported_journal_items" type="object" string="Journal Items" icon="fa-list"/>
                 <button name="action_open_report_export_wizard" type="object" string="Reports" icon="fa-download"/>
                 <button name="action_open_user_guide" type="object" string="User Guide" icon="fa-question-circle"/>
@@ -1268,8 +1262,8 @@
     </record>
 
     <record id="view_rebuild_accounting_home_form" model="ir.ui.view">
-        <field name="name">rebuild.account.review.summary.form.accounting.home</field>
-        <field name="model">rebuild.account.review.summary</field>
+        <field name="name">rebuild.account.overview.form.accounting.home</field>
+        <field name="model">rebuild.account.overview</field>
         <field name="priority">1</field>
         <field name="arch" type="xml">
             <form string="Accounting Overview" create="0" edit="0" delete="0">
@@ -1526,17 +1520,16 @@
         </field>
     </record>
 
-    <record id="view_rebuild_account_review_summary_form" model="ir.ui.view">
-        <field name="name">rebuild.account.review.summary.form</field>
-        <field name="model">rebuild.account.review.summary</field>
+    <record id="view_rebuild_account_overview_form" model="ir.ui.view">
+        <field name="name">rebuild.account.overview.form</field>
+        <field name="model">rebuild.account.overview</field>
         <field name="arch" type="xml">
-            <form string="Accounting Reconstruction Review" create="0" edit="0" delete="0">
+            <form string="Accounting Assurance Overview" create="0" edit="0" delete="0">
                 <header>
                     <button name="action_open_latest_import_run" type="object" string="Latest Import Run"/>
                     <button name="action_open_open_discrepancies" type="object" string="Open Discrepancies"/>
                     <button name="action_open_review_decisions" type="object" string="Review Decisions"/>
                     <button name="action_open_external_report_values" type="object" string="External Values"/>
-                    <button name="action_open_document_regeneration_cases" type="object" string="Document Cases"/>
                     <button name="action_open_source_reports" type="object" string="Source Reports"/>
                     <button name="action_open_imported_journal_items" type="object" string="Journal Items"/>
                     <button name="action_open_report_export_wizard" type="object" string="Generate Reports" class="btn-primary"/>
@@ -1566,20 +1559,15 @@
                         <field name="credit" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                         <field name="balance" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                     </group>
-                    <group string="Review State">
+                    <group string="Assurance State">
                         <field name="open_p0_count"/>
                         <field name="open_p1_count"/>
                         <field name="open_discrepancy_count"/>
-                        <field name="review_record_count"/>
                         <field name="review_decision_count"/>
                         <field name="pending_review_decision_count"/>
                         <field name="recorded_review_decision_count"/>
                         <field name="external_report_value_count"/>
                         <field name="pending_external_report_value_count"/>
-                        <field name="document_regeneration_case_count"/>
-                        <field name="document_regeneration_candidate_count"/>
-                        <field name="document_regeneration_review_only_count"/>
-                        <field name="document_regeneration_blocked_count"/>
                     </group>
                     <group string="Report Coverage">
                         <field name="source_report_count"/>
@@ -1593,11 +1581,11 @@
         </field>
     </record>
 
-    <record id="view_rebuild_account_review_summary_search" model="ir.ui.view">
-        <field name="name">rebuild.account.review.summary.search</field>
-        <field name="model">rebuild.account.review.summary</field>
+    <record id="view_rebuild_account_overview_search" model="ir.ui.view">
+        <field name="name">rebuild.account.overview.search</field>
+        <field name="model">rebuild.account.overview</field>
         <field name="arch" type="xml">
-            <search string="Accounting Reconstruction Review">
+            <search string="Accounting Assurance Overview">
                 <field name="company_id"/>
                 <field name="source_company_id"/>
                 <filter name="blocked" string="Blocked" domain="[('readiness_status','=','blocked')]"/>
@@ -1607,17 +1595,17 @@
         </field>
     </record>
 
-    <record id="action_rebuild_account_review_summary" model="ir.actions.act_window">
-        <field name="name">Accounting Reconstruction Review</field>
-        <field name="res_model">rebuild.account.review.summary</field>
+    <record id="action_rebuild_account_overview" model="ir.actions.act_window">
+        <field name="name">Accounting Assurance Overview</field>
+        <field name="res_model">rebuild.account.overview</field>
         <field name="view_mode">list,form</field>
-        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'list', 'view_id': ref('view_rebuild_account_review_summary_list')}), (0, 0, {'view_mode': 'form', 'view_id': ref('view_rebuild_account_review_summary_form')})]"/>
+        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'list', 'view_id': ref('view_rebuild_account_overview_list')}), (0, 0, {'view_mode': 'form', 'view_id': ref('view_rebuild_account_overview_form')})]"/>
         <field name="context">{'search_default_group_status': 1}</field>
     </record>
 
     <record id="view_rebuild_account_hygiene_list" model="ir.ui.view">
-        <field name="name">rebuild.account.review.summary.list.accounting.hygiene</field>
-        <field name="model">rebuild.account.review.summary</field>
+        <field name="name">rebuild.account.overview.list.accounting.hygiene</field>
+        <field name="model">rebuild.account.overview</field>
         <field name="arch" type="xml">
             <list string="Accounting Hygiene" create="0" edit="0" delete="0">
                 <field name="company_id"/>
@@ -1645,8 +1633,8 @@
     </record>
 
     <record id="view_rebuild_account_hygiene_form" model="ir.ui.view">
-        <field name="name">rebuild.account.review.summary.form.accounting.hygiene</field>
-        <field name="model">rebuild.account.review.summary</field>
+        <field name="name">rebuild.account.overview.form.accounting.hygiene</field>
+        <field name="model">rebuild.account.overview</field>
         <field name="arch" type="xml">
             <form string="Accounting Hygiene" create="0" edit="0" delete="0">
                 <header>
@@ -1794,8 +1782,8 @@
     </record>
 
     <record id="view_rebuild_account_hygiene_search" model="ir.ui.view">
-        <field name="name">rebuild.account.review.summary.search.accounting.hygiene</field>
-        <field name="model">rebuild.account.review.summary</field>
+        <field name="name">rebuild.account.overview.search.accounting.hygiene</field>
+        <field name="model">rebuild.account.overview</field>
         <field name="arch" type="xml">
             <search string="Accounting Hygiene">
                 <field name="company_id"/>
@@ -2002,19 +1990,14 @@
                 <field name="imported_move_count"/>
                 <field name="imported_move_line_count"/>
                 <field name="imported_currency_rate_count"/>
-                <field name="imported_move_review_count"/>
-                <field name="imported_move_line_review_count"/>
-                <field name="document_regeneration_case_count"/>
-                <field name="document_regeneration_candidate_count"/>
-                <field name="document_regeneration_review_only_count"/>
-                <field name="document_regeneration_blocked_count"/>
+                <field name="imported_non_posted_move_count"/>
+                <field name="imported_context_line_count"/>
                 <field name="imported_payment_count"/>
-                <field name="imported_payment_review_count"/>
+                <field name="imported_no_entry_payment_count"/>
                 <field name="imported_bank_statement_line_count"/>
                 <field name="imported_analytic_line_count"/>
                 <field name="imported_attachment_count"/>
                 <field name="discrepancy_count"/>
-                <field name="imported_reconciliation_review_count"/>
                 <field name="imported_source_report_count"/>
                 <field name="imported_deferred_schedule_line_count"/>
                 <field name="external_report_value_count"/>
@@ -2055,19 +2038,14 @@
                                 <field name="imported_partner_count"/>
                                 <field name="imported_move_count"/>
                                 <field name="imported_move_line_count"/>
-                                <field name="imported_move_review_count"/>
-                                <field name="imported_move_line_review_count"/>
-                                <field name="document_regeneration_case_count"/>
-                                <field name="document_regeneration_candidate_count"/>
-                                <field name="document_regeneration_review_only_count"/>
-                                <field name="document_regeneration_blocked_count"/>
+                                <field name="imported_non_posted_move_count"/>
+                                <field name="imported_context_line_count"/>
                                 <field name="imported_payment_count"/>
-                                <field name="imported_payment_review_count"/>
+                                <field name="imported_no_entry_payment_count"/>
                                 <field name="imported_bank_statement_line_count"/>
                                 <field name="imported_analytic_line_count"/>
                                 <field name="imported_attachment_count"/>
                                 <field name="imported_reconciliation_count"/>
-                                <field name="imported_reconciliation_review_count"/>
                                 <field name="imported_source_report_count"/>
                                 <field name="imported_deferred_schedule_line_count"/>
                                 <field name="external_report_value_count"/>
@@ -2175,9 +2153,9 @@
         <field name="view_mode">list,form</field>
     </record>
 
-    <record id="view_rebuild_account_review_decision_list" model="ir.ui.view">
-        <field name="name">rebuild.account.review.decision.list</field>
-        <field name="model">rebuild.account.review.decision</field>
+    <record id="view_rebuild_account_assurance_decision_list" model="ir.ui.view">
+        <field name="name">rebuild.account.assurance.decision.list</field>
+        <field name="model">rebuild.account.assurance.decision</field>
         <field name="arch" type="xml">
             <list string="Accounting Review Decisions" delete="0">
                 <field name="state"/>
@@ -2190,7 +2168,6 @@
                 <field name="source_report_id"/>
                 <field name="discrepancy_id"/>
                 <field name="external_value_id"/>
-                <field name="reconciliation_review_id"/>
                 <field name="declaration_id"/>
                 <field name="closing_period_id"/>
                 <field name="reviewer_name"/>
@@ -2199,9 +2176,9 @@
         </field>
     </record>
 
-    <record id="view_rebuild_account_review_decision_form" model="ir.ui.view">
-        <field name="name">rebuild.account.review.decision.form</field>
-        <field name="model">rebuild.account.review.decision</field>
+    <record id="view_rebuild_account_assurance_decision_form" model="ir.ui.view">
+        <field name="name">rebuild.account.assurance.decision.form</field>
+        <field name="model">rebuild.account.assurance.decision</field>
         <field name="arch" type="xml">
             <form string="Accounting Review Decision" delete="0">
                 <sheet>
@@ -2211,7 +2188,6 @@
                         <button name="action_open_external_value" type="object" string="External Value" invisible="not external_value_id"/>
                         <button name="action_open_discrepancy" type="object" string="Discrepancy" invisible="not discrepancy_id"/>
                         <button name="action_open_source_report" type="object" string="Source Report" invisible="not source_report_id"/>
-                        <button name="action_open_reconciliation_review" type="object" string="Reconciliation Review" invisible="not reconciliation_review_id"/>
                         <field name="state" widget="statusbar" statusbar_visible="draft,recorded,superseded"/>
                     </header>
                     <group>
@@ -2227,7 +2203,6 @@
                             <field name="source_report_id"/>
                             <field name="discrepancy_id"/>
                             <field name="external_value_id"/>
-                            <field name="reconciliation_review_id"/>
                             <field name="declaration_id"/>
                             <field name="closing_period_id"/>
                             <field name="import_run_id"/>
@@ -2259,9 +2234,9 @@
         </field>
     </record>
 
-    <record id="view_rebuild_account_review_decision_search" model="ir.ui.view">
-        <field name="name">rebuild.account.review.decision.search</field>
-        <field name="model">rebuild.account.review.decision</field>
+    <record id="view_rebuild_account_assurance_decision_search" model="ir.ui.view">
+        <field name="name">rebuild.account.assurance.decision.search</field>
+        <field name="model">rebuild.account.assurance.decision</field>
         <field name="arch" type="xml">
             <search string="Accounting Review Decisions">
                 <field name="name"/>
@@ -2285,9 +2260,9 @@
         </field>
     </record>
 
-    <record id="action_rebuild_account_review_decision" model="ir.actions.act_window">
+    <record id="action_rebuild_account_assurance_decision" model="ir.actions.act_window">
         <field name="name">Accounting Review Decisions</field>
-        <field name="res_model">rebuild.account.review.decision</field>
+        <field name="res_model">rebuild.account.assurance.decision</field>
         <field name="view_mode">list,form</field>
         <field name="context">{'search_default_draft': 1}</field>
         <field name="help" type="html">
@@ -2544,678 +2519,6 @@
         <field name="res_model">rebuild.account.asset</field>
         <field name="view_mode">list,form,pivot</field>
         <field name="context">{'group_by': 'asset_account_id'}</field>
-    </record>
-
-    <record id="view_rebuild_account_move_line_review_list" model="ir.ui.view">
-        <field name="name">rebuild.account.move.line.review.list</field>
-        <field name="model">rebuild.account.move.line.review</field>
-        <field name="arch" type="xml">
-            <list string="Source Move Line Workflow Review" create="0" edit="0" delete="0">
-                <field name="date"/>
-                <field name="source_move_state"/>
-                <field name="source_move_name"/>
-                <field name="sequence"/>
-                <field name="name"/>
-                <field name="company_id"/>
-                <field name="journal_id"/>
-                <field name="partner_id"/>
-                <field name="account_id"/>
-                <field name="display_type"/>
-                <field name="debit" sum="Debit"/>
-                <field name="credit" sum="Credit"/>
-                <field name="balance" sum="Balance"/>
-                <field name="amount_currency" sum="Amount Currency"/>
-                <field name="source_move_line_id"/>
-                <field name="source_move_id"/>
-                <field name="imported_move_id"/>
-                <field name="imported_move_review_id"/>
-                <field name="accounting_effect"/>
-            </list>
-        </field>
-    </record>
-
-    <record id="view_rebuild_account_move_line_review_form" model="ir.ui.view">
-        <field name="name">rebuild.account.move.line.review.form</field>
-        <field name="model">rebuild.account.move.line.review</field>
-        <field name="arch" type="xml">
-            <form string="Source Move Line Workflow Review">
-                <sheet>
-                    <group>
-                        <group>
-                            <field name="name"/>
-                            <field name="date"/>
-                            <field name="company_id"/>
-                            <field name="journal_id"/>
-                            <field name="partner_id"/>
-                            <field name="account_id"/>
-                            <field name="imported_move_id"/>
-                            <field name="imported_move_review_id"/>
-                        </group>
-                        <group>
-                            <field name="source_move_name"/>
-                            <field name="source_move_state"/>
-                            <field name="source_move_type"/>
-                            <field name="sequence"/>
-                            <field name="display_type"/>
-                            <field name="review_status"/>
-                            <field name="accounting_effect"/>
-                        </group>
-                    </group>
-                    <group string="Source Amounts">
-                        <field name="debit"/>
-                        <field name="credit"/>
-                        <field name="balance"/>
-                        <field name="line_currency_id"/>
-                        <field name="amount_currency"/>
-                        <field name="tax_base_amount"/>
-                        <field name="date_maturity"/>
-                    </group>
-                    <group string="Source Content">
-                        <field name="ref"/>
-                        <field name="label"/>
-                    </group>
-                    <notebook>
-                        <page string="Source Tax Trace">
-                            <group>
-                                <field name="source_account_id"/>
-                                <field name="source_tax_ids"/>
-                                <field name="source_tax_tag_ids"/>
-                                <field name="source_tax_line_id"/>
-                                <field name="source_tax_group_id"/>
-                                <field name="source_tax_repartition_line_id"/>
-                            </group>
-                        </page>
-                        <page string="Notes">
-                            <field name="note"/>
-                        </page>
-                        <page string="Source Trace">
-                            <group>
-                                <field name="source_move_line_id"/>
-                                <field name="source_move_id"/>
-                                <field name="rebuild_source_database"/>
-                                <field name="rebuild_source_model"/>
-                                <field name="rebuild_source_id"/>
-                                <field name="rebuild_source_snapshot"/>
-                                <field name="rebuild_import_run_id"/>
-                                <field name="rebuild_import_status"/>
-                            </group>
-                            <field name="rebuild_import_note"/>
-                        </page>
-                    </notebook>
-                </sheet>
-            </form>
-        </field>
-    </record>
-
-    <record id="view_rebuild_account_move_line_review_search" model="ir.ui.view">
-        <field name="name">rebuild.account.move.line.review.search</field>
-        <field name="model">rebuild.account.move.line.review</field>
-        <field name="arch" type="xml">
-            <search string="Source Move Line Workflow Review">
-                <field name="name"/>
-                <field name="source_move_name"/>
-                <field name="source_move_line_id"/>
-                <field name="source_move_id"/>
-                <field name="company_id"/>
-                <field name="journal_id"/>
-                <field name="account_id"/>
-                <filter name="posted_display" string="Posted Display Lines" domain="[('accounting_effect','=','none_non_account_display_line')]"/>
-                <filter name="non_posted" string="Non-posted Source Lines" domain="[('accounting_effect','=','none_non_posted_source_line')]"/>
-                <filter name="review_required" string="Review Required" domain="[('review_status','=','review_required')]"/>
-                <filter string="Company" name="group_company" context="{'group_by': 'company_id'}"/>
-                <filter string="Journal" name="group_journal" context="{'group_by': 'journal_id'}"/>
-                <filter string="Account" name="group_account" context="{'group_by': 'account_id'}"/>
-                <filter string="Source State" name="group_source_state" context="{'group_by': 'source_move_state'}"/>
-                <filter string="Display Type" name="group_display_type" context="{'group_by': 'display_type'}"/>
-            </search>
-        </field>
-    </record>
-
-    <record id="action_rebuild_account_move_line_review" model="ir.actions.act_window">
-        <field name="name">Source Move Line Workflow Review</field>
-        <field name="res_model">rebuild.account.move.line.review</field>
-        <field name="view_mode">list,form</field>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                Posted source display lines and non-posted source move lines are represented here for workflow review without creating posted journal items.
-            </p>
-        </field>
-    </record>
-
-    <record id="view_rebuild_account_move_review_list" model="ir.ui.view">
-        <field name="name">rebuild.account.move.review.list</field>
-        <field name="model">rebuild.account.move.review</field>
-        <field name="arch" type="xml">
-            <list string="Source Move Workflow Review" create="0" edit="0" delete="0">
-                <field name="date"/>
-                <field name="name"/>
-                <field name="company_id"/>
-                <field name="journal_id"/>
-                <field name="partner_id"/>
-                <field name="move_type"/>
-                <field name="source_state"/>
-                <field name="review_status"/>
-                <field name="amount_total_signed" sum="Total"/>
-                <field name="amount_residual_signed" sum="Residual"/>
-                <field name="currency_id"/>
-                <field name="source_line_count" sum="Source Lines"/>
-                <field name="move_line_review_count"/>
-                <field name="accounting_effect"/>
-                <field name="source_move_id"/>
-            </list>
-        </field>
-    </record>
-
-    <record id="view_rebuild_account_move_review_form" model="ir.ui.view">
-        <field name="name">rebuild.account.move.review.form</field>
-        <field name="model">rebuild.account.move.review</field>
-        <field name="arch" type="xml">
-            <form string="Source Move Workflow Review">
-                <sheet>
-                    <div name="button_box" class="oe_button_box">
-                        <button
-                            name="action_open_source_line_reviews"
-                            type="object"
-                            class="oe_stat_button"
-                            icon="fa-list"
-                        >
-                            <field name="move_line_review_count" widget="statinfo" string="Source Lines"/>
-                        </button>
-                    </div>
-                    <group>
-                        <group>
-                            <field name="name"/>
-                            <field name="source_name"/>
-                            <field name="date"/>
-                            <field name="invoice_date"/>
-                            <field name="invoice_date_due"/>
-                            <field name="company_id"/>
-                            <field name="currency_id"/>
-                        </group>
-                        <group>
-                            <field name="source_state"/>
-                            <field name="state"/>
-                            <field name="move_type"/>
-                            <field name="payment_state"/>
-                            <field name="review_status"/>
-                            <field name="accounting_effect"/>
-                        </group>
-                    </group>
-                    <group string="Source Relationships">
-                        <field name="journal_id"/>
-                        <field name="partner_id"/>
-                        <field name="commercial_partner_id"/>
-                        <field name="ref"/>
-                        <field name="payment_reference"/>
-                    </group>
-                    <group string="Source Totals">
-                        <field name="amount_untaxed_signed"/>
-                        <field name="amount_total_signed"/>
-                        <field name="amount_residual_signed"/>
-                        <field name="source_line_count"/>
-                        <field name="source_accounting_line_count"/>
-                        <field name="source_line_debit_total"/>
-                        <field name="source_line_credit_total"/>
-                        <field name="source_line_balance_total"/>
-                    </group>
-                    <notebook>
-                        <page string="Notes">
-                            <field name="note"/>
-                        </page>
-                        <page string="Source Trace">
-                            <group>
-                                <field name="source_move_id"/>
-                                <field name="source_create_date"/>
-                                <field name="source_write_date"/>
-                                <field name="rebuild_source_database"/>
-                                <field name="rebuild_source_model"/>
-                                <field name="rebuild_source_id"/>
-                                <field name="rebuild_source_snapshot"/>
-                                <field name="rebuild_import_run_id"/>
-                                <field name="rebuild_import_status"/>
-                            </group>
-                            <field name="rebuild_import_note"/>
-                        </page>
-                    </notebook>
-                </sheet>
-            </form>
-        </field>
-    </record>
-
-    <record id="view_rebuild_account_move_review_search" model="ir.ui.view">
-        <field name="name">rebuild.account.move.review.search</field>
-        <field name="model">rebuild.account.move.review</field>
-        <field name="arch" type="xml">
-            <search string="Source Move Workflow Review">
-                <field name="name"/>
-                <field name="source_move_id"/>
-                <field name="company_id"/>
-                <field name="journal_id"/>
-                <field name="partner_id"/>
-                <field name="move_type"/>
-                <filter string="Review Required" name="review_required" domain="[('review_status', '=', 'review_required')]"/>
-                <filter string="Draft" name="draft" domain="[('source_state', '=', 'draft')]"/>
-                <filter string="Cancelled" name="cancelled" domain="[('source_state', '=', 'cancel')]"/>
-                <filter string="Company" name="group_company" context="{'group_by': 'company_id'}"/>
-                <filter string="Journal" name="group_journal" context="{'group_by': 'journal_id'}"/>
-                <filter string="State" name="group_state" context="{'group_by': 'source_state'}"/>
-                <filter string="Move Type" name="group_move_type" context="{'group_by': 'move_type'}"/>
-            </search>
-        </field>
-    </record>
-
-    <record id="action_rebuild_account_move_review" model="ir.actions.act_window">
-        <field name="name">Source Move Workflow Review</field>
-        <field name="res_model">rebuild.account.move.review</field>
-        <field name="view_mode">list,form</field>
-        <field name="context">{'search_default_review_required': 0}</field>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                Non-posted source accounting documents are represented here for review without creating posted ledger effects.
-            </p>
-        </field>
-    </record>
-
-    <record id="view_rebuild_account_document_regeneration_case_list" model="ir.ui.view">
-        <field name="name">rebuild.account.document.regeneration.case.list</field>
-        <field name="model">rebuild.account.document.regeneration.case</field>
-        <field name="arch" type="xml">
-            <list string="Document Regeneration Cases" create="0" edit="0" delete="0">
-                <field name="date"/>
-                <field name="name"/>
-                <field name="company_id"/>
-                <field name="journal_id"/>
-                <field name="partner_id"/>
-                <field name="move_type"/>
-                <field name="source_state"/>
-                <field name="generation_scope"/>
-                <field name="case_status"/>
-                <field name="generation_status"/>
-                <field name="amount_total_signed" sum="Total"/>
-                <field name="amount_residual_signed" sum="Residual"/>
-                <field name="source_line_count" sum="Source Lines"/>
-                <field name="source_line_review_count"/>
-                <field name="source_move_id"/>
-                <field name="target_move_id"/>
-            </list>
-        </field>
-    </record>
-
-    <record id="view_rebuild_account_document_regeneration_case_form" model="ir.ui.view">
-        <field name="name">rebuild.account.document.regeneration.case.form</field>
-        <field name="model">rebuild.account.document.regeneration.case</field>
-        <field name="arch" type="xml">
-            <form string="Document Regeneration Case">
-                <header>
-                    <button name="action_generate_draft_move" type="object" string="Generate Draft" class="btn-primary" invisible="case_status != 'candidate_ready'"/>
-                    <button name="action_open_source_move_review" type="object" string="Source Move"/>
-                    <button name="action_open_source_line_reviews" type="object" string="Source Lines"/>
-                    <button name="action_open_generated_move" type="object" string="Generated Draft" invisible="not target_move_id"/>
-                </header>
-                <sheet>
-                    <group>
-                        <group>
-                            <field name="name"/>
-                            <field name="active"/>
-                            <field name="date"/>
-                            <field name="invoice_date"/>
-                            <field name="company_id"/>
-                            <field name="currency_id"/>
-                        </group>
-                        <group>
-                            <field name="generation_scope"/>
-                            <field name="case_status"/>
-                            <field name="generation_status"/>
-                            <field name="move_type"/>
-                            <field name="source_state"/>
-                            <field name="target_move_id"/>
-                        </group>
-                    </group>
-                    <group string="Source Relationships">
-                        <field name="move_review_id"/>
-                        <field name="journal_id"/>
-                        <field name="partner_id"/>
-                        <field name="source_move_id"/>
-                        <field name="source_name"/>
-                    </group>
-                    <group string="Amounts and Lines">
-                        <field name="amount_total_signed"/>
-                        <field name="amount_residual_signed"/>
-                        <field name="source_line_count"/>
-                        <field name="source_accounting_line_count"/>
-                        <field name="source_line_review_count"/>
-                        <field name="generated_line_count"/>
-                        <field name="generated_debit_total"/>
-                        <field name="generated_credit_total"/>
-                        <field name="generated_balance_total"/>
-                    </group>
-                    <notebook>
-                        <page string="Decision">
-                            <field name="blocker_reason"/>
-                            <field name="recommended_action"/>
-                            <field name="validation_note"/>
-                        </page>
-                        <page string="Source Trace">
-                            <group>
-                                <field name="rebuild_source_database"/>
-                                <field name="rebuild_source_model"/>
-                                <field name="rebuild_source_id"/>
-                                <field name="rebuild_source_snapshot"/>
-                                <field name="rebuild_import_run_id"/>
-                                <field name="rebuild_import_status"/>
-                            </group>
-                            <field name="rebuild_import_note"/>
-                        </page>
-                    </notebook>
-                </sheet>
-            </form>
-        </field>
-    </record>
-
-    <record id="view_rebuild_account_document_regeneration_case_search" model="ir.ui.view">
-        <field name="name">rebuild.account.document.regeneration.case.search</field>
-        <field name="model">rebuild.account.document.regeneration.case</field>
-        <field name="arch" type="xml">
-            <search string="Document Regeneration Cases">
-                <field name="name"/>
-                <field name="source_move_id"/>
-                <field name="source_name"/>
-                <field name="company_id"/>
-                <field name="journal_id"/>
-                <field name="partner_id"/>
-                <filter name="ready" string="Ready Candidates" domain="[('case_status','=','candidate_ready')]"/>
-                <filter name="blocked" string="Blocked" domain="[('generation_status','=','blocked')]"/>
-                <filter name="not_applicable" string="Review Only" domain="[('generation_status','=','not_applicable')]"/>
-                <filter name="business_document" string="Business Documents" domain="[('generation_scope','=','draft_business_document')]"/>
-                <filter name="journal_entry" string="Journal Entries" domain="[('generation_scope','=','draft_journal_entry')]"/>
-                <filter name="cancelled" string="Cancelled Source" domain="[('generation_scope','=','cancelled_source_record')]"/>
-                <filter string="Company" name="group_company" context="{'group_by': 'company_id'}"/>
-                <filter string="Status" name="group_status" context="{'group_by': 'case_status'}"/>
-                <filter string="Scope" name="group_scope" context="{'group_by': 'generation_scope'}"/>
-                <filter string="Move Type" name="group_move_type" context="{'group_by': 'move_type'}"/>
-            </search>
-        </field>
-    </record>
-
-    <record id="action_rebuild_account_document_regeneration_case" model="ir.actions.act_window">
-        <field name="name">Document Regeneration Cases</field>
-        <field name="res_model">rebuild.account.document.regeneration.case</field>
-        <field name="view_mode">list,form,pivot</field>
-        <field name="context">{'search_default_group_status': 1}</field>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                Non-posted source moves are classified here before isolated native document-regeneration testing.
-            </p>
-        </field>
-    </record>
-
-    <record id="view_rebuild_account_payment_review_list" model="ir.ui.view">
-        <field name="name">rebuild.account.payment.review.list</field>
-        <field name="model">rebuild.account.payment.review</field>
-        <field name="arch" type="xml">
-            <list string="Source Payment Workflow Review" create="0" edit="0" delete="0">
-                <field name="date"/>
-                <field name="name"/>
-                <field name="company_id"/>
-                <field name="journal_id"/>
-                <field name="partner_id"/>
-                <field name="payment_type"/>
-                <field name="partner_type"/>
-                <field name="source_state"/>
-                <field name="review_status"/>
-                <field name="amount" sum="Amount"/>
-                <field name="currency_id"/>
-                <field name="memo"/>
-                <field name="accounting_effect"/>
-                <field name="source_payment_id"/>
-            </list>
-        </field>
-    </record>
-
-    <record id="view_rebuild_account_payment_review_form" model="ir.ui.view">
-        <field name="name">rebuild.account.payment.review.form</field>
-        <field name="model">rebuild.account.payment.review</field>
-        <field name="arch" type="xml">
-            <form string="Source Payment Workflow Review">
-                <sheet>
-                    <group>
-                        <group>
-                            <field name="name"/>
-                            <field name="date"/>
-                            <field name="company_id"/>
-                            <field name="currency_id"/>
-                            <field name="amount"/>
-                            <field name="amount_company_currency_signed"/>
-                        </group>
-                        <group>
-                            <field name="source_state"/>
-                            <field name="review_status"/>
-                            <field name="payment_type"/>
-                            <field name="partner_type"/>
-                            <field name="accounting_effect"/>
-                        </group>
-                    </group>
-                    <group string="Source Relationships">
-                        <field name="journal_id"/>
-                        <field name="partner_id"/>
-                        <field name="outstanding_account_id"/>
-                        <field name="destination_account_id"/>
-                        <field name="payment_method_line_source_id"/>
-                        <field name="partner_bank_source_id"/>
-                        <field name="paired_internal_transfer_payment_source_id"/>
-                    </group>
-                    <group string="Source Flags">
-                        <field name="source_is_reconciled"/>
-                        <field name="source_is_reconciled_raw"/>
-                        <field name="source_is_matched"/>
-                        <field name="source_is_matched_raw"/>
-                        <field name="source_is_sent"/>
-                        <field name="source_is_sent_raw"/>
-                    </group>
-                    <notebook>
-                        <page string="Memo">
-                            <field name="memo"/>
-                            <field name="payment_reference"/>
-                            <field name="note"/>
-                        </page>
-                        <page string="Source Trace">
-                            <group>
-                                <field name="rebuild_source_database"/>
-                                <field name="rebuild_source_model"/>
-                                <field name="rebuild_source_id"/>
-                                <field name="rebuild_source_snapshot"/>
-                                <field name="rebuild_import_run_id"/>
-                                <field name="rebuild_import_status"/>
-                            </group>
-                            <field name="rebuild_import_note"/>
-                        </page>
-                    </notebook>
-                </sheet>
-            </form>
-        </field>
-    </record>
-
-    <record id="view_rebuild_account_payment_review_search" model="ir.ui.view">
-        <field name="name">rebuild.account.payment.review.search</field>
-        <field name="model">rebuild.account.payment.review</field>
-        <field name="arch" type="xml">
-            <search string="Source Payment Workflow Review">
-                <field name="name"/>
-                <field name="memo"/>
-                <field name="company_id"/>
-                <field name="journal_id"/>
-                <field name="partner_id"/>
-                <filter name="review_required" string="Review Required" domain="[('review_status','=','review_required')]"/>
-                <filter name="draft" string="Draft" domain="[('state','=','draft')]"/>
-                <filter name="reconciled" string="Reconciled" domain="[('state','=','reconciled')]"/>
-                <filter name="canceled" string="Canceled" domain="[('state','=','canceled')]"/>
-                <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"/>
-                <filter name="group_state" string="State" context="{'group_by': 'state'}"/>
-                <filter name="group_review_status" string="Review Status" context="{'group_by': 'review_status'}"/>
-                <filter name="group_journal" string="Journal" context="{'group_by': 'journal_id'}"/>
-            </search>
-        </field>
-    </record>
-
-    <record id="action_rebuild_account_payment_review" model="ir.actions.act_window">
-        <field name="name">Source Payment Workflow Review</field>
-        <field name="res_model">rebuild.account.payment.review</field>
-        <field name="view_mode">list,form,pivot</field>
-    </record>
-
-    <record id="view_rebuild_account_reconciliation_review_list" model="ir.ui.view">
-        <field name="name">rebuild.account.reconciliation.review.list</field>
-        <field name="model">rebuild.account.reconciliation.review</field>
-        <field name="arch" type="xml">
-            <list string="Source Reconciliation Boundary Review" create="0" edit="0" delete="0">
-                <field name="max_date"/>
-                <field name="company_id"/>
-                <field name="reconciliation_kind"/>
-                <field name="review_status"/>
-                <field name="source_partial_reconcile_id"/>
-                <field name="source_full_reconcile_id"/>
-                <field name="source_debit_line_id"/>
-                <field name="source_credit_line_id"/>
-                <field name="debit_line_imported"/>
-                <field name="credit_line_imported"/>
-                <field name="amount" sum="Amount"/>
-                <field name="total_line_count"/>
-                <field name="imported_line_count"/>
-                <field name="missing_line_count"/>
-                <field name="generated_missing_line_count"/>
-                <field name="missing_endpoint_coverage"/>
-                <field name="missing_source_move_states"/>
-                <field name="accounting_effect"/>
-                <button name="action_open_imported_journal_items" type="object" string="Imported Items" icon="fa-external-link"/>
-                <button name="action_open_generated_missing_endpoint_items" type="object" string="Generated Draft Endpoints" icon="fa-external-link"/>
-            </list>
-        </field>
-    </record>
-
-    <record id="view_rebuild_account_reconciliation_review_form" model="ir.ui.view">
-        <field name="name">rebuild.account.reconciliation.review.form</field>
-        <field name="model">rebuild.account.reconciliation.review</field>
-        <field name="arch" type="xml">
-            <form string="Source Reconciliation Boundary Review" create="0" edit="0" delete="0">
-                <sheet>
-                    <header>
-                        <button name="action_open_imported_journal_items" type="object" string="Open Imported Endpoint Items"/>
-                        <button name="action_open_generated_missing_endpoint_items" type="object" string="Open Generated Draft Endpoints"/>
-                        <button name="action_preview_native_partial_reconciliation" type="object" string="Preview Native Partial" invisible="reconciliation_kind != 'partial'"/>
-                        <button name="action_preview_native_full_reconciliation_scope" type="object" string="Preview Full Scope" invisible="reconciliation_kind != 'full'"/>
-                        <button name="action_record_review_decision" type="object" string="Record Decision" groups="account.group_account_manager"/>
-                        <button name="action_open_review_decisions" type="object" string="Decisions"/>
-                        <button name="action_apply_native_partial_reconciliation" type="object" string="Apply Native Partial" groups="account.group_account_manager" invisible="reconciliation_kind != 'partial'"/>
-                    </header>
-                    <group>
-                        <group>
-                            <field name="name"/>
-                            <field name="company_id"/>
-                            <field name="source_company_id"/>
-                            <field name="source_company_ids"/>
-                            <field name="max_date"/>
-                        </group>
-                        <group>
-                            <field name="reconciliation_kind"/>
-                            <field name="review_status"/>
-                            <field name="accounting_effect"/>
-                            <field name="amount"/>
-                            <field name="debit_amount_currency"/>
-                            <field name="credit_amount_currency"/>
-                        </group>
-                    </group>
-                    <group string="Partial Reconciliation Endpoints" invisible="reconciliation_kind != 'partial'">
-                        <field name="source_partial_reconcile_id"/>
-                        <field name="source_full_reconcile_id"/>
-                        <field name="source_debit_line_id"/>
-                        <field name="source_credit_line_id"/>
-                        <field name="source_debit_move_id"/>
-                        <field name="source_credit_move_id"/>
-                        <field name="source_debit_move_date"/>
-                        <field name="source_credit_move_date"/>
-                        <field name="source_debit_move_state"/>
-                        <field name="source_credit_move_state"/>
-                        <field name="source_debit_company_id"/>
-                        <field name="source_credit_company_id"/>
-                        <field name="debit_line_imported"/>
-                        <field name="credit_line_imported"/>
-                        <field name="debit_move_line_id"/>
-                        <field name="credit_move_line_id"/>
-                        <field name="source_exchange_move_id"/>
-                        <field name="exchange_move_imported"/>
-                        <field name="exchange_move_id"/>
-                    </group>
-                    <group string="Full Reconciliation Scope" invisible="reconciliation_kind != 'full'">
-                        <field name="source_full_reconcile_id"/>
-                        <field name="total_line_count"/>
-                        <field name="imported_line_count"/>
-                        <field name="missing_line_count"/>
-                        <field name="generated_missing_line_count"/>
-                        <field name="missing_endpoint_coverage"/>
-                    </group>
-                    <notebook>
-                        <page string="Source Lines" invisible="reconciliation_kind != 'full'">
-                            <field name="source_line_ids"/>
-                            <field name="imported_source_line_ids"/>
-                            <field name="missing_source_line_ids"/>
-                            <field name="missing_source_move_ids"/>
-                            <field name="missing_source_move_states"/>
-                            <field name="missing_source_move_dates"/>
-                            <field name="missing_source_company_ids"/>
-                            <field name="source_partial_reconcile_ids"/>
-                        </page>
-                        <page string="Generated Missing Endpoints">
-                            <field name="generated_missing_line_count"/>
-                            <field name="generated_missing_source_line_ids"/>
-                            <field name="missing_endpoint_coverage"/>
-                        </page>
-                        <page string="Review Note">
-                            <field name="note"/>
-                        </page>
-                        <page string="Source Trace">
-                            <group>
-                                <field name="rebuild_source_database"/>
-                                <field name="rebuild_source_model"/>
-                                <field name="rebuild_source_id"/>
-                                <field name="rebuild_source_snapshot"/>
-                                <field name="rebuild_import_run_id"/>
-                                <field name="rebuild_import_status"/>
-                            </group>
-                            <field name="rebuild_import_note"/>
-                        </page>
-                    </notebook>
-                </sheet>
-            </form>
-        </field>
-    </record>
-
-    <record id="view_rebuild_account_reconciliation_review_search" model="ir.ui.view">
-        <field name="name">rebuild.account.reconciliation.review.search</field>
-        <field name="model">rebuild.account.reconciliation.review</field>
-        <field name="arch" type="xml">
-            <search string="Source Reconciliation Boundary Review">
-                <field name="name"/>
-                <field name="company_id"/>
-                <field name="source_partial_reconcile_id"/>
-                <field name="source_full_reconcile_id"/>
-                <field name="source_debit_line_id"/>
-                <field name="source_credit_line_id"/>
-                <filter name="partial" string="Partial Reconciliations" domain="[('reconciliation_kind','=','partial')]"/>
-                <filter name="full" string="Full Reconciliations" domain="[('reconciliation_kind','=','full')]"/>
-                <filter name="pending_policy_review" string="Pending Policy Review" domain="[('review_status','!=','native_reconciliation_applied')]"/>
-                <filter name="review_required" string="Review Required" domain="[('review_status','=','review_required')]"/>
-                <filter name="group_kind" string="Type" context="{'group_by': 'reconciliation_kind'}"/>
-                <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"/>
-                <filter name="group_review_status" string="Review Status" context="{'group_by': 'review_status'}"/>
-            </search>
-        </field>
-    </record>
-
-    <record id="action_rebuild_account_reconciliation_review" model="ir.actions.act_window">
-        <field name="name">Source Reconciliation Boundary Review</field>
-        <field name="res_model">rebuild.account.reconciliation.review</field>
-        <field name="view_mode">list,form,pivot</field>
-        <field name="context">{'search_default_pending_policy_review': 1}</field>
     </record>
 
     <record id="view_rebuild_account_source_report_list" model="ir.ui.view">
@@ -3645,7 +2948,6 @@
                 <field name="counterpart_balance" sum="Counterpart Balance"/>
                 <field name="original_move_id"/>
                 <field name="deferred_move_id"/>
-                <field name="deferred_move_review_id"/>
                 <button name="action_open_original_move" type="object" string="Original" icon="fa-external-link" invisible="not original_move_id"/>
                 <button name="action_open_deferred_move" type="object" string="Deferred Entry" icon="fa-list"/>
                 <button name="action_open_journal_items" type="object" string="Journal Items" icon="fa-list"/>
@@ -3695,7 +2997,6 @@
                         <field name="source_deferred_state"/>
                         <field name="source_deferred_move_type"/>
                         <field name="deferred_move_id"/>
-                        <field name="deferred_move_review_id"/>
                         <field name="deferred_move_imported"/>
                     </group>
                     <group string="Amounts and Accounts">
@@ -5606,10 +4907,10 @@
         sequence="10"
         groups="account.group_account_readonly"/>
     <menuitem
-        id="menu_rebuild_account_review_summary"
-        name="Accounting Reconstruction Review"
+        id="menu_rebuild_account_overview"
+        name="Accounting Assurance Overview"
         parent="menu_rebuild_account_migration"
-        action="action_rebuild_account_review_summary"
+        action="action_rebuild_account_overview"
         sequence="5"
         groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
     <menuitem
@@ -5634,10 +4935,10 @@
         sequence="20"
         groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
     <menuitem
-        id="menu_rebuild_account_review_decision"
+        id="menu_rebuild_account_assurance_decision"
         name="Review Decisions"
         parent="menu_rebuild_account_migration"
-        action="action_rebuild_account_review_decision"
+        action="action_rebuild_account_assurance_decision"
         sequence="22"
         groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
     <menuitem
@@ -5758,41 +5059,6 @@
         parent="menu_rebuild_account_migration"
         action="action_rebuild_account_eu_tax_report_line"
         sequence="111"
-        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
-    <menuitem
-        id="menu_rebuild_account_move_review"
-        name="Source Move Workflow Review"
-        parent="menu_rebuild_account_migration"
-        action="action_rebuild_account_move_review"
-        sequence="112"
-        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
-    <menuitem
-        id="menu_rebuild_account_document_regeneration_case"
-        name="Document Regeneration Cases"
-        parent="menu_rebuild_account_migration"
-        action="action_rebuild_account_document_regeneration_case"
-        sequence="112"
-        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
-    <menuitem
-        id="menu_rebuild_account_move_line_review"
-        name="Source Move Line Workflow Review"
-        parent="menu_rebuild_account_migration"
-        action="action_rebuild_account_move_line_review"
-        sequence="112"
-        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
-    <menuitem
-        id="menu_rebuild_account_payment_review"
-        name="Source Payment Workflow Review"
-        parent="menu_rebuild_account_migration"
-        action="action_rebuild_account_payment_review"
-        sequence="113"
-        groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
-    <menuitem
-        id="menu_rebuild_account_reconciliation_review"
-        name="Source Reconciliation Boundary Review"
-        parent="menu_rebuild_account_migration"
-        action="action_rebuild_account_reconciliation_review"
-        sequence="114"
         groups="base.group_no_one,-base.group_system,-account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_bank_reconciliation_line"
@@ -6306,13 +5572,6 @@
         sequence="86"
         groups="account.group_account_readonly"/>
     <menuitem
-        id="menu_rebuild_account_reconciliation_review_reporting"
-        name="Source Reconciliation Boundary Review"
-        parent="account.account_reports_legal_statements_menu"
-        action="action_rebuild_account_reconciliation_review"
-        sequence="87"
-        groups="account.group_account_readonly"/>
-    <menuitem
         id="menu_rebuild_account_currency_reporting"
         name="Imported Currency Gain/Loss"
         parent="account.account_reports_legal_statements_menu"
@@ -6446,9 +5705,6 @@
         <field name="active" eval="False"/>
     </record>
     <record id="menu_rebuild_account_bank_reconciliation_reporting" model="ir.ui.menu">
-        <field name="active" eval="False"/>
-    </record>
-    <record id="menu_rebuild_account_reconciliation_review_reporting" model="ir.ui.menu">
         <field name="active" eval="False"/>
     </record>
     <record id="menu_rebuild_account_currency_reporting" model="ir.ui.menu">

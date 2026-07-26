@@ -31,7 +31,7 @@ class AccountMoveLine(models.Model):
 
 
 class RebuildAccountReviewSummary(models.Model):
-    _inherit = "rebuild.account.review.summary"
+    _inherit = "rebuild.account.overview"
 
     cash_on_banks = fields.Monetary(
         string="Cash on banks",

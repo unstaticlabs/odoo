@@ -114,7 +114,7 @@ iterating on one pipeline layer.
 | `make accounting-attachment-audit` | Verifies every source-referenced blob, classifies unreferenced files, compares the complete Accounting scope with `odoo_dev`, and reads every target binary through Odoo storage. | Restored source database and a reconstructed `odoo_dev`. | Private attachment reconstruction evidence and a blocking pass/partial result. |
 | `make accounting-extract` | Reads accounting records from the restored source database and writes the private canonical snapshot/extract files. It does not read business data from the SQL file directly. | `accounting-source-db` must still be running and restored. | Snapshot files under `accounting_compat/private/` and `artifacts/accounting-compat/private/`. |
 | `make accounting-validation-exact-reset` | Recreates the disposable target Odoo database `odoo_saas_19_2_validation_exact` from scratch and initializes the needed Community, OCA and USL target modules. | The normal `db` PostgreSQL service must be running, and `make oca-addons-sync` must have populated `oca-addons/`. | A clean target Odoo database ready for import. |
-| `make accounting-validation-exact-import` | Imports the extracted accounting snapshot into the clean target database through the target Odoo ORM. | Source database still running, extracted snapshot present, clean target database present. | Imported companies, accounts, journals, posted entries, report evidence, assets, review records and source traces. |
+| `make accounting-validation-exact-import` | Imports the extracted accounting snapshot into the clean target database through the target Odoo ORM. | Source database still running, extracted snapshot present, clean target database present. | Native companies, accounts, journals, entries in every state, payments, reconciliations, report definitions, assets, attachments and source traces. |
 | `make accounting-validation-exact-validate` | Runs target controls: balanced moves, duplicate source traces, counts, locks, relationships and imported evidence checks. | Successful target import. | Validation status artifacts and discrepancy updates. |
 | `make accounting-reports` | Exercises Odoo-facing report views, previews, exports and drill-down evidence from the imported target. | Successful target validation and imported report data. | Report export/check artifacts and Odoo report evidence. |
 
@@ -259,7 +259,7 @@ Accounting > Reporting > Interactive Reports > Grand livre
 Accounting > Reporting > Statement Reports > Bilan
 Accounting > Reporting > Statement Reports > Compte de résultat
 Accounting > Reporting > Taxes & Fiscal > FEC
-Accounting > Review > Advanced Audit > Accounting Reconstruction Review
+Accounting > Review > Advanced Audit > Accounting Assurance Overview
 Accounting > Review > Advanced Audit > User Guide
 Accounting > Review > Advanced Audit > Imported Report Export
 ```

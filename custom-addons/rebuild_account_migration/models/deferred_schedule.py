@@ -61,7 +61,6 @@ class RebuildAccountDeferredScheduleLine(models.Model):
 
     original_move_id = fields.Many2one("account.move", index=True, ondelete="set null")
     deferred_move_id = fields.Many2one("account.move", index=True, ondelete="set null")
-    deferred_move_review_id = fields.Many2one("rebuild.account.move.review", index=True, ondelete="set null")
     original_move_imported = fields.Boolean(copy=False)
     deferred_move_imported = fields.Boolean(copy=False)
 
@@ -111,15 +110,6 @@ class RebuildAccountDeferredScheduleLine(models.Model):
                 "res_model": "account.move",
                 "view_mode": "form",
                 "res_id": self.deferred_move_id.id,
-                "context": {"create": False, "delete": False},
-            }
-        if self.deferred_move_review_id:
-            return {
-                "type": "ir.actions.act_window",
-                "name": "Deferred Source Draft Review",
-                "res_model": "rebuild.account.move.review",
-                "view_mode": "form",
-                "res_id": self.deferred_move_review_id.id,
                 "context": {"create": False, "delete": False},
             }
         return False

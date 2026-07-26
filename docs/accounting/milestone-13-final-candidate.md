@@ -17,19 +17,25 @@ Source dump SHA-256:
 
 ## Release decision
 
-Accounting v1 is technically ready for daily operations and merge. The final
-readiness classification is
-`TECHNICAL_PRODUCT_GATES_PASSED_ADVISORY_REVIEWS_REMAIN`: there are no
-engineering blockers, P0 defects or unclassified target accounting
-differences.
+The clean final replay passes the source/target parity, retry-idempotence,
+native trace, product count, balance, report, attachment and local FEC gates.
+There is no P0 or P1 migration defect. Migration placeholder records are not
+an accepted representation of source accounting truth and none of the former
+move, move-line, payment, document-regeneration or reconciliation review
+models or tables exists.
 
-Two source/accountant advisories remain visible by design:
+The complete reconciliation graph is imported because all former boundary
+endpoints belong to native draft documents in the scoped companies. The
+remaining source-data advisory is 16 source sequence gaps and 104 source
+date-order decreases, preserved exactly without introducing a target-only
+chronology exception.
 
-1. 75 cross-boundary reconciliation relationships remain review evidence
-   because the other source endpoint is draft or outside the exact posted
-   replay boundary. A rollback-only native partial-reconciliation probe passed.
-2. 16 source sequence gaps and 104 source date-order decreases are preserved
-   exactly. The target introduces no additional chronology exception.
+The only accounting transformation is the documented EUR 942 DGFiP VAT-refund
+reclassification: it adds one balanced source-traced correction entry and
+settles the source bank-line residual. Its amount, date, accounts and
+reconciliation controls pass. For 175 unnamed source drafts, the native Odoo
+display sentinel `/` represents the source SQL `NULL`; no posted number or
+sequence is normalized.
 
 Professional approval, live filing and production cutover are operational
 decisions outside this engineering release.
@@ -39,18 +45,18 @@ decisions outside this engineering release.
 The final release harness restored the current source, completed independent
 exact and native validation tracks, and reconstructed the product candidate
 from scratch. `dev-validate-status.json` was generated at
-`2026-07-26T13:30:43Z`.
+`2026-07-26T17:05:39Z`.
 
 | Object | Verified count |
 | --- | ---: |
-| Accounting moves | 5,043 |
-| Posted / draft moves | 4,849 / 193 |
-| Imported posted move lines | 11,404 |
+| Accounting moves | 5,044 |
+| Posted / draft / cancelled moves | 4,849 / 193 / 2 |
+| Native move lines, all states | 11,871 |
 | Business documents | 348 |
 | Native expenses | 360 |
-| Payments / payment-evidence records | 97 / 13 |
+| Native payments, including no-entry historical records | 110 |
 | Bank statement lines | 3,046 |
-| Partial / full reconciliations | 2,531 / 1,210 |
+| Partial / full reconciliations | 2,584 / 1,260 |
 | Historical currency rates | 1,889 |
 | Analytic lines | 632 |
 | Assets / schedule lines / posted depreciation links | 3 / 91 / 28 |
@@ -63,10 +69,10 @@ credit. Account differences: 0. Journal differences: 0. The historical
 benchmark through 30 September 2025 likewise matches exactly: 2,046 posted
 moves, 4,809 journal items, and EUR 1,064,045.02 debit and credit.
 
-The native replay independently passed expenses, commercial documents,
-settlements, assets, deferrals, general and bank reconciliation, external bank
-flows, historical currencies and analytics. It is proof of reproducibility in
-`odoo_saas_19_2_validation_native`, not a second product ledger.
+The clean `odoo_dev` replay independently passed expenses, commercial
+documents, assets, deferrals, complete reconciliation, bank lines, historical
+currencies, analytics and attachments. The separate validation databases are
+disposable proofs, not product ledgers.
 
 ## Product acceptance
 
@@ -92,17 +98,17 @@ flows, historical currencies and analytics. It is proof of reproducibility in
   The readiness screen says **Implemented and Validated**,
   **Configuration Required** and **Not Connected**. Production provider
   registration, endpoints and scheduled exchange remain inactive.
-- Reconstruction, import and comparison objects are not exposed in normal
-  Accounting navigation.
+- Import and comparison infrastructure is not exposed in normal Accounting
+  navigation.
 
 ## FEC and reports
 
 The benchmark FEC contains 4,781 data rows and balances at
 EUR 1,064,045.02 debit and credit. SHA-256:
-`05c8e064307bc0ff1387695625059179951aadd5b5dc9a126258abcb1a857fe0`.
+`46dfd0a9b3708087309c05875b018f18365724e5bf9f72cd1373e7e6db1707aa`.
 Local structural preflight reports zero invalid rows, chronology decreases or
-unbalanced entries. The official DGFiP Test Compta Demat source validator
-exited 0 with zero blocking logs.
+unbalanced entries. Running the current official external DGFiP validator and
+professional acceptance remains deliberately outside this engineering pass.
 
 Dynamic report smoke checks, drill-downs and PDF/XLSX exports pass. Trusted
 French statement anchors include EUR 69,680.16 total assets/passif,
@@ -114,16 +120,17 @@ unsupported claim of filed or professionally approved statements.
 
 | Gate | Command | Evidence |
 | --- | --- | --- |
-| Clean exact and native reconstruction | `make accounting-compat` | `source-*-status.json`, `validation-exact-*-status.json`, `validation-native-*-status.json`, `dev-*-status.json` |
+| Clean exact reconstruction | `make accounting-validation-exact-reset`; `make accounting-validation-exact-import`; `make accounting-validation-exact-validate` | `validation-exact-*-status.json` |
+| Retry safety and obsolete-model absence | `make accounting-validation-exact-idempotence`; `make accounting-validation-exact-failure-tests` | `validation-exact-idempotence-status.json`, `validation-exact-failure-tests-status.json` |
+| Clean product reconstruction | `make accounting-dev-reset`; `make accounting-dev-import`; `make accounting-dev-attachments`; `make accounting-dev-validate` | `dev-*-status.json` |
 | Candidate parity | `make accounting-compare` | `compare-status.json`, `dev-validate-status.json` |
 | Reports and exports | `make accounting-reports` | `reports-status.json`, `parity-matrix-v1.json`, generated report files |
 | Currency provider | `make accounting-currency-rate-provider` | `currency-rate-provider-status.json` |
-| FEC | `make accounting-fec`; `make accounting-fec-preflight`; `make accounting-fec-validate` | `fec-status.json`, `fec-structural-preflight.json`, `fec-validation-status.json`, `fec-dgfip-source-validation/` |
-| Add-on regression | `make accounting-addon-tests` | 111 tests passed |
-| Harness regression | `python3 -m unittest discover -s accounting_compat/tests -v` | 10 tests passed |
-| Role browser acceptance | focused manager/reviewer walkthrough | `replacement-browser-status.json`, `final-polish-browser-status.json` |
+| FEC | `make accounting-fec`; `make accounting-fec-preflight` | `fec-status.json`, `fec-structural-preflight.json` |
+| Add-on regression | `make accounting-addon-tests` | Passed on a fresh disposable test database |
+| Harness regression | `python3 -m unittest discover -s accounting_compat/tests -v` | 6 tests passed |
+| Role access | report-suite manager/reviewer probes | `reports-status.json` |
 | Attachment reconstruction | `make accounting-dev-attachments`; `make accounting-attachment-audit` | `dev-attachment-replay-status.json`, `attachment-reconstruction-status.json` |
-| Release gate | `make accounting-readiness`; `make accounting-evidence` | `readiness-assessment.json`, `readiness-assessment.md`, `evidence-index.json` |
 
 Private evidence is under `artifacts/accounting-compat/private/` and remains
 uncommitted. It contains production-derived identifiers and must not be
@@ -137,3 +144,8 @@ published.
 - probabilistic/AI matching and autonomous posting;
 - production deployment and cutover from the disposable `odoo_dev`
   environment.
+
+These are the complete remaining gaps. Source chronology anomalies and the
+native draft-name sentinel are preserved/declared source semantics, not
+unfinished migration work. There is no remaining P0/P1 data, reconciliation,
+attachment, report-definition or obsolete-model gap.

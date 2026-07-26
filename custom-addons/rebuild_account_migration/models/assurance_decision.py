@@ -2,9 +2,11 @@ from odoo import api, fields, models
 from odoo.exceptions import UserError
 
 
-class RebuildAccountReviewDecision(models.Model):
-    _name = "rebuild.account.review.decision"
-    _description = "USL Accounting Review Decision"
+class RebuildAccountAssuranceDecision(models.Model):
+    """Durable business approval for accounting assurance gates."""
+
+    _name = "rebuild.account.assurance.decision"
+    _description = "USL Accounting Assurance Decision"
     _order = "reviewed_at desc, id desc"
 
     name = fields.Char(required=True, default="Accounting Review Decision")
@@ -64,11 +66,6 @@ class RebuildAccountReviewDecision(models.Model):
     source_report_id = fields.Many2one("rebuild.account.source.report", index=True, ondelete="set null")
     discrepancy_id = fields.Many2one("rebuild.account.discrepancy", index=True, ondelete="set null")
     external_value_id = fields.Many2one("rebuild.account.external.report.value", index=True, ondelete="set null")
-    reconciliation_review_id = fields.Many2one(
-        "rebuild.account.reconciliation.review",
-        index=True,
-        ondelete="set null",
-    )
     declaration_id = fields.Many2one(
         "rebuild.account.declaration",
         index=True,
@@ -123,11 +120,6 @@ class RebuildAccountReviewDecision(models.Model):
         if vals.get("external_value_id"):
             external_value = self.env["rebuild.account.external.report.value"].browse(vals["external_value_id"])
             return f"External value review - {external_value.display_name}"
-        if vals.get("reconciliation_review_id"):
-            reconciliation_review = self.env["rebuild.account.reconciliation.review"].browse(
-                vals["reconciliation_review_id"]
-            )
-            return f"Reconciliation review - {reconciliation_review.display_name}"
         if vals.get("declaration_id"):
             declaration = self.env["rebuild.account.declaration"].browse(vals["declaration_id"])
             return f"Declaration review - {declaration.display_name}"
@@ -352,19 +344,6 @@ class RebuildAccountReviewDecision(models.Model):
             "name": "External Report Value",
             "res_model": "rebuild.account.external.report.value",
             "res_id": self.external_value_id.id,
-            "view_mode": "form",
-            "context": {"create": False, "delete": False},
-        }
-
-    def action_open_reconciliation_review(self):
-        self.ensure_one()
-        if not self.reconciliation_review_id:
-            raise UserError("This review decision is not linked to a reconciliation boundary review.")
-        return {
-            "type": "ir.actions.act_window",
-            "name": "Reconciliation Boundary Review",
-            "res_model": "rebuild.account.reconciliation.review",
-            "res_id": self.reconciliation_review_id.id,
             "view_mode": "form",
             "context": {"create": False, "delete": False},
         }
