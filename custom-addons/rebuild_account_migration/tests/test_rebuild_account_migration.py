@@ -1878,6 +1878,172 @@ class TestRebuildAccountMigration(TransactionCase):
         with self.assertRaises(AccessError):
             bank_line.move_id.with_user(reviewer).write({"ref": "forbidden"})
 
+    def test_bank_partner_inference_is_confident_explainable_and_safe(self):
+        journal = self._journal("bank")
+        first_partner = self.env["res.partner"].create({
+            "name": "Smart Bank Supplier",
+        })
+        other_partner = self.env["res.partner"].create({
+            "name": "Other Bank Supplier",
+        })
+        bank_account = self.env["res.partner.bank"].sudo().create({
+            "partner_id": first_partner.id,
+            "account_number": "FR7630006000011234567890189",
+        })
+
+        def create_line(label, partner=False):
+            line = self.env["account.bank.statement.line"].with_context(
+                skip_retrieve_partner=True,
+            ).create({
+                "journal_id": journal.id,
+                "date": fields.Date.today(),
+                "partner_id": partner.id if partner else False,
+                "payment_ref": label,
+                "amount": -25.0,
+            })
+            return self.env["account.bank.statement.line"].browse(line.id)
+
+        exact_history = (
+            create_line("SMART BANK RECURRING", first_partner)
+            | create_line("SMART BANK RECURRING", first_partner)
+        )
+        pattern_history = (
+            create_line("SMART PATTERN SUPPLIER 1001", first_partner)
+            | create_line("SMART PATTERN SUPPLIER 1002", first_partner)
+            | create_line("SMART PATTERN SUPPLIER 1003", first_partner)
+        )
+        single_history = create_line(
+            "SMART BANK SINGLE OBSERVATION",
+            first_partner,
+        )
+        conflicting_history = (
+            create_line("SMART BANK AMBIGUOUS", first_partner)
+            | create_line("SMART BANK AMBIGUOUS", other_partner)
+        )
+        learned_lines = (
+            exact_history
+            | pattern_history
+            | single_history
+            | conflicting_history
+        )
+        self.env.flush_all()
+        self.env.cr.execute(
+            """
+            UPDATE account_bank_statement_line
+               SET is_reconciled = TRUE
+             WHERE id IN %s
+            """,
+            [tuple(learned_lines.ids)],
+        )
+        learned_lines.invalidate_recordset(["is_reconciled"])
+
+        account_match = self.env["account.bank.statement.line"].create({
+            "journal_id": journal.id,
+            "date": fields.Date.today(),
+            "payment_ref": "SMART EXACT BANK ACCOUNT",
+            "account_number": bank_account.account_number,
+            "amount": -20.0,
+        })
+        self.assertEqual(account_match.partner_id, first_partner)
+        self.assertEqual(
+            account_match.rebuild_partner_suggestion_source,
+            "bank_account",
+        )
+        self.assertEqual(
+            account_match.rebuild_partner_suggestion_confidence,
+            100,
+        )
+
+        name_match = self.env["account.bank.statement.line"].create({
+            "journal_id": journal.id,
+            "date": fields.Date.today(),
+            "payment_ref": "SMART DECLARED COUNTERPARTY",
+            "partner_name": first_partner.name,
+            "amount": -20.0,
+        })
+        self.assertEqual(name_match.partner_id, first_partner)
+        self.assertEqual(
+            name_match.rebuild_partner_suggestion_source,
+            "partner_name",
+        )
+        self.assertEqual(
+            name_match.rebuild_partner_suggestion_confidence,
+            98,
+        )
+
+        exact_match = create_line("SMART BANK RECURRING")
+        exact_match._retrieve_partner()
+        self.assertEqual(exact_match.partner_id, first_partner)
+        self.assertEqual(
+            exact_match.rebuild_partner_suggestion_source,
+            "reconciled_label",
+        )
+        self.assertGreaterEqual(
+            exact_match.rebuild_partner_suggestion_confidence,
+            90,
+        )
+        self.assertTrue(exact_match.rebuild_partner_auto_assigned)
+        self.assertIn(
+            "2 time(s)",
+            exact_match.rebuild_partner_suggestion_reason,
+        )
+
+        pattern_match = create_line("SMART PATTERN SUPPLIER 1004")
+        pattern_match._retrieve_partner()
+        self.assertEqual(pattern_match.partner_id, first_partner)
+        self.assertEqual(
+            pattern_match.rebuild_partner_suggestion_source,
+            "reconciled_pattern",
+        )
+        self.assertTrue(pattern_match.rebuild_partner_auto_assigned)
+
+        review_match = create_line("SMART BANK SINGLE OBSERVATION")
+        review_match._retrieve_partner()
+        self.assertFalse(review_match.partner_id)
+        self.assertEqual(
+            review_match.rebuild_partner_suggestion_id,
+            first_partner,
+        )
+        self.assertLess(
+            review_match.rebuild_partner_suggestion_confidence,
+            90,
+        )
+        review_match.action_rebuild_apply_partner_suggestion()
+        self.assertEqual(review_match.partner_id, first_partner)
+        self.assertFalse(review_match.rebuild_partner_auto_assigned)
+
+        ambiguous_match = create_line("SMART BANK AMBIGUOUS")
+        ambiguous_match._retrieve_partner()
+        self.assertFalse(ambiguous_match.partner_id)
+        self.assertFalse(ambiguous_match.rebuild_partner_suggestion_id)
+
+        existing_partner = create_line(
+            "SMART BANK RECURRING",
+            other_partner,
+        )
+        existing_partner._retrieve_partner()
+        self.assertEqual(existing_partner.partner_id, other_partner)
+        self.assertFalse(existing_partner.rebuild_partner_suggestion_id)
+
+        exact_match.partner_id = other_partner
+        self.assertEqual(exact_match.partner_id, other_partner)
+        self.assertFalse(exact_match.rebuild_partner_suggestion_id)
+        self.assertFalse(exact_match.rebuild_partner_auto_assigned)
+
+        transaction_view = self.env.ref(
+            "rebuild_account_migration.view_rebuild_bank_transaction_list",
+        )
+        transaction_arch = etree.fromstring(transaction_view.arch_db)
+        self.assertTrue(transaction_arch.xpath(
+            "//field[@name='rebuild_partner_suggestion_id']",
+        ))
+        self.assertTrue(transaction_arch.xpath(
+            "//field[@name='rebuild_partner_suggestion_reason']",
+        ))
+        self.assertTrue(transaction_arch.xpath(
+            "//button[@name='action_rebuild_apply_partner_suggestion']",
+        ))
+
     def test_bank_matching_candidates_default_to_closest_amount_and_date_ranking(self):
         receivable = self._account(
             "T411230",
