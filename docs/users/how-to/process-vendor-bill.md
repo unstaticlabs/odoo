@@ -4,8 +4,13 @@
 2. Confirm supplier, invoice date, reference, payment terms and currency.
 3. Review every business line: description, expense or asset account, taxes and analytic distribution.
 4. Attach the supplier invoice as primary evidence.
-5. Select **Confirm/Post**. Review the generated journal items.
-6. Register payment when payment is initiated or recorded.
+5. Review **Suggested existing payments** below the totals. Existing payments are ranked
+   by supplier, reference, amount, currency and date. Draft suggestions are
+   informational: open the payment to verify it, but post the bill before
+   matching.
+6. Select **Confirm/Post** and review the generated journal items. If the
+   highest-ranked payment is correct, select **Add**. Otherwise register a new
+   payment when payment is initiated or recorded.
 7. Open the relevant bank journal and choose **Bank Matching**.
 8. Select the bank transaction. The **Reconcile** tab starts with removable **Closest amount** and **Closest date** filters.
 9. Match the payment or open bill. If an amount remains, confirm whether the result is a legitimate partial payment, a fee, an exchange difference or an error.

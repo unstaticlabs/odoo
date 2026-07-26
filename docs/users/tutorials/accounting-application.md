@@ -24,7 +24,10 @@ Open **Journals** to see native journal cards. Open a bank journal and compare:
 - **Transactions**, the complete statement-line list; and
 - **Bank Matching**, the focused matching queue.
 
-Open **Vendors > Bills** and choose a bill. Its business lines, taxes, journal items, residual, payment state and attachments remain on the normal Odoo document.
+Open **Vendors > Bills** and choose a bill. Its business lines, taxes, journal
+items, residual, payment state and attachments remain on the normal Odoo
+document. Existing-payment suggestions are visible while the bill is draft,
+but matching becomes available only after posting.
 
 ## 3. Follow a value into accounting
 
