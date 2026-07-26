@@ -134,9 +134,9 @@ class HrExpense(models.Model):
 
     rebuild_receipt_state = fields.Selection(
         selection=[
-            ("received", "Receipt attached"),
-            ("missing", "Receipt missing"),
-            ("not_required", "Receipt not required"),
+            ("received", "Attached"),
+            ("missing", "Missing"),
+            ("not_required", "Not required"),
         ],
         compute="_compute_rebuild_expense_guidance",
         search="_search_rebuild_receipt_state",

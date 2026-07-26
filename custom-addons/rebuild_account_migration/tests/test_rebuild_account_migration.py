@@ -2827,6 +2827,18 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertFalse(
             expense_arch.xpath("//field[@name='rebuild_next_step']"),
         )
+        self.assertEqual(
+            dict(
+                self.env["hr.expense"]._fields[
+                    "rebuild_receipt_state"
+                ].selection,
+            ),
+            {
+                "received": "Attached",
+                "missing": "Missing",
+                "not_required": "Not required",
+            },
+        )
 
     def test_vendor_bills_and_receipts_have_separate_removable_default_filters(self):
         bills_action = self.env.ref("account.action_move_in_invoice")
