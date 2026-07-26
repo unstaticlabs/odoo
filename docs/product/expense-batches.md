@@ -1,6 +1,8 @@
 # Lightweight expense batches
 
-Status: implementation candidate on `codex/feat-expense-batches`
+Status: implemented on `codex/feat-expense-batches`
+
+End-user workflow: [Notes de frais](../users/guides/expense-batches.md)
 
 ## Product decision
 
@@ -54,6 +56,27 @@ unit and that batching stay optional.
 The isolated add-on was selected because it adds only the missing context and
 orchestration while keeping upstream accounting behavior intact.
 
+## User experience contract
+
+The normal **Expenses > My Expenses** list stays focused on the expense
+records. It shows the optional **Expense Batch** link and the native expense
+status, but it does not add a permanent **Batch readiness** column.
+
+Readiness is progressive information:
+
+- **Ready to submit**, **Needs information** and **Already in a batch** are
+  available as list filters;
+- **Create expense batch** opens the selected eligible draft expenses;
+- **Submit ready expenses** proposes all eligible complete drafts when no
+  explicit selection is active;
+- the creation preview shows readiness, missing information, common analytic
+  context, dates and employee/company-paid totals before anything is saved or
+  submitted.
+
+On desktop, the batch actions must remain on the same toolbar row as the
+native expense actions. Adding the batch feature must not increase the
+toolbar's vertical height.
+
 ## Completeness and accounting invariants
 
 The batch preview identifies missing description, category, non-zero amount
@@ -74,8 +97,10 @@ The implementation must preserve these invariants:
 
 ## Isolated QA environment
 
-Feature QA must not use `odoo_dev` or the normal Compose project. Use a
-separate project, ports and database:
+Feature QA must not update or run the feature branch against canonical
+`odoo_dev`. Use a separate Compose project, ports and database.
+
+For focused automated tests, a minimal disposable database is sufficient:
 
 ```bash
 ODOO_SAAS_COMPOSE_PROJECT=usl-odoo-expense-batch \
@@ -86,6 +111,13 @@ ODOO_GEVENT_PORT=8172 \
 scripts/odoo-dev test usl_expense_batch odoo_expense_batch_test
 ```
 
-For browser QA, start the same isolated project after initializing
-`rebuild_account_migration`, which installs this add-on as a product
-dependency. Scheduled jobs remain disabled.
+For integrated browser and product demonstrations, use an isolated database
+and filestore copy of the latest local `odoo_dev`, including its pinned OCA
+dependencies. Update `rebuild_account_migration` and `usl_expense_batch` only
+inside that copy. The current aligned QA database is
+`odoo_expense_batch_aligned_qa` on port `8169`.
+
+This distinction is deliberate: the minimal database proves the feature in
+isolation, while the aligned clone proves that Accounting and Expenses work
+together with representative data. Scheduled jobs remain disabled, and the
+canonical `odoo_dev` database and filestore remain unchanged.

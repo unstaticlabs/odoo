@@ -4,6 +4,18 @@ Une **note de frais** regroupe des dépenses liées sans remplacer leurs
 justificatifs ni leurs détails individuels. Utilisez-la pour un déplacement,
 une mission, un projet ou une période cohérente.
 
+## Comprendre la liste des dépenses
+
+La liste **Dépenses > Mes dépenses** reste centrée sur chaque dépense. Elle
+affiche la **Note de frais** associée, lorsqu'elle existe, et le statut normal
+de la dépense. Elle n'affiche pas de colonne permanente **Préparation de la
+note**.
+
+Utilisez plutôt les filtres **Prête à soumettre**, **Informations requises**
+et **Déjà dans une note de frais**. Le contrôle détaillé de préparation
+apparaît ensuite dans l'aperçu de création, avant tout enregistrement ou
+soumission.
+
 ## Préparer et soumettre une note
 
 1. Ouvrez **Dépenses > Mes dépenses**.
@@ -13,9 +25,15 @@ une mission, un projet ou une période cohérente.
    **Créer une note de frais**. Sans sélection, **Soumettre les dépenses
    prêtes** propose vos dépenses complètes.
 4. Vérifiez le nom, l’objet, la période, les totaux payés par l’employé et par
-   la société, l’activité analytique et les justificatifs.
+   la société, l’activité analytique, la préparation de chaque ligne et les
+   informations manquantes.
 5. Retirez une ligne si elle n’appartient pas à cette demande. Cliquez sur
    **Soumettre la note de frais** lorsque toutes les lignes sont prêtes.
+
+**Prête à soumettre** signifie que la description, la catégorie, le montant et
+le justificatif éventuellement requis sont présents. **Informations
+requises** indique ce qu'il faut corriger sur la dépense avant de pouvoir
+soumettre la note.
 
 Une note ne peut contenir que les dépenses d’un seul employé et d’une seule
 société. Elle peut combiner des dépenses payées par l’employé et par la

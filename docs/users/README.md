@@ -8,6 +8,7 @@ Start with [the guided Accounting tutorial](tutorials/accounting-application.md)
 
 - [Process a supplier bill](how-to/process-vendor-bill.md)
 - [Process an expense](how-to/process-expense.md)
+- [Group and review related expenses](guides/expense-batches.md)
 - [Create and collect a customer invoice](how-to/process-customer-invoice.md)
 - [Match a bank transaction](how-to/reconcile-bank-transaction.md)
 - [Manage bank matching rules](how-to/manage-bank-matching-rules.md)
