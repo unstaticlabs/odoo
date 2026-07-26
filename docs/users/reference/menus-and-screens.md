@@ -46,6 +46,11 @@ posts accounting, creates a draft, changes workflow state, opens supporting
 records, or contacts an external service. Confirmation dialogs remain reserved
 for actions that are difficult to reverse.
 
+The **Review status** chip on posted accounting documents records whether an
+entry is **To Review**, **Reviewed**, **Supervised**, or an **Anomaly**. An unset
+chip is explicitly labelled **Set review status** on a form and **No review
+status** in a list; it no longer appears as an unexplained empty control.
+
 ## Accounting
 
 Journal entries, journal items, payments, assets, general reconciliation and closing workspaces.
