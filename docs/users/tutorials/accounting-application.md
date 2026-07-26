@@ -8,7 +8,8 @@ Open **Accounting > Overview**.
 
 Read it from top to bottom:
 
-1. cash and bank status;
+1. **Cash on banks**, then the smaller projected amount after identified
+   receipts and payments settle;
 2. transactions waiting for a match;
 3. documents and balances needing attention;
 4. Accounting Hygiene;

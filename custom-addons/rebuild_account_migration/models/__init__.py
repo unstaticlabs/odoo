@@ -32,6 +32,7 @@ from . import report_views
 from . import report_definition
 from . import report_export_wizard
 from . import review_summary
+from . import cash_position
 from . import oca_report_defaults
 from . import fec_export_wizard
 from . import account_reconcile_compat

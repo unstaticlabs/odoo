@@ -829,6 +829,228 @@ class TestRebuildAccountMigration(TransactionCase):
         with self.assertRaises(AccessError):
             hidden.with_user(reviewer).read(["company_id"])
 
+    def test_accounting_home_cash_position_uses_real_bank_and_settlement_items(self):
+        company = self.env["res.company"].create({
+            "name": "Cash Position Company",
+            "currency_id": self.company.currency_id.id,
+        })
+        account_model = self.env["account.account"].with_company(company)
+        journal_model = self.env["account.journal"].with_company(company)
+        move_model = self.env["account.move"].with_company(company)
+        partner_model = self.env["res.partner"].with_company(company)
+
+        def account(code, name, account_type):
+            values = {
+                "code": code,
+                "name": name,
+                "account_type": account_type,
+                "company_ids": [Command.set([company.id])],
+            }
+            if account_type in {"asset_receivable", "liability_payable"}:
+                values["reconcile"] = True
+            return account_model.create(values)
+
+        bank_account = account("512CP1", "Included bank", "asset_cash")
+        restricted_account = account(
+            "512CP2",
+            "Restricted bank balance",
+            "asset_cash",
+        )
+        internal_transfer = account(
+            "580CP1",
+            "Internal transfers",
+            "asset_cash",
+        )
+        suspense_account = account(
+            "471CP1",
+            "Bank suspense",
+            "asset_current",
+        )
+        suspense_account.reconcile = True
+        offset_account = account(
+            "471CP2",
+            "Cash position test offset",
+            "asset_current",
+        )
+        receivable_account = account(
+            "411CP1",
+            "Cash position receivable",
+            "asset_receivable",
+        )
+        payable_account = account(
+            "401CP1",
+            "Cash position payable",
+            "liability_payable",
+        )
+        income_account = account(
+            "706CP1",
+            "Cash position income",
+            "income",
+        )
+        expense_account = account(
+            "606CP1",
+            "Cash position expense",
+            "expense",
+        )
+        general_journal = journal_model.create({
+            "name": "Cash Position Entries",
+            "code": "CPGE",
+            "type": "general",
+            "company_id": company.id,
+        })
+        sale_journal = journal_model.create({
+            "name": "Cash Position Sales",
+            "code": "CPSA",
+            "type": "sale",
+            "company_id": company.id,
+        })
+        purchase_journal = journal_model.create({
+            "name": "Cash Position Purchases",
+            "code": "CPPU",
+            "type": "purchase",
+            "company_id": company.id,
+        })
+        included_bank = journal_model.create({
+            "name": "Included Cash Position Bank",
+            "code": "CPB1",
+            "type": "bank",
+            "company_id": company.id,
+            "default_account_id": bank_account.id,
+            "suspense_account_id": suspense_account.id,
+        })
+        journal_model.create({
+            "name": "Restricted Cash Position Bank",
+            "code": "CPB2",
+            "type": "bank",
+            "company_id": company.id,
+            "default_account_id": restricted_account.id,
+            "suspense_account_id": suspense_account.id,
+            "rebuild_cash_position_included": False,
+        })
+        partner = partner_model.create({
+            "name": "Cash Position Partner",
+            "company_id": company.id,
+            "property_account_receivable_id": receivable_account.id,
+            "property_account_payable_id": payable_account.id,
+        })
+
+        def post_entry(debit_account, credit_account, amount, move_date=None):
+            move = move_model.create({
+                "move_type": "entry",
+                "journal_id": general_journal.id,
+                "company_id": company.id,
+                "date": move_date or fields.Date.context_today(self),
+                "line_ids": [
+                    Command.create({
+                        "name": "Cash position debit",
+                        "account_id": debit_account.id,
+                        "debit": amount,
+                    }),
+                    Command.create({
+                        "name": "Cash position credit",
+                        "account_id": credit_account.id,
+                        "credit": amount,
+                    }),
+                ],
+            })
+            move.action_post()
+            return move
+
+        unmatched_bank_line = self.env[
+            "account.bank.statement.line"
+        ].with_company(company).create({
+            "journal_id": included_bank.id,
+            "date": fields.Date.context_today(self),
+            "payment_ref": "Unmatched cash position receipt",
+            "amount": 1000.0,
+        })
+        self.assertFalse(unmatched_bank_line.is_reconciled)
+        post_entry(
+            bank_account,
+            offset_account,
+            100.0,
+            fields.Date.add(fields.Date.context_today(self), days=1),
+        )
+        post_entry(restricted_account, offset_account, 500.0)
+        post_entry(internal_transfer, offset_account, 200.0)
+        post_entry(receivable_account, offset_account, 50.0)
+
+        invoice = move_model.create({
+            "move_type": "out_invoice",
+            "journal_id": sale_journal.id,
+            "company_id": company.id,
+            "partner_id": partner.id,
+            "invoice_date": fields.Date.context_today(self),
+            "invoice_line_ids": [
+                Command.create({
+                    "name": "Expected customer receipt",
+                    "account_id": income_account.id,
+                    "quantity": 1.0,
+                    "price_unit": 300.0,
+                }),
+            ],
+        })
+        invoice.action_post()
+        bill = move_model.create({
+            "move_type": "in_invoice",
+            "journal_id": purchase_journal.id,
+            "company_id": company.id,
+            "partner_id": partner.id,
+            "invoice_date": fields.Date.context_today(self),
+            "invoice_line_ids": [
+                Command.create({
+                    "name": "Expected supplier payment",
+                    "account_id": expense_account.id,
+                    "quantity": 1.0,
+                    "price_unit": 200.0,
+                }),
+            ],
+        })
+        bill.action_post()
+        self.env.flush_all()
+
+        home = self.env["rebuild.account.review.summary"].search([
+            ("company_id", "=", company.id),
+        ])
+        self.assertEqual(home.cash_position_journal_count, 1)
+        self.assertEqual(home._cash_position_journals(), included_bank)
+        self.assertAlmostEqual(home.cash_on_banks, 1000.0)
+        self.assertAlmostEqual(home.expected_receipt_amount, 300.0)
+        self.assertAlmostEqual(home.expected_payment_amount, 200.0)
+        self.assertAlmostEqual(home.projected_cash_after_settlement, 1100.0)
+        self.assertEqual(home.cash_projection_unresolved_count, 1)
+
+        journal_action = home.action_open_cash_position_journals()
+        self.assertEqual(journal_action["domain"], [("id", "in", included_bank.ids)])
+        receipt_action = home.action_open_expected_receipts()
+        self.assertIn(
+            ("move_id.move_type", "in", ("out_invoice", "out_receipt", "in_refund")),
+            receipt_action["domain"],
+        )
+        self.assertEqual(
+            receipt_action["views"][0],
+            (
+                self.env.ref(
+                    "rebuild_account_migration."
+                    "view_rebuild_cash_projection_line_list",
+                ).id,
+                "list",
+            ),
+        )
+        receipt_lines = self.env["account.move.line"].search(
+            receipt_action["domain"],
+        )
+        self.assertAlmostEqual(
+            sum(receipt_lines.mapped("rebuild_cash_projection_amount")),
+            home.expected_receipt_amount,
+        )
+        unresolved_action = home.action_open_cash_projection_unresolved()
+        unresolved_lines = self.env["account.move.line"].search(
+            unresolved_action["domain"],
+        )
+        self.assertEqual(unresolved_lines.move_id.move_type, "entry")
+        self.assertEqual(unresolved_lines.account_id, receivable_account)
+
     def test_accounting_manager_gets_the_full_accounting_application(self):
         manager_group = self.env.ref("account.group_account_manager")
         accounting_user_group = self.env.ref("account.group_account_user")
@@ -6217,6 +6439,24 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(home.stale_draft_expense_count, 0)
         self.assertGreaterEqual(home.hygiene_attention_count, 5)
         self.assertEqual(home.hygiene_status, "attention")
+
+        home_arch = self.env.ref(
+            "rebuild_account_migration.view_rebuild_accounting_home_form",
+        )._get_combined_arch()
+        self.assertTrue(home_arch.xpath("//field[@name='cash_on_banks']"))
+        self.assertTrue(
+            home_arch.xpath(
+                "//field[@name='projected_cash_after_settlement']",
+            ),
+        )
+        journal_arch = self.env.ref(
+            "account.view_account_journal_form",
+        )._get_combined_arch()
+        self.assertTrue(
+            journal_arch.xpath(
+                "//field[@name='rebuild_cash_position_included']",
+            ),
+        )
 
         customer_action = home.action_open_customer_documents()
         self.assertIn(("company_id", "=", home_company.id), customer_action["domain"])
