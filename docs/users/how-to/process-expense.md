@@ -13,3 +13,14 @@
 8. Match the related bank transaction, then inspect the journal entry and analytical report impact.
 
 Use the **Missing receipt** filter to prepare incomplete drafts. A category such as a configured fixed allowance can explicitly say **Receipt not required**; this is a category policy, not an exception hidden in the workflow.
+
+## Group related expenses
+
+For a trip, mission, project or coherent period, use a lightweight expense
+batch instead of submitting each expense separately. The main expense list
+does not show a permanent readiness column: use **Ready to submit** or
+**Needs information**, then review readiness and missing details in the batch
+creation preview.
+
+See [Expense Batches](../guides/expense-batches.md) for the employee, manager
+and accounting workflow.

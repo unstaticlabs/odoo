@@ -13,6 +13,21 @@
 - **In payment** — a payment exists but the bank or clearing step is incomplete.
 - **Paid** — the receivable or payable has no residual.
 
+## Expense batches
+
+- **Draft** — the batch can still be edited.
+- **Submitted** — every included expense passed the completeness checks and
+  is waiting for review.
+- **Approved** — the manager approved the active expenses.
+- **Posted** — accounting entries have been created.
+- **Paid** — the employee-paid liability has been settled.
+- **Returned** — all expense lines in the batch were returned for correction.
+
+Batch readiness is not a workflow status and is not a permanent column in the
+main expense list. **Ready to submit** means the required description,
+category, non-zero amount and receipt are present. **Needs information**
+identifies a draft that must be corrected before batch submission.
+
 ## Reconciliation
 
 - **Unreconciled** — no qualifying debit/credit match.
