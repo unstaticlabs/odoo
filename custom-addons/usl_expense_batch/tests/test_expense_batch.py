@@ -225,11 +225,11 @@ class TestExpenseBatch(TestExpenseCommon):
         self.assertIn('edit="false"', form["arch"])
         self.assertNotIn('name="action_submit"', form["arch"])
 
-    def test_views_expose_batch_readiness_and_drill_down(self):
+    def test_views_keep_readiness_out_of_list_and_expose_drill_down(self):
         expense_list = self.env.ref(
             "hr_expense.hr_expense_view_expenses_analysis_tree",
         )._get_combined_arch()
-        self.assertTrue(expense_list.xpath("//field[@name='batch_readiness']"))
+        self.assertFalse(expense_list.xpath("//field[@name='batch_readiness']"))
         self.assertTrue(expense_list.xpath("//field[@name='expense_batch_id']"))
 
         expense_search = self.env.ref(

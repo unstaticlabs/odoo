@@ -6,12 +6,6 @@
         <field name="inherit_id" ref="hr_expense.hr_expense_view_expenses_analysis_tree"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='state']" position="before">
-                <field name="batch_readiness"
-                       widget="badge"
-                       optional="show"
-                       decoration-success="batch_readiness == 'ready'"
-                       decoration-warning="batch_readiness == 'incomplete'"
-                       decoration-info="batch_readiness == 'batched'"/>
                 <field name="expense_batch_id" optional="show"/>
             </xpath>
         </field>
