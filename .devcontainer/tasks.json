@@ -38,7 +38,7 @@
       "id": "module",
       "type": "promptString",
       "description": "Module",
-      "default": "base"
+      "default": "rebuild_account_migration"
     }
   ]
 }

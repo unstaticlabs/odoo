@@ -10,6 +10,15 @@ DEV_DB="${ODOO_DEV_DB:-odoo_dev}"
 DEV_MODULE="${ODOO_DEV_MODULE:-rebuild_account_migration}"
 export ODOO_INIT_DB="${ODOO_INIT_DB:-$DEV_DB}"
 
+print_url() {
+  local published_port
+  published_port="$("${COMPOSE[@]}" port odoo 8069 2>/dev/null | tail -n 1)"
+  published_port="${published_port##*:}"
+  published_port="${published_port:-8069}"
+  printf '\nDevelopment environment: http://localhost:%s/web/login?db=%s\n' \
+    "$published_port" "$DEV_DB"
+}
+
 deploy() {
   local module="${1:-$DEV_MODULE}"
   "${COMPOSE[@]}" up -d --wait db
@@ -24,7 +33,7 @@ deploy() {
     --stop-after-init \
     --log-level=warn
   "${COMPOSE[@]}" up -d --force-recreate --wait odoo
-  printf '\nDevelopment environment: http://localhost:8169/web/login?db=%s\n' "$DEV_DB"
+  print_url
 }
 
 case "${1:-help}" in
@@ -33,7 +42,7 @@ case "${1:-help}" in
     ;;
   start)
     "${COMPOSE[@]}" up -d --wait db odoo
-    printf '\nDevelopment environment: http://localhost:8169/web/login?db=%s\n' "$DEV_DB"
+    print_url
     ;;
   deploy)
     deploy "${2:-$DEV_MODULE}"
