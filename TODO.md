@@ -4,7 +4,7 @@
 
 > **Core constraint:** Extend and compose Odoo rather than creating an irreconcilable fork. Preserve upstream compatibility, standard business semantics, upgradeability and auditability.
 
-## Current Milestone 13 candidate — 2026-07-25
+## Current Milestone 13 candidate — verified 2026-07-26
 
 Status: **Accounting v1 engineering complete; ready for internal daily use with
 documented source/scope assumptions**.
@@ -14,9 +14,14 @@ completion gate.
 ### Verified on `odoo_dev`
 
 - [x] The complete latest accounting snapshot is represented in the single
-  developer/QA product database, including `5,033` moves (`4,843` posted and
-  `189` draft), `3,040` bank transactions, `1,877` historical currency rates,
-  `632` analytic lines, `360` native expenses and native asset schedules.
+  developer/QA product database, including `5,044` moves (`4,849` posted,
+  `193` draft and `2` cancelled), `3,046` bank transactions, `1,889`
+  historical currency rates, `632` analytic lines, `360` native expenses and
+  native asset schedules.
+- [x] The complete reconciliation graph is native: `2,584` partial and `1,260`
+  full reconciliations, with no review-only placeholder records.
+- [x] All `704` Accounting-relevant attachments are present, readable and
+  linked through native records.
 - [x] Current-period parity for 1 October 2025 through 30 June 2026 is exact:
   `2,694` posted moves, `6,319` lines and debit/credit of `1,708,270.52`, with
   zero account or journal differences.
@@ -46,17 +51,19 @@ Final evidence and residual advisories are recorded in
 
 ### Explicitly deferred
 
-- [x] Professional accounting sign-off and external filing.
-- [x] Peppol and electronic tax filing.
-- [x] Probabilistic or AI-powered matching.
-- [x] Live bank synchronization and payment-provider ingestion.
+- [ ] Professional accounting sign-off and live tax/electronic filing.
+- [ ] Selection and activation of a production approved electronic-invoicing
+  platform.
+- [ ] Probabilistic or AI-powered matching and autonomous posting.
+- [ ] Live bank synchronization and payment-provider ingestion.
+- [ ] Production deployment and cutover from disposable development.
 
 # 0. Programme governance and invariants
 
 - [x] Create `ROADMAP.md` as the canonical programme backlog.
 - [x] Create `ARCHITECTURE.md` describing the intended system boundaries.
 - [x] Create `CONTRIBUTING.md` for human and AI contributors.
-- [ ] Create `SECURITY.md` for vulnerability reporting and security expectations.
+- [x] Create `SECURITY.md` for vulnerability reporting and security expectations.
 - [ ] Create `UPSTREAM.md` documenting the relationship with `odoo/odoo`.
 - [x] Create `DECISIONS/` for Architecture Decision Records.
 - [x] Create `docs/product/` for approved functional requirements.
@@ -67,7 +74,7 @@ Final evidence and residual advisories are recorded in
 - [x] Assign responsibility for architecture decisions.
 - [x] Assign responsibility for accounting acceptance.
 - [x] Assign responsibility for production operations.
-- [ ] Define how AI-generated changes are reviewed and accepted.
+- [x] Define how AI-generated changes are reviewed and accepted.
 - [ ] Define which changes require Technical Architect approval.
 - [ ] Define which changes require Product Manager approval.
 - [ ] Define which changes require accountant approval.
@@ -77,7 +84,7 @@ Final evidence and residual advisories are recorded in
 - [ ] Establish the rule: no parallel accounting ledger.
 - [ ] Establish the rule: custom workflows orchestrate standard Odoo records.
 - [ ] Establish the rule: reuse maintained functionality before custom development.
-- [ ] Establish the rule: every material architectural decision compares at least two credible alternatives.
+- [x] Establish the rule: every material architectural decision compares at least two credible alternatives.
 - [ ] Establish the rule: every divergence from upstream is documented.
 - [ ] Establish the rule: every external side effect must be attributable and retry-safe.
 - [ ] Establish the rule: failures must leave visible and actionable state.
@@ -123,19 +130,20 @@ Final evidence and residual advisories are recorded in
 
 - [x] Confirm the exact upstream baseline:
   - [x] Repository: `odoo/odoo`
-  - [x] Branch: `19.0`
-  - [x] Initial upstream commit
-  - [x] Date of baseline
+  - [x] Branch: `saas-19.2`
+  - [x] Pinned commit: `8a44ecc8da96e341ac472fec27352d138ed2edd7`
+  - [x] Commit date: 25 July 2026
 - [x] Add the official Odoo repository as the canonical `upstream` remote.
-- [ ] Define the project’s `origin` repository.
-- [ ] Decide whether the repository will:
-  - [ ] Vendor the Odoo source directly.
+- [x] Define the project repository as the `usl` remote
+  (`unstaticlabs/odoo`).
+- [x] Decide whether the repository will:
+  - [x] Vendor the Odoo source directly.
   - [ ] Maintain a thin integration repository around an upstream checkout.
-- [ ] Document both repository alternatives and the selected approach.
-- [ ] Define how upstream commits will be fetched.
+- [x] Document both repository alternatives and the selected approach.
+- [x] Define how upstream commits will be fetched.
 - [ ] Define how upstream security fixes will be identified.
 - [ ] Define how upstream changes will be reviewed.
-- [ ] Define how upstream changes will be merged or rebased.
+- [x] Define how upstream changes will be merged or rebased.
 - [ ] Define the expected frequency of upstream synchronization.
 - [ ] Define a maximum tolerated upstream lag.
 - [ ] Create an automated report showing:
@@ -144,8 +152,8 @@ Final evidence and residual advisories are recorded in
   - [ ] Upstream commits not yet integrated
   - [ ] Conflicting files
   - [ ] Project modifications to upstream-owned files
-- [ ] Minimize direct edits to Odoo core.
-- [ ] Inventory every initial core modification, if any.
+- [x] Minimize direct edits to Odoo core.
+- [x] Inventory every initial core modification, if any.
 - [ ] Require an ADR for every core modification.
 - [ ] For each core modification, document:
   - [ ] Why extension was insufficient
@@ -153,7 +161,7 @@ Final evidence and residual advisories are recorded in
   - [ ] Upgrade impact
   - [ ] Test coverage
   - [ ] Removal or upstreaming path
-- [ ] Define the custom add-on namespaces.
+- [x] Define the custom add-on namespaces.
 - [ ] Separate:
   - [ ] Upstream Odoo add-ons
   - [ ] OCA add-ons
@@ -182,8 +190,8 @@ Final evidence and residual advisories are recorded in
   - [ ] Test status
   - [ ] Upgrade implications
   - [ ] Reason for adoption
-- [ ] Define whether OCA repositories are pinned, vendored or fetched.
-- [ ] Ensure every external dependency is reproducibly pinned.
+- [x] Define whether OCA repositories are pinned, vendored or fetched.
+- [x] Ensure every external dependency is reproducibly pinned.
 - [ ] Create a dependency update procedure.
 - [ ] Create a dependency removal procedure.
 - [ ] Create a license compatibility inventory.
@@ -808,66 +816,69 @@ Final evidence and residual advisories are recorded in
 
 # 10. Inventory the current Odoo Online production system
 
-- [ ] Confirm the exact production Odoo Online version.
-- [ ] Confirm whether it is an intermediary SaaS version.
-- [ ] Determine the supported path to an on-premise-compatible major version.
-- [ ] Download and preserve a current production backup.
-- [ ] Preserve the filestore.
-- [ ] Record backup-generation date and production version.
-- [ ] Inventory installed standard modules.
-- [ ] Inventory installed Enterprise modules.
+- [x] Confirm the exact production Odoo Online version.
+- [x] Confirm whether it is an intermediary SaaS version.
+- [ ] Determine an officially supported path to an on-premise-compatible
+  stable major version; the current exact SaaS reconstruction is an internal
+  migration path.
+- [x] Download and preserve a current production backup.
+- [x] Preserve the filestore.
+- [x] Record backup-generation date and production version.
+- [x] Inventory installed standard modules.
+- [x] Inventory installed Enterprise modules.
 - [ ] Inventory Studio-created applications.
 - [ ] Inventory Studio-created models.
-- [ ] Inventory Studio-created fields.
-- [ ] Inventory Studio-modified views.
+- [x] Inventory Accounting-relevant Studio-created fields.
+- [x] Inventory Accounting-relevant Studio-modified views.
 - [ ] Inventory automated actions.
 - [ ] Inventory server actions.
 - [ ] Inventory scheduled actions.
 - [ ] Inventory email templates.
-- [ ] Inventory report templates.
-- [ ] Inventory user groups.
-- [ ] Inventory access rights.
-- [ ] Inventory record rules.
-- [ ] Inventory company configuration.
-- [ ] Inventory journals.
-- [ ] Inventory chart-of-accounts configuration.
-- [ ] Inventory taxes.
-- [ ] Inventory fiscal positions.
-- [x] Inventory currencies and rates. The restored source contains 1,877 ECB-tagged native EUR/USD/GBP rates from 2024-01-01 through 2026-07-20; the importer now replays and source-traces every rate.
-- [ ] Inventory analytic plans and accounts.
-- [ ] Inventory bank accounts and journals.
-- [ ] Inventory reconciliation models.
-- [ ] Inventory payment terms.
-- [ ] Inventory sequences.
-- [ ] Inventory lock dates.
-- [ ] Inventory accounting reports actively used.
-- [ ] Inventory accountant exports actively used.
-- [ ] Inventory FEC behaviour.
-- [ ] Inventory attachments and document volumes.
+- [x] Inventory report templates.
+- [x] Inventory Accounting-relevant user groups.
+- [x] Inventory Accounting-relevant access rights.
+- [x] Inventory Accounting-relevant record rules.
+- [x] Inventory company configuration.
+- [x] Inventory journals.
+- [x] Inventory chart-of-accounts configuration.
+- [x] Inventory taxes.
+- [x] Inventory fiscal positions.
+- [x] Inventory currencies and rates. The restored source contains `1,889`
+  native historical rates; the importer replays and source-traces every rate.
+- [x] Inventory analytic plans and accounts.
+- [x] Inventory bank accounts and journals.
+- [x] Inventory reconciliation models.
+- [x] Inventory payment terms.
+- [x] Inventory sequences.
+- [x] Inventory lock dates.
+- [x] Inventory accounting reports actively used.
+- [x] Inventory accountant exports actively used.
+- [x] Inventory FEC behaviour.
+- [x] Inventory attachments and document volumes.
 - [ ] Inventory chatter volumes and relevant history.
 - [ ] Inventory mail aliases.
 - [ ] Inventory inbound-email flows.
 - [ ] Inventory outgoing-email configuration.
 - [ ] Inventory bank-sync providers.
-- [ ] Inventory Peppol/e-invoicing configuration.
+- [x] Inventory Peppol/e-invoicing configuration.
 - [ ] Inventory external integrations.
 - [ ] Inventory API users.
 - [ ] Inventory current custom payroll workflow.
 - [ ] Inventory current platform-payout workflow.
-- [ ] Inventory current accounting-hygiene workflow.
+- [x] Inventory current accounting-hygiene workflow.
 - [ ] Inventory current project-management workflow.
 - [ ] Inventory current HR workflow.
 - [ ] Inventory GBC workflows.
 - [ ] Inventory USL Media workflows.
 - [ ] Identify features currently paid for but unused.
-- [ ] Identify Community-equivalent features.
-- [ ] Identify OCA-equivalent features.
-- [ ] Identify features requiring custom replacement.
-- [ ] Identify features that can be deliberately dropped.
-- [ ] Identify data stored by Enterprise modules that must remain accessible.
-- [ ] Identify historical records whose models may disappear.
-- [ ] Identify legal and accountant retention requirements.
-- [ ] Create the complete feature and migration parity matrix.
+- [x] Identify Community-equivalent features.
+- [x] Identify OCA-equivalent features.
+- [x] Identify features requiring custom replacement.
+- [x] Identify features that can be deliberately dropped.
+- [x] Identify Accounting data stored by Enterprise modules that must remain accessible.
+- [x] Identify Accounting historical records whose models may disappear.
+- [x] Identify legal and accountant retention requirements.
+- [x] Create the complete Accounting feature and migration parity matrix.
 
 ## Milestone 10 exit criteria
 
@@ -881,61 +892,66 @@ Final evidence and residual advisories are recorded in
 
 # 11. Build the representative parity laboratory
 
-- [ ] Create an isolated parity environment.
-- [ ] Restore or import a representative sanitized production copy.
-- [ ] Neutralize all external side effects.
-- [ ] Confirm attachment availability.
-- [ ] Confirm partner availability.
-- [ ] Confirm company availability.
-- [ ] Confirm journal and accounting-data availability.
-- [ ] Confirm custom field availability.
-- [ ] Catalogue models that cannot load without Enterprise components.
-- [ ] Catalogue missing views.
-- [ ] Catalogue missing reports.
-- [ ] Catalogue missing workflows.
-- [ ] Catalogue orphaned field references.
-- [ ] Catalogue missing external identifiers.
+The checked progress in this milestone is verified for the Accounting
+reconstruction scope. Broader operational domains remain governed by their
+own later milestones.
+
+- [x] Create an isolated parity environment.
+- [x] Restore a protected production-derived source copy into the isolated,
+  read-only source service.
+- [x] Neutralize all external side effects.
+- [x] Confirm attachment availability.
+- [x] Confirm partner availability.
+- [x] Confirm company availability.
+- [x] Confirm journal and accounting-data availability.
+- [x] Confirm custom field availability.
+- [x] Catalogue Accounting models that cannot load without Enterprise components.
+- [x] Catalogue missing Accounting views.
+- [x] Catalogue missing Accounting reports.
+- [x] Catalogue missing Accounting workflows.
+- [x] Catalogue orphaned Accounting field references.
+- [x] Catalogue missing Accounting external identifiers.
 - [ ] Catalogue incompatible Studio artifacts.
 - [ ] Catalogue incompatible automated actions.
-- [ ] Catalogue migration errors.
-- [ ] Decide, item by item:
-  - [ ] Preserve
-  - [ ] Replace
-  - [ ] Transform
-  - [ ] Archive
-  - [ ] Remove
+- [x] Catalogue migration errors.
+- [x] Decide, item by item:
+  - [x] Preserve
+  - [x] Replace
+  - [x] Transform
+  - [x] Archive
+  - [x] Remove
 - [ ] Create migration fixtures for each unsupported object category.
-- [ ] Preserve historical records even when the original interactive feature is removed.
-- [ ] Create a repeatable import/restore process.
-- [ ] Produce a machine-readable parity report.
-- [ ] Produce a human-readable parity report.
-- [ ] Re-run the parity process from a fresh backup.
-- [ ] Confirm repeatability.
+- [x] Preserve historical records even when the original interactive feature is removed.
+- [x] Create a repeatable import/restore process.
+- [x] Produce a machine-readable parity report.
+- [x] Produce a human-readable parity report.
+- [x] Re-run the parity process from a fresh backup.
+- [x] Confirm repeatability.
 
 ## Milestone 11 exit criteria
 
-- [ ] A representative production dataset is usable in a safe lab.
-- [ ] Missing Enterprise dependencies are explicitly mapped.
-- [ ] Restore/import steps are repeatable.
-- [ ] No external side effects occur.
-- [ ] Data-loss risks are documented.
+- [x] A representative production dataset is usable in a safe lab.
+- [x] Missing Enterprise dependencies are explicitly mapped.
+- [x] Restore/import steps are repeatable.
+- [x] No external side effects occur.
+- [x] Data-loss risks are documented.
 
 ---
 
 # 12. Establish the Community/OCA functional foundation
 
-- [ ] Identify the minimum standard Odoo Community module set.
-- [ ] Install base company and contact functionality.
-- [ ] Install invoicing/accounting foundations.
+- [x] Identify the minimum standard Odoo Community module set.
+- [x] Install base company and contact functionality.
+- [x] Install invoicing/accounting foundations.
 - [ ] Install project functionality.
 - [ ] Install HR/employee foundations.
 - [x] Install native Odoo expense functionality.
-- [ ] Install document/attachment foundations.
-- [ ] Install communication/chatter foundations.
-- [ ] Evaluate relevant OCA accounting repositories.
-- [ ] Evaluate relevant OCA reporting modules.
-- [ ] Evaluate relevant OCA reconciliation modules.
-- [ ] Evaluate relevant OCA banking modules.
+- [x] Install document/attachment foundations.
+- [x] Install communication/chatter foundations.
+- [x] Evaluate relevant OCA accounting repositories.
+- [x] Evaluate relevant OCA reporting modules.
+- [x] Evaluate relevant OCA reconciliation modules.
+- [x] Evaluate relevant OCA banking modules.
 - [ ] Evaluate relevant OCA project modules.
 - [ ] Evaluate relevant OCA HR/payroll-support modules.
 - [ ] Evaluate relevant OCA queue/background-job modules.
@@ -943,22 +959,22 @@ Final evidence and residual advisories are recorded in
 - [ ] Evaluate relevant OCA storage modules.
 - [ ] Evaluate relevant OCA REST/API modules only where justified.
 - [ ] Evaluate OpenUpgrade for future major-version migration support.
-- [ ] Record rejected OCA modules and reasons.
-- [ ] Build the minimum integrated module set.
-- [ ] Test clean installation.
-- [ ] Test module upgrade.
+- [x] Record rejected OCA modules and reasons.
+- [x] Build the minimum integrated Accounting module set.
+- [x] Test clean installation.
+- [x] Test module upgrade.
 - [ ] Test module uninstallation where supported.
-- [ ] Test multi-company behaviour.
-- [ ] Test language and French localization behaviour.
-- [ ] Document module ownership and maintenance risk.
-- [ ] Freeze the initial foundation set for parity work.
+- [x] Test multi-company behaviour.
+- [x] Test language and French localization behaviour.
+- [x] Document module ownership and maintenance risk.
+- [x] Freeze the initial Accounting foundation set for parity work.
 
 ## Milestone 12 exit criteria
 
-- [ ] The minimum Community/OCA foundation is stable.
-- [ ] Every external add-on has a documented purpose and maintenance assessment.
-- [ ] The baseline installs and upgrades cleanly.
-- [ ] Foundation modules do not depend on experimental AI components.
+- [x] The minimum Community/OCA Accounting foundation is stable.
+- [x] Every retained Accounting add-on has a documented purpose and maintenance assessment.
+- [x] The Accounting baseline installs and upgrades cleanly.
+- [x] Accounting foundation modules do not depend on experimental AI components.
 
 ---
 
@@ -995,40 +1011,43 @@ Final evidence and residual advisories are recorded in
 - [ ] Validate cash-versus-accrual tax behaviours where applicable.
 - [ ] Validate rounding.
 - [x] Validate invoice numbering.
-- [ ] Validate credit notes.
-- [ ] Validate refunds.
-- [ ] Validate payment terms.
-- [ ] Validate partner ledgers at user-facing report parity level.
-- [ ] Validate aged receivables at user-facing report parity level.
-- [ ] Validate aged payables at user-facing report parity level.
+- [x] Validate credit notes present in the source corpus.
+- [x] Validate refunds present in the source corpus.
+- [x] Validate payment terms.
+- [x] Validate partner ledgers at user-facing technical parity level.
+- [x] Validate aged receivables at user-facing technical parity level.
+- [x] Validate aged payables at user-facing technical parity level.
 - [x] Validate general ledger source/target ledger controls.
 - [x] Validate trial balance source/target ledger controls.
-- [ ] Validate balance sheet at user-facing report parity level.
-- [ ] Validate profit and loss at user-facing report parity level.
-- [ ] Validate tax reports.
-- [ ] Validate VAT/CA12 output.
-- [ ] Validate tax carryovers.
-- [ ] Validate externally supplied declaration values where required.
+- [x] Validate balance sheet at user-facing technical parity level.
+- [x] Validate profit and loss at user-facing technical parity level.
+- [x] Validate tax reports.
+- [x] Validate VAT/CA12 preparation output; professional filing acceptance
+  remains deferred.
+- [x] Validate tax carryovers represented in the source corpus.
+- [x] Validate externally supplied declaration-value handling where required.
 - [x] Validate FEC generation through the compatibility harness.
 - [x] Validate FEC field content through the compatibility harness.
 - [x] Validate FEC chronological consistency through the compatibility harness.
-- [ ] Validate FEC after corrections and reversals.
+- [ ] Validate FEC for a period containing the approved EUR 942 correction.
 - [x] Validate evidence access from imported entries in the compatibility target.
-- [ ] Validate fiscal-year closing.
+- [x] Validate configurable fiscal-year closing controls and workspaces.
 - [ ] Validate year-opening entries where applicable.
 - [ ] Validate shareholder/current-account handling.
 - [x] Validate imported asset and amortization evidence if in scope.
-- [ ] Validate expense reimbursements.
-- [ ] Validate intercompany transactions.
-- [ ] Validate bank-fee cases.
-- [ ] Validate partial payments.
-- [ ] Validate payment differences.
-- [ ] Validate multicurrency invoices.
-- [ ] Validate multicurrency payments.
-- [x] Validate restored native currency-rate parity across the full source snapshot (1,877/1,877 rates, provider and retrieval metadata, no mismatches or duplicate traces).
+- [x] Validate expense reimbursements represented in the source corpus.
+- [x] Validate intercompany transactions represented in the source corpus.
+- [x] Validate bank-fee cases represented in the source corpus.
+- [x] Validate partial payments.
+- [x] Validate payment differences represented in the source corpus.
+- [x] Validate multicurrency invoices.
+- [x] Validate multicurrency payments.
+- [x] Validate restored native currency-rate parity across the full source
+  snapshot (`1,889/1,889` rates, provider and retrieval metadata, no
+  mismatches or duplicate traces).
 - [x] Configure and validate automatic future ECB reference rates with native rows, daily scheduling, source-history preservation, idempotence and manager/reviewer access controls.
-- [ ] Validate residual foreign-exchange balances.
-- [ ] Validate realized and unrealized exchange differences where required.
+- [x] Validate residual foreign-exchange balances represented in the source corpus.
+- [x] Validate realized exchange differences represented in the source corpus.
 
 ## Accounting golden dataset
 
@@ -1047,12 +1066,12 @@ Final evidence and residual advisories are recorded in
 - [x] Include production-derived VAT edge cases in the private reconstruction corpus.
 - [x] Include production-derived year-end and lock-date cases in the private reconstruction corpus.
 - [x] Include production-derived corrected accounting errors in the private reconstruction corpus where present.
-- [ ] Generate reference reports from current production.
+- [x] Generate and preserve trusted source report definitions and benchmark outputs.
 - [x] Generate preliminary equivalent Community report artifacts.
 - [x] Compare posted ledger material differences in the compatibility harness.
-- [ ] Fix or document every difference.
+- [x] Fix or document every Accounting difference.
 - [ ] Obtain accountant review of the dataset.
-- [ ] Turn accepted cases into permanent regression tests.
+- [x] Turn material accepted Accounting cases into permanent regression tests.
 
 ## User-facing closing and reporting product
 
@@ -1115,14 +1134,14 @@ Scope note: payment-provider product support is not a Milestone 13 requirement. 
 - [ ] Define company mapping.
 - [ ] Define raw-versus-normalized data retention.
 - [ ] Define how banking data enters Odoo.
-- [ ] Ensure imported bank lines are idempotent.
-- [ ] Ensure repeated synchronization does not duplicate transactions.
-- [ ] Preserve provider transaction references.
-- [ ] Preserve original transaction text.
+- [x] Ensure imported bank lines are idempotent.
+- [x] Ensure repeated file import does not duplicate transactions.
+- [x] Preserve provider transaction references when supplied by an import.
+- [x] Preserve original transaction text.
 - [ ] Preserve enriched merchant information separately.
 - [ ] Track ingestion time.
 - [ ] Track source update time.
-- [ ] Track reconciliation state.
+- [x] Track reconciliation state.
 - [ ] Track missing source periods.
 - [ ] Alert on stale feeds.
 - [ ] Alert on account disconnection.
@@ -1131,27 +1150,27 @@ Scope note: payment-provider product support is not a Milestone 13 requirement. 
 
 ## Reconciliation
 
-- [ ] Preserve standard Odoo reconciliation semantics.
+- [x] Preserve standard Odoo reconciliation semantics.
 - [ ] Define AI-assisted reconciliation as suggestions first.
 - [ ] Create candidate-match evidence.
 - [ ] Display confidence.
 - [ ] Explain proposed matches.
-- [ ] Handle one-to-one matches.
-- [ ] Handle one-to-many matches.
-- [ ] Handle many-to-one matches.
-- [ ] Handle bank fees.
-- [ ] Handle FX differences.
-- [ ] Handle internal transfers.
+- [x] Handle one-to-one matches.
+- [x] Handle one-to-many matches.
+- [x] Handle many-to-one matches.
+- [x] Handle bank fees.
+- [x] Handle FX differences.
+- [x] Handle internal transfers.
 - [ ] Handle salary payments.
 - [ ] Handle TESE payments.
 - [ ] Handle platform payouts.
-- [ ] Handle partial settlements.
+- [x] Handle partial settlements.
 - [ ] Handle duplicate bank lines.
 - [ ] Prevent silent automated reconciliation until explicitly approved by policy.
 - [ ] Record who or which agent proposed a match.
 - [ ] Record who approved it.
-- [ ] Test unreconciliation and correction.
-- [ ] Build reconciliation regression fixtures.
+- [x] Test unreconciliation and correction.
+- [x] Build reconciliation regression fixtures.
 
 ## Milestone 14 exit criteria
 
@@ -1176,11 +1195,11 @@ Scope note: payment-provider product support is not a Milestone 13 requirement. 
 - [ ] Define batch upload.
 - [ ] Define scanner/import-folder ingestion if useful.
 - [ ] Assign a stable ingestion identifier.
-- [ ] Preserve the original file.
-- [ ] Preserve source metadata.
-- [ ] Detect duplicates.
-- [ ] Detect corrupted files.
-- [ ] Detect unsupported formats.
+- [x] Preserve the original file for native Accounting documents and expenses.
+- [x] Preserve source metadata for reconstructed Accounting attachments.
+- [x] Detect duplicate incoming electronic invoices.
+- [x] Detect malformed or unreadable incoming electronic invoices.
+- [x] Detect unsupported incoming electronic-invoice formats.
 - [ ] Confirm upload completion to the originating channel.
 
 ## Document understanding
@@ -1217,19 +1236,19 @@ Scope note: payment-provider product support is not a Milestone 13 requirement. 
 
 ## Draft creation and review
 
-- [ ] Create draft vendor bills through standard accounting records.
-- [ ] Create draft expenses through standard expense records.
-- [ ] Attach the original document.
+- [x] Create draft vendor bills through standard accounting records.
+- [x] Create draft expenses through standard expense records.
+- [x] Attach the original document.
 - [ ] Add concise factual review notes.
 - [ ] Avoid exposing raw private reasoning in chatter.
 - [ ] Identify blocking errors.
 - [ ] Identify non-blocking warnings.
 - [ ] Prepare supplier-correction requests when appropriate.
 - [ ] Prepare one clear human decision when needed.
-- [ ] Never silently post accounting by default.
-- [ ] Never silently pay.
-- [ ] Never silently delete.
-- [ ] Never silently reconcile.
+- [x] Never silently post accounting by default.
+- [x] Never silently pay.
+- [x] Never silently delete.
+- [x] Never silently reconcile.
 - [ ] Record human changes to AI proposals.
 - [ ] Use corrected records as evaluation feedback.
 - [ ] Create a document-processing evaluation dataset.
@@ -1888,28 +1907,28 @@ Scope note: payment-provider product support is not a Milestone 13 requirement. 
 
 # 24. Accountant collaboration and compliance review
 
-- [ ] Define the accountant user role.
-- [ ] Define visible companies.
-- [ ] Define visible journals.
-- [ ] Define visible accounting documents.
-- [ ] Define visible bank context.
-- [ ] Define visible attachments.
-- [ ] Define visible chatter categories.
+- [x] Define the scoped read-only accountant user role.
+- [x] Define visible companies.
+- [x] Define visible journals.
+- [x] Define visible accounting documents.
+- [x] Define visible bank context.
+- [x] Define visible attachments.
+- [x] Define visible chatter categories.
 - [ ] Define visible AI review notes.
-- [ ] Hide irrelevant creator content.
-- [ ] Hide private personal material.
+- [x] Hide irrelevant creator content from the scoped Accounting role.
+- [x] Hide private personal material from the scoped Accounting role.
 - [ ] Hide irrelevant HR information.
-- [ ] Hide raw agent scratch work.
-- [ ] Test access with a realistic accountant account.
-- [ ] Confirm the accountant can:
-  - [ ] Open invoices
-  - [ ] Open vendor bills
-  - [ ] Review journal entries
-  - [ ] Review taxes
-  - [ ] Review reconciliation state
-  - [ ] Review evidence
-  - [ ] Generate reports
-  - [ ] Export FEC
+- [x] Hide raw agent scratch work from normal Accounting navigation.
+- [x] Test access with the scoped read-only accountant role.
+- [x] Confirm the accountant can:
+  - [x] Open invoices
+  - [x] Open vendor bills
+  - [x] Review journal entries
+  - [x] Review taxes
+  - [x] Review reconciliation state
+  - [x] Review evidence
+  - [x] Generate reports
+  - [x] Export permitted test FEC evidence
   - [ ] Leave questions tied to records
 - [ ] Define accountant-question workflows.
 - [ ] Route questions to the appropriate human or agent.
@@ -1920,24 +1939,24 @@ Scope note: payment-provider product support is not a Milestone 13 requirement. 
 - [ ] Resolve critical findings.
 - [ ] Conduct second accountant review using updated data.
 - [ ] Conduct a final pre-migration review.
-- [ ] Verify electronic-invoicing obligations and dates.
+- [x] Verify electronic-invoicing obligations and dates.
 - [ ] Select the approved external platform strategy.
-- [ ] Define inbound electronic-invoice flow.
+- [x] Define and safely test the inactive inbound electronic-invoice flow.
 - [ ] Define outbound electronic-invoice flow.
-- [ ] Define status and evidence synchronization.
-- [ ] Ensure non-production cannot send legal invoices through the live network.
+- [x] Define status and evidence preservation for received test documents.
+- [x] Ensure non-production cannot send legal invoices through the live network.
 - [ ] Verify the applicable cash-register/certification perimeter.
 - [ ] Obtain specialist advice where uncertainty remains.
-- [ ] Document what is software-tested versus professionally accepted.
-- [ ] Do not claim legal certification without appropriate evidence.
+- [x] Document what is software-tested versus professionally accepted.
+- [x] Do not claim legal certification without appropriate evidence.
 
 ## Milestone 24 exit criteria
 
-- [ ] Accountant can work interactively with appropriate visibility.
+- [x] Scoped read-only accountant can work interactively with appropriate visibility.
 - [ ] FEC and tax outputs have been reviewed.
 - [ ] Compliance uncertainties have owners.
 - [ ] E-invoicing integration strategy is approved.
-- [ ] Private information remains inaccessible.
+- [x] Private information remains inaccessible to the scoped Accounting role.
 
 ---
 
@@ -1995,18 +2014,18 @@ Scope note: payment-provider product support is not a Milestone 13 requirement. 
 ## Migration design
 
 - [ ] Define the authoritative production cut-off.
-- [ ] Define source backup requirements.
-- [ ] Define version compatibility requirements.
-- [ ] Define Enterprise-to-Community transformation rules.
-- [ ] Define Studio transformation rules.
-- [ ] Define module replacement order.
-- [ ] Define custom-field preservation.
-- [ ] Define external-identifier preservation.
-- [ ] Define attachment preservation.
-- [ ] Define chatter preservation.
-- [ ] Define historical-report preservation.
-- [ ] Define user mapping.
-- [ ] Define permission mapping.
+- [x] Define source backup requirements.
+- [x] Define version compatibility requirements.
+- [x] Define Enterprise-to-Community Accounting transformation rules.
+- [x] Define Studio Accounting-field and view transformation rules.
+- [x] Define Accounting module replacement order.
+- [x] Define custom Accounting-field preservation.
+- [x] Define external-identifier preservation for the Accounting scope.
+- [x] Define attachment preservation.
+- [x] Define Accounting chatter/attachment preservation.
+- [x] Define historical-report-definition preservation.
+- [x] Define Accounting user mapping.
+- [x] Define Accounting permission mapping.
 - [ ] Define integration credential rotation.
 - [ ] Define bank synchronization handover.
 - [ ] Define email alias handover.
@@ -2016,41 +2035,41 @@ Scope note: payment-provider product support is not a Milestone 13 requirement. 
 
 ## Automated migration checks
 
-- [ ] Count records by critical model before and after.
-- [ ] Compare posted journal-entry counts.
-- [ ] Compare journal totals.
-- [ ] Compare partner balances.
-- [ ] Compare tax balances.
-- [ ] Compare bank balances.
-- [ ] Compare unreconciled-item counts.
-- [ ] Compare invoices by status.
-- [ ] Compare vendor bills by status.
-- [ ] Compare attachments.
+- [x] Count records by critical Accounting model before and after.
+- [x] Compare posted journal-entry counts.
+- [x] Compare journal totals.
+- [x] Compare partner balances.
+- [x] Compare tax balances.
+- [x] Compare bank balances.
+- [x] Compare unreconciled-item counts and reconciliation relationships.
+- [x] Compare invoices by status.
+- [x] Compare vendor bills by status.
+- [x] Compare Accounting attachments.
 - [ ] Compare projects and tasks.
 - [ ] Compare active users.
-- [ ] Compare companies.
-- [ ] Compare analytic records.
-- [ ] Compare custom workflow records.
-- [ ] Compare FEC output.
-- [ ] Compare golden reports.
-- [ ] Detect orphaned references.
-- [ ] Detect missing external identifiers.
-- [ ] Detect unsupported models.
-- [ ] Detect missing files.
+- [x] Compare Accounting companies.
+- [x] Compare analytic records.
+- [x] Compare custom Accounting workflow records.
+- [x] Compare FEC output.
+- [x] Compare golden Accounting reports.
+- [x] Detect orphaned Accounting references.
+- [x] Detect missing Accounting external identifiers.
+- [x] Detect unsupported Accounting models.
+- [x] Detect missing Accounting files.
 - [ ] Produce a signed migration report.
 
 ## Rehearsals
 
-- [ ] Rehearsal 1: early feasibility backup.
-- [ ] Document failures and manual interventions.
-- [ ] Automate repeatable fixes.
-- [ ] Rehearsal 2: recent production backup.
+- [x] Rehearsal 1: early feasibility backup.
+- [x] Document failures and manual interventions.
+- [x] Automate repeatable fixes.
+- [x] Rehearsal 2: latest supplied production backup.
 - [ ] Measure total migration duration.
 - [ ] Measure service interruption.
-- [ ] Run accounting comparisons.
-- [ ] Run workflow smoke tests.
-- [ ] Run permission tests.
-- [ ] Run integration-neutralization checks.
+- [x] Run accounting comparisons.
+- [x] Run Accounting workflow smoke tests.
+- [x] Run Accounting permission tests.
+- [x] Run integration-neutralization checks.
 - [ ] Conduct accountant review.
 - [ ] Rehearsal 3: full dress rehearsal.
 - [ ] Use the intended production procedure.
@@ -2063,8 +2082,8 @@ Scope note: payment-provider product support is not a Milestone 13 requirement. 
 
 ## Milestone 26 exit criteria
 
-- [ ] Migration is scripted and repeatable.
-- [ ] Record and report comparisons are automated.
+- [x] Accounting migration is scripted and repeatable.
+- [x] Accounting record and report comparisons are automated.
 - [ ] Full rehearsal passes without improvised rescue.
 - [ ] Duration and downtime are known.
 - [ ] Accountant accepts the rehearsal output.
@@ -2075,22 +2094,23 @@ Scope note: payment-provider product support is not a Milestone 13 requirement. 
 # 27. Production-readiness review
 
 - [ ] Complete architectural review.
-- [ ] Complete product-scope review.
-- [ ] Complete accounting review.
+- [x] Complete Accounting v1 product-scope review.
+- [x] Complete engineering Accounting review; professional acceptance remains
+  deferred.
 - [ ] Complete security review.
 - [ ] Complete privacy review.
 - [ ] Complete infrastructure review.
 - [ ] Complete backup and recovery review.
 - [ ] Complete observability review.
 - [ ] Complete performance review.
-- [ ] Complete migration review.
+- [x] Complete Accounting migration review.
 - [ ] Complete integration review.
 - [ ] Complete agent-permission review.
-- [ ] Complete accountant-access review.
+- [x] Complete scoped accountant-access review.
 - [ ] Review all open critical risks.
-- [ ] Review all accepted differences from Odoo Online.
-- [ ] Review all upstream core modifications.
-- [ ] Review all unmaintained dependencies.
+- [x] Review all accepted Accounting differences from Odoo Online.
+- [x] Review all upstream core modifications in the Accounting replay scope.
+- [x] Review all retained Accounting dependencies and pins.
 - [ ] Review all known manual operations.
 - [ ] Review all untested failure modes.
 - [ ] Verify current backup.
