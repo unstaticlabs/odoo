@@ -28,7 +28,9 @@ Open **Journals** to see native journal cards. Open a bank journal and compare:
 Open **Vendors > Bills** and choose a bill. Its business lines, taxes, journal
 items, residual, payment state and attachments remain on the normal Odoo
 document. Existing-payment suggestions are visible while the bill is draft,
-but matching becomes available only after posting.
+but matching becomes available only after posting. Close bank transactions may
+also be suggested when the supplier is inferred, missing or different; the
+card discloses the evidence and any supplier or account change before you act.
 
 ## 3. Follow a value into accounting
 

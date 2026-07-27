@@ -55,6 +55,35 @@ class AccountMove extends models.Model {
                 title: "Suggested existing payments",
             },
         },
+        {
+            id: 3,
+            invoice_outstanding_credits_debits_widget: {
+                content: [
+                    {
+                        id: 44,
+                        move_id: 86,
+                        move_name: "BNK1/25-26/0298",
+                        amount: 166.8,
+                        currency_id: 1,
+                        date: "2026-07-16",
+                        can_assign: true,
+                        is_best_match: true,
+                        is_bank_statement_candidate: true,
+                        match_confidence: "medium",
+                        match_reason:
+                            "Exact amount · Date 1 day from due date · Assigned partner Wrong Supplier differs from bill supplier IWG",
+                        partner_reassignment_required: true,
+                        assigned_partner_name: "Wrong Supplier",
+                        account_reassignment_required: true,
+                        source_account_name: "471000 Suspense",
+                        target_account_name: "401100 Payable",
+                    },
+                ],
+                move_id: 3,
+                outstanding: true,
+                title: "Suggested existing payments",
+            },
+        },
     ];
 }
 
@@ -116,4 +145,36 @@ test("posted bill keeps Odoo's native Add matching action", async () => {
         "Match this existing payment to the posted invoice or bill."
     );
     expect("[aria-disabled='true']").toHaveCount(0);
+});
+
+test("bank suggestion discloses partner and account reassignment", async () => {
+    await mountView({
+        type: "form",
+        resModel: "account.move",
+        resId: 3,
+        arch: `
+            <form>
+                <field
+                    name="invoice_outstanding_credits_debits_widget"
+                    widget="payment"
+                />
+            </form>
+        `,
+    });
+
+    expect(
+        "tr.o_rebuild_payment_suggestion_detail .text-warning-emphasis"
+    ).toHaveText(
+        "Partner change: selecting this suggestion will set the bank transaction to the bill supplier instead of Wrong Supplier."
+    );
+    expect(
+        "tr.o_rebuild_payment_suggestion_detail .text-muted.mt-1"
+    ).toHaveText(
+        "The bank counterpart will move from 471000 Suspense to 401100 Payable before native reconciliation."
+    );
+    expect(".outstanding_credit_assign").toHaveText("Match & reassign");
+    expect(".outstanding_credit_assign").toHaveAttribute(
+        "title",
+        "Set the bill supplier on this bank transaction, move its counterpart to the payable account, and reconcile it."
+    );
 });

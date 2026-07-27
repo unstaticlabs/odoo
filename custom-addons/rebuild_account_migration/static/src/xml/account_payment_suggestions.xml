@@ -20,19 +20,54 @@
                           class="badge rounded-pill text-bg-primary me-1">
                         Best match
                     </span>
+                    <span t-if="line.is_bank_statement_candidate"
+                          class="badge rounded-pill text-bg-light border me-1">
+                        Bank transaction
+                    </span>
+                    <span t-if="line.match_confidence"
+                          class="badge rounded-pill text-bg-light border me-1"
+                          t-out="line.match_confidence"/>
                     <span class="small text-muted" t-out="line.match_reason"/>
+                    <div t-if="line.partner_reassignment_required"
+                         class="small text-warning-emphasis mt-1">
+                        <strong>Partner change:</strong>
+                        selecting this suggestion will set the bank transaction
+                        to the bill supplier
+                        <t t-out="line.assigned_partner_name
+                                  ? ' instead of ' + line.assigned_partner_name
+                                  : ''"/>.
+                    </div>
+                    <div t-if="line.account_reassignment_required"
+                         class="small text-muted mt-1">
+                        The bank counterpart will move from
+                        <t t-out="line.source_account_name"/> to
+                        <t t-out="line.target_account_name"/> before native
+                        reconciliation.
+                    </div>
                 </td>
             </tr>
         </xpath>
         <xpath expr="//a[hasclass('outstanding_credit_assign')]" position="replace">
             <a t-if="line.can_assign !== false"
-               title="Match this existing payment to the posted invoice or bill."
                role="button"
                class="oe_form_field btn btn-secondary outstanding_credit_assign d-print-none"
                t-att-data-id="line.id"
+               t-att-title="line.partner_reassignment_required
+                            ? 'Set the bill supplier on this bank transaction, move its counterpart to the payable account, and reconcile it.'
+                            : (line.account_reassignment_required
+                               ? 'Move this bank transaction from suspense to the bill payable account and reconcile it.'
+                               : 'Match this existing payment to the posted invoice or bill.')"
                href="#"
                data-bs-toggle="tooltip"
-               t-on-click.prevent="() => this.assignOutstandingCredit(info.moveId, line.id)">Add</a>
+               t-on-click.prevent="() => this.assignOutstandingCredit(info.moveId, line.id)">
+                <t t-if="line.partner_reassignment_required">
+                    Match &amp; reassign
+                </t>
+                <t t-elif="line.account_reassignment_required">
+                    Match bank transaction
+                </t>
+                <t t-else="">Add</t>
+            </a>
             <span t-else=""
                   class="small text-muted text-nowrap"
                   aria-disabled="true"
