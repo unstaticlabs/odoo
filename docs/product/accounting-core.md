@@ -36,6 +36,12 @@ Valentin and the accountant must be able to:
 
 - Standard accounting records form the authoritative ledger.
 - Custom workflows orchestrate accounting; they do not create parallel ledgers.
+- Smart recommendations expose their scored source facts and intended ledger
+  effects. Low-confidence partner inference may inform a harmless suggestion,
+  but never silently authorizes an accounting action. A user-approved bank
+  match may correct the transaction partner and suspense account only when the
+  UI discloses those changes; native reconciliation remains authoritative and
+  chatter records the evidence used.
 - Posted history is never silently altered or deleted.
 - Accounting differences are visible, classified and evidence-backed.
 - Legal compliance is professionally reviewed, not inferred from passing software tests.

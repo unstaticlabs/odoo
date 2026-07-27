@@ -240,8 +240,13 @@ class TestRebuildAccountMigration(TransactionCase):
         draft_widget = bill.invoice_outstanding_credits_debits_widget
         self.assertTrue(draft_widget["draft_suggestions"])
         self.assertEqual(draft_widget["title"], "Suggested existing payments")
-        self.assertEqual(len(draft_widget["content"]), 1)
-        best_suggestion = draft_widget["content"][0]
+        exact_suggestions = [
+            suggestion
+            for suggestion in draft_widget["content"]
+            if suggestion["account_payment_id"] == exact_payment.id
+        ]
+        self.assertEqual(len(exact_suggestions), 1)
+        best_suggestion = exact_suggestions[0]
         self.assertEqual(
             best_suggestion["account_payment_id"],
             exact_payment.id,
@@ -251,13 +256,12 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertIn("Reference match", best_suggestion["match_reason"])
         self.assertIn("Exact amount", best_suggestion["match_reason"])
         self.assertFalse(best_suggestion["can_assign"])
-        self.assertNotIn(
-            other_payment.id,
-            [
-                suggestion["account_payment_id"]
-                for suggestion in draft_widget["content"]
-            ],
+        other_suggestion = next(
+            suggestion
+            for suggestion in draft_widget["content"]
+            if suggestion["account_payment_id"] == other_payment.id
         )
+        self.assertFalse(other_suggestion.get("is_best_match"))
         with self.assertRaisesRegex(
             UserError,
             "Post the bill before matching",
@@ -270,23 +274,226 @@ class TestRebuildAccountMigration(TransactionCase):
             "invoice_has_outstanding",
         ])
         posted_widget = bill.invoice_outstanding_credits_debits_widget
-        posted_best = posted_widget["content"][0]
+        posted_best = next(
+            suggestion
+            for suggestion in posted_widget["content"]
+            if suggestion["account_payment_id"] == exact_payment.id
+        )
         self.assertFalse(posted_widget["draft_suggestions"])
         self.assertTrue(posted_best["can_assign"])
-        unrelated_payable_line = other_payment.move_id.line_ids.filtered(
-            lambda line: line.account_id == supplier.property_account_payable_id,
+        unrelated_payment_line = other_payment.move_id.line_ids.filtered(
+            lambda line: line.account_id != supplier.property_account_payable_id,
         )
         with self.assertRaisesRegex(
             UserError,
             "no longer an eligible suggestion",
         ):
-            bill.js_assign_outstanding_line(unrelated_payable_line.id)
+            bill.js_assign_outstanding_line(unrelated_payment_line.id)
         bill.js_assign_outstanding_line(posted_best["id"])
         self.assertEqual(bill.payment_state, "paid")
         self.assertNotIn(
             other_payment.id,
             bill.reconciled_payment_ids.ids,
         )
+
+    def test_vendor_bill_suggests_and_reassigns_close_bank_counterparts(self):
+        supplier = self.env["res.partner"].create({
+            "name": "Unit smart bank supplier",
+            "company_id": self.company.id,
+        })
+        other_partner = self.env["res.partner"].create({
+            "name": "Unit wrong bank partner",
+            "company_id": self.company.id,
+        })
+        payable = self._account(
+            "T401920",
+            "Unit smart bank payable",
+            "liability_payable",
+        )
+        supplier.property_account_payable_id = payable
+        other_partner.property_account_payable_id = payable
+        expense = self._account(
+            "T625920",
+            "Unit smart bank expense",
+            "expense",
+        )
+        bank_journal = self._journal("bank")
+        bank_journal.suspense_account_id.reconcile = True
+
+        def create_bill(amount, reference, bill_date, due_date):
+            return self.env["account.move"].create({
+                "move_type": "in_invoice",
+                "partner_id": supplier.id,
+                "journal_id": self._journal("purchase").id,
+                "invoice_date": bill_date,
+                "invoice_date_due": due_date,
+                "ref": reference,
+                "invoice_line_ids": [
+                    Command.create({
+                        "name": reference,
+                        "account_id": expense.id,
+                        "quantity": 1.0,
+                        "price_unit": amount,
+                    }),
+                ],
+            })
+
+        def suspense_line(statement_line):
+            return statement_line.move_id.line_ids.filtered(
+                lambda line: (
+                    line.account_id == bank_journal.suspense_account_id
+                )
+            )
+
+        inferred_bill = create_bill(
+            166.80,
+            "SMART-INFERRED-16680",
+            "2026-07-01",
+            "2026-07-15",
+        )
+        inferred_bank_line = self.env[
+            "account.bank.statement.line"
+        ].with_context(
+            skip_retrieve_partner=True,
+            _test_account_reconcile_oca=True,
+        ).create({
+            "journal_id": bank_journal.id,
+            "date": "2026-07-16",
+            "payment_ref": "SMART INFERRED BANK PAYMENT",
+            "amount": -166.80,
+        })
+        inferred_bank_line.with_context(
+            rebuild_skip_partner_inference=True,
+        ).write({
+            "rebuild_partner_suggestion_id": supplier.id,
+            "rebuild_partner_suggestion_confidence": 82,
+            "rebuild_partner_suggestion_source": "reconciled_label",
+            "rebuild_partner_suggestion_reason": (
+                "82% — One previous exact label matched this supplier"
+            ),
+        })
+        if inferred_bank_line.move_id.state == "draft":
+            inferred_bank_line.move_id.action_post()
+        inferred_candidate_line = suspense_line(inferred_bank_line)
+        self.assertEqual(len(inferred_candidate_line), 1)
+
+        inferred_bill.invalidate_recordset([
+            "invoice_outstanding_credits_debits_widget",
+            "invoice_has_outstanding",
+        ])
+        draft_candidates = {
+            candidate["id"]: candidate
+            for candidate in inferred_bill
+            .invoice_outstanding_credits_debits_widget["content"]
+        }
+        self.assertIn(
+            inferred_candidate_line.id,
+            draft_candidates,
+            (
+                "The close inferred-partner bank counterpart must be "
+                f"suggested. Widget: {draft_candidates!r}; "
+                f"line account={inferred_candidate_line.account_id.id}; "
+                f"suspense={bank_journal.suspense_account_id.id}; "
+                f"balance={inferred_candidate_line.balance}; "
+                f"residual={inferred_candidate_line.amount_residual}; "
+                f"date={inferred_candidate_line.date}"
+            ),
+        )
+        inferred_candidate = draft_candidates[inferred_candidate_line.id]
+        self.assertEqual(
+            inferred_candidate["partner_match_status"],
+            "suggested",
+        )
+        self.assertEqual(
+            inferred_candidate["partner_suggestion_confidence"],
+            82,
+        )
+        self.assertEqual(
+            inferred_candidate["partner_suggestion_source"],
+            "reconciled_label",
+        )
+        self.assertTrue(
+            inferred_candidate["partner_reassignment_required"],
+        )
+        self.assertTrue(
+            inferred_candidate["account_reassignment_required"],
+        )
+        self.assertIn(
+            "Partner suggested from bank evidence",
+            inferred_candidate["match_reason"],
+        )
+        self.assertFalse(inferred_candidate["can_assign"])
+
+        inferred_bill.action_post()
+        inferred_bill.invalidate_recordset([
+            "invoice_outstanding_credits_debits_widget",
+            "invoice_has_outstanding",
+        ])
+        inferred_bill.js_assign_outstanding_line(inferred_candidate_line.id)
+        self.assertEqual(inferred_bank_line.partner_id, supplier)
+        self.assertEqual(inferred_candidate_line.partner_id, supplier)
+        self.assertEqual(inferred_candidate_line.account_id, payable)
+        self.assertEqual(inferred_bill.payment_state, "paid")
+        self.assertTrue(inferred_bank_line.is_reconciled)
+        self.assertTrue(any(
+            "Matched bank transaction" in (message.body or "")
+            for message in inferred_bill.message_ids
+        ))
+
+        mismatch_bill = create_bill(
+            210.0,
+            "SMART-MISMATCH-210",
+            "2026-07-20",
+            "2026-07-27",
+        )
+        mismatch_bank_line = self.env[
+            "account.bank.statement.line"
+        ].with_context(
+            skip_retrieve_partner=True,
+            _test_account_reconcile_oca=True,
+        ).create({
+            "journal_id": bank_journal.id,
+            "date": "2026-07-28",
+            "partner_id": other_partner.id,
+            "payment_ref": "SMART MISALLOCATED BANK PAYMENT",
+            "amount": -210.0,
+        })
+        if mismatch_bank_line.move_id.state == "draft":
+            mismatch_bank_line.move_id.action_post()
+        mismatch_candidate_line = suspense_line(mismatch_bank_line)
+        mismatch_bill.action_post()
+        mismatch_bill.invalidate_recordset([
+            "invoice_outstanding_credits_debits_widget",
+            "invoice_has_outstanding",
+        ])
+        mismatch_candidates = {
+            candidate["id"]: candidate
+            for candidate in mismatch_bill
+            .invoice_outstanding_credits_debits_widget["content"]
+        }
+        mismatch_candidate = mismatch_candidates[
+            mismatch_candidate_line.id
+        ]
+        self.assertEqual(
+            mismatch_candidate["partner_match_status"],
+            "different",
+        )
+        self.assertTrue(
+            mismatch_candidate["partner_reassignment_required"],
+        )
+        self.assertIn(
+            other_partner.display_name,
+            mismatch_candidate["match_reason"],
+        )
+
+        mismatch_bill.js_assign_outstanding_line(
+            mismatch_candidate_line.id,
+        )
+        self.assertEqual(mismatch_bank_line.partner_id, supplier)
+        self.assertEqual(mismatch_candidate_line.partner_id, supplier)
+        self.assertEqual(mismatch_candidate_line.account_id, payable)
+        self.assertEqual(mismatch_bill.payment_state, "paid")
+        self.assertTrue(mismatch_bank_line.is_reconciled)
 
     def test_french_einvoice_reception_is_offline_traceable_and_deduplicated(self):
         purchase_journal = self._journal("purchase")
