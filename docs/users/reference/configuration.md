@@ -9,8 +9,23 @@ Accounting managers use **Configuration** for:
 - currencies and historical rates;
 - analytic plans and accounts;
 - asset models;
+- governed Bank Matching Rules, including usage evidence and inert rule
+  suggestions;
 - the configurable Accounting Framework for Controls, Reports and
   Declarations.
+
+## Bank Matching Rules
+
+Open **Configuration > Bank Matching Rules** to govern recurring direct
+accounting treatments. The list distinguishes rules with recorded use, rules
+that are executable but unused, incomplete rules, suggestions awaiting review
+and legacy partner-only rules made redundant by smart partner inference.
+
+Only an Accounting Manager can discover, approve, automate, dismiss or archive
+rules. Finance Operators use approved rules through Bank Matching. Suggestions
+created by deterministic analysis or a future Accounting Agent cannot affect
+matching until a manager approves them. See
+[Manage Bank Matching Rules](../how-to/manage-bank-matching-rules.md).
 
 ## Accounting Framework
 

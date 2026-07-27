@@ -27,3 +27,8 @@ Partner inference only identifies the counterparty. It never posts, reconciles,
 changes an amount or chooses a ledger account. The **Matching evidence** column
 in Transactions explains the signal and confidence. Editing the partner
 manually clears the automatic provenance.
+
+Accounting Managers configure predictable direct treatments under
+**Configuration > Bank Matching Rules**. See
+[Manage Bank Matching Rules](manage-bank-matching-rules.md) for usage evidence,
+redundant partner-only rules and governed rule suggestions.
