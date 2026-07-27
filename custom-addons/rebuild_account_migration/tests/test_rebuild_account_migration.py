@@ -1112,7 +1112,7 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(len(cash_breakdown), 1)
         self.assertEqual(
             cash_breakdown[0].xpath("normalize-space(summary)"),
-            "View estimate details",
+            "How this estimate is built",
         )
         self.assertEqual(
             {
@@ -1122,7 +1122,8 @@ class TestRebuildAccountMigration(TransactionCase):
             {
                 "action_open_expected_receipts",
                 "action_open_expected_payments",
-                "action_open_cash_projection_unresolved",
+                "action_open_cash_projection_reconciliation",
+                "action_open_cash_projection_unpaid_expenses",
             },
         )
         self.assertTrue(
@@ -1281,6 +1282,17 @@ class TestRebuildAccountMigration(TransactionCase):
             "rebuild.account.overview"
         ].with_user(reviewer).search([])
         self.assertEqual(visible.mapped("company_id"), self.company)
+        manager_summary = self.env["rebuild.account.overview"].browse(
+            visible.id,
+        )
+        self.assertAlmostEqual(
+            visible.projected_cash_after_settlement,
+            manager_summary.projected_cash_after_settlement,
+        )
+        self.assertAlmostEqual(
+            visible.cash_projection_unpaid_expense_amount,
+            manager_summary.cash_projection_unpaid_expense_amount,
+        )
 
         hidden = self.env["rebuild.account.overview"].browse(
             other_company.id,
@@ -1341,6 +1353,12 @@ class TestRebuildAccountMigration(TransactionCase):
             "Cash position payable",
             "liability_payable",
         )
+        general_reconcile_account = account(
+            "455CP1",
+            "Cash position open current account",
+            "asset_current",
+        )
+        general_reconcile_account.reconcile = True
         income_account = account(
             "706CP1",
             "Cash position income",
@@ -1392,6 +1410,17 @@ class TestRebuildAccountMigration(TransactionCase):
             "property_account_receivable_id": receivable_account.id,
             "property_account_payable_id": payable_account.id,
         })
+        employee = self.env["hr.employee"].create({
+            "name": "Cash Position Employee",
+            "company_id": company.id,
+        })
+        expense_category = self.env["product.product"].with_company(
+            company,
+        ).create({
+            "name": "Cash Position Expense",
+            "can_be_expensed": True,
+            "property_account_expense_id": expense_account.id,
+        })
 
         def post_entry(debit_account, credit_account, amount, move_date=None):
             move = move_model.create({
@@ -1433,6 +1462,7 @@ class TestRebuildAccountMigration(TransactionCase):
         post_entry(restricted_account, offset_account, 500.0)
         post_entry(internal_transfer, offset_account, 200.0)
         post_entry(receivable_account, offset_account, 50.0)
+        post_entry(general_reconcile_account, offset_account, 70.0)
 
         invoice = move_model.create({
             "move_type": "out_invoice",
@@ -1466,6 +1496,38 @@ class TestRebuildAccountMigration(TransactionCase):
             ],
         })
         bill.action_post()
+        expense_model = self.env["hr.expense"].with_company(company)
+        expense_model.create({
+            "name": "Draft cash projection expense",
+            "employee_id": employee.id,
+            "product_id": expense_category.id,
+            "company_id": company.id,
+            "date": fields.Date.context_today(self),
+            "payment_mode": "own_account",
+            "total_amount_currency": 40.0,
+        })
+        expense_model.create({
+            "name": "Approved cash projection expense",
+            "employee_id": employee.id,
+            "product_id": expense_category.id,
+            "company_id": company.id,
+            "date": fields.Date.context_today(self),
+            "approval_state": "approved",
+            "payment_mode": "own_account",
+            "total_amount_currency": 60.0,
+        })
+        expense_model.create({
+            "name": "Future cash projection expense",
+            "employee_id": employee.id,
+            "product_id": expense_category.id,
+            "company_id": company.id,
+            "date": fields.Date.add(
+                fields.Date.context_today(self),
+                days=1,
+            ),
+            "payment_mode": "own_account",
+            "total_amount_currency": 25.0,
+        })
         self.env.flush_all()
 
         home = self.env["rebuild.account.overview"].search([
@@ -1476,23 +1538,66 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertAlmostEqual(home.cash_on_banks, 1000.0)
         self.assertAlmostEqual(home.expected_receipt_amount, 300.0)
         self.assertAlmostEqual(home.expected_payment_amount, 200.0)
-        self.assertAlmostEqual(home.projected_cash_after_settlement, 1100.0)
-        self.assertEqual(home.cash_projection_unresolved_count, 1)
+        self.assertAlmostEqual(
+            home.cash_projection_reconciliation_amount,
+            -780.0,
+        )
+        self.assertEqual(home.cash_projection_reconciliation_item_count, 5)
+        self.assertEqual(home.cash_projection_reconciliation_account_count, 4)
+        self.assertAlmostEqual(
+            home.cash_projection_unpaid_expense_amount,
+            125.0,
+        )
+        self.assertEqual(home.cash_projection_unpaid_expense_count, 3)
+        self.assertAlmostEqual(
+            home.cash_projection_draft_expense_amount,
+            65.0,
+        )
+        self.assertAlmostEqual(
+            home.cash_projection_submitted_expense_amount,
+            0.0,
+        )
+        self.assertAlmostEqual(
+            home.cash_projection_approved_expense_amount,
+            60.0,
+        )
+        self.assertAlmostEqual(home.projected_cash_after_settlement, 95.0)
+        (
+            projected_receipts,
+            projected_payments,
+            projected_reconciliation,
+            _projected_expenses,
+        ) = home._cash_position_lines()
+        self.assertTrue(
+            set((projected_receipts | projected_payments).ids).issubset(
+                projected_reconciliation.ids,
+            ),
+        )
+        self.assertAlmostEqual(
+            home.projected_cash_after_settlement,
+            (
+                home.cash_on_banks
+                + home.cash_projection_reconciliation_amount
+                - home.cash_projection_unpaid_expense_amount
+            ),
+        )
 
         journal_action = home.action_open_cash_position_journals()
         self.assertEqual(journal_action["domain"], [("id", "in", included_bank.ids)])
         projected_accounts_action = home.action_open_projected_cash_accounts()
         self.assertEqual(
-            projected_accounts_action["domain"],
-            [(
-                "id",
-                "in",
-                (
-                    included_bank.default_account_id
-                    | receivable_account
-                    | payable_account
-                ).ids,
-            )],
+            projected_accounts_action["domain"][0][:2],
+            ("id", "in"),
+        )
+        self.assertEqual(
+            set(projected_accounts_action["domain"][0][2]),
+            set((
+                included_bank.default_account_id
+                | suspense_account
+                | receivable_account
+                | payable_account
+                | general_reconcile_account
+            ).ids),
         )
         receipt_action = home.action_open_expected_receipts()
         self.assertIn(
@@ -1516,12 +1621,29 @@ class TestRebuildAccountMigration(TransactionCase):
             sum(receipt_lines.mapped("rebuild_cash_projection_amount")),
             home.expected_receipt_amount,
         )
-        unresolved_action = home.action_open_cash_projection_unresolved()
-        unresolved_lines = self.env["account.move.line"].search(
-            unresolved_action["domain"],
+        reconciliation_action = (
+            home.action_open_cash_projection_reconciliation()
         )
-        self.assertEqual(unresolved_lines.move_id.move_type, "entry")
-        self.assertEqual(unresolved_lines.account_id, receivable_account)
+        reconciliation_lines = self.env["account.move.line"].search(
+            reconciliation_action["domain"],
+        )
+        self.assertAlmostEqual(
+            sum(reconciliation_lines.mapped("amount_residual")),
+            home.cash_projection_reconciliation_amount,
+        )
+        self.assertEqual(
+            reconciliation_action["context"]["search_default_group_by_account"],
+            1,
+        )
+        expense_action = home.action_open_cash_projection_unpaid_expenses()
+        unpaid_expenses = self.env["hr.expense"].search(
+            expense_action["domain"],
+        )
+        self.assertEqual(len(unpaid_expenses), 3)
+        self.assertAlmostEqual(
+            sum(unpaid_expenses.mapped("total_amount")),
+            home.cash_projection_unpaid_expense_amount,
+        )
 
     def test_accounting_manager_gets_the_full_accounting_application(self):
         manager_group = self.env.ref("account.group_account_manager")

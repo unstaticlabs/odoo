@@ -1283,7 +1283,6 @@
                     <field name="latest_closing_period_id" invisible="1"/>
                     <field name="next_declaration_id" invisible="1"/>
                     <field name="hygiene_status" invisible="1"/>
-                    <field name="cash_projection_unresolved_count" invisible="1"/>
                     <div class="oe_title">
                         <h2>
                             <field name="company_id" class="oe_inline"/>
@@ -1350,37 +1349,84 @@
                                         </button>
                                         <div
                                             class="o_usl_overview_projection"
-                                            title="Estimate after identified receipts and payments effective through today.">
-                                            <span>Projected after settlement</span>
+                                            title="Planning estimate if every open General Reconciliation balance settles in cash and every unposted employee-paid expense is reimbursed.">
+                                            <div class="o_usl_cash_projection_label">
+                                                <strong>Projected after settlement</strong>
+                                                <span>Open balances and expenses included</span>
+                                            </div>
                                             <button
                                                 name="action_open_projected_cash_accounts"
                                                 type="object"
                                                 class="btn btn-link o_usl_cash_projection_link"
-                                                title="Open the bank, receivable and payable accounts used by this estimate.">
+                                                title="Open the bank and reconcilable accounts currently driving this estimate. Unposted expenses remain available in the breakdown below.">
                                                 <field name="projected_cash_after_settlement" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                                             </button>
                                         </div>
                                         <details class="o_usl_cash_breakdown">
-                                            <summary>View estimate details</summary>
+                                            <summary>How this estimate is built</summary>
                                             <div class="o_usl_cash_breakdown_body">
                                                 <div class="o_usl_cash_breakdown_row">
-                                                    <button name="action_open_expected_receipts" type="object" string="Expected receipts" class="btn-link"/>
+                                                    <button
+                                                        name="action_open_cash_projection_reconciliation"
+                                                        type="object"
+                                                        string="Open General Reconciliation balance"
+                                                        class="btn-link"
+                                                        title="Open every posted, unreconciled journal item included in the projection, grouped by account."/>
+                                                    <span class="o_usl_cash_breakdown_amount">
+                                                        <field name="cash_projection_reconciliation_amount" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                                    </span>
+                                                </div>
+                                                <div class="o_usl_cash_breakdown_context">
+                                                    <field name="cash_projection_reconciliation_item_count" nolabel="1"/>
+                                                    items across
+                                                    <field name="cash_projection_reconciliation_account_count" nolabel="1"/>
+                                                    accounts
+                                                </div>
+                                                <div class="o_usl_cash_breakdown_row o_usl_cash_breakdown_subrow">
+                                                    <button
+                                                        name="action_open_expected_receipts"
+                                                        type="object"
+                                                        string="Includes expected receipts"
+                                                        class="btn-link"
+                                                        title="Open identified customer and supplier-refund residuals already included in the General Reconciliation balance."/>
                                                     <span class="o_usl_cash_breakdown_amount o_usl_cash_breakdown_positive">
                                                         <field name="expected_receipt_amount" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                                                     </span>
                                                 </div>
-                                                <div class="o_usl_cash_breakdown_row">
-                                                    <button name="action_open_expected_payments" type="object" string="Expected payments" class="btn-link"/>
+                                                <div class="o_usl_cash_breakdown_row o_usl_cash_breakdown_subrow">
+                                                    <button
+                                                        name="action_open_expected_payments"
+                                                        type="object"
+                                                        string="Includes expected payments"
+                                                        class="btn-link"
+                                                        title="Open identified supplier, customer-refund and posted expense residuals already included in the General Reconciliation balance."/>
                                                     <span class="o_usl_cash_breakdown_amount o_usl_cash_breakdown_negative">
                                                         <field name="expected_payment_amount" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                                                     </span>
                                                 </div>
-                                                <div class="o_usl_cash_breakdown_row o_usl_cash_breakdown_unresolved" invisible="cash_projection_unresolved_count == 0">
-                                                    <button name="action_open_cash_projection_unresolved" type="object" string="Unresolved items" class="btn-link"/>
-                                                    <span>
-                                                        <field name="cash_projection_unresolved_count" nolabel="1"/>
-                                                        excluded
+                                                <div class="o_usl_cash_breakdown_row">
+                                                    <button
+                                                        name="action_open_cash_projection_unpaid_expenses"
+                                                        type="object"
+                                                        string="Unpaid expenses"
+                                                        class="btn-link"
+                                                        title="Open draft, submitted and approved employee-paid expenses not posted to accounting yet."/>
+                                                    <span class="o_usl_cash_breakdown_amount o_usl_cash_breakdown_negative">
+                                                        <field name="cash_projection_unpaid_expense_amount" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                                                     </span>
+                                                </div>
+                                                <div class="o_usl_cash_breakdown_context">
+                                                    <field name="cash_projection_unpaid_expense_count" nolabel="1"/>
+                                                    expenses ·
+                                                    Draft
+                                                    <field name="cash_projection_draft_expense_amount" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                                    · Submitted
+                                                    <field name="cash_projection_submitted_expense_amount" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                                    · Approved
+                                                    <field name="cash_projection_approved_expense_amount" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                                </div>
+                                                <div class="o_usl_cash_projection_note">
+                                                    This is a planning estimate. Some open balances may clear through reclassification or offset rather than cash.
                                                 </div>
                                             </div>
                                         </details>
