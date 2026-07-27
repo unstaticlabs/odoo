@@ -8,11 +8,13 @@ relevant records.
 
 The **Cash on banks** headline includes only real bank and payment-account
 balances effective through today. **Projected after settlement** estimates the
-remaining cash after identified customer receipts, supplier payments and
-employee reimbursements. Expand **View estimate details** only when you need
-the signed receipts/payments calculation or unresolved items. Select either
-headline amount to open the journals or accounts behind it. Transfers,
-suspense and generic open items do not silently change the projection.
+result if every open General Reconciliation balance settles in cash and every
+unposted employee-paid expense is reimbursed. Expand **How this estimate is
+built** for the signed open balance, identified receipt/payment subsets and
+Draft/Submitted/Approved expense totals. Select any amount to inspect its
+records. The projection is intentionally broader than cash on banks: suspense,
+tax, current-account and prepayment residuals remain visible until Accounting
+cleans or reconciles them.
 
 ## Journals
 
