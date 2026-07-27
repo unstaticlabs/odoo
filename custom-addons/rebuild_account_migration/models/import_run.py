@@ -2953,6 +2953,13 @@ class RebuildAccountImportRun(models.Model):
                     f"{bool(row['is_asking_for_autopost'])}; these UI/runtime "
                     "counters are evidence, not executable configuration."
                 ),
+                "rebuild_source_use_count": row["use_count"] or 0,
+                "rebuild_source_created_automatically": bool(
+                    row["created_automatically"],
+                ),
+                "rebuild_source_asked_for_autopost": bool(
+                    row["is_asking_for_autopost"],
+                ),
             }
             if model:
                 model.write(vals)

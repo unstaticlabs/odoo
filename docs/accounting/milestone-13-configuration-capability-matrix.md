@@ -39,7 +39,7 @@ separate from technical availability.
 | Report Groups or Variants | Report families and source variants are catalogued; PCG 2024 statement variants have explicit target actions and metadata. | Replaced | Association variants are explicit USL-scope exclusions pending stakeholder/accountant acceptance. |
 | Depreciation Models | Maintained OCA asset profiles replace the Enterprise depreciation-model surface for native current workflows. | Replaced | Source assets/schedules remain historical evidence; Track B profile, posting and idempotence tests pass. |
 | Tax Return Types | Versioned declaration rules, applicability profiles and filing-state records replace the Enterprise tax-return-type UI. | Replaced | Rules cover the applicable/conditional French forms and retain official version/source metadata. |
-| Reconciliation Models | All source native rule conditions, journal/partner scopes and write-off lines are source-traced into native `account.reconcile.model`, consumed by OCA Bank Matching. | Implemented | Exact source/target rule comparison, duplicate-trace invariants and functional replay test. |
+| Bank Matching Rules | Source conditions, journal/partner scopes and counterpart lines remain native `account.reconcile.model` records consumed by OCA Bank Matching. The UI distinguishes recorded usage, open matches, executable accounting rules, incomplete rules and partner-only mappings made redundant by evidence-backed partner inference. Deterministic or AI-authored proposals are inert until manager approval. | Implemented | On `odoo_dev` company 1, the assessment classifies 49 active records as 28 executable, 19 redundant partner-only and 2 needing review; source history records 15 uses across 3 rules. Proposal exclusion and approval are regression-tested. |
 | Payment Terms | Source payment terms and lines are reconstructed in native models. | Implemented | Exact import statistics/reference mapping; native configuration route. |
 | Incoterms | Native `account.incoterms` with an explicit manager route; no custom semantic fork. | Implemented | `Configuration > Invoicing > Incoterms`; clean add-on navigation test. |
 | Financial Budgets | The restored source does not have `account_budget` installed and no retained USL budget records exist. | Not applicable | Reassess only when an approved budgeting operating model and source dataset exist. |
@@ -57,9 +57,13 @@ For source reconciliation rules, three credible treatments were considered:
 3. keep the rules as review-only source evidence.
 
 The first is implemented because it retains executable operating configuration
-without duplicating Odoo/OCA matching logic. Source-only SaaS counters and
-autopost prompts that do not exist in Community are retained in trace notes as
-non-executable evidence.
+without duplicating Odoo/OCA matching logic. A small governance layer exposes
+source and target usage, current matching opportunities and structured proposal
+evidence. Partner-only source rules are identified as redundant because OCA
+excludes them from executable proposals and the separate evidence-backed
+partner service now owns that responsibility. Suggested rules are native,
+reviewable `account.reconcile.model` records marked inert until approval; the
+OCA query is extended only to enforce that safety boundary.
 
 For Enterprise configuration surfaces generally, a direct proprietary module
 dependency was rejected because the Community deployment does not contain those

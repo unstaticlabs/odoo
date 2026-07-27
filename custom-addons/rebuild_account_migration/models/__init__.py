@@ -33,3 +33,4 @@ from . import oca_report_defaults
 from . import fec_export_wizard
 from . import account_reconcile_compat
 from . import bank_partner_suggestion
+from . import reconciliation_model_intelligence

@@ -342,7 +342,7 @@ class TestRebuildAccountMigration(TransactionCase):
             return statement_line.move_id.line_ids.filtered(
                 lambda line: (
                     line.account_id == bank_journal.suspense_account_id
-                )
+                ),
             )
 
         inferred_bill = create_bill(
@@ -494,6 +494,166 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(mismatch_candidate_line.account_id, payable)
         self.assertEqual(mismatch_bill.payment_state, "paid")
         self.assertTrue(mismatch_bank_line.is_reconciled)
+
+    def test_bank_matching_rule_assessment_and_safe_suggestions(self):
+        bank_journal = self._journal("bank")
+        bank_journal.suspense_account_id.reconcile = True
+        expense = self._account(
+            "T627920",
+            "Unit recurring service fee",
+            "expense",
+        )
+        partner = self.env["res.partner"].create({
+            "name": "Unit inferred rule partner",
+            "company_id": self.company.id,
+        })
+        partner_only_rule = self.env["account.reconcile.model"].create({
+            "name": "Unit legacy partner-only rule",
+            "company_id": self.company.id,
+            "trigger": "auto_reconcile",
+            "match_label": "contains",
+            "match_label_param": "UNIT PARTNER",
+            "line_ids": [Command.create({
+                "partner_id": partner.id,
+                "amount_type": "percentage",
+                "amount_string": "100",
+            })],
+        })
+        self.assertEqual(
+            partner_only_rule.rebuild_health_state,
+            "redundant",
+        )
+        self.assertEqual(
+            partner_only_rule.rebuild_rule_type,
+            "partner_mapping",
+        )
+        self.assertFalse(partner_only_rule.can_be_proposed)
+        self.assertIn(
+            "smart bank evidence",
+            partner_only_rule.rebuild_guidance,
+        )
+        self.assertIn(
+            partner_only_rule,
+            self.env["account.reconcile.model"].search([
+                ("rebuild_health_state", "=", "redundant"),
+            ]),
+        )
+        finance_operator = self.env["res.users"].with_context(
+            no_reset_password=True,
+        ).create({
+            "name": "Unit bank matching operator",
+            "login": "unit-bank-matching-operator",
+            "company_id": self.company.id,
+            "company_ids": [Command.set([self.company.id])],
+            "group_ids": [Command.set([
+                self.env.ref("base.group_user").id,
+                self.env.ref("account.group_account_user").id,
+            ])],
+        })
+        with self.assertRaisesRegex(
+            AccessError,
+            "Only an Accounting Manager",
+        ):
+            partner_only_rule.with_user(
+                finance_operator,
+            ).action_rebuild_archive_rule()
+
+        proven_rule = self.env["account.reconcile.model"].create({
+            "name": "Unit historically used rule",
+            "company_id": self.company.id,
+            "trigger": "manual",
+            "match_label": "contains",
+            "match_label_param": "UNIT USED",
+            "rebuild_import_note": (
+                "Source-only created_automatically=False, use_count=4, "
+                "is_asking_for_autopost=False"
+            ),
+            "line_ids": [Command.create({
+                "account_id": expense.id,
+                "amount_type": "percentage",
+                "amount_string": "100",
+            })],
+        })
+        self.assertEqual(proven_rule.rebuild_historical_use_count, 4)
+        self.assertEqual(proven_rule.rebuild_total_use_count, 4)
+        self.assertEqual(proven_rule.rebuild_health_state, "proven")
+
+        statement_lines = self.env["account.bank.statement.line"]
+        for index in range(3):
+            statement_line = self.env[
+                "account.bank.statement.line"
+            ].with_context(
+                skip_retrieve_partner=True,
+                _test_account_reconcile_oca=True,
+            ).create({
+                "journal_id": bank_journal.id,
+                "date": fields.Date.today(),
+                "payment_ref": "UNIT RECURRING PLATFORM FEE",
+                "amount": -(20.0 + index),
+            })
+            suspense_line = statement_line.move_id.line_ids.filtered(
+                lambda line: (
+                    line.account_id == bank_journal.suspense_account_id
+                ),
+            )
+            self.assertEqual(len(suspense_line), 1)
+            suspense_line.write({"account_id": expense.id})
+            statement_line.invalidate_recordset(["is_reconciled"])
+            self.assertTrue(statement_line.is_reconciled)
+            statement_lines |= statement_line
+
+        rule_model = self.env["account.reconcile.model"]
+        opportunity_key = (
+            bank_journal.id,
+            expense.id,
+            0,
+            "unit recurring platform fee",
+        )
+        opportunity_groups = rule_model._rebuild_rule_opportunity_groups()
+        self.assertIn(opportunity_key, opportunity_groups)
+        with patch.object(
+            type(rule_model),
+            "_rebuild_rule_opportunity_groups",
+            return_value={
+                opportunity_key: opportunity_groups[opportunity_key],
+            },
+        ):
+            rule_model.action_rebuild_analyze_rule_opportunities()
+        proposal_key = (
+            f"{self.company.id}:{bank_journal.id}:{expense.id}:0:"
+            "unit recurring platform fee"
+        )
+        proposal = self.env["account.reconcile.model"].search([
+            ("rebuild_proposal_key", "=", proposal_key),
+        ])
+        self.assertEqual(len(proposal), 1)
+        self.assertTrue(proposal.rebuild_is_proposal)
+        self.assertEqual(proposal.rebuild_health_state, "suggested")
+        self.assertEqual(proposal.rebuild_proposal_source, "deterministic")
+        self.assertGreaterEqual(proposal.rebuild_proposal_confidence, 70)
+        self.assertEqual(
+            proposal.rebuild_evidence_statement_line_ids,
+            statement_lines,
+        )
+        rules_before_approval = proposal._get_rules(
+            statement_lines[-1],
+            trigger="manual",
+        )
+        self.assertNotIn(
+            proposal.id,
+            rules_before_approval.get(statement_lines[-1].id, []),
+        )
+
+        proposal.action_rebuild_approve_proposal()
+        self.assertFalse(proposal.rebuild_is_proposal)
+        rules_after_approval = proposal._get_rules(
+            statement_lines[-1],
+            trigger="manual",
+        )
+        self.assertIn(
+            proposal.id,
+            rules_after_approval[statement_lines[-1].id],
+        )
 
     def test_french_einvoice_reception_is_offline_traceable_and_deduplicated(self):
         purchase_journal = self._journal("purchase")
@@ -3917,6 +4077,9 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(model.match_partner_ids, partner)
         self.assertEqual(model.rebuild_source_id, 990201)
         self.assertIn("use_count=7", model.rebuild_import_note)
+        self.assertEqual(model.rebuild_source_use_count, 7)
+        self.assertFalse(model.rebuild_source_created_automatically)
+        self.assertFalse(model.rebuild_source_asked_for_autopost)
         self.assertEqual(len(model.line_ids), 1)
         self.assertEqual(model.line_ids.account_id, account)
         self.assertEqual(model.line_ids.partner_id, partner)
