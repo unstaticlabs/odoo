@@ -86,6 +86,18 @@ CANONICAL_REPORT_TYPES = {
     "french_profit_loss_2024": "profit_loss",
 }
 
+ZERO_ACCOUNT_FILTER_REPORT_TYPES = {
+    "trial_balance",
+    "balance_sheet",
+    "profit_loss",
+    "tax_report",
+    "fixed_asset_group_account",
+    "french_annual",
+    "french_balance_sheet_2024",
+    "french_profit_loss_2024",
+    "sig_caf_2024",
+}
+
 FRENCH_PROFIT_LOSS_SECTIONS = {
     "CR_VENTES_PRODUITS": "Produits d’exploitation",
     "CR_SERVICES": "Produits d’exploitation",
@@ -266,6 +278,14 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         default="none",
     )
     search_text = fields.Char(string="Search Report")
+    hide_zero_accounts = fields.Boolean(
+        string="Masquer les comptes à zéro",
+        help=(
+            "Masque les lignes de compte dont toutes les valeurs monétaires "
+            "affichées sont nulles. Les comptes ayant une activité débit ou "
+            "crédit restent visibles même si leur solde est nul."
+        ),
+    )
     show_details = fields.Boolean(default=True)
     collapsed_group_keys = fields.Text(default="[]")
     export_file = fields.Binary(readonly=True, attachment=True)
@@ -382,6 +402,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "comparison_date_to",
             "group_by",
             "display_unit",
+            "hide_zero_accounts",
             "search_text",
             "journal_ids",
             "account_ids",
@@ -592,6 +613,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 ),
                 "group_by": self.group_by,
                 "display_unit": self.display_unit,
+                "hide_zero_accounts": self.hide_zero_accounts,
                 "search_text": self.search_text or "",
                 "journal_ids": self.journal_ids.ids,
                 "account_ids": self.account_ids.ids,
@@ -816,6 +838,10 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 "french_tax_package",
             },
             "analytics": self.report_type in analytic_reports,
+            "hide_zero_accounts": (
+                self.report_type in ZERO_ACCOUNT_FILTER_REPORT_TYPES
+                or self.group_by == "account"
+            ),
         }
         definition = self.report_definition_id
         if definition:
@@ -1163,12 +1189,24 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         ]
 
     @api.model
-    def report_client_export(self, wizard_id, export_format):
+    def report_client_export(
+        self,
+        wizard_id,
+        export_format,
+        filters=None,
+    ):
         wizard = self.browse(wizard_id).exists()
         if not wizard:
             raise UserError("The report session expired. Reopen the report.")
         if export_format not in {"pdf", "xlsx"}:
             raise UserError("Choose PDF or XLSX.")
+        if filters is not None:
+            self.report_client_load(
+                wizard.report_type,
+                filters,
+                wizard.id,
+            )
+            wizard = self.browse(wizard.id).exists()
         definition = wizard.report_definition_id
         if (
             definition
@@ -2271,6 +2309,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "date_to": fields.Date.to_string(self.date_to),
             "currency": self.company_id.currency_id.name,
             "display_unit": self.display_unit,
+            "hide_zero_accounts": self.hide_zero_accounts,
             "display_unit_label": self._display_unit_metadata()["label"],
             "display_unit_short_label": (
                 self._display_unit_metadata()["short_label"]
@@ -2802,12 +2841,17 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             if metadata["target_move"] == "posted"
             else "Brouillons inclus"
         )
+        zero_accounts_label = (
+            " | Comptes à zéro masqués"
+            if metadata["hide_zero_accounts"]
+            else ""
+        )
         subtitle = (
             f"{metadata['company']} | {metadata['date_from']} au "
             f"{metadata['date_to']} | {metadata['currency']} | "
             f"{metadata['display_unit_label']} "
             f"({metadata['display_unit_short_label']}) | "
-            f"{target_move_label}"
+            f"{target_move_label}{zero_accounts_label}"
         )
         if last_column:
             report_sheet.merge_range(0, 0, 0, last_column, self._report_type_label(), formats["title"])
@@ -3347,12 +3391,18 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 f"({metadata['display_unit_short_label']})"
             )
         )
+        zero_accounts_context = (
+            " - Comptes à zéro masqués"
+            if metadata["hide_zero_accounts"]
+            else ""
+        )
         story = [
             Paragraph(clean_text(title), styles["USLTitle"]),
             Paragraph(
                 clean_text(
                     f"{metadata['company']} - Exercice du {date_from_display} au {date_to_display} - "
-                    f"Monnaie {metadata['currency']}{display_scale_context}",
+                    f"Monnaie {metadata['currency']}"
+                    f"{display_scale_context}{zero_accounts_context}",
                 ),
                 styles["USLSubtitle"],
             ),
@@ -3522,9 +3572,76 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             comparison_rows = self._group_report_rows(
                 comparison_rows,
             )
-        return self._attach_comparison_values(
+        rows = self._attach_comparison_values(
             current_rows,
             comparison_rows,
+        )
+        return self._hide_zero_account_rows(rows)
+
+    def _hide_zero_account_rows(self, rows):
+        """Hide empty account leaves and their now-empty account branches."""
+        self.ensure_one()
+        if not self.hide_zero_accounts:
+            return rows
+        hidden_group_keys = set()
+        visible_rows = []
+        for row in rows:
+            parent_key = str(row.get("parent_group_key") or "")
+            if parent_key in hidden_group_keys:
+                if row.get("is_group") in (True, "true"):
+                    hidden_group_keys.add(str(row.get("group_key") or ""))
+                continue
+            if self._is_zero_account_row(row):
+                if row.get("is_group") in (True, "true"):
+                    hidden_group_keys.add(str(row.get("group_key") or ""))
+                continue
+            visible_rows.append(row)
+        retained_parent_keys = set()
+        pruned_rows = []
+        for row in reversed(visible_rows):
+            group_key = str(row.get("group_key") or "")
+            if (
+                row.get("hierarchy_kind") == "pcg_group"
+                and group_key not in retained_parent_keys
+            ):
+                continue
+            pruned_rows.append(row)
+            parent_key = str(row.get("parent_group_key") or "")
+            if parent_key:
+                retained_parent_keys.add(parent_key)
+        return list(reversed(pruned_rows))
+
+    def _is_zero_account_row(self, row):
+        self.ensure_one()
+        hierarchy_kind = row.get("hierarchy_kind")
+        is_account_row = (
+            hierarchy_kind == "account"
+            or (
+                self.report_type == "trial_balance"
+                and bool(row.get("account_code"))
+            )
+            or (
+                self.report_type in {
+                    "tax_report",
+                    "fixed_asset_group_account",
+                }
+                and bool(row.get("account_code"))
+            )
+            or (
+                self.group_by == "account"
+                and row.get("is_group") in (True, "true")
+            )
+        )
+        if not is_account_row:
+            return False
+        monetary_values = [
+            _amount(row.get(field_name))
+            for field_name in MONETARY_REPORT_FIELDS
+            if row.get(field_name) not in (None, "")
+        ]
+        return bool(monetary_values) and all(
+            abs(value) < Decimal("0.005")
+            for value in monetary_values
         )
 
     def _raw_report_rows(self, date_from, date_to):
@@ -3572,6 +3689,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "comparison_mode": "none",
             "target_move": self.target_move,
             "display_unit": self.display_unit,
+            "hide_zero_accounts": self.hide_zero_accounts,
             "export_format": self.export_format,
             "fec_test_mode": self.fec_test_mode,
             "journal_ids": [Command.set(journals.ids)],

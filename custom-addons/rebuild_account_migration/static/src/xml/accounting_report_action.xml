@@ -115,6 +115,16 @@
                         </t>
                     </select>
                 </label>
+                <label t-if="capabilities.hide_zero_accounts"
+                       class="o_usl_report_filter_toggle">
+                    <span>Affichage</span>
+                    <span class="o_usl_report_checkbox">
+                        <input type="checkbox" name="hide_zero_accounts"
+                               t-att-checked="state.filters.hide_zero_accounts"
+                               t-on-change="onFilterChange"/>
+                        <span>Masquer les comptes à zéro</span>
+                    </span>
+                </label>
                 <button class="btn btn-outline-secondary o_usl_report_more_filters" type="button"
                         title="Afficher ou masquer les filtres secondaires de journal, compte, partenaire et analytique."
                         t-on-click="() => state.advancedOpen = !state.advancedOpen">
@@ -169,6 +179,15 @@
                 <span class="badge rounded-pill text-bg-light" t-else="">Brouillons inclus</span>
                 <span class="badge rounded-pill text-bg-light">
                     Unité : <t t-esc="displayUnitLabel"/>
+                </span>
+                <span class="badge rounded-pill text-bg-light"
+                      t-if="state.filters.hide_zero_accounts">
+                    Comptes à zéro masqués
+                    <button type="button"
+                            t-on-click="() => this.removeFilter('hide_zero_accounts')"
+                            title="Afficher les comptes à zéro">
+                        <i class="fa fa-times"/>
+                    </button>
                 </span>
                 <span class="badge rounded-pill text-bg-light" t-if="state.data.variant.key !== 'standard'">
                     <t t-esc="state.data.variant.label"/>

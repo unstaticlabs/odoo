@@ -59,6 +59,11 @@ Valentin and the accountant must be able to:
   displayed only when its signed contributions reconcile to the statement
   value; screen, source drill-down, PDF and readable XLSX retain the same
   codes, labels and amounts.
+- Account-bearing reports can hide fully zero-valued account rows without
+  hiding accounts that have debit, credit or comparison activity. The setting
+  is part of the shared report session, visible scope and export metadata;
+  PDF/XLSX generation refreshes from the current client filters before
+  rendering.
 - Each accounting need has one canonical end-user report. **Compte de
   résultat** is the single French performance statement; historical generic
   and detailed aliases may remain for migration compatibility but are not

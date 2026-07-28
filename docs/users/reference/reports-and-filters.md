@@ -50,6 +50,8 @@ The available subset depends on the report:
 - analytic plan and account;
 - posted entries only or drafts included;
 - resolved report variant and display unit;
+- account display with zero-valued accounts shown or hidden where the report
+  contains account-level rows;
 - text search.
 
 **Unité** is available beside the period and comparison. It displays values in
@@ -57,6 +59,12 @@ the selected company currency as units, thousands or millions; the header,
 principal result, active scope and amount columns always repeat the chosen
 unit. Original
 foreign-currency amounts are not rescaled.
+
+**Masquer les comptes à zéro** removes an account only when every monetary
+column shown for that account is zero. A fully settled account with debit or
+credit activity remains visible, as does an account with a non-zero comparison
+value. Empty PCG branches are removed with their zero accounts, while statement
+sections, subtotals and totals remain visible.
 
 Less common journal, account, partner and analytic choices are under
 **Filtres**. Active choices appear as removable pills and **Effacer** removes
@@ -97,7 +105,10 @@ The screen uses a centered A4-like reading width for portrait statements and a
 bounded landscape width for column-heavy ledgers. The screen, PDF and readable
 XLSX `Report` sheet share the resolved period, filters, grouping, visible
 folded hierarchy, PCG group/account codes, display unit, calculations and
-totals. XLSX also contains a raw `Audit Data` sheet for analysis; its monetary
+totals. Clicking PDF or XLSX resynchronizes the export from the filters visible
+in the report before generating the file. The active zero-account choice is
+therefore applied to the downloaded rows and recorded in its context. XLSX
+also contains a raw `Audit Data` sheet for analysis; its monetary
 values remain in source units and it is not the presentation reference.
 
 Each report resolves a governed definition for the selected company and period.
