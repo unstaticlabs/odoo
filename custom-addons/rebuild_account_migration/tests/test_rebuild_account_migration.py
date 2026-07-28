@@ -5836,6 +5836,24 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertTrue(cron.active)
         self.assertEqual(cron.interval_number, 1)
         self.assertEqual(cron.interval_type, "days")
+        rate_list = self.env.ref(
+            "base.view_currency_rate_tree",
+        )._get_combined_arch()
+        currency_columns = rate_list.xpath(
+            "./field[@name='currency_id']",
+        )
+        self.assertEqual(len(currency_columns), 1)
+        self.assertEqual(
+            currency_columns[0].get("column_invisible"),
+            "context.get('default_currency_id')",
+        )
+        rate_search = self.env.ref(
+            "base.view_currency_rate_search",
+        )._get_combined_arch()
+        self.assertEqual(
+            len(rate_search.xpath("./field[@name='currency_id']")),
+            1,
+        )
         reviewer = self.env["res.users"].with_context(
             no_reset_password=True,
         ).create({

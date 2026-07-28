@@ -16,7 +16,7 @@ ECB_RECENT_RATE_URL = (
     "https://www.ecb.europa.eu/stats/eurofxref/"
     "eurofxref-hist-90d.xml"
 )
-ECB_HISTORICAL_RATE_URL = (
+ECB_FULL_RATE_URL = (
     "https://www.ecb.europa.eu/stats/eurofxref/"
     "eurofxref-hist.xml"
 )
@@ -173,7 +173,7 @@ class ResCompany(models.Model):
     @api.model
     def _rebuild_fetch_ecb_xml(self, *, backfill=False):
         provider_url = (
-            ECB_HISTORICAL_RATE_URL if backfill else ECB_RECENT_RATE_URL
+            ECB_FULL_RATE_URL if backfill else ECB_RECENT_RATE_URL
         )
         try:
             response = requests.get(
@@ -230,7 +230,7 @@ class ResCompany(models.Model):
             )
             retrieved_at = retrieved_at or fetched_at
         provider_url = provider_url or (
-            ECB_HISTORICAL_RATE_URL if backfill else ECB_RECENT_RATE_URL
+            ECB_FULL_RATE_URL if backfill else ECB_RECENT_RATE_URL
         )
         retrieved_at = (
             fields.Datetime.to_datetime(retrieved_at)
@@ -473,7 +473,7 @@ class RebuildCurrencyRateUpdateWizard(models.TransientModel):
     )
     provider_url = fields.Char(
         string="Official Provider URL",
-        default=ECB_HISTORICAL_RATE_URL,
+        default=ECB_FULL_RATE_URL,
         readonly=True,
     )
     coverage_start_date = fields.Date(
@@ -582,7 +582,7 @@ class RebuildCurrencyRateUpdateWizard(models.TransientModel):
             result = {
                 "status": "failed",
                 "provider": self.provider,
-                "provider_url": ECB_HISTORICAL_RATE_URL,
+                "provider_url": ECB_FULL_RATE_URL,
                 "company_id": self.company_id.id,
                 "message": str(error),
             }
