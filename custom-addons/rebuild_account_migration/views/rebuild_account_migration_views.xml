@@ -5477,9 +5477,9 @@
         <field name="context">{'report_type': 'french_balance_sheet_2024'}</field>
     </record>
     <record id="action_rebuild_interactive_french_profit_loss_2024" model="ir.actions.client">
-        <field name="name">Compte de résultat détaillé</field>
+        <field name="name">Compte de résultat</field>
         <field name="tag">rebuild_accounting_report</field>
-        <field name="context">{'report_type': 'french_profit_loss_2024'}</field>
+        <field name="context">{'report_type': 'profit_loss'}</field>
     </record>
     <record id="action_rebuild_interactive_sig_caf_2024" model="ir.actions.client">
         <field name="name">SIG et CAF</field>
@@ -5642,11 +5642,12 @@
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_french_profit_loss_2024_launcher"
-        name="Compte de résultat détaillé"
+        name="Compte de résultat (alias historique)"
         parent="account.account_reports_legal_statements_menu"
         action="action_rebuild_interactive_french_profit_loss_2024"
         sequence="8"
-        groups="account.group_account_readonly"/>
+        groups="account.group_account_readonly"
+        active="False"/>
     <menuitem
         id="menu_rebuild_account_report_sig_caf_2024_launcher"
         name="SIG et CAF"

@@ -13,6 +13,12 @@ numeric cells, selected unit and the same visible
 section/group/subtotal/total hierarchy; `Audit Data` retains raw unscaled rows
 and filter metadata for analysis.
 
+The PDF uses the official document template configured for the report:
+company identity and legal context in the repeated header, selected period and
+unit near the title, high-contrast financial sections, and document/page
+context in the footer. If screen and export do not show the same scope, do not
+use the export as review evidence.
+
 ## FEC
 
 1. Open **Reporting > Comptes et journaux > FEC**.

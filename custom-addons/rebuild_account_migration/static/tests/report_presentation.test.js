@@ -47,4 +47,36 @@ test("display unit scales company-currency amounts and labels dynamically", () =
             label: "Millions",
         }),
     ).toBe("Millions (MCHF)");
+    expect(
+        report.summaryCardLabel({
+            label: "Résultat net de l’exercice",
+            type: "currency",
+        }),
+    ).toBe("Résultat net de l’exercice (kCHF)");
+});
+
+test("report workspace and document theme stay presentation-driven", () => {
+    const report = reportWith([]);
+    report.reportType = "profit_loss";
+    report.state.data.document = {
+        primary_color: "#111111",
+        section_background_color: "#E9ECEF",
+        section_text_color: "#111111",
+        muted_color: "#666666",
+    };
+
+    expect(report.reportWorkspaceClass).toBe(
+        "o_usl_report_workspace o_usl_report_workspace_portrait",
+    );
+    expect(report.documentThemeStyle).toInclude(
+        "--usl-report-section-bg:#E9ECEF",
+    );
+    expect(report.documentThemeStyle).toInclude(
+        "--usl-report-section-text:#111111",
+    );
+
+    report.reportType = "general_ledger";
+    expect(report.reportWorkspaceClass).toBe(
+        "o_usl_report_workspace o_usl_report_workspace_landscape",
+    );
 });

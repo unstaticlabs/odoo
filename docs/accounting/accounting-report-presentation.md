@@ -17,6 +17,12 @@ The browser, PDF and readable XLSX sheet consume the same roles. Calculation
 rows, filters, grouping, comparison values and drill-down domains remain the
 authoritative shared source.
 
+**Compte de résultat** is the one canonical French performance statement. It
+uses the governed PCG presentation with products, charges, intermediate
+results, financial result and result for the year. The former detailed entry
+is a deprecated compatibility alias that resolves to this same report and is
+not displayed in the Reporting menu.
+
 ## Architecture decision
 
 Two credible approaches were considered:
@@ -35,6 +41,26 @@ PDF and XLSX.
 
 No core Odoo patch is required.
 
+For official-document rendering, three credible options were compared:
+
+1. standard Odoo QWeb reports with `web.external_layout`, which provide native
+   company branding but would introduce a second statement renderer and a
+   separate calculation/template contract;
+2. OCA QWeb/XLSX report outputs, which remain appropriate for their specialist
+   wizards but do not cover the configured USL, French and management
+   statements as one product;
+3. the existing deterministic ReportLab/XLSX exporters driven by the same
+   report session and hierarchy as the interactive client.
+
+The third option remains the canonical exporter. Its visual tokens are no
+longer hardcoded per renderer: the resolved report definition supplies an
+official A4 template key, primary/muted colors, section background/text colors
+and footer label. The defaults follow the supplied USL LaTeX conventions:
+sans-serif typography, restrained black/gray hierarchy, compact tables,
+company legal identity in the repeated header and a quiet document footer.
+Company overrides are validated for six-digit hexadecimal colors and a minimum
+4.5:1 section contrast ratio.
+
 For navigation, retaining Odoo's four broad report families was also compared
 with one flat list and with purpose-based families. A flat list made common
 books and statements compete with specialist outputs. The selected structure
@@ -45,6 +71,8 @@ actions behind every canonical report.
 ## Interaction rules
 
 - Results and the principal result/control appear before filter configuration.
+- Headline monetary results repeat the selected display unit in their label;
+  for example, `Résultat net de l’exercice (€)`.
 - Preset periods expose one reference date; custom periods expose explicit
   start and end dates. The two concepts are not shown simultaneously.
 - A custom comparison defaults to the same dates in the prior year and remains
@@ -63,6 +91,12 @@ actions behind every canonical report.
 - Accounting statements use French date and number conventions independently
   from the user's general Odoo interface language, with tabular figures,
   restrained negative emphasis and de-emphasized zeros.
+- Portrait statements render inside a centered A4-like reading surface;
+  column-heavy ledgers use a bounded landscape surface with local horizontal
+  scrolling rather than stretching across the entire application window.
+- Principal sections use a light configured background and dark configured
+  text. Hover retains the same contrast instead of applying the generic detail
+  row hover color.
 
 ## Export rules
 
@@ -74,6 +108,11 @@ the same visible hierarchy, and its metadata records the collapsed group keys.
 Display-unit scaling applies to the readable statement while the XLSX `Audit
 Data` sheet remains intentionally raw and machine oriented. The `Report` sheet
 is the accountant-readable statement.
+
+PDF pages repeat company identity, registry/VAT context, address, reporting
+date, official-document label and page number. Column headers and section rows
+use high-contrast light fills with dark text; final totals retain formal
+accounting rules rather than decorative saturated fills.
 
 An export is provisional accounting evidence. It does not replace statutory
 review, filing or a recorded closing decision.

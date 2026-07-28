@@ -96,6 +96,18 @@
                             <group string="Hierarchy">
                                 <field name="hierarchy_guidance" nolabel="1" readonly="not company_id"/>
                             </group>
+                            <group string="Official document">
+                                <group>
+                                    <field name="document_template" readonly="not company_id"/>
+                                    <field name="document_footer_label" readonly="not company_id"/>
+                                </group>
+                                <group>
+                                    <field name="document_primary_color" placeholder="#111111" readonly="not company_id"/>
+                                    <field name="document_section_background_color" placeholder="#E9ECEF" readonly="not company_id"/>
+                                    <field name="document_section_text_color" placeholder="#111111" readonly="not company_id"/>
+                                    <field name="document_muted_color" placeholder="#666666" readonly="not company_id"/>
+                                </group>
+                            </group>
                         </page>
                         <page string="Filters and Exports">
                             <group>
