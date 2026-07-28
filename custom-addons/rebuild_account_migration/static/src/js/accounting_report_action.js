@@ -257,6 +257,15 @@ export class AccountingReportAction extends Component {
         await this.actionService.doAction(action);
     }
 
+    async openMatchingItems(line) {
+        const action = await this.orm.call(
+            "account.move.line",
+            "action_rebuild_open_matching_number",
+            [line.matching_number, this.state.data.company_id],
+        );
+        await this.actionService.doAction(action);
+    }
+
     formatAmount(value) {
         return new Intl.NumberFormat(this.state.data.locale || undefined, {
             minimumFractionDigits: 2,

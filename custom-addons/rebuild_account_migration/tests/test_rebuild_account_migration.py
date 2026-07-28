@@ -2277,6 +2277,23 @@ class TestRebuildAccountMigration(TransactionCase):
             len(set(clearing_lines.mapped("rebuild_matching_color"))),
             1,
         )
+        matching_line = clearing_lines.filtered("matching_number")[0]
+        matching_action = (
+            matching_line.action_rebuild_open_matching_items()
+        )
+        matching_lines = self.env["account.move.line"].search(
+            matching_action["domain"],
+        )
+        self.assertTrue(matching_lines)
+        self.assertEqual(
+            set(matching_lines.mapped("matching_number")),
+            {matching_line.matching_number},
+        )
+        self.assertEqual(matching_lines.company_id, self.company)
+        self.assertEqual(
+            matching_action["name"],
+            f"Matching {matching_line.matching_number}",
+        )
 
         undo_result = clearing_lines.action_rebuild_unreconcile()
 
@@ -2911,13 +2928,28 @@ class TestRebuildAccountMigration(TransactionCase):
         )
 
         self.assertEqual(len(matching_fields), 1)
-        self.assertEqual(matching_fields[0].get("widget"), "badge")
+        self.assertEqual(
+            matching_fields[0].get("widget"),
+            "rebuild_matching_badge",
+        )
         self.assertEqual(
             safe_eval(matching_fields[0].get("options")),
             {"color_field": "rebuild_matching_color"},
         )
         self.assertEqual(len(color_fields), 1)
         self.assertEqual(color_fields[0].get("column_invisible"), "True")
+        reconciliation_arch = self.env.ref(
+            "rebuild_account_migration."
+            "view_rebuild_account_move_line_reconciliation_result",
+        )._get_combined_arch()
+        reconciliation_matching = reconciliation_arch.xpath(
+            "//field[@name='matching_number']",
+        )
+        self.assertEqual(len(reconciliation_matching), 1)
+        self.assertEqual(
+            reconciliation_matching[0].get("widget"),
+            "rebuild_matching_badge",
+        )
 
     def test_hygiene_analytic_items_use_native_multi_edit(self):
         account_user_group = self.env.ref("account.group_account_user")
