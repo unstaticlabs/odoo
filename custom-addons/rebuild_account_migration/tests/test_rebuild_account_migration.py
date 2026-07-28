@@ -7314,9 +7314,20 @@ class TestRebuildAccountMigration(TransactionCase):
             )
             wizard = Report.browse(filtered["wizard_id"])
             self.assertEqual(download["field"], "export_file")
+            exported_file = base64.b64decode(wizard.export_file)
             self.assertTrue(
-                base64.b64decode(wizard.export_file).startswith(signature),
+                exported_file.startswith(signature),
             )
+            if export_format == "pdf":
+                exported_text = "\n".join(
+                    page.extract_text() or ""
+                    for page in PdfReader(BytesIO(exported_file)).pages
+                )
+                self.assertIn(
+                    "Milliers "
+                    f"(k{self.env.company.currency_id.symbol})",
+                    exported_text,
+                )
             metadata = json.loads(wizard.export_metadata)
             self.assertEqual(
                 metadata["report_definition_version"],
@@ -7404,6 +7415,14 @@ class TestRebuildAccountMigration(TransactionCase):
         )
         self.assertIn("DOCUMENT COMPTABLE OFFICIEL", profit_loss_pdf_text)
         self.assertIn("Charges d’exploitation", profit_loss_pdf_text)
+        self.assertIn(
+            f"Monnaie {self.env.company.currency_id.name}",
+            profit_loss_pdf_text,
+        )
+        self.assertNotIn(
+            f"Unités ({self.env.company.currency_id.symbol})",
+            profit_loss_pdf_text,
+        )
         self.assertNotIn("Périmètre", profit_loss_pdf_text)
         self.assertNotIn(
             "Présentation française résolue",
