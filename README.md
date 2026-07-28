@@ -23,7 +23,7 @@ Primary entry points:
 - **Accounting > Overview** for daily operational state;
 - **Accounting > Reporting > Analyse analytique** for exploratory pivot analysis;
 - **Accounting > Configuration** for governed Controls, Reports, Declarations
-  and electronic-invoice readiness;
+  and E-Invoicing;
 - `/usl/user-docs` for role- and task-based user guidance;
 - [Accounting development workflow](docs/operations/accounting-development-workflow.md)
   for safe iteration;
@@ -263,6 +263,18 @@ addons_path = /opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca
 
 This workflow runs the repository-built image and mounts `custom-addons/`, `oca-src/`, `oca-addons/` and the user docs into the Odoo container. It is suitable for QA checks, local acceptance testing, and validating behavior after rebuilds.
 
+For a fresh or explicitly disposable database, prepare the safe French
+e-invoicing QA company with the French company chart and EUR, Odoo PA demo
+connection, representative bills and role-specific logins:
+
+```bash
+scripts/odoo-dev bootstrap-einvoice-qa
+```
+
+The bootstrap refuses existing company identities and any enabled live guard.
+It makes no network call. Log in as `qa.manager` / `qa-manager` or
+`qa.reviewer` / `qa-reviewer`.
+
 ### Helper commands
 
 ```bash
@@ -277,6 +289,7 @@ scripts/odoo-dev shell        # open a one-off devcontainer shell
 scripts/odoo-dev test base    # run an Odoo module test pass
 scripts/odoo-dev test-js rebuild_account_migration  # frontend unit tests
 scripts/odoo-dev test-tag '/module:Class.test_method'  # installed focused test
+scripts/odoo-dev bootstrap-einvoice-qa  # network-free PA demo and QA accounts
 scripts/odoo-dev ruff custom-addons
 scripts/odoo-dev update       # pull service images and rebuild
 scripts/odoo-dev reset        # delete local Compose volumes
@@ -313,9 +326,9 @@ Deliberate product boundaries: Community does not provide the Enterprise
 application launcher or unrelated Enterprise applications such as Documents,
 Sign, Knowledge, To-do, AI features or TESE Payroll. Live bank synchronization
 and production electronic-invoicing connectivity remain inactive. Provider
-identity acceptance, service terms and support must be verified before
-activation; passing the offline reception tests does not prove access to the
-production approved-platform service from this fork. Brands such
+identity verification and acceptance of the platform terms occur during the
+deliberate production activation; passing the offline and demo tests does not
+register the company in the French directory. Brands such
 as SBFH, GBC, Yoshi, Smash and KinkVerse are represented as projects or
 analytic contexts under the single legal company.
 

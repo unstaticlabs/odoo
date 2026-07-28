@@ -42,18 +42,20 @@ VAT for a €175 total. It never represents a real supplier or provider message.
 
 Validation uses an isolated Compose project and disposable PostgreSQL volume,
 not `odoo_dev`, `odoo_online_source_saas_19_2` or the shared candidate
-databases. The final database was `peppol_release_final` in Compose project
-`usl-peppol-019fa941`; both names are disposable test evidence, not deployment
-targets.
+databases. The final installation database was
+`odoo_peppol_release_20260728` in Compose project
+`usl-peppol-qa-20260728`; both names are disposable test evidence, not
+deployment targets. The user-facing QA database is
+`odoo_peppol_qa_20260728` in the same isolated project.
 
 The following final checks passed on 28 July 2026:
 
 | Check | Command scope | Result |
 |---|---|---|
-| Fresh installation and reception backend suite | `odoo --database=peppol_release_final --init=rebuild_account_migration --test-enable --test-tags=/rebuild_account_migration:TestFrenchEinvoiceReception --workers=0 --max-cron-threads=0 --without-demo=true` | 99 modules installed; 6 methods / 8 Odoo assertions; 0 failures, 0 errors |
-| Explicit module upgrade and prior reception regression | `odoo --database=peppol_release_final --update=rebuild_account_migration --test-enable --test-tags=/rebuild_account_migration:TestRebuildAccountMigration.test_french_einvoice_reception_is_offline_traceable_and_deduplicated --workers=0 --max-cron-threads=0 --without-demo=true` | Upgrade completed; 1 method / 3 Odoo assertions; 0 failures, 0 errors |
-| Browser acceptance | `odoo --database=peppol_release_final --update=rebuild_account_migration --test-enable --test-tags=/rebuild_account_migration:TestFrenchEinvoiceReceptionBrowser --workers=0 --max-cron-threads=0 --without-demo=true` | Accounting Manager 9/9 steps and read-only accountant 6/6 steps; 0 failures, 0 errors |
-| Inherited currency-rate scope in the starting worktree | targeted five-method ECB/import regression selection on `peppol_release_final` | 5 methods / 7 Odoo assertions; 0 failures, 0 errors |
+| Fresh installation and reception backend suite | test image on `odoo_peppol_release_20260728`, `--init=rebuild_account_migration --test-tags=/rebuild_account_migration:TestFrenchEinvoiceReception --without-demo=true` | 99 modules installed; 7 methods / 9 Odoo assertions; 0 failures, 0 errors |
+| Explicit module upgrade and prior reception regression | test image on `odoo_peppol_release_20260728`, `--update=rebuild_account_migration --test-tags=/rebuild_account_migration:TestRebuildAccountMigration.test_french_einvoice_reception_is_offline_traceable_and_deduplicated --without-demo=true` | Upgrade completed; 1 method / 3 Odoo assertions; 0 failures, 0 errors |
+| Browser acceptance | Chromium test image on `odoo_peppol_defaults_test2_20260728`, `--test-tags=/rebuild_account_migration:TestFrenchEinvoiceReceptionBrowser` | Accounting Manager 9/9 steps and read-only accountant 6/6 steps; 0 failures, 0 errors |
+| Deployed QA acceptance | `scripts/odoo-dev bootstrap-einvoice-qa`, followed by in-app browser review | French commercial chart, EUR, 20% and 10% VAT, €175 total, original UBL, normal Confirm action, Odoo PA Demo invoice, manager controls and read-only visibility verified |
 | Python lint | `ruff check` on the reception model, new suite and modified regression suite, using the current Ruff container | Passed |
 | Python syntax | `python3 -m compileall -q` on the same Python files | Passed |
 | XML syntax | `xmllint --noout` on the cron data, readiness views and representative UBL | Passed |
@@ -75,6 +77,12 @@ Resolved validation iterations are retained here for honesty:
   retained-attachment retry access and embedded Factur-X extraction;
 - the first browser runs exposed and fixed a changed status selector, durable
   readiness action view binding and the company-name cell click target;
+- the first QA bootstrap exposed legacy shell argument ordering, a transaction
+  boundary around native PDF generation, and a generic USD chart; the final
+  bootstrap uses the French commercial chart and EUR;
+- browser tours were first skipped in the runtime image because it intentionally
+  lacks browser-test dependencies; they then passed in the repository test
+  image with Chromium and `websocket-client`;
 - Ruff `0.12.2` could not parse the repository's newer rule set; the current
   Ruff image then identified two comment-style findings, which were fixed
   before the final passing run.

@@ -9,19 +9,19 @@ Reception requires a French approved platform and a structured UBL, CII or
 Factur-X document; an ordinary emailed PDF is not a regulated electronic
 invoice.
 
-This release is **ready but inactive**. It can prove the complete software
-reception journey without a network call. It does not prove that USL is
-accepted by Odoo's production identity-verification process, registered in the
-French directory, or connected in production.
+This release is **ready but inactive**. It proves the software reception
+journey without a network call. Production identity verification, platform
+terms and French-directory registration remain deliberate activation steps.
 
 Odoo documents generic Peppol registration as free and available in Community:
 [Electronic invoicing — Peppol](https://www.odoo.com/documentation/19.0/applications/finance/accounting/customer_invoices/electronic_invoicing.html#peppol).
 For the French reform, Odoo documents its certified Approved Platform and the
 `l10n_fr_pdp` workflow separately:
 [France — E-invoicing](https://www.odoo.com/documentation/19.0/applications/finance/fiscal_localizations/france.html#e-invoicing).
-Both client modules are LGPL-3 in this source tree. The documentation does not
-explicitly guarantee hosted-service access for an independently maintained
-fork, so production acceptance, terms and support remain **Not yet verified**.
+Both client modules are LGPL-3 in this source tree. Odoo's French workflow
+requires legal-representative authentication and acceptance of the displayed
+terms during production onboarding; no provider outreach is required for
+offline preparation.
 
 ## Architecture decision
 
@@ -55,11 +55,11 @@ product states and the current next action:
 - **Configuration incomplete** — the accounting country, company identifiers
   or incoming purchase journal is missing;
 - **Not yet verified** — configuration may be present, but the representative
-  offline reception test or production provider access is outstanding;
+  offline reception test is outstanding;
 - **Test passed** — the current company produced a correct native draft bill
   from the maintained safe fixture;
-- **Ready but inactive** — company configuration, safe test and provider
-  eligibility decision are complete, but no live connection is active;
+- **Ready but inactive** — company configuration and safe tests pass, but no
+  live connection is active;
 - **Production activation required** — a production deployment is prepared
   but still needs deliberate approval, registration or scheduled-reception
   enablement;
@@ -68,7 +68,7 @@ product states and the current next action:
 
 The screen never interprets installed code as proof of a provider contract or
 live connectivity. **Next Action** is phase-aware: it first resolves reception
-setup, then the offline test, platform verification and deliberate production
+setup, then the offline test and deliberate production
 activation. **Odoo Approved Platform** is selected by default for French
 companies because it is the only French Approved Platform adapter implemented
 in this release; that default does not create an account or contact Odoo.
@@ -108,14 +108,18 @@ USL_EREPORTING_LIVE_ENABLED=0
 
 With the reception guard off, live provider calls, French directory lookup,
 Peppol lookup, registration, deregistration and authentication refresh are
-blocked. Installation and every module upgrade also disable reception,
-auto-registration, regulatory-document, lifecycle and e-reporting jobs.
+blocked. The Odoo PA Demo mode remains available because Odoo simulates it
+locally and explicitly performs no French-network communication. Installation
+and every module upgrade select Demo mode, disable e-reporting and disable
+reception, auto-registration, regulatory-document, lifecycle and e-reporting
+jobs.
 
 Production reception requires all of the following:
 
 1. French company identifiers, scheme `0225`, contact and purchase journal;
 2. the representative offline test marked **Test passed**;
-3. verified provider identity, service terms and support path;
+3. legal-representative identity verification and acceptance of the displayed
+   platform terms;
 4. an actual production deployment;
 5. `USL_EINVOICE_LIVE_ENABLED=1` in that deployment;
 6. Accounting Manager approval;

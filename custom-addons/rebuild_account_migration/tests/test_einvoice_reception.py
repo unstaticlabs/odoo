@@ -150,7 +150,6 @@ class EinvoiceTestDataMixin:
             "account_peppol_proxy_state": "not_registered",
             "rebuild_einvoice_environment": "development",
             "rebuild_einvoice_provider": "odoo_pdp",
-            "rebuild_einvoice_provider_contract_status": "not_verified",
             "account_peppol_contact_email": False,
             "account_peppol_phone_number": False,
         })
@@ -286,6 +285,23 @@ class TestFrenchEinvoiceReception(
         ], limit=1)
         return result, evidence, attachment
 
+    def _create_production_proxy_user(self):
+        private_key = self.env[
+            "certificate.key"
+        ].sudo()._generate_rsa_private_key(
+            self.company,
+            name=f"pdp_prod_test_{self.company.id}.key",
+        )
+        return self.env["account_edi_proxy_client.user"].sudo().create({
+            "id_client": f"pdp-prod-test-{self.company.id}",
+            "company_id": self.company.id,
+            "proxy_type": "pdp",
+            "edi_mode": "prod",
+            "edi_identification": f"0225:{self.company.peppol_endpoint}",
+            "private_key_id": private_key.id,
+            "refresh_token": "offline-test-token",
+        })
+
     def test_readiness_offline_test_and_normal_bill_lifecycle(self):
         self.assertEqual(
             self.company.rebuild_einvoice_readiness_status,
@@ -333,7 +349,6 @@ class TestFrenchEinvoiceReception(
             "account_peppol_contact_email": "accounting@example.invalid",
             "account_peppol_phone_number": "+33612345678",
             "rebuild_einvoice_provider": "odoo_pdp",
-            "rebuild_einvoice_provider_contract_status": "verified",
         })
         self.assertEqual(
             self.company.rebuild_einvoice_readiness_status,
@@ -361,6 +376,137 @@ class TestFrenchEinvoiceReception(
                     line.account_id.account_type == "liability_payable"
                 ),
             ).reconciled,
+        )
+
+    def test_safe_defaults_and_native_demo_provider_are_network_free(self):
+        self.company.write({
+            "rebuild_einvoice_provider": False,
+            "peppol_purchase_journal_id": False,
+            "peppol_eas": False,
+            "peppol_endpoint": False,
+            "account_peppol_contact_email": False,
+            "account_peppol_phone_number": False,
+            "l10n_fr_pdp_send_to_ppf": True,
+        })
+        self.env["res.company"]._rebuild_apply_default_einvoice_provider()
+
+        self.assertEqual(self.company.rebuild_einvoice_provider, "odoo_pdp")
+        self.assertEqual(
+            self.company.peppol_purchase_journal_id,
+            self.purchase_journal,
+        )
+        self.assertEqual(self.company.peppol_eas, "0225")
+        self.assertEqual(self.company.peppol_endpoint, "983982950")
+        self.assertEqual(
+            self.company.account_peppol_contact_email,
+            "company@example.invalid",
+        )
+        self.assertEqual(
+            self.company.account_peppol_phone_number,
+            "+33142000000",
+        )
+        self.assertFalse(self.company.l10n_fr_pdp_send_to_ppf)
+        self.assertEqual(
+            self.env["ir.config_parameter"].sudo().get_str(
+                "account_peppol.edi.mode",
+            ),
+            "demo",
+        )
+
+        wizard = self.env["pdp.registration"].with_user(
+            self.manager,
+        ).with_company(self.company).with_context(
+            rebuild_einvoice_safe_demo=True,
+        ).create({
+            "company_id": self.company.id,
+        })
+        with (
+            patch(
+                "odoo.addons.l10n_fr_pdp.wizard.pdp_registration."
+                "iap_tools.iap_jsonrpc",
+            ) as identity_call,
+            patch(
+                "odoo.addons.account_edi_proxy_client.models."
+                "account_edi_proxy_user.requests.post",
+            ) as proxy_call,
+            patch(
+                "odoo.addons.l10n_fr_pdp.models.res_partner.requests.get",
+            ) as directory_call,
+        ):
+            wizard.button_trigger_authentication()
+            self.assertEqual(self.company.pdp_kyc_status, "success")
+            wizard.button_register_pdp_participant()
+            demo_user = self.company.account_edi_proxy_client_ids.filtered(
+                lambda user: (
+                    user.proxy_type == "pdp" and user.edi_mode == "demo"
+                ),
+            )
+            self.assertTrue(demo_user)
+            demo_user._peppol_get_new_documents()
+            demo_evidence = self.env["rebuild.einvoice.reception"].search([
+                ("company_id", "=", self.company.id),
+                (
+                    "provider_message_uuid",
+                    "=",
+                    f"{self.company.id}_demo_vendor_bill",
+                ),
+            ])
+            self.assertEqual(demo_evidence.status, "bill_created")
+            self.assertTrue(demo_evidence.is_test)
+            self.assertEqual(demo_evidence.move_id.state, "draft")
+            evidence_count = self.env[
+                "rebuild.einvoice.reception"
+            ].search_count([
+                ("company_id", "=", self.company.id),
+                (
+                    "provider_message_uuid",
+                    "=",
+                    f"{self.company.id}_demo_vendor_bill",
+                ),
+            ])
+            demo_user._peppol_get_new_documents()
+            self.assertEqual(
+                self.env["rebuild.einvoice.reception"].search_count([
+                    ("company_id", "=", self.company.id),
+                    (
+                        "provider_message_uuid",
+                        "=",
+                        f"{self.company.id}_demo_vendor_bill",
+                    ),
+                ]),
+                evidence_count,
+            )
+            identity_call.assert_not_called()
+            proxy_call.assert_not_called()
+            directory_call.assert_not_called()
+
+        self.assertEqual(
+            self.company.rebuild_einvoice_connection_status,
+            "test",
+        )
+        self.assertEqual(
+            self.company.rebuild_einvoice_provider_contract_status,
+            "not_verified",
+        )
+        self.company.with_user(
+            self.manager,
+        ).action_rebuild_run_einvoice_acceptance_test()
+        self.company.rebuild_einvoice_environment = "production"
+        with patch.dict(os.environ, LIVE_ENVIRONMENT, clear=False):
+            self.company.with_user(
+                self.manager,
+            ).action_rebuild_approve_einvoice_activation()
+        self.assertFalse(demo_user.active)
+        self.assertEqual(
+            self.env["ir.config_parameter"].sudo().get_str(
+                "account_peppol.edi.mode",
+            ),
+            "prod",
+        )
+        self.assertTrue(self.company.rebuild_einvoice_activation_approved)
+        self.assertEqual(
+            self.company.rebuild_einvoice_provider_contract_status,
+            "not_verified",
         )
 
     def test_supported_formats_credit_notes_taxes_and_currencies(self):
@@ -543,7 +689,6 @@ class TestFrenchEinvoiceReception(
             "account_peppol_contact_email": "accounting@example.invalid",
             "account_peppol_phone_number": "+33612345678",
             "rebuild_einvoice_provider": "odoo_pdp",
-            "rebuild_einvoice_provider_contract_status": "verified",
         })
         live_proxy = self.env["account_edi_proxy_client.user"].new({
             "company_id": self.company.id,
@@ -570,6 +715,12 @@ class TestFrenchEinvoiceReception(
                 self.manager,
             ).action_rebuild_approve_einvoice_activation()
             self.assertTrue(self.company.rebuild_einvoice_activation_approved)
+            self._create_production_proxy_user()
+            self.company.pdp_kyc_status = "success"
+            self.assertEqual(
+                self.company.rebuild_einvoice_provider_contract_status,
+                "verified",
+            )
 
             with patch.object(
                 NativePdpProxyUser,

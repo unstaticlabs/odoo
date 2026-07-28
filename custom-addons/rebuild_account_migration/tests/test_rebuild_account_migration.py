@@ -995,6 +995,10 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(rejected_evidence.status, "rejected")
         self.assertEqual(rejected_evidence.failure_kind, "technical")
 
+        self.env["ir.config_parameter"].sudo().set_str(
+            "account_peppol.edi.mode",
+            "prod",
+        )
         settings = self.env["res.config.settings"].create({
             "company_id": self.company.id,
         })
@@ -1022,7 +1026,7 @@ class TestRebuildAccountMigration(TransactionCase):
         )
         self.assertEqual(
             self.company.rebuild_einvoice_readiness_status,
-            "configuration_incomplete",
+            "not_verified",
         )
         manager = self.env["res.users"].with_context(
             no_reset_password=True,
@@ -1064,7 +1068,6 @@ class TestRebuildAccountMigration(TransactionCase):
             "account_peppol_contact_email": "accounting@example.invalid",
             "account_peppol_phone_number": "+33612345678",
             "rebuild_einvoice_provider": "odoo_pdp",
-            "rebuild_einvoice_provider_contract_status": "verified",
             "rebuild_einvoice_environment": "production",
             "rebuild_einvoice_test_status": "passed",
         })
@@ -1077,7 +1080,7 @@ class TestRebuildAccountMigration(TransactionCase):
             self.assertTrue(self.company.rebuild_einvoice_activation_approved)
             self.assertEqual(
                 self.company.rebuild_einvoice_readiness_status,
-                "ready_inactive",
+                "activation_required",
             )
             self.assertEqual(
                 self.company.rebuild_einvoice_connection_status,
@@ -1086,7 +1089,7 @@ class TestRebuildAccountMigration(TransactionCase):
             self.assertFalse(self.company.rebuild_einvoice_exchange_enabled)
             with self.assertRaisesRegex(
                 UserError,
-                "Complete approved-platform registration",
+                "Complete production identity verification",
             ):
                 self.company.action_rebuild_enable_einvoice_exchange()
         self.company.with_user(manager).action_rebuild_revoke_einvoice_activation()

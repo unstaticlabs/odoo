@@ -265,14 +265,12 @@ class ResCompany(models.Model):
     )
     rebuild_einvoice_provider_contract_status = fields.Selection(
         [
-            ("not_verified", "Not yet verified"),
-            ("verified", "Verified for production"),
+            ("not_verified", "Production onboarding required"),
+            ("verified", "Identity verified"),
         ],
-        string="Platform Access",
-        help="Confirm only after Odoo has accepted the production identity verification and applicable service terms.",
-        required=True,
-        default="not_verified",
-        tracking=True,
+        compute="_compute_rebuild_einvoice_readiness",
+        string="Production Onboarding",
+        help="Derived from Odoo's production identity verification. Demo and test identities never count as production onboarding.",
     )
     rebuild_einvoice_environment = fields.Selection(
         [
@@ -343,6 +341,7 @@ class ResCompany(models.Model):
     rebuild_einvoice_connection_status = fields.Selection(
         [
             ("inactive", "Inactive"),
+            ("test", "Safe test ready"),
             ("registration_pending", "Registration pending"),
             ("connected_suspended", "Connected; retrieval suspended"),
             ("active", "Connected and receiving"),
@@ -408,11 +407,46 @@ class ResCompany(models.Model):
 
     @api.model
     def _rebuild_apply_default_einvoice_provider(self):
+        """Apply safe reception defaults without contacting any external service."""
         companies = self.sudo().search([
             ("account_fiscal_country_id.code", "=", "FR"),
-            ("rebuild_einvoice_provider", "=", False),
         ])
-        companies.write({"rebuild_einvoice_provider": "odoo_pdp"})
+        for company in companies:
+            values = {"l10n_fr_pdp_send_to_ppf": False}
+            if not company.rebuild_einvoice_provider:
+                values["rebuild_einvoice_provider"] = "odoo_pdp"
+            if not company.peppol_purchase_journal_id:
+                purchase_journal = self.env["account.journal"].sudo().search([
+                    ("company_id", "=", company.id),
+                    ("type", "=", "purchase"),
+                ], limit=1)
+                if purchase_journal:
+                    values["peppol_purchase_journal_id"] = purchase_journal.id
+            if not company.account_peppol_contact_email and company.email:
+                values["account_peppol_contact_email"] = company.email
+            if not company.account_peppol_phone_number and company.phone:
+                values["account_peppol_phone_number"] = company.phone
+            suggested_identifier = (
+                company.partner_id._get_suggested_pdp_identifier()
+            )
+            if (
+                suggested_identifier
+                and (
+                    company.peppol_eas != "0225"
+                    or not company.peppol_endpoint
+                )
+            ):
+                values.update({
+                    "peppol_eas": "0225",
+                    "peppol_endpoint": suggested_identifier,
+                })
+            company.write(values)
+
+        if not self._rebuild_einvoice_runtime_guard_enabled():
+            self.env["ir.config_parameter"].sudo().set_str(
+                "account_peppol.edi.mode",
+                "demo",
+            )
 
     @api.onchange("account_fiscal_country_id")
     def _onchange_rebuild_einvoice_provider(self):
@@ -452,8 +486,6 @@ class ResCompany(models.Model):
         if include_provider:
             if not self.account_peppol_contact_email:
                 blockers.append(_("Record the approved-platform contact email."))
-            if not self.account_peppol_phone_number:
-                blockers.append(_("Record the approved-platform mobile number."))
             if not self.rebuild_einvoice_provider:
                 blockers.append(_("Select the Odoo Approved Platform adapter."))
             elif self.rebuild_einvoice_provider != "odoo_pdp":
@@ -465,18 +497,21 @@ class ResCompany(models.Model):
                 )
         return blockers
 
-    def _rebuild_einvoice_production_blockers(self):
+    def _rebuild_einvoice_production_blockers(self, *, include_onboarding=True):
         self.ensure_one()
         blockers = self._rebuild_einvoice_configuration_blockers()
         if not self._rebuild_einvoice_modules_ready():
             blockers.append(_("Install the required electronic-invoicing modules."))
         if self.rebuild_einvoice_test_status != "passed":
             blockers.append(_("Run the offline reception test and resolve any failure."))
-        if self.rebuild_einvoice_provider_contract_status != "verified":
+        if (
+            include_onboarding
+            and self.rebuild_einvoice_provider_contract_status != "verified"
+        ):
             blockers.append(
                 _(
-                    "Verify production identity, service terms and support with "
-                    "the approved platform.",
+                    "Complete legal-representative identity verification and "
+                    "accept the platform terms during production activation.",
                 ),
             )
         if self.rebuild_einvoice_environment != "production":
@@ -515,17 +550,6 @@ class ResCompany(models.Model):
         if platform_steps:
             return _("Complete platform setup"), platform_steps
 
-        if self.rebuild_einvoice_provider_contract_status != "verified":
-            return (
-                _("Verify production access"),
-                [
-                    _(
-                        "Confirm identity verification, service terms, "
-                        "credentials and support with the approved platform.",
-                    ),
-                ],
-            )
-
         if self.rebuild_einvoice_environment != "production":
             return (
                 _("Continue during production deployment"),
@@ -555,6 +579,17 @@ class ResCompany(models.Model):
                     _(
                         "Ask an Accounting Manager to approve activation on "
                         "this production database.",
+                    ),
+                ],
+            )
+
+        if self.rebuild_einvoice_provider_contract_status != "verified":
+            return (
+                _("Complete production onboarding"),
+                [
+                    _(
+                        "Authenticate the legal representative, accept the "
+                        "platform terms and return to Odoo.",
                     ),
                 ],
             )
@@ -600,15 +635,32 @@ class ResCompany(models.Model):
         "account_peppol_phone_number",
         "peppol_purchase_journal_id",
         "rebuild_einvoice_provider",
-        "rebuild_einvoice_provider_contract_status",
         "rebuild_einvoice_environment",
         "rebuild_einvoice_activation_approved",
         "rebuild_einvoice_test_status",
         "account_peppol_proxy_state",
+        "pdp_kyc_status",
+        "account_edi_proxy_client_ids.active",
+        "account_edi_proxy_client_ids.edi_mode",
+        "account_edi_proxy_client_ids.proxy_type",
     )
     def _compute_rebuild_einvoice_readiness(self):
         modules_ready = self._rebuild_einvoice_modules_ready()
         for company in self:
+            pdp_users = company.sudo().account_edi_proxy_client_ids.filtered(
+                lambda user: user.proxy_type == "pdp",
+            )
+            production_user = pdp_users.filtered(
+                lambda user: user.edi_mode == "prod",
+            )[:1]
+            test_user = pdp_users.filtered(
+                lambda user: user.edi_mode in {"demo", "test"},
+            )[:1]
+            company.rebuild_einvoice_provider_contract_status = (
+                "verified"
+                if company.pdp_kyc_status == "success" and production_user
+                else "not_verified"
+            )
             configuration_blockers = (
                 company._rebuild_einvoice_configuration_blockers(
                     include_provider=False,
@@ -625,7 +677,9 @@ class ResCompany(models.Model):
             else:
                 company.rebuild_einvoice_capability_status = "not_verified"
 
-            if raw_state == "receiver":
+            if test_user and raw_state == "receiver":
+                company.rebuild_einvoice_connection_status = "test"
+            elif raw_state == "receiver":
                 company.rebuild_einvoice_connection_status = (
                     "active" if exchange_enabled else "connected_suspended"
                 )
@@ -636,7 +690,7 @@ class ResCompany(models.Model):
             else:
                 company.rebuild_einvoice_connection_status = "inactive"
 
-            if exchange_enabled and raw_state == "receiver":
+            if exchange_enabled and raw_state == "receiver" and production_user:
                 company.rebuild_einvoice_readiness_status = "active"
             elif configuration_blockers:
                 company.rebuild_einvoice_readiness_status = (
@@ -645,13 +699,9 @@ class ResCompany(models.Model):
             elif (
                 not modules_ready
                 or company.rebuild_einvoice_test_status != "passed"
-                or company.rebuild_einvoice_provider_contract_status != "verified"
             ):
                 company.rebuild_einvoice_readiness_status = "not_verified"
-            elif (
-                company.rebuild_einvoice_environment == "production"
-                and not company.rebuild_einvoice_activation_approved
-            ):
+            elif company.rebuild_einvoice_environment == "production":
                 company.rebuild_einvoice_readiness_status = "activation_required"
             else:
                 company.rebuild_einvoice_readiness_status = "ready_inactive"
@@ -693,7 +743,9 @@ class ResCompany(models.Model):
 
     def _check_rebuild_einvoice_activation_ready(self):
         self.ensure_one()
-        blockers = self._rebuild_einvoice_production_blockers()
+        blockers = self._rebuild_einvoice_production_blockers(
+            include_onboarding=False,
+        )
         if not self.rebuild_einvoice_activation_approved:
             blockers.append(_("Production activation has not been approved."))
         if blockers:
@@ -705,7 +757,9 @@ class ResCompany(models.Model):
     def _rebuild_einvoice_live_call_allowed(self):
         self.ensure_one()
         return not (
-            self._rebuild_einvoice_production_blockers()
+            self._rebuild_einvoice_production_blockers(
+                include_onboarding=False,
+            )
             or not self.rebuild_einvoice_activation_approved
         )
 
@@ -806,12 +860,29 @@ class ResCompany(models.Model):
     def action_rebuild_approve_einvoice_activation(self):
         self.ensure_one()
         self._check_rebuild_einvoice_manager_access()
-        blockers = self._rebuild_einvoice_production_blockers()
+        blockers = self._rebuild_einvoice_production_blockers(
+            include_onboarding=False,
+        )
         if blockers:
             raise UserError(
                 _("Complete the production prerequisites before approval:\n%s")
                 % "\n".join(f"• {blocker}" for blocker in blockers),
             )
+        demo_users = self.sudo().account_edi_proxy_client_ids.filtered(
+            lambda user: user.proxy_type == "pdp" and user.edi_mode == "demo",
+        )
+        if demo_users:
+            demo_users.active = False
+            self.sudo().write({
+                "account_peppol_proxy_state": "not_registered",
+                "l10n_fr_pdp_annuaire_start_date": False,
+                "pdp_kyc_status": False,
+                "pdp_authentication_uuid": False,
+            })
+        self.env["ir.config_parameter"].sudo().set_str(
+            "account_peppol.edi.mode",
+            "prod",
+        )
         self.sudo().write({
             "rebuild_einvoice_activation_approved": True,
             "rebuild_einvoice_approved_by_id": self.env.user.id,
@@ -841,9 +912,23 @@ class ResCompany(models.Model):
         self.ensure_one()
         self._check_rebuild_einvoice_manager_access()
         self._check_rebuild_einvoice_activation_ready()
+        if self.rebuild_einvoice_provider_contract_status != "verified":
+            raise UserError(
+                _(
+                    "Complete production identity verification before starting "
+                    "scheduled reception.",
+                ),
+            )
         if self.account_peppol_proxy_state != "receiver":
             raise UserError(
                 _("Complete approved-platform registration before enabling reception."),
+            )
+        production_user = self.sudo().account_edi_proxy_client_ids.filtered(
+            lambda user: user.proxy_type == "pdp" and user.edi_mode == "prod",
+        )
+        if not production_user:
+            raise UserError(
+                _("Complete the production approved-platform connection first."),
             )
         connected_companies = self.search([
             ("account_peppol_proxy_state", "=", "receiver"),
@@ -913,7 +998,13 @@ class ResConfigSettings(models.TransientModel):
 
     def action_open_pdp_form(self):
         self.ensure_one()
-        self.company_id._check_rebuild_einvoice_activation_ready()
+        if (
+            self.company_id._get_peppol_edi_mode() == "demo"
+            and self.env.context.get("rebuild_einvoice_safe_demo")
+        ):
+            self.company_id._check_rebuild_einvoice_manager_access()
+        else:
+            self.company_id._check_rebuild_einvoice_activation_ready()
         return super().action_open_pdp_form()
 
     def action_open_peppol_form(self):
@@ -935,27 +1026,42 @@ class PdpRegistration(models.TransientModel):
 
     def _rebuild_check_live_action(self):
         self.ensure_one()
-        self.company_id._check_rebuild_einvoice_activation_ready()
+        if (
+            self.company_id._get_peppol_edi_mode() == "demo"
+            and self.env.context.get("rebuild_einvoice_safe_demo")
+        ):
+            self.company_id._check_rebuild_einvoice_manager_access()
+        else:
+            self.company_id._check_rebuild_einvoice_activation_ready()
 
     def button_trigger_authentication(self):
         self._rebuild_check_live_action()
-        return super().button_trigger_authentication()
+        return super(PdpRegistration, self.sudo()).button_trigger_authentication()
 
     def button_refresh_authentication(self):
         self._rebuild_check_live_action()
-        return super().button_refresh_authentication()
+        return super(PdpRegistration, self.sudo()).button_refresh_authentication()
 
     def button_open_authentication_link(self):
         self._rebuild_check_live_action()
-        return super().button_open_authentication_link()
+        return super(
+            PdpRegistration,
+            self.sudo(),
+        ).button_open_authentication_link()
 
     def button_register_pdp_participant(self):
         self._rebuild_check_live_action()
-        return super().button_register_pdp_participant()
+        return super(
+            PdpRegistration,
+            self.sudo(),
+        ).button_register_pdp_participant()
 
     def button_deregister_pdp_participant(self):
         self._rebuild_check_live_action()
-        result = super().button_deregister_pdp_participant()
+        result = super(
+            PdpRegistration,
+            self.sudo(),
+        ).button_deregister_pdp_participant()
         self.company_id._rebuild_set_einvoice_crons(False)
         return result
 
@@ -985,6 +1091,8 @@ class AccountEdiProxyClientUser(models.Model):
     def _call_peppol_proxy(self, endpoint, params=None):
         self.ensure_one()
         company = self.company_id
+        if self.edi_mode == "demo":
+            return super()._call_peppol_proxy(endpoint, params=params)
         if not company._rebuild_einvoice_live_call_allowed():
             raise UserError(
                 _(
@@ -994,7 +1102,7 @@ class AccountEdiProxyClientUser(models.Model):
             )
         try:
             result = super()._call_peppol_proxy(endpoint, params=params)
-        except Exception as error:  # noqa: BLE001
+        except Exception as error:  # ruff: ignore[blind-except]
             error_text = str(error)
             status = (
                 "authentication"
@@ -1087,7 +1195,8 @@ class AccountEdiProxyClientUser(models.Model):
                 "document_kind": document_kind,
                 "attachment_id": attachment.id,
                 "is_test": bool(
-                    self.env.context.get("rebuild_einvoice_is_test"),
+                    self.env.context.get("rebuild_einvoice_is_test")
+                    or self.edi_mode in {"demo", "test"},
                 ),
             })
             if original:
@@ -1143,14 +1252,13 @@ class AccountEdiProxyClientUser(models.Model):
                 })
 
         try:
-            with self.env.cr.savepoint():
-                result = super()._peppol_import_invoice(
-                    processing_attachment,
-                    peppol_state,
-                    uuid,
-                    journal=journal,
-                )
-        except Exception as error:  # noqa: BLE001
+            result = super()._peppol_import_invoice(
+                processing_attachment,
+                peppol_state,
+                uuid,
+                journal=journal,
+            )
+        except Exception as error:  # ruff: ignore[blind-except]
             evidence.write({
                 "status": "technical_error",
                 "failure_kind": "technical",
@@ -1299,6 +1407,7 @@ class ResPartner(models.Model):
         company = self.env.company
         if (
             company.account_fiscal_country_id.code == "FR"
+            and company._get_peppol_edi_mode() != "demo"
             and not company._rebuild_einvoice_live_call_allowed()
         ):
             return None
@@ -1309,6 +1418,7 @@ class ResPartner(models.Model):
         company = self.env.company
         if (
             company.account_fiscal_country_id.code == "FR"
+            and company._get_peppol_edi_mode() != "demo"
             and not company._rebuild_einvoice_live_call_allowed()
         ):
             return None

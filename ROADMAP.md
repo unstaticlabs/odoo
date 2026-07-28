@@ -54,8 +54,8 @@ are recorded in
 These five items are not Accounting v1 defects:
 
 1. professional accountant sign-off and live tax/electronic filing;
-2. selection, registration and activation of a production approved
-   electronic-invoicing platform;
+2. legal-representative onboarding, registration and activation of the
+   preselected Odoo Approved Platform;
 3. live bank synchronization and payment-provider ingestion;
 4. probabilistic or autonomous AI matching and posting;
 5. production deployment and cutover from the disposable development
