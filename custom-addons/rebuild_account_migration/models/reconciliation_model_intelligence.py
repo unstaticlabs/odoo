@@ -136,6 +136,10 @@ class AccountReconcileModel(models.Model):
         compute="_compute_rebuild_rule_intelligence",
         string="Recommendation",
     )
+    rebuild_has_actionable_guidance = fields.Boolean(
+        compute="_compute_rebuild_rule_intelligence",
+        string="Has actionable recommendation",
+    )
     rebuild_historical_use_count = fields.Integer(
         compute="_compute_rebuild_usage",
         string="Historical uses",
@@ -164,6 +168,20 @@ class AccountReconcileModel(models.Model):
     rebuild_open_match_badge = fields.Char(
         compute="_compute_rebuild_open_matches",
         string="Open match badge",
+    )
+    rebuild_activity_badge = fields.Char(
+        compute="_compute_rebuild_activity_badge",
+        string="Activity",
+    )
+    rebuild_activity_state = fields.Selection(
+        selection=[
+            ("none", "No activity"),
+            ("used", "Used"),
+            ("open", "Open matches"),
+            ("used_open", "Used with open matches"),
+        ],
+        compute="_compute_rebuild_activity_badge",
+        string="Activity state",
     )
 
     @api.constrains("rebuild_proposal_confidence")
@@ -245,6 +263,31 @@ class AccountReconcileModel(models.Model):
                 str(counts[rule.id]) if counts[rule.id] else False
             )
 
+    @api.depends("rebuild_total_use_count", "rebuild_open_match_count")
+    def _compute_rebuild_activity_badge(self):
+        for rule in self:
+            uses = rule.rebuild_total_use_count
+            open_matches = rule.rebuild_open_match_count
+            if uses and open_matches:
+                rule.rebuild_activity_state = "used_open"
+                rule.rebuild_activity_badge = _(
+                    "%(uses)s used · %(matches)s open",
+                    uses=uses,
+                    matches=open_matches,
+                )
+            elif open_matches:
+                rule.rebuild_activity_state = "open"
+                rule.rebuild_activity_badge = _(
+                    "%s open",
+                    open_matches,
+                )
+            elif uses:
+                rule.rebuild_activity_state = "used"
+                rule.rebuild_activity_badge = _("%s used", uses)
+            else:
+                rule.rebuild_activity_state = "none"
+                rule.rebuild_activity_badge = _("No activity")
+
     @api.depends(
         "active",
         "can_be_proposed",
@@ -261,6 +304,7 @@ class AccountReconcileModel(models.Model):
         "rebuild_proposal_source",
         "rebuild_proposal_confidence",
         "rebuild_source_id",
+        "rebuild_open_match_count",
         "trigger",
     )
     def _compute_rebuild_rule_intelligence(self):
@@ -340,38 +384,36 @@ class AccountReconcileModel(models.Model):
 
             if health == "redundant":
                 guidance = _(
-                    "Partner inference is already handled by the smart bank "
-                    "evidence system. This partner-only rule cannot create an "
-                    "accounting proposal in the current engine. Archive it "
-                    "after confirming no external process depends on it.",
+                    "Partner inference already covers this mapping. Archive "
+                    "the rule if no external process depends on it.",
                 )
             elif health == "needs_review":
                 guidance = _(
-                    "This rule is active but cannot currently produce a useful "
-                    "matching proposal. Add a clear condition and accounting "
-                    "result, or archive it.",
+                    "This rule cannot produce a reliable proposal. Add a "
+                    "condition and counterpart result, or archive it.",
                 )
             elif health == "suggested":
                 guidance = _(
-                    "This is an inert suggestion. Review its evidence, scope "
-                    "and accounting result before approving it. It cannot "
-                    "affect Bank Matching in its current state.",
+                    "Review the sample transactions and accounting result, "
+                    "then approve or dismiss this suggestion.",
                 )
-            elif health == "proven":
-                guidance = _(
-                    "This rule has recorded usage. Keep it when the scope and "
-                    "accounting result still match the intended policy.",
-                )
-            elif health == "ready":
-                guidance = _(
-                    "This rule is executable but has no recorded usage yet. "
-                    "Review any open matches before enabling automatic action.",
-                )
+            elif (
+                health in ("ready", "proven")
+                and rule.rebuild_open_match_count
+            ):
+                if rule.rebuild_open_match_count == 1:
+                    guidance = _(
+                        "1 unmatched bank transaction currently matches. "
+                        "Open it to confirm the rule's result.",
+                    )
+                else:
+                    guidance = _(
+                        "%s unmatched bank transactions currently match. "
+                        "Open them to confirm the rule's result.",
+                        rule.rebuild_open_match_count,
+                    )
             else:
-                guidance = _(
-                    "This archived rule is retained for audit history and is "
-                    "not considered by Bank Matching.",
-                )
+                guidance = False
 
             rule.rebuild_rule_type = rule_type
             rule.rebuild_origin = origin
@@ -379,6 +421,7 @@ class AccountReconcileModel(models.Model):
             rule.rebuild_scope_summary = " · ".join(scope_parts)
             rule.rebuild_effect_summary = effect
             rule.rebuild_guidance = guidance
+            rule.rebuild_has_actionable_guidance = bool(guidance)
 
     def _search_computed_selection(self, field_name, operator, value):
         if operator not in ("=", "!=", "in", "not in"):

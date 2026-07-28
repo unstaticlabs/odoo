@@ -33,22 +33,28 @@
                         decoration-warning="rebuild_health_state == 'needs_review'"
                         decoration-muted="rebuild_health_state in ('redundant', 'archived')"
                     />
-                    <field name="rebuild_rule_type" widget="badge"/>
                     <field name="rebuild_scope_summary" optional="hide"/>
                     <field name="rebuild_effect_summary"/>
                     <field
-                        name="rebuild_use_badge"
-                        string="Uses"
+                        name="rebuild_activity_badge"
+                        string="Activity"
                         widget="badge"
-                        decoration-success="rebuild_use_badge"
+                        class="o_usl_rule_activity_badge"
+                        decoration-success="rebuild_activity_state == 'used'"
+                        decoration-info="rebuild_activity_state in ('open', 'used_open')"
+                        decoration-muted="rebuild_activity_state == 'none'"
                     />
                     <field
-                        name="rebuild_open_match_badge"
-                        string="Open matches"
-                        widget="badge"
-                        decoration-info="rebuild_open_match_badge"
+                        name="rebuild_activity_state"
+                        column_invisible="True"
                     />
-                    <field name="trigger" widget="badge"/>
+                    <field
+                        name="trigger"
+                        widget="badge"
+                        class="o_usl_rule_trigger_badge"
+                        decoration-warning="trigger == 'auto_reconcile'"
+                        decoration-muted="trigger == 'manual'"
+                    />
                     <field name="rebuild_origin" widget="badge" optional="hide"/>
                     <field name="match_journal_ids" optional="hide" widget="many2many_tags"/>
                     <field name="active" column_invisible="True"/>
@@ -131,7 +137,8 @@
                     <field name="active" invisible="1"/>
                     <field name="company_id" invisible="1"/>
                     <field name="rebuild_is_proposal" invisible="1"/>
-                    <sheet>
+                    <field name="rebuild_has_actionable_guidance" invisible="1"/>
+                    <sheet class="o_usl_reconcile_rule_form">
                         <div class="oe_button_box" name="button_box">
                             <button
                                 type="object"
@@ -177,106 +184,128 @@
                                     decoration-warning="rebuild_health_state == 'needs_review'"
                                     decoration-muted="rebuild_health_state in ('redundant', 'archived')"
                                 />
-                                <field name="rebuild_rule_type" widget="badge"/>
                                 <field name="rebuild_origin" widget="badge"/>
                             </div>
                         </div>
 
                         <div
-                            class="alert alert-light border-start border-4 mt-3 mb-4"
+                            class="alert alert-warning o_usl_rule_recommendation"
                             role="status"
+                            invisible="not rebuild_has_actionable_guidance"
                         >
-                            <strong>Recommendation</strong>
+                            <i class="fa fa-lightbulb-o" aria-hidden="true"/>
                             <field
                                 name="rebuild_guidance"
                                 nolabel="1"
                                 readonly="1"
-                                class="d-block mt-1"
                             />
                         </div>
 
-                        <group string="Business purpose">
-                            <field
-                                name="rebuild_business_purpose"
-                                nolabel="1"
-                                placeholder="Explain the recurring situation, why this treatment is correct, and who should review exceptions."
-                            />
-                        </group>
-
-                        <div class="row g-4 mt-1">
-                            <div class="col-12 col-xl-6">
-                                <group string="When this rule applies">
-                                    <field
-                                        name="match_journal_ids"
-                                        placeholder="All bank journals"
-                                        widget="many2many_tags"
-                                        options="{'no_create': True}"
-                                    />
-                                    <field
-                                        name="match_partner_ids"
-                                        widget="many2many_tags"
-                                        options="{'no_quick_create': True}"
-                                        placeholder="Any partner"
-                                    />
-                                    <label for="match_amount"/>
-                                    <div class="d-flex gap-2">
-                                        <field name="match_amount" placeholder="Any amount"/>
+                        <div class="row g-3 o_usl_rule_configuration">
+                            <section class="col-12 col-xl-7">
+                                <div class="o_usl_rule_card">
+                                    <div class="o_usl_rule_card_header">
+                                        <h3>Match when</h3>
+                                        <span>All filled conditions must match.</span>
+                                    </div>
+                                    <div class="o_usl_rule_field">
+                                        <label for="match_journal_ids" string="Bank journals"/>
                                         <field
-                                            name="match_amount_min"
-                                            invisible="match_amount in (False, 'lower')"
-                                            required="match_amount"
-                                        />
-                                        <span
-                                            class="o_form_label"
-                                            invisible="match_amount != 'between'"
-                                        >and</span>
-                                        <field
-                                            name="match_amount_max"
-                                            invisible="match_amount in (False, 'greater')"
-                                            required="match_amount == 'between'"
+                                            name="match_journal_ids"
+                                            placeholder="All bank journals"
+                                            widget="many2many_tags"
+                                            options="{'no_create': True}"
                                         />
                                     </div>
-                                    <label for="match_label"/>
-                                    <div class="d-flex gap-2">
-                                        <field name="match_label" placeholder="Any label"/>
+                                    <div class="o_usl_rule_field">
+                                        <label for="match_partner_ids"/>
                                         <field
-                                            name="match_label_param"
-                                            invisible="not match_label"
-                                            required="match_label"
-                                            placeholder="Text or regular expression"
+                                            name="match_partner_ids"
+                                            widget="many2many_tags"
+                                            options="{'no_quick_create': True}"
+                                            placeholder="Any partner"
                                         />
                                     </div>
-                                    <div class="text-muted small">
-                                        Conditions are combined. Keep them narrow enough that a
-                                        matching transaction has only one reasonable accounting result.
+                                    <div class="o_usl_rule_field">
+                                        <label for="match_label" string="Bank label"/>
+                                        <div class="o_usl_rule_condition">
+                                            <field name="match_label" placeholder="Any label"/>
+                                            <field
+                                                name="match_label_param"
+                                                invisible="not match_label"
+                                                required="match_label"
+                                                placeholder="Text or regular expression"
+                                            />
+                                        </div>
                                     </div>
-                                </group>
-                            </div>
-                            <div class="col-12 col-xl-6">
-                                <group string="What happens when it matches">
-                                    <field
-                                        name="next_activity_type_id"
-                                        placeholder="No follow-up activity"
-                                    />
-                                    <field
-                                        name="rebuild_effect_summary"
-                                        readonly="1"
-                                    />
-                                    <div
-                                        class="text-muted small"
-                                        invisible="rebuild_health_state == 'redundant'"
-                                    >
-                                        “Require Review” proposes the result to a user.
-                                        “Automated” posts and reconciles without waiting for approval.
+                                    <div class="o_usl_rule_field">
+                                        <label for="match_amount"/>
+                                        <div class="o_usl_rule_condition">
+                                            <field name="match_amount" placeholder="Any amount"/>
+                                            <field
+                                                name="match_amount_min"
+                                                invisible="match_amount in (False, 'lower')"
+                                                required="match_amount"
+                                            />
+                                            <span
+                                                class="o_form_label"
+                                                invisible="match_amount != 'between'"
+                                            >and</span>
+                                            <field
+                                                name="match_amount_max"
+                                                invisible="match_amount in (False, 'greater')"
+                                                required="match_amount == 'between'"
+                                            />
+                                        </div>
                                     </div>
-                                </group>
-                            </div>
+                                </div>
+                            </section>
+                            <section class="col-12 col-xl-5">
+                                <div class="o_usl_rule_card o_usl_rule_result_card">
+                                    <div class="o_usl_rule_card_header">
+                                        <h3>Then</h3>
+                                        <span>Result proposed or applied to the transaction.</span>
+                                    </div>
+                                    <div class="o_usl_rule_result">
+                                        <span>Accounting result</span>
+                                        <field
+                                            name="rebuild_effect_summary"
+                                            nolabel="1"
+                                            readonly="1"
+                                        />
+                                    </div>
+                                    <div class="o_usl_rule_behavior">
+                                        <span invisible="trigger != 'manual' or rebuild_is_proposal">
+                                            <strong>Review required.</strong>
+                                            A user chooses whether to apply this result.
+                                        </span>
+                                        <span invisible="trigger != 'auto_reconcile' or rebuild_is_proposal">
+                                            <strong>Automated.</strong>
+                                            Matching transactions are posted and reconciled automatically.
+                                        </span>
+                                        <span invisible="not rebuild_is_proposal">
+                                            <strong>Suggestion only.</strong>
+                                            It cannot run until approved.
+                                        </span>
+                                    </div>
+                                    <div class="o_usl_rule_field">
+                                        <label for="next_activity_type_id"/>
+                                        <field
+                                            name="next_activity_type_id"
+                                            placeholder="No follow-up activity"
+                                        />
+                                    </div>
+                                </div>
+                            </section>
                         </div>
 
-                        <group string="Counterpart entries" class="mt-3">
-                            <div class="text-muted small mb-2">
-                                Define the accounting entries created for the unmatched amount.
-                                Partner-only rows are no longer needed for smart partner inference.
+                        <section class="o_usl_rule_card o_usl_rule_counterparts">
+                            <div class="o_usl_rule_card_header">
+                                <h3>Counterpart entries</h3>
+                                <span>
+                                    Entries created for the unmatched amount.
+                                    Leave partner mapping to smart inference unless it changes the accounting result.
+                                </span>
                             </div>
                             <field
                                 name="line_ids"
@@ -287,9 +316,12 @@
                                     <field name="company_id" column_invisible="True"/>
                                     <field name="sequence" widget="handle"/>
                                     <field name="account_id" required="not partner_id"/>
-                                    <field name="partner_id" optional="show"/>
-                                    <field name="amount_type"/>
-                                    <field name="amount_string"/>
+                                    <field
+                                        name="partner_id"
+                                        optional="show"
+                                    />
+                                    <field name="amount_type" string="Allocation"/>
+                                    <field name="amount_string" string="Value"/>
                                     <field
                                         name="tax_ids"
                                         widget="many2many_tax_tags"
@@ -303,39 +335,65 @@
                                         options="{'account_field': 'account_id', 'business_domain': 'general'}"
                                         optional="hide"
                                     />
-                                    <field name="label"/>
+                                    <field name="label" optional="show"/>
                                 </list>
                             </field>
-                        </group>
+                        </section>
 
-                        <group string="Usage and evidence" class="mt-3">
-                            <group>
-                                <field name="rebuild_historical_use_count" readonly="1"/>
-                                <field name="rebuild_current_use_count" readonly="1"/>
-                                <field name="rebuild_last_used_on" readonly="1"/>
-                                <field name="rebuild_scope_summary" readonly="1"/>
-                            </group>
-                            <group>
-                                <field
-                                    name="rebuild_proposal_source"
+                        <details class="o_usl_rule_details">
+                            <summary>Notes and evidence</summary>
+                            <div class="o_usl_rule_details_body">
+                                <div class="o_usl_rule_field o_usl_rule_purpose">
+                                    <label for="rebuild_business_purpose" string="Business note"/>
+                                    <field
+                                        name="rebuild_business_purpose"
+                                        placeholder="Optional: why this treatment is correct or when an exception needs review."
+                                    />
+                                </div>
+                                <div class="o_usl_rule_metrics">
+                                    <div>
+                                        <span>Imported uses</span>
+                                        <field name="rebuild_historical_use_count" nolabel="1" readonly="1"/>
+                                    </div>
+                                    <div>
+                                        <span>Current uses</span>
+                                        <field name="rebuild_current_use_count" nolabel="1" readonly="1"/>
+                                    </div>
+                                    <div>
+                                        <span>Last used</span>
+                                        <field name="rebuild_last_used_on" nolabel="1" readonly="1"/>
+                                    </div>
+                                </div>
+                                <div
+                                    class="o_usl_rule_proposal_evidence"
                                     invisible="not rebuild_is_proposal"
-                                />
-                                <field
-                                    name="rebuild_proposal_confidence"
-                                    widget="progressbar"
-                                    invisible="not rebuild_is_proposal"
-                                />
-                                <field
-                                    name="rebuild_proposal_evidence"
-                                    invisible="not rebuild_is_proposal"
-                                />
-                                <field
-                                    name="rebuild_evidence_statement_line_ids"
-                                    widget="many2many_tags"
-                                    invisible="not rebuild_is_proposal"
-                                />
-                            </group>
-                        </group>
+                                >
+                                    <h4>Suggestion evidence</h4>
+                                    <div class="row g-3">
+                                        <div class="col-12 col-lg-4">
+                                            <label for="rebuild_proposal_source"/>
+                                            <field name="rebuild_proposal_source"/>
+                                        </div>
+                                        <div class="col-12 col-lg-4">
+                                            <label for="rebuild_proposal_confidence"/>
+                                            <field
+                                                name="rebuild_proposal_confidence"
+                                                widget="progressbar"
+                                            />
+                                        </div>
+                                    </div>
+                                    <field
+                                        name="rebuild_proposal_evidence"
+                                        nolabel="1"
+                                    />
+                                    <field
+                                        name="rebuild_evidence_statement_line_ids"
+                                        widget="many2many_tags"
+                                        nolabel="1"
+                                    />
+                                </div>
+                            </div>
+                        </details>
                     </sheet>
                     <chatter/>
                 </form>

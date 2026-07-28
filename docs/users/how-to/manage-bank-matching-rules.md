@@ -7,11 +7,23 @@ together:
 
 - **Assessment** explains whether a rule is used, executable, redundant,
   incomplete, suggested or archived.
-- **Uses** counts source-system history and traceable applications in this
-  rebuild. **Open matches** counts unmatched transactions that satisfy the rule
-  now.
-- **Purpose**, **Applies when** and **Accounting result** explain what the rule
-  does without requiring knowledge of its implementation.
+- **Activity** combines recorded uses and currently open matches in one badge.
+  Blue badges identify rules with matching transactions to inspect; green
+  badges identify recorded use; muted badges mean no observed activity.
+- **Accounting result** explains what the rule creates. **Automated** triggers
+  use a light amber badge so unattended behavior is immediately visible.
+
+Opening a rule keeps the operational configuration in three compact areas:
+
+- **Match when** contains journal, partner, bank-label and amount conditions;
+- **Then** states the accounting result, behavior and optional follow-up;
+- **Counterpart entries** contains the native Odoo accounting lines.
+
+Optional business notes, use history and suggestion evidence are folded under
+**Notes and evidence**. A recommendation appears only for an incomplete,
+redundant or suggested rule, or when current matching transactions provide a
+concrete review action. Healthy rules with nothing to act on do not display
+generic advice.
 
 Partner-only rules are normally **Redundant**. The smart bank-evidence system
 already infers partners from bank accounts, counterparty names and consistent

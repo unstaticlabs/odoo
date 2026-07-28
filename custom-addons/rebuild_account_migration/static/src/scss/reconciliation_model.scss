@@ -1,0 +1,255 @@
+.o_list_view {
+    .o_usl_rule_activity_badge,
+    .o_usl_rule_trigger_badge {
+        min-width: 6.25rem;
+
+        .badge {
+            max-width: none;
+        }
+    }
+}
+
+.o_form_view .o_usl_reconcile_rule_form {
+    --usl-rule-border: rgba(31, 41, 55, 0.12);
+    --usl-rule-muted: #667085;
+
+    max-width: 1280px;
+    margin: 0 auto;
+
+    .oe_title {
+        margin-bottom: 1rem;
+    }
+
+    .o_usl_rule_recommendation {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.55rem;
+        margin: 0 0 1rem;
+        padding: 0.7rem 0.85rem;
+        border-color: rgba(247, 144, 9, 0.28);
+        background: rgba(247, 144, 9, 0.08);
+        color: #7a2e0e;
+        font-size: 0.86rem;
+        line-height: 1.4;
+
+        > i {
+            margin-top: 0.12rem;
+        }
+
+        .o_field_widget {
+            color: inherit;
+        }
+    }
+
+    .o_usl_rule_card {
+        height: 100%;
+        padding: 1rem;
+        border: 1px solid var(--usl-rule-border);
+        border-radius: 0.7rem;
+        background: var(--o-view-background-color, #fff);
+    }
+
+    .o_usl_rule_card_header {
+        margin-bottom: 0.9rem;
+
+        h3 {
+            margin: 0;
+            color: #344054;
+            font-size: 0.95rem;
+            font-weight: 700;
+        }
+
+        span {
+            display: block;
+            margin-top: 0.15rem;
+            color: var(--usl-rule-muted);
+            font-size: 0.76rem;
+            line-height: 1.35;
+        }
+    }
+
+    .o_usl_rule_field {
+        display: grid;
+        grid-template-columns: 8.5rem minmax(0, 1fr);
+        align-items: start;
+        gap: 0.65rem;
+        margin-top: 0.7rem;
+
+        > label {
+            margin-top: 0.38rem;
+            color: #475467;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        > .o_field_widget {
+            width: 100%;
+            min-width: 0;
+        }
+    }
+
+    .o_usl_rule_condition {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.45rem;
+        min-width: 0;
+
+        > .o_field_widget {
+            flex: 1 1 10rem;
+            width: auto;
+            min-width: 0;
+        }
+
+        > .o_field_widget:first-child {
+            flex: 0 1 11rem;
+        }
+    }
+
+    .o_usl_rule_result {
+        padding: 0.75rem 0.8rem;
+        border-radius: 0.55rem;
+        background: rgba(113, 75, 103, 0.07);
+
+        > span {
+            display: block;
+            color: var(--usl-rule-muted);
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .o_field_widget {
+            display: block;
+            margin-top: 0.2rem;
+            color: #344054;
+            font-size: 0.9rem;
+            font-weight: 650;
+            line-height: 1.35;
+        }
+    }
+
+    .o_usl_rule_behavior {
+        margin-top: 0.75rem;
+        color: #475467;
+        font-size: 0.8rem;
+        line-height: 1.4;
+    }
+
+    .o_usl_rule_counterparts {
+        height: auto;
+        margin-top: 1rem;
+
+        .o_list_renderer {
+            overflow-x: auto;
+        }
+
+        .o_list_table {
+            margin-bottom: 0;
+
+            th,
+            td {
+                vertical-align: middle;
+            }
+
+            th {
+                white-space: nowrap;
+            }
+        }
+    }
+
+    .o_usl_rule_details {
+        margin-top: 0.85rem;
+        color: var(--usl-rule-muted);
+        font-size: 0.82rem;
+
+        > summary {
+            width: fit-content;
+            color: #475467;
+            cursor: pointer;
+            font-weight: 600;
+            list-style: none;
+
+            &::-webkit-details-marker {
+                display: none;
+            }
+
+            &::after {
+                display: inline-block;
+                margin-left: 0.35rem;
+                content: "\f107";
+                font-family: FontAwesome;
+                transition: transform 0.15s ease;
+            }
+        }
+
+        &[open] > summary::after {
+            transform: rotate(180deg);
+        }
+    }
+
+    .o_usl_rule_details_body {
+        margin-top: 0.65rem;
+        padding: 0.9rem 1rem;
+        border: 1px solid var(--usl-rule-border);
+        border-radius: 0.65rem;
+        background: rgba(31, 41, 55, 0.018);
+    }
+
+    .o_usl_rule_purpose {
+        grid-template-columns: 8.5rem minmax(0, 1fr);
+        margin-top: 0;
+
+        textarea {
+            min-height: 4.25rem;
+        }
+    }
+
+    .o_usl_rule_metrics {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.65rem 1.5rem;
+        margin-top: 0.8rem;
+
+        > div {
+            display: flex;
+            align-items: baseline;
+            gap: 0.4rem;
+
+            > span {
+                color: var(--usl-rule-muted);
+                font-size: 0.74rem;
+            }
+
+            .o_field_widget {
+                color: #344054;
+                font-variant-numeric: tabular-nums;
+                font-weight: 650;
+            }
+        }
+    }
+
+    .o_usl_rule_proposal_evidence {
+        margin-top: 0.9rem;
+        padding-top: 0.8rem;
+        border-top: 1px solid var(--usl-rule-border);
+
+        h4 {
+            color: #344054;
+            font-size: 0.84rem;
+            font-weight: 700;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .o_usl_rule_field,
+        .o_usl_rule_purpose {
+            grid-template-columns: minmax(0, 1fr);
+            gap: 0.2rem;
+
+            > label {
+                margin-top: 0;
+            }
+        }
+    }
+}
