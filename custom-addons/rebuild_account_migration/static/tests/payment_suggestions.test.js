@@ -119,19 +119,19 @@ test("draft bill payment suggestion keeps matching details outside the native ro
         "tr.o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_best"
     ).toHaveText("Best match");
     expect(
+        "tr.o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_best"
+    ).toHaveAttribute(
+        "title",
+        "Exact amount · Same currency · Date within 7 days · Native payment"
+    );
+    expect(
         "tr.o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_evidence"
     ).toHaveText(
         "Exact amount · Date within 7 days"
     );
     expect(
         "tr.o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_source"
-    ).toHaveText("Evidence");
-    expect(
-        "tr.o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_source"
-    ).toHaveAttribute(
-        "title",
-        "Exact amount · Same currency · Date within 7 days · Native payment"
-    );
+    ).toHaveCount(0);
     expect("tr.o_rebuild_payment_suggestion [aria-disabled='true']").toHaveText(
         "Available after posting"
     );
@@ -163,7 +163,7 @@ test("posted bill keeps Odoo's native Add matching action", async () => {
     expect("[aria-disabled='true']").toHaveCount(0);
 });
 
-test("bank suggestion discloses partner and account reassignment", async () => {
+test("bank suggestion keeps changes in the Add helper", async () => {
     await mountView({
         type: "form",
         resModel: "account.move",
@@ -179,16 +179,14 @@ test("bank suggestion discloses partner and account reassignment", async () => {
     });
 
     expect(
-        "tr.o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_partner_change"
-    ).toHaveText(
-        "When added, the bank transaction will use the bill supplier instead of Wrong Supplier."
-    );
+        "tr.o_rebuild_payment_suggestion_detail .badge"
+    ).toHaveCount(2);
     expect(
-        "tr.o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_account_change"
-    ).toHaveText(
-        "When added, move the outstanding amount from suspense to the bill payable account, then reconcile it."
-    );
-    expect("tr.o_rebuild_payment_suggestion_detail .badge").toHaveCount(0);
+        "tr.o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_kind"
+    ).toHaveText("Bank transaction");
+    expect(
+        "tr.o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_change"
+    ).toHaveCount(0);
     expect(".outstanding_credit_assign").toHaveText("Add");
     expect(".outstanding_credit_assign").toHaveAttribute(
         "title",

@@ -15,8 +15,9 @@
    matching would make. Draft suggestions are informational: post the bill
    before matching.
 6. Select **Confirm/Post** and review the generated journal items. If the
-   highest-ranked payment is correct, select **Add**. The button helper states
-   exactly what will happen. For an uncategorized bank transaction, Add moves
+   highest-ranked payment is correct, select **Add**. Hover **Best match** for
+   the sourced matching facts; the Add helper states exactly what the action
+   will do. For an uncategorized bank transaction, Add moves
    its outstanding amount to the bill payable account. It also replaces a
    missing or different bank partner with the bill supplier when the disclosed
    match requires it. The action then uses native reconciliation and records
