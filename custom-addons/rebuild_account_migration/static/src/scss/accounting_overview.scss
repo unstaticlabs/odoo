@@ -1,3 +1,18 @@
+.o_form_view .o_usl_overview_alert {
+    .o_usl_overview_alert_action {
+        display: inline;
+        margin-inline-start: 0.35rem;
+        padding: 0;
+        border: 0;
+        vertical-align: baseline;
+        font: inherit;
+        font-weight: 700;
+        line-height: inherit;
+        text-decoration: underline;
+        text-underline-offset: 0.12em;
+    }
+}
+
 .o_form_view .o_usl_accounting_overview {
     --usl-overview-border: #{rgba(#1f2937, 0.1)};
     --usl-overview-muted: #667085;
@@ -395,6 +410,21 @@
         justify-content: space-between;
         gap: 1rem;
         margin-bottom: 0.6rem;
+    }
+
+    .o_usl_ready_status_chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        border: 1px solid rgba(#039855, 0.2);
+        background: #ecfdf3;
+        color: #027a48;
+        font-size: 0.72rem;
+        font-weight: 650;
+
+        .fa {
+            font-size: 0.68rem;
+        }
     }
 
     .btn-link {

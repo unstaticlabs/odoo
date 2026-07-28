@@ -258,5 +258,6 @@ Accounting basis:
   other debt](https://bofip.impots.gouv.fr/bofip/6175-PGP.html/identifiant%3DBOI-ANNX-000411-20140428).
 
 The **transactions to match** count is no longer a competing Overview card.
-When non-zero, it appears as an alert chip on Cash on banks and opens the
+It remains available as the **To Match** smart indicator above the Overview.
+When non-zero, it also appears as an alert chip on Cash on banks. Both open the
 canonical Bank Matching workspace.

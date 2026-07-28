@@ -1257,12 +1257,36 @@ class TestRebuildAccountMigration(TransactionCase):
                 "//details[normalize-space(summary)='View projection details']",
             ),
         )
-        self.assertFalse(
-            home_arch.xpath(
-                "//div[contains(@class, 'oe_button_box')]"
-                "/button[@name='action_open_bank_matching']",
-            ),
+        matching_stat_buttons = home_arch.xpath(
+            "//div[contains(@class, 'oe_button_box')]"
+            "/button[@name='action_open_bank_matching']"
+            "[field[@name='unmatched_bank_transaction_count' "
+            "and @string='To Match']]",
         )
+        self.assertEqual(len(matching_stat_buttons), 1)
+        hygiene_alert_actions = home_arch.xpath(
+            "//div[contains(@class, 'alert-danger')]"
+            "/button[@name='action_open_hygiene_issues']",
+        )
+        self.assertEqual(
+            {button.get("string") for button in hygiene_alert_actions},
+            {"blocking issues", "Review them"},
+        )
+        closing_alert_actions = home_arch.xpath(
+            "//div[contains(@class, 'alert-warning')]"
+            "/button[@name='action_open_latest_closing' "
+            "or @name='action_open_declarations']",
+        )
+        self.assertEqual(
+            {button.get("string") for button in closing_alert_actions},
+            {"Review closing", "Review declarations"},
+        )
+        ready_chips = home_arch.xpath(
+            "//section[h3[normalize-space(.)='Accounting Hygiene'] "
+            "or h3[normalize-space(.)='Closing and declarations']]"
+            "//span[contains(@class, 'o_usl_ready_status_chip')]",
+        )
+        self.assertEqual(len(ready_chips), 4)
         review_buttons = home_arch.xpath(
             "//button[@name='action_open_bank_review']",
         )
