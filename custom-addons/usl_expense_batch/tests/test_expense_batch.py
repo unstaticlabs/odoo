@@ -149,6 +149,33 @@ class TestExpenseBatch(TestExpenseCommon):
         self.assertEqual(approved.state, "approved")
         self.assertEqual(batch.state, "approved")
 
+    def test_wizard_actions_create_then_close_the_modal(self):
+        create_expense = self._expense("Toronto create and close")
+        create_wizard = self.env[
+            "usl.expense.batch.create.wizard"
+        ].with_user(self.expense_user_employee).create({
+            "expense_ids": [Command.set(create_expense.ids)],
+        })
+        self.assertEqual(
+            create_wizard.action_create_batch(),
+            {"type": "ir.actions.act_window_close"},
+        )
+        self.assertTrue(create_expense.expense_batch_id)
+        self.assertEqual(create_expense.state, "draft")
+
+        submit_expense = self._expense("Toronto submit and close")
+        submit_wizard = self.env[
+            "usl.expense.batch.create.wizard"
+        ].with_user(self.expense_user_employee).create({
+            "expense_ids": [Command.set(submit_expense.ids)],
+        })
+        self.assertEqual(
+            submit_wizard.action_create_and_submit(),
+            {"type": "ir.actions.act_window_close"},
+        )
+        self.assertTrue(submit_expense.expense_batch_id)
+        self.assertEqual(submit_expense.state, "submitted")
+
     def test_submitted_and_already_batched_expenses_are_rejected(self):
         submitted = self._expense("Toronto submitted")
         submitted.sudo().approval_state = "submitted"
@@ -350,10 +377,22 @@ class TestExpenseBatch(TestExpenseCommon):
         expense_search = self.env.ref(
             "hr_expense.hr_expense_view_search",
         )._get_combined_arch()
-        for filter_name in ("batch_ready", "batch_incomplete", "already_batched"):
+        for filter_name in (
+            "not_in_batch",
+            "batch_ready",
+            "batch_incomplete",
+            "already_batched",
+        ):
             self.assertTrue(
                 expense_search.xpath(f"//filter[@name='{filter_name}']"),
             )
+        my_expenses_action = self.env.ref(
+            "hr_expense.hr_expense_actions_my_all",
+        )
+        self.assertIn(
+            "'search_default_not_in_batch': 1",
+            my_expenses_action.context,
+        )
 
         move_form = self.env.ref("account.view_move_form")._get_combined_arch()
         self.assertTrue(

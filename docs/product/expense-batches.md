@@ -80,6 +80,11 @@ records. It shows **Attachment status**, the optional **Expense Batch** link
 and the native expense status, but it does not add a permanent **Batch
 readiness** column.
 
+The **Not in a batch** filter is selected by default on **My Expenses**, so
+the working list contains only expenses that can still be grouped. Users can
+remove the filter to review historical expenses that already belong to a
+batch.
+
 Readiness is progressive information:
 
 - **Ready to submit**, **Needs information** and **Already in a batch** are
@@ -107,12 +112,15 @@ toolbar's vertical height.
 
 **Create expense batch** opens a preview for the explicit selection. The
 secondary **Create batch** action saves the grouping without changing any
-expense workflow status.
+expense workflow status. It then closes the preview and refreshes the My
+Expenses list. With the default **Not in a batch** filter, the newly grouped
+expenses disappear from the working list immediately.
 
 **Submit batch** creates the grouping when necessary and submits only its
 Draft expenses for manager review. Approved and Posted expenses keep their
 current status; the action does not post journal entries and does not create
-payments. This distinction is stated in the button helper.
+payments. It also closes the preview and refreshes the list. This distinction
+is stated in the button helper.
 
 Mixed-status batches advance by native stage without regressing later lines:
 

@@ -22,6 +22,9 @@
         <field name="inherit_id" ref="hr_expense.hr_expense_view_search"/>
         <field name="arch" type="xml">
             <xpath expr="//filter[@name='draft']" position="before">
+                <filter name="not_in_batch"
+                        string="Not in a batch"
+                        domain="[('expense_batch_id', '=', False)]"/>
                 <filter name="batch_ready"
                         string="Ready to submit"
                         domain="[('state', '=', 'draft'), ('batch_readiness', '=', 'ready')]"/>
@@ -39,6 +42,15 @@
                         domain="[]"
                         context="{'group_by': 'expense_batch_id'}"/>
             </xpath>
+        </field>
+    </record>
+
+    <record id="hr_expense.hr_expense_actions_my_all" model="ir.actions.act_window">
+        <field name="context">
+            {
+                'search_default_my_open_expenses': 1,
+                'search_default_not_in_batch': 1,
+            }
         </field>
     </record>
 
