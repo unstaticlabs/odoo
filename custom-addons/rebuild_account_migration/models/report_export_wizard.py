@@ -10,7 +10,6 @@ from decimal import Decimal
 
 from odoo import Command, api, fields, models
 from odoo.exceptions import AccessError, UserError
-from odoo.tools import date_utils
 
 from .report_definition import ACCOUNTING_REPORT_TYPES
 
@@ -370,16 +369,14 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         )
         if not wizard:
             today = fields.Date.context_today(self)
-            fiscal_from, fiscal_to = date_utils.get_fiscal_year(
-                today,
-                day=self.env.company.fiscalyear_last_day,
-                month=int(self.env.company.fiscalyear_last_month),
+            fiscal_from, fiscal_to = (
+                requested_company.rebuild_compute_fiscalyear_dates(today)
             )
             default_group = definition.default_group_by
             wizard = self.create({
                 "report_type": report_type,
-                "company_id": self.env.company.id,
-                "company_ids": [Command.set([self.env.company.id])],
+                "company_id": requested_company.id,
+                "company_ids": [Command.set([requested_company.id])],
                 "data_scope": "native",
                 "period_preset": "fiscal_year",
                 "period_anchor_date": today,
@@ -1543,33 +1540,9 @@ class RebuildAccountReportExportWizard(models.TransientModel):
 
     def _fiscal_year_dates(self, anchor):
         self.ensure_one()
-        company = self.company_id
-        end_month = int(company.fiscalyear_last_month or 12)
-        end_day = min(
-            company.fiscalyear_last_day or 31,
-            calendar.monthrange(anchor.year, end_month)[1],
+        return self.company_id.rebuild_compute_fiscalyear_dates(
+            anchor,
         )
-        fiscal_end = date(anchor.year, end_month, end_day)
-        if anchor > fiscal_end:
-            next_year = anchor.year + 1
-            fiscal_end = date(
-                next_year,
-                end_month,
-                min(
-                    company.fiscalyear_last_day or 31,
-                    calendar.monthrange(next_year, end_month)[1],
-                ),
-            )
-        previous_end_year = fiscal_end.year - 1
-        previous_end = date(
-            previous_end_year,
-            end_month,
-            min(
-                company.fiscalyear_last_day or 31,
-                calendar.monthrange(previous_end_year, end_month)[1],
-            ),
-        )
-        return previous_end + timedelta(days=1), fiscal_end
 
     def _apply_comparison_values(self):
         self.ensure_one()
