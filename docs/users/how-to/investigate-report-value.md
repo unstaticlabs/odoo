@@ -2,7 +2,8 @@
 
 1. Open the canonical report from **Reporting**.
 2. Confirm company, period, posted/draft scope, currency and active filter pills.
-3. Unfold the financial section, account group and account.
+3. Unfold the financial section, then the source line. Follow the French PCG
+   group code and any subgroup to the full account number.
 4. Select the line or contextual drill-down to open journal items.
 5. Inspect date, journal, entry, partner, currency, debit, credit, residual, analytic distribution and matching reference.
 6. Open the original bill, invoice, payment, expense or journal entry.

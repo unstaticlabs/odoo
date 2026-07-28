@@ -41,6 +41,24 @@ PDF and XLSX.
 
 No core Odoo patch is required.
 
+For statement drill-down, three credible approaches were compared:
+
+1. switch the whole statement to **Regrouper par > Compte**, which exposes
+   account totals but replaces the legal statement structure with a trial
+   balance;
+2. add account rows only in the browser, which would diverge from PDF, XLSX,
+   comparison and source-domain behavior;
+3. expand each configured source line through native `account.group` ancestors
+   to the contributing account numbers in the shared report row tree.
+
+The third approach is used. A source line is unfoldable only when the signed
+sum of its contributing trial-balance accounts reconciles to the displayed
+line within one cent. Derived totals and conditionally filtered formulas stay
+calculation rows unless their exact contribution rule is available. This
+prevents a plausible-looking but false account breakdown. Native PCG group
+prefix ranges and parent relationships remain company-configurable; the
+statement engine does not hardcode a second chart hierarchy.
+
 For official-document rendering, three credible options were compared:
 
 1. standard Odoo QWeb reports with `web.external_layout`, which provide native
@@ -87,6 +105,9 @@ actions behind every canonical report.
   instead of asking users to choose an inapplicable historical ruleset.
 - Client action state retains filters and collapsed groups while drilling into
   journal items and returning through the action stack.
+- Source statement lines initially stay folded to preserve a compact financial
+  statement. Unfolding reveals French PCG group codes and names, their native
+  subgroups where configured, then the full account number and account label.
 - Material values retain direct source drill-down.
 - Accounting statements use French date and number conventions independently
   from the user's general Odoo interface language, with tabular figures,
@@ -104,7 +125,8 @@ PDF and XLSX carry the same company, resolved dates, posted/draft scope,
 comparison, filters, grouping, search and report variant as the screen.
 Hierarchy roles determine shading, weight, indentation and total rules in both
 formats. Folding is part of the displayed statement state: a download contains
-the same visible hierarchy, and its metadata records the collapsed group keys.
+the same visible hierarchy, including visible PCG group codes and account
+numbers, and its metadata records the collapsed group keys.
 Display-unit scaling applies to the readable statement while the XLSX `Audit
 Data` sheet remains intentionally raw and machine oriented. The `Report` sheet
 is the accountant-readable statement.
@@ -116,3 +138,14 @@ accounting rules rather than decorative saturated fills.
 
 An export is provisional accounting evidence. It does not replace statutory
 review, filing or a recorded closing decision.
+
+## References checked
+
+- Odoo 19 Chart of Accounts and account-group reporting behavior:
+  https://www.odoo.com/documentation/19.0/applications/finance/accounting/get_started/chart_of_accounts.html
+- Odoo 19 report-line hierarchy, folding and actions:
+  https://www.odoo.com/documentation/19.0/de/developer/reference/standard_modules/account/account_report_line.html
+- Odoo 19 account-prefix and grouping report expressions:
+  https://www.odoo.com/documentation/19.0/applications/finance/accounting/reporting/customize.html
+- Autorité des normes comptables, Plan comptable général:
+  https://www.anc.gouv.fr/plan-comptable-general-0
