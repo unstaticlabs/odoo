@@ -4,7 +4,7 @@
         "USL Accounting cockpit, controls, reports, declarations, "
         "and audit evidence."
     ),
-    "version": "saas~19.2.1.7.29",
+    "version": "saas~19.2.1.7.30",
     "category": "Accounting/Accounting",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
@@ -54,6 +54,7 @@
             "rebuild_account_migration/static/src/scss/accounting_controls.scss",
             "rebuild_account_migration/static/src/scss/accounting_overview.scss",
             "rebuild_account_migration/static/src/scss/accounting_report.scss",
+            "rebuild_account_migration/static/src/scss/bank_matching.scss",
             "rebuild_account_migration/static/src/scss/interaction_cursors.scss",
             "rebuild_account_migration/static/src/scss/payment_suggestions.scss",
             "rebuild_account_migration/static/src/scss/reconciliation_model.scss",
@@ -64,6 +65,7 @@
             "rebuild_account_migration/static/src/xml/readonly_accounting_chatter.xml",
         ],
         "web.assets_unit_tests": [
+            "rebuild_account_migration/static/tests/bank_matching_selection.test.js",
             "rebuild_account_migration/static/tests/european_date_format.test.js",
             "rebuild_account_migration/static/tests/interaction_cursors.test.js",
             "rebuild_account_migration/static/tests/payment_suggestions.test.js",
