@@ -7015,6 +7015,315 @@ class TestRebuildAccountMigration(TransactionCase):
             pdf_text,
         )
 
+    def test_exceptional_fiscal_year_is_shared_by_accounting_consumers(self):
+        self.company.write({
+            "fiscalyear_last_day": 30,
+            "fiscalyear_last_month": "9",
+            "rebuild_first_fiscalyear_start": "2024-01-10",
+            "rebuild_first_fiscalyear_end": "2025-09-30",
+        })
+        anchor = fields.Date.to_date("2025-07-28")
+        expected = {
+            "date_from": fields.Date.to_date("2024-01-10"),
+            "date_to": fields.Date.to_date("2025-09-30"),
+        }
+        self.assertEqual(
+            self.company.compute_fiscalyear_dates(anchor),
+            expected,
+        )
+
+        with patch.object(
+            fields.Date,
+            "context_today",
+            return_value=anchor,
+        ):
+            overview = self.env["rebuild.account.overview"].search([
+                ("company_id", "=", self.company.id),
+            ], limit=1)
+            report_action = overview.action_open_report_export_wizard()
+            self.assertEqual(
+                report_action["context"]["default_date_from"],
+                expected["date_from"],
+            )
+            self.assertEqual(
+                report_action["context"]["default_date_to"],
+                anchor,
+            )
+
+            revenue_spending = self.env[
+                "rebuild.account.revenue.spending.month"
+            ]
+            self.assertEqual(
+                revenue_spending._current_fiscal_year_bounds(
+                    self.company,
+                ),
+                (expected["date_from"], expected["date_to"]),
+            )
+
+            analytic_domain = self.env[
+                "account.analytic.line"
+            ]._search_current_fiscal_year("=", True)
+            self.assertIn(
+                ("date", ">=", expected["date_from"]),
+                analytic_domain,
+            )
+            self.assertIn(
+                ("date", "<=", expected["date_to"]),
+                analytic_domain,
+            )
+
+            fec_defaults = self.env[
+                "l10n_fr.fec.export.wizard"
+            ].default_get(["date_from", "date_to"])
+            self.assertEqual(
+                fec_defaults["date_from"],
+                expected["date_from"],
+            )
+            self.assertEqual(
+                fec_defaults["date_to"],
+                expected["date_to"],
+            )
+
+            cash_domain = overview._cash_projection_tax_base_domain()
+            self.assertIn(
+                ("date", ">=", expected["date_from"]),
+                cash_domain,
+            )
+            self.assertIn(("date", "<=", anchor), cash_domain)
+            self.assertEqual(
+                overview._cash_tax_projection_data()["fiscal_year"],
+                expected,
+            )
+
+        self.assertEqual(
+            self.env["res.company"].get_fiscal_dates([{
+                "company_id": self.company.id,
+                "date": "2025-07-28",
+            }]),
+            [{
+                "start": expected["date_from"],
+                "end": expected["date_to"],
+            }],
+        )
+        spreadsheet_start, spreadsheet_end = self.env[
+            "account.account"
+        ]._get_date_period_boundaries(
+            {"range_type": "year", "year": 2024},
+            self.company,
+        )
+        self.assertEqual(
+            (spreadsheet_start, spreadsheet_end),
+            (expected["date_from"], expected["date_to"]),
+        )
+
+        journal = self._journal()
+        move_before_recurring_boundary = self.env["account.move"].new({
+            "company_id": self.company.id,
+            "date": "2024-07-28",
+            "journal_id": journal.id,
+        })
+        move_after_recurring_boundary = self.env["account.move"].new({
+            "company_id": self.company.id,
+            "date": "2024-11-28",
+            "journal_id": journal.id,
+        })
+        expected_sequence_range = (
+            expected["date_from"],
+            expected["date_to"],
+            None,
+            None,
+        )
+        self.assertEqual(
+            move_before_recurring_boundary._get_sequence_date_range(
+                "year_range",
+            ),
+            expected_sequence_range,
+        )
+        self.assertEqual(
+            move_after_recurring_boundary._get_sequence_date_range(
+                "year_range",
+            ),
+            expected_sequence_range,
+        )
+        self.assertIn(
+            "/24-25/",
+            move_before_recurring_boundary._get_starting_sequence(),
+        )
+        self.assertIn(
+            "/24-25/",
+            move_after_recurring_boundary._get_starting_sequence(),
+        )
+        move_first_exceptional_month = self.env["account.move"].new({
+            "company_id": self.company.id,
+            "date": "2024-01-28",
+            "journal_id": journal.id,
+        })
+        self.assertEqual(
+            move_first_exceptional_month._get_sequence_date_range(
+                "year_range_month",
+            ),
+            (
+                expected["date_from"],
+                fields.Date.to_date("2024-01-31"),
+                2024,
+                2025,
+            ),
+        )
+
+        sequence_moves = self.env["account.move"].create([
+            {
+                "move_type": "entry",
+                "journal_id": journal.id,
+                "date": "2024-07-28",
+                "name": "YR/2024-2025/0001",
+            },
+            {
+                "move_type": "entry",
+                "journal_id": journal.id,
+                "date": "2024-11-28",
+                "name": "YR/2024-2025/0002",
+            },
+        ])
+        resequence = self.env["account.resequence.wizard"].create({
+            "move_ids": [Command.set(sequence_moves.ids)],
+            "first_name": "YR/2024-2025/0001",
+            "ordering": "date",
+        })
+        self.assertEqual(resequence.sequence_number_reset, "year_range")
+        proposed_names = json.loads(resequence.new_values)
+        self.assertEqual(
+            {
+                values["server-year-start-date"]
+                for values in proposed_names.values()
+            },
+            {"2024-01-10"},
+        )
+        self.assertEqual(
+            len({
+                values["new_by_date"]
+                for values in proposed_names.values()
+            }),
+            2,
+        )
+
+        self.assertEqual(
+            self.company.compute_fiscalyear_dates(
+                fields.Date.to_date("2026-07-28"),
+            ),
+            {
+                "date_from": fields.Date.to_date("2025-10-01"),
+                "date_to": fields.Date.to_date("2026-09-30"),
+            },
+        )
+
+    def test_governed_fiscal_year_preserves_standard_company_cadence(self):
+        standard_company = self.env["res.company"].create({
+            "name": "Standard fiscal-year cadence",
+            "currency_id": self.company.currency_id.id,
+            "fiscalyear_last_day": 3,
+            "fiscalyear_last_month": "2",
+        })
+        anchor = fields.Date.to_date("2020-03-05")
+        expected = {
+            "date_from": fields.Date.to_date("2020-02-04"),
+            "date_to": fields.Date.to_date("2021-02-03"),
+        }
+
+        self.assertEqual(
+            standard_company.compute_fiscalyear_dates(anchor),
+            expected,
+        )
+        self.assertEqual(
+            self.env["res.company"].get_fiscal_dates([{
+                "company_id": standard_company.id,
+                "date": "2020-03-05",
+            }]),
+            [{
+                "start": expected["date_from"],
+                "end": expected["date_to"],
+            }],
+        )
+        standard_journal = self.env["account.journal"].create({
+            "name": "Standard cadence journal",
+            "code": "SCJ",
+            "type": "general",
+            "company_id": standard_company.id,
+        })
+        standard_move = self.env["account.move"].new({
+            "company_id": standard_company.id,
+            "journal_id": standard_journal.id,
+            "date": anchor,
+        })
+        self.assertIn(
+            "/20-21/",
+            standard_move._get_starting_sequence(),
+        )
+        calendar_company = self.env["res.company"].create({
+            "name": "Calendar fiscal-year cadence",
+            "currency_id": self.company.currency_id.id,
+        })
+        calendar_journal = self.env["account.journal"].create({
+            "name": "Calendar cadence journal",
+            "code": "CCJ",
+            "type": "general",
+            "company_id": calendar_company.id,
+        })
+        calendar_move = self.env["account.move"].new({
+            "company_id": calendar_company.id,
+            "journal_id": calendar_journal.id,
+            "date": anchor,
+        })
+        self.assertIn(
+            "/2020/",
+            calendar_move._get_starting_sequence(),
+        )
+
+    def test_exceptional_fiscal_year_requires_complete_valid_bounds(self):
+        company = self.env["res.company"].create({
+            "name": "Exceptional fiscal-year validation",
+            "currency_id": self.company.currency_id.id,
+        })
+
+        with self.assertRaisesRegex(
+            ValidationError,
+            "Set both the start and end",
+        ):
+            company.rebuild_first_fiscalyear_start = "2024-01-10"
+        with self.assertRaisesRegex(
+            ValidationError,
+            "start must be before or equal to its end",
+        ):
+            company.write({
+                "rebuild_first_fiscalyear_start": "2025-09-30",
+                "rebuild_first_fiscalyear_end": "2024-01-10",
+            })
+
+    def test_accounting_models_do_not_bypass_governed_fiscal_year(self):
+        models_path = Path(__file__).parents[1] / "models"
+        bypasses = []
+        for model_path in models_path.glob("*.py"):
+            if model_path.name == "declaration.py":
+                continue
+            if "get_fiscal_year(" in model_path.read_text():
+                bypasses.append(model_path.name)
+        self.assertFalse(
+            bypasses,
+            "Accounting models must use res.company.compute_fiscalyear_dates "
+            f"instead of a recurring-cadence-only calculation: {bypasses}",
+        )
+        with file_open("account/models/account_move.py") as source:
+            account_move_source = source.read()
+        with file_open("account/wizard/account_resequence.py") as source:
+            resequence_source = source.read()
+        self.assertIn(
+            "compute_fiscalyear_dates(move_date)",
+            account_move_source,
+        )
+        self.assertIn(
+            "compute_fiscalyear_dates(move_id.date)",
+            resequence_source,
+        )
+
     def test_dynamic_report_workbench_multi_company_metadata(self):
         second_company = self.env["res.company"].create({
             "name": "Dynamic Report Second Company",

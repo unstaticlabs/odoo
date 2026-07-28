@@ -5,7 +5,7 @@ from dateutil.relativedelta import relativedelta
 
 from odoo import api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
-from odoo.tools import date_utils, float_compare
+from odoo.tools import float_compare
 
 from .configurable_definition import ACCOUNTING_DEFINITION_ORIGINS
 
@@ -116,22 +116,8 @@ class ResCompany(models.Model):
                     "or equal to its end."
                 )
 
-    def rebuild_compute_fiscalyear_dates(self, anchor):
-        """Return the governed fiscal year containing ``anchor``.
-
-        Native Odoo fiscal-year settings describe a recurring cadence. The
-        first reconstructed year can be exceptional, so its explicit bounds
-        take precedence while the anchor falls within them. The lock-date
-        fallback keeps already configured databases correct until the new end
-        boundary is saved explicitly.
-        """
+    def _rebuild_first_fiscalyear_dates(self):
         self.ensure_one()
-        anchor = fields.Date.to_date(anchor)
-        fiscal_start, fiscal_end = date_utils.get_fiscal_year(
-            anchor,
-            day=self.fiscalyear_last_day,
-            month=int(self.fiscalyear_last_month),
-        )
         first_start = fields.Date.to_date(
             self.rebuild_first_fiscalyear_start,
         )
@@ -140,20 +126,34 @@ class ResCompany(models.Model):
         )
         if first_start and not first_end and self.fiscalyear_lock_date:
             lock_date = fields.Date.to_date(self.fiscalyear_lock_date)
-            _lock_start, lock_end = date_utils.get_fiscal_year(
+            lock_dates = super().compute_fiscalyear_dates(
                 lock_date,
-                day=self.fiscalyear_last_day,
-                month=int(self.fiscalyear_last_month),
             )
-            if lock_end == lock_date:
+            if lock_dates["date_to"] == lock_date:
                 first_end = lock_date
+        return first_start, first_end
+
+    def compute_fiscalyear_dates(self, current_date):
+        """Extend Odoo's fiscal-year API with the exceptional first year."""
+        self.ensure_one()
+        fiscal_dates = super().compute_fiscalyear_dates(current_date)
+        anchor = fields.Date.to_date(current_date)
+        first_start, first_end = self._rebuild_first_fiscalyear_dates()
         if (
             first_start
             and first_end
             and first_start <= anchor <= first_end
         ):
-            return first_start, first_end
-        return fiscal_start, fiscal_end
+            return {
+                "date_from": first_start,
+                "date_to": first_end,
+            }
+        return fiscal_dates
+
+    def rebuild_compute_fiscalyear_dates(self, anchor):
+        """Return the governed fiscal year as a tuple for USL workflows."""
+        fiscal_dates = self.compute_fiscalyear_dates(anchor)
+        return fiscal_dates["date_from"], fiscal_dates["date_to"]
 
     def action_sync_accounting_obligations(self):
         declarations = self.env["rebuild.account.declaration"]

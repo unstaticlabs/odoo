@@ -4340,17 +4340,17 @@ class AccountMove(models.Model):
         # EXTENDS account sequence.mixin
         self.ensure_one()
         move_date = self.date or self.invoice_date or fields.Date.context_today(self)
-        year_part = "%04d" % move_date.year
-        last_day = int(self.company_id.fiscalyear_last_day)
-        last_month = int(self.company_id.fiscalyear_last_month)
-        is_staggered_year = last_month != 12 or last_day != 31
+        fiscal_dates = self.company_id.compute_fiscalyear_dates(move_date)
+        date_start = fiscal_dates["date_from"]
+        date_end = fiscal_dates["date_to"]
+        is_staggered_year = (
+            date_start != date(move_date.year, 1, 1)
+            or date_end != date(move_date.year, 12, 31)
+        )
         if is_staggered_year:
-            max_last_day = calendar.monthrange(move_date.year, last_month)[1]
-            last_day = min(last_day, max_last_day)
-            if move_date > date(move_date.year, last_month, last_day):
-                year_part = "%s-%s" % (move_date.strftime('%y'), (move_date + relativedelta(years=1)).strftime('%y'))
-            else:
-                year_part = "%s-%s" % ((move_date + relativedelta(years=-1)).strftime('%y'), move_date.strftime('%y'))
+            year_part = f"{date_start:%y}-{date_end:%y}"
+        else:
+            year_part = f"{move_date.year:04d}"
         # Arbitrarily use annual sequence for sales documents, but monthly
         # sequence for other documents
         if self.journal_id.type in ['sale', 'bank', 'cash', 'credit']:

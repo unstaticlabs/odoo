@@ -1,6 +1,5 @@
 from odoo import api, fields, models, tools
 from odoo.exceptions import UserError
-from odoo.tools import date_utils
 
 
 BENCHMARK_PERIOD_KEY = "USL benchmark 2024-01-10 to 2025-09-30"
@@ -1904,10 +1903,8 @@ class RebuildAccountRevenueSpendingMonth(models.Model):
     @api.model
     def _current_fiscal_year_bounds(self, company):
         today = fields.Date.context_today(self.with_company(company))
-        return date_utils.get_fiscal_year(
+        return company.rebuild_compute_fiscalyear_dates(
             today,
-            day=company.fiscalyear_last_day,
-            month=int(company.fiscalyear_last_month),
         )
 
     def _compute_is_current_fiscal_year(self):

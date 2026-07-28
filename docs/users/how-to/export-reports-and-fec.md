@@ -22,7 +22,8 @@ use the export as review evidence.
 ## FEC
 
 1. Open **Reporting > Comptes et journaux > FEC**.
-2. Confirm the custom fiscal-year start and end dates.
+2. Confirm the proposed fiscal-year start and end dates. The defaults honor
+   the exceptional first company exercise when applicable.
 3. Keep **Test File** selected for validation or read-only accountant retrieval.
 4. Select **Generate**.
 

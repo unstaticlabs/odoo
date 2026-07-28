@@ -59,6 +59,12 @@ principal result, active scope and amount columns always repeat the chosen
 unit. Original
 foreign-currency amounts are not rescaled.
 
+**Exercice** and **Exercice à date** use the fiscal year containing the
+reference date. They honor an exceptional first exercise configured on the
+company. For USL, a reference date from 10/01/2024 through 30/09/2025 starts
+the exercise on 10/01/2024; later exercises follow the recurring
+1 October–30 September cadence. PDF and XLSX reuse those resolved dates.
+
 **Masquer les lignes à zéro** removes a detail line or account only when every
 displayed monetary column is zero. A fully settled account with debit or credit
 activity remains visible, as does a line with a non-zero comparison value.
