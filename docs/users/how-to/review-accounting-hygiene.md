@@ -9,7 +9,17 @@
    action**, then use **Why it matters**, **Accounting consequence** and
    **Evidence used by this control** for review context.
 5. Assign a user when one person owns the follow-up.
-6. Select **Open Related Record** and correct the underlying draft, evidence, reconciliation or analytic allocation. A technical result opens its control configuration instead.
+6. Select **Open Related Record** and correct the underlying draft, evidence,
+   reconciliation or analytic allocation. A technical result opens its control
+   configuration instead.
+   - For **Analytic Allocation**, the related journal items open with **Analytic
+     Distribution** visible.
+   - Select the journal items that need the same allocation, edit **Analytic
+     Distribution** on one selected line and confirm Odoo's native multi-edit
+     prompt. The distribution is applied to the selected items only.
+   - Use separate selections when the items need different analytic
+     distributions. Posted general-ledger amounts are not changed; Odoo updates
+     the native analytic lines associated with those journal items.
 7. Return and select **Check Resolution**.
 8. Dismiss only a reviewed signal that is deliberately acceptable; dismissal does not change accounting.
 
