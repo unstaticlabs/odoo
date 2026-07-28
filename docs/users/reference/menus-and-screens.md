@@ -11,7 +11,7 @@ balances effective through today. **Projected after settlement** estimates the
 result if every open General Reconciliation balance settles in cash and every
 unposted employee-paid expense is reimbursed. **Projected after taxes** then
 reserves estimated year-to-date corporate income tax without posting anything
-to accounting. Expand **How this estimate is built** for the signed open
+to accounting. Expand **Projection details** for the signed open
 balance, identified receipt/payment subsets, Draft/Submitted/Approved expense
 totals, posted profit before IS, rate bands and account 444 instalments. Select
 any amount to inspect its records or the related declarations.

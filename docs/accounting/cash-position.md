@@ -168,7 +168,7 @@ Official basis:
 
 ## Drill-down and reconciliation
 
-The collapsed **How this estimate is built** section keeps the daily card
+The collapsed **Projection details** section keeps the daily card
 focused on its two cash figures. Expanding it exposes the signed calculation
 and its audit routes:
 

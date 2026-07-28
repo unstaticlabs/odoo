@@ -1421,12 +1421,12 @@
                                             <button
                                                 name="action_open_bank_matching"
                                                 type="object"
-                                                class="btn btn-link o_usl_accounting_status_chip"
+                                                class="o_usl_accounting_status_chip"
                                                 invisible="unmatched_bank_transaction_count == 0"
                                                 title="Open Bank Matching to review transactions that still need a counterpart or accounting category.">
-                                                <i class="fa fa-exclamation-circle" aria-hidden="true"/>
+                                                <span class="o_usl_accounting_status_dot" aria-hidden="true"/>
                                                 <field name="unmatched_bank_transaction_count" nolabel="1"/>
-                                                <span>to match</span>
+                                                <span class="o_usl_accounting_status_label">to match</span>
                                             </button>
                                         </div>
                                         <button
@@ -1441,7 +1441,6 @@
                                             title="Planning estimate if every open General Reconciliation balance settles in cash and every unposted employee-paid expense is reimbursed.">
                                             <div class="o_usl_cash_projection_label">
                                                 <strong>Projected after settlement</strong>
-                                                <span>Open balances and expenses included</span>
                                             </div>
                                             <button
                                                 name="action_open_projected_cash_accounts"
@@ -1457,7 +1456,6 @@
                                             title="Cash after the settlement estimate and a YTD corporate-tax reserve. This planning estimate does not create an accounting entry or tax declaration.">
                                             <div class="o_usl_cash_projection_label">
                                                 <strong>Projected after taxes</strong>
-                                                <span>Includes an estimated YTD IS reserve</span>
                                             </div>
                                             <button
                                                 name="action_open_projected_cash_after_taxes"
@@ -1468,7 +1466,7 @@
                                             </button>
                                         </div>
                                         <details class="o_usl_cash_breakdown">
-                                            <summary>How this estimate is built</summary>
+                                            <summary>Projection details</summary>
                                             <div class="o_usl_cash_breakdown_body">
                                                 <div class="o_usl_cash_breakdown_row">
                                                     <button
