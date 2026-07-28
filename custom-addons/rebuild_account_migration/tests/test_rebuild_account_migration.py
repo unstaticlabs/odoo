@@ -7198,6 +7198,287 @@ class TestRebuildAccountMigration(TransactionCase):
             "trial_balance",
         )
 
+    def test_french_statement_classification_and_account_presentations(self):
+        Presentation = self.env[
+            "rebuild.account.report.account.presentation"
+        ]
+        shared_presentations = Presentation._ensure_standard_presentations()
+        self.assertEqual(
+            set(shared_presentations.mapped("account_code")),
+            {
+                "281540",
+                "281830",
+                "511100",
+                "627100",
+                "631200",
+                "768000",
+            },
+        )
+        with self.assertRaises(UserError):
+            shared_presentations.filtered(
+                lambda item: item.account_code == "627100",
+            ).write({"display_label": "Unsafe shared change"})
+
+        account_701 = self._account(
+            "701999",
+            "Test production vendue",
+            "income",
+        )
+        account_707 = self._account(
+            "707999",
+            "Test ventes de marchandises",
+            "income",
+        )
+        account_607 = self._account(
+            "607999",
+            "Test achats de marchandises",
+            "expense",
+        )
+        account_758 = self._account(
+            "758999",
+            "Test autres produits",
+            "income_other",
+        )
+        account_455 = self._account(
+            "455999",
+            "Test compte courant d’associé",
+            "liability_payable",
+        )
+        account_cash = self._account(
+            "512999",
+            "Test banque",
+            "asset_cash",
+        )
+        move = self.env["account.move"].create({
+            "move_type": "entry",
+            "date": "2099-06-30",
+            "journal_id": self._journal().id,
+            "line_ids": [
+                Command.create({
+                    "name": "Production vendue",
+                    "account_id": account_701.id,
+                    "credit": 100,
+                }),
+                Command.create({
+                    "name": "Ventes de marchandises",
+                    "account_id": account_707.id,
+                    "credit": 30,
+                }),
+                Command.create({
+                    "name": "Achats de marchandises",
+                    "account_id": account_607.id,
+                    "debit": 20,
+                }),
+                Command.create({
+                    "name": "Autres produits",
+                    "account_id": account_758.id,
+                    "credit": 5,
+                }),
+                Command.create({
+                    "name": "Compte courant",
+                    "account_id": account_455.id,
+                    "credit": 7,
+                }),
+                Command.create({
+                    "name": "Contrepartie",
+                    "account_id": account_cash.id,
+                    "debit": 122,
+                }),
+            ],
+        })
+        move.action_post()
+
+        Report = self.env["rebuild.account.report.export.wizard"]
+        wizard = Report.create({
+            "report_type": "french_annual",
+            "company_id": self.company.id,
+            "company_ids": [Command.set([self.company.id])],
+            "period_preset": "custom",
+            "date_from": "2099-01-01",
+            "date_to": "2099-12-31",
+            "target_move": "posted",
+            "group_by": "none",
+        })
+        by_code = {
+            row["line_code"]: row
+            for row in wizard._french_annual_rows()
+        }
+        self.assertEqual(
+            by_code["SIG_VENTES_MARCHANDISES"]["amount"],
+            "30.00",
+        )
+        self.assertEqual(
+            by_code["SIG_MARGE_COMMERCIALE"]["amount"],
+            "10.00",
+        )
+        self.assertEqual(
+            by_code["SIG_PRODUCTION_EXERCICE"]["amount"],
+            "100.00",
+        )
+        self.assertEqual(
+            by_code["CR_AUTRES_PRODUITS_EXPLOITATION"]["amount"],
+            "5.00",
+        )
+        self.assertEqual(by_code["CR_TOTAL_PRODUITS"]["amount"], "135.00")
+        self.assertEqual(by_code["CR_TOTAL_CHARGES"]["amount"], "20.00")
+        self.assertEqual(by_code["CR_RESULTAT_NET"]["amount"], "115.00")
+        self.assertEqual(
+            by_code["PASSIF_DETTES_FINANCIERES"]["amount"],
+            "7.00",
+        )
+        self.assertEqual(
+            by_code["PASSIF_DETTES_FOURNISSEURS"]["amount"],
+            "0.00",
+        )
+        self.assertNotIn(
+            "account_breakdown",
+            by_code["PASSIF_CAPITAUX_PROPRES"],
+        )
+        self.assertIn(
+            "account_breakdown",
+            by_code["PASSIF_RESULTAT"],
+        )
+
+        wizard.group_by = "section"
+        grouped_rows = wizard._group_report_rows(
+            wizard._raw_report_rows(
+                wizard.date_from,
+                wizard.date_to,
+            ),
+        )
+        products_group = next(
+            row
+            for row in grouped_rows
+            if row.get("label") == "Produits d’exploitation"
+            and row.get("row_level") == 0
+        )
+        self.assertEqual(products_group["amount"], "135.00")
+
+        imported_label_account = self._account(
+            "627100",
+            "Obsolete imported label",
+            "expense",
+        )
+        label_move = self.env["account.move"].create({
+            "move_type": "entry",
+            "date": "2099-07-01",
+            "journal_id": self._journal().id,
+            "line_ids": [
+                Command.create({
+                    "name": "Frais bancaires",
+                    "account_id": imported_label_account.id,
+                    "debit": 1,
+                }),
+                Command.create({
+                    "name": "Contrepartie",
+                    "account_id": account_cash.id,
+                    "credit": 1,
+                }),
+            ],
+        })
+        label_move.action_post()
+        trial = Report.create({
+            "report_type": "trial_balance",
+            "company_id": self.company.id,
+            "company_ids": [Command.set([self.company.id])],
+            "period_preset": "custom",
+            "date_from": "2099-01-01",
+            "date_to": "2099-12-31",
+            "target_move": "posted",
+            "group_by": "none",
+        })
+        presented_row = next(
+            row
+            for row in trial._raw_report_rows(
+                trial.date_from,
+                trial.date_to,
+            )
+            if row.get("account_code") == "627100"
+        )
+        self.assertEqual(presented_row["account_name"], "Frais bancaires")
+
+        company_presentation = Presentation.create({
+            "company_id": self.company.id,
+            "account_code": "627100",
+            "display_label": "Frais bancaires USL",
+        })
+        presented_row = next(
+            row
+            for row in trial._raw_report_rows(
+                trial.date_from,
+                trial.date_to,
+            )
+            if row.get("account_code") == "627100"
+        )
+        self.assertEqual(
+            presented_row["account_name"],
+            company_presentation.display_label,
+        )
+
+    def test_management_ratios_use_visible_values_and_defined_units(self):
+        Definition = self.env["rebuild.account.report.definition"]
+        definition = Definition._resolve(
+            "executive_summary",
+            self.company,
+            fields.Date.to_date("2099-12-31"),
+        )
+        definition.with_context(accounting_definition_seed=True).write({
+            "definition_version": "saas~19.2.2",
+            "default_group_by": "none",
+        })
+        Definition._ensure_standard_definitions()
+        self.assertEqual(definition.definition_version, "saas~19.2.3")
+        self.assertEqual(definition.default_group_by, "section")
+
+        Report = self.env["rebuild.account.report.export.wizard"]
+        wizard = Report.create({
+            "report_type": "executive_summary",
+            "company_id": self.company.id,
+            "company_ids": [Command.set([self.company.id])],
+            "period_preset": "custom",
+            "date_from": "2099-01-01",
+            "date_to": "2099-12-31",
+            "target_move": "posted",
+            "group_by": "section",
+            "hide_zero_accounts": True,
+        })
+        rows = wizard._management_summary_rows("executive_summary")
+        self.assertEqual(
+            {row["section"] for row in rows},
+            {"Indicateurs clés", "Ratios de gestion"},
+        )
+        self.assertTrue(
+            all(row.get("unit") for row in rows),
+        )
+        self.assertTrue(
+            all(
+                row.get("metric_value") not in (None, "")
+                for row in rows
+                if row["metric_type"] == "currency"
+            ),
+        )
+        self.assertEqual(
+            [column["key"] for column in wizard._report_client_columns()],
+            ["metric_value", "unit", "details"],
+        )
+        self.assertEqual(
+            wizard._hide_zero_account_rows(rows),
+            rows,
+        )
+        payload = Report.report_client_load(
+            "executive_summary",
+            {
+                "date_from": "2099-01-01",
+                "date_to": "2099-12-31",
+            },
+        )
+        self.assertEqual(payload["filters"]["group_by"], "section")
+        self.assertEqual(payload["lines"][0]["label"], "Indicateurs clés")
+        self.assertEqual(
+            payload["lines"][1]["label"],
+            "Chiffre d’affaires net",
+        )
+
     def test_canonical_report_client_loads_filters_and_downloads(self):
         Report = self.env["rebuild.account.report.export.wizard"]
         self._journal()
@@ -7368,6 +7649,10 @@ class TestRebuildAccountMigration(TransactionCase):
                 self.assertIn(b"31/12/2099", shared_strings)
                 self.assertNotIn(b"2099-01-01", shared_strings)
                 self.assertNotIn(b"2099-12-31", shared_strings)
+                self.assertNotIn(
+                    "Écritures comptabilisées".encode(),
+                    shared_strings,
+                )
             metadata = json.loads(wizard.export_metadata)
             self.assertEqual(
                 metadata["report_definition_version"],
@@ -7435,7 +7720,10 @@ class TestRebuildAccountMigration(TransactionCase):
         }
         self.assertIn("Produits d’exploitation", profit_loss_labels)
         self.assertIn("Charges d’exploitation", profit_loss_labels)
-        self.assertIn("Résultat net comptable", profit_loss_labels)
+        self.assertIn("Résultat net de l’exercice", profit_loss_labels)
+        self.assertIn("Autres produits d’exploitation", profit_loss_labels)
+        self.assertIn("Total des produits", profit_loss_labels)
+        self.assertIn("Total des charges", profit_loss_labels)
         legacy_alias = Report.report_client_load(
             "french_profit_loss_2024",
             {
@@ -7471,6 +7759,36 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertNotIn(
             "écritures comptabilisées",
             profit_loss_pdf_text,
+        )
+
+        french_annual = Report.report_client_load(
+            "french_annual",
+            {
+                "date_from": "2099-01-01",
+                "date_to": "2099-12-31",
+            },
+        )
+        self.assertEqual(
+            [column["key"] for column in french_annual["columns"]],
+            ["gross_amount", "depreciation_amount", "net_amount"],
+        )
+        Report.report_client_export(french_annual["wizard_id"], "pdf")
+        french_annual_pdf = base64.b64decode(
+            Report.browse(french_annual["wizard_id"]).export_file,
+        )
+        french_annual_text = "\n".join(
+            page.extract_text() or ""
+            for page in PdfReader(BytesIO(french_annual_pdf)).pages
+        )
+        self.assertIn(
+            "COMPTES PRÉPARÉS PAR LA SOCIÉTÉ — NON ATTESTÉS",
+            french_annual_text,
+        )
+        self.assertIn("Sommaire", french_annual_text)
+        self.assertIn("Ratios de gestion", french_annual_text)
+        self.assertNotIn(
+            "DOCUMENT COMPTABLE OFFICIEL",
+            french_annual_text,
         )
 
         compared = Report.report_client_load(
@@ -7604,7 +7922,7 @@ class TestRebuildAccountMigration(TransactionCase):
             "_raw_report_rows",
             return_value=report_rows,
         ):
-            Report.report_client_export(
+            download = Report.report_client_export(
                 wizard.id,
                 "pdf",
                 {
@@ -7614,6 +7932,17 @@ class TestRebuildAccountMigration(TransactionCase):
                 },
             )
 
+        refreshed_line_ids = [
+            line["id"]
+            for line in download["report_payload"]["lines"]
+        ]
+        self.assertTrue(refreshed_line_ids)
+        self.assertEqual(
+            self.env["rebuild.account.report.preview.line"].browse(
+                refreshed_line_ids,
+            ).exists().ids,
+            refreshed_line_ids,
+        )
         self.assertTrue(wizard.hide_zero_accounts)
         self.assertEqual(
             wizard.preview_line_ids.mapped("account_code"),
@@ -7639,8 +7968,13 @@ class TestRebuildAccountMigration(TransactionCase):
                 "amount": "0.00",
             },
             {
-                "label": "Sous-total nul conservé",
+                "label": "Sous-total nul masqué",
                 "presentation_role": "subtotal",
+                "amount": "0.00",
+            },
+            {
+                "label": "Total nul conservé",
+                "presentation_role": "total",
                 "amount": "0.00",
             },
             {
@@ -7694,7 +8028,7 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(
             [row["label"] for row in filtered_hierarchy],
             [
-                "Sous-total nul conservé",
+                "Total nul conservé",
                 "Poste",
                 "Groupe compensé",
                 "Compte débiteur",

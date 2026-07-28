@@ -678,10 +678,27 @@ The EC/OSS analysis view is ledger-derived and explicitly preparatory. The close
 
 The French annual-statement view currently validates the benchmark anchors for:
 
-- total gross assets, depreciation and net assets;
-- total passif and current-year result;
-- turnover, operating result, current result before tax and net result;
-- value added, gross operating surplus and cash-flow capacity.
+- gross assets `71,356.21`, depreciation `1,676.05` and net assets
+  `69,680.16`;
+- total passif `69,680.16`, equity `57,222.98`, financial/associate debt
+  `156.26` and total debt `12,457.18`;
+- turnover `129,188.62`, operating products `129,190.02`, operating charges
+  `63,009.32`, operating result `66,180.70`, current result before tax
+  `66,144.98`, total products `129,270.65`, total charges `73,047.67` and net
+  result `56,222.98`;
+- commercial margin `-6,288.77`, production `129,188.62`, value added
+  `85,322.30`, gross operating surplus `67,856.84` and cash-flow capacity
+  `57,899.03`;
+- structure and profitability ratios `6.55`, `370.53`, `0.53`, `0.44`,
+  `6.42`, `0.98` and operating working-capital importance `0.01`.
+
+The statement mapping follows the PCG distinction between account `701`
+production and account `707` merchandise sales. Associate current account
+`455100` is presented as financial/associate debt instead of supplier debt.
+Other operating products and total products/charges are explicit statement
+lines. Governed report-only label corrections preserve the imported account
+master and source trace while making the six materially misleading USL labels
+consistent across screen, PDF and XLSX.
 
 The generated private export is:
 
@@ -694,6 +711,8 @@ The USL report mappings, interactive behavior, drill-downs and current PDF/XLSX
 outputs pass the automated product controls for the imported source corpus.
 Professional approval of statutory interpretation and live filing remains
 deliberately deferred; it is not represented by a hidden runtime review model.
+The annual PDF is company-prepared and explicitly non-attested; professional
+attestation remains outside generated scope.
 
 The depreciation and deferral schedules link directly to native source-traced moves, including future drafts. All `195` non-posted source moves and all `467` affected source lines are native records with their original draft/cancelled state. All `13` source payments without a journal entry are native immutable payments that preserve source workflow state and invoice links without generating duplicate ledger entries. All reconciliation endpoints are present: the target contains `2,584` source-traced partial reconciliations and `1,260` source-traced full reconciliations, with no boundary queue or policy-review fallback.
 

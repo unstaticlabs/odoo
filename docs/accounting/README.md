@@ -4,6 +4,7 @@ These documents define the accounting truths that implementations and migrations
 
 - [Accounting invariants](accounting-invariants.md)
 - [Parity standard](parity-standard.md)
+- [Previous-accountant plaquette parity, 30 September 2025](accountant-plaquette-parity-2025-09-30.md)
 - [Evidence catalogue](parity-evidence.md)
 - [Migration and release gates](migration-gates.md)
 - [Configurable Accounting Controls](configurable-accounting-controls.md)
