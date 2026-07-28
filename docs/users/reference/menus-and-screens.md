@@ -55,11 +55,12 @@ group. Fully matched transactions offer **Undo Match** to Accounting users
 after confirmation.
 
 The transaction form keeps matching and review status separate. It places the
-bank transaction beside its accounting entry on wide screens, including the
-accounts, labels, debit, credit and matching codes. Accounting users can set or
-correct the partner directly before matching; suggestions remain optional
-shortcuts. The read-only accountant can inspect the same evidence but cannot
-match, undo or change the partner.
+bank transaction beside the same accounting-line presentation used in Bank
+Matching, including accounts, partners, dates, labels, debit, credit,
+currencies and any open balance. Accounting users can set or correct the
+partner directly before matching; suggestions remain optional shortcuts. The
+read-only accountant can inspect the same evidence but cannot select or remove
+proposed lines, match, undo or change the partner.
 
 ## Customers and Vendors
 

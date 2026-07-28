@@ -1231,6 +1231,8 @@
                 <sheet class="o_rebuild_bank_transaction_form">
                     <field name="company_id" invisible="1"/>
                     <field name="currency_id" invisible="1"/>
+                    <field name="company_currency_id" invisible="1"/>
+                    <field name="foreign_currency_id" invisible="1"/>
                     <field name="country_code" invisible="1"/>
                     <field name="state" invisible="1"/>
                     <field name="suitable_journal_ids" invisible="1"/>
@@ -1415,40 +1417,12 @@
                                     />
                                 </div>
                                 <field
-                                    name="line_ids"
+                                    name="reconcile_data_info"
                                     nolabel="1"
                                     readonly="1"
-                                    class="o_rebuild_transaction_entry_lines">
-                                    <list
-                                        string="Accounting entry"
-                                        create="0"
-                                        edit="0"
-                                        delete="0"
-                                        default_order="sequence, id">
-                                        <field name="account_id" readonly="1"/>
-                                        <field name="name" string="Label" readonly="1" optional="hide"/>
-                                        <field
-                                            name="analytic_distribution"
-                                            widget="analytic_distribution"
-                                            readonly="1"
-                                            optional="hide"
-                                            groups="analytic.group_analytic_accounting"
-                                            options="{'account_field': 'account_id'}"
-                                        />
-                                        <field name="debit" readonly="1" sum="Debit"/>
-                                        <field name="credit" readonly="1" sum="Credit"/>
-                                        <field
-                                            name="matching_number"
-                                            string="Matching"
-                                            widget="rebuild_matching_badge"
-                                            options="{'color_field': 'rebuild_matching_color'}"
-                                            readonly="1"
-                                            optional="show"
-                                        />
-                                        <field name="rebuild_matching_color" column_invisible="True"/>
-                                        <field name="currency_id" column_invisible="True"/>
-                                    </list>
-                                </field>
+                                    widget="rebuild_reconcile_data_presentation"
+                                    class="o_rebuild_transaction_reconcile_data"
+                                />
 
                                 <div class="o_rebuild_transaction_matching mt-3">
                                     <group>
