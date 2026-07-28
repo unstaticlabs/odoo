@@ -1,26 +1,23 @@
 # Activate, Verify and Suspend French Electronic-Invoice Reception
 
 Use this runbook only for the deployed production Accounting database after
-the provider decision and change approval. Never use it on development,
-staging, reconstruction, copied or restored databases.
+change approval. Never use it on development, staging, reconstruction, copied
+or restored databases.
 
 ## Production prerequisites
 
 Before the change window:
 
 1. verify that the exact release commit and database upgrade passed;
-2. obtain written confirmation that Odoo's Approved Platform accepts this
-   independently maintained Community fork, and confirm identity verification,
-   applicable service terms and the support path; Odoo documents generic
-   Peppol registration as available in Community, but does not explicitly
-   guarantee the French hosted service for forks;
+2. record the legal representative who will complete Odoo's identity
+   verification and accept the displayed platform terms;
 3. record the VAT number, SIREN/SIRET, scheme `0225` endpoint, platform contact
-   email/mobile and incoming purchase journal;
+   email and incoming purchase journal;
 4. run **Accounting > Configuration > Invoicing > E-Invoicing > Test
    Reception** and inspect the resulting two-line €175 draft bill,
    original XML and **Test passed** state;
-5. keep **Odoo Approved Platform** selected and mark platform access
-   **Verified**;
+5. keep **Odoo Approved Platform** selected; **Production onboarding
+   required** is expected before activation;
 6. keep `USL_EREPORTING_LIVE_ENABLED=0`;
 7. take a recoverable database and filestore backup and record the operator,
    Accounting Manager, platform support contact and rollback owner.
@@ -37,13 +34,15 @@ If any item is uncertain, stop. The correct state is **Not yet verified** or
    receiver.
 4. Select **Approve Production Activation**. This records who approved and
    when; it does not register or poll.
-5. From Accounting settings, open the native approved-platform registration
-   and complete the receiver workflow.
-6. Confirm the connection reads **Connected — reception suspended** and the
+5. From Accounting settings, open the native approved-platform registration,
+   complete legal-representative authentication, accept the displayed terms,
+   and validate receiver registration.
+6. Confirm **Production onboarding** reads **Identity verified**.
+7. Confirm the connection reads **Connected — reception suspended** and the
    French directory effective date is correct.
-7. Select **Enable Scheduled Reception**. This enables reception, status,
+8. Select **Enable Scheduled Reception**. This enables reception, status,
    participant-status and webhook-health jobs only.
-8. Confirm auto-registration, regulatory-document, lifecycle and e-reporting
+9. Confirm auto-registration, regulatory-document, lifecycle and e-reporting
    jobs remain inactive.
 
 Do not enable a generic Peppol registration as a workaround. Do not change the

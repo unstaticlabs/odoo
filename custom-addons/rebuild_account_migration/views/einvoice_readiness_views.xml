@@ -17,7 +17,7 @@
                     decoration-danger="rebuild_einvoice_capability_status == 'module_missing'"/>
                 <field name="rebuild_einvoice_connection_status" widget="badge"
                     decoration-success="rebuild_einvoice_connection_status == 'active'"
-                    decoration-info="rebuild_einvoice_connection_status in ('registration_pending', 'connected_suspended')"
+                    decoration-info="rebuild_einvoice_connection_status in ('test', 'registration_pending', 'connected_suspended')"
                     decoration-muted="rebuild_einvoice_connection_status == 'inactive'"
                     decoration-danger="rebuild_einvoice_connection_status == 'rejected'"/>
             </list>
@@ -167,16 +167,16 @@
                                 Default: Odoo Approved Platform for France.
                                 <a href="https://www.odoo.com/documentation/19.0/applications/finance/fiscal_localizations/france.html#e-invoicing"
                                     target="_blank">Provider documentation</a>.
-                                Complete identity verification only in production.
+                                Identity verification and terms are completed during
+                                deliberate production activation.
                             </p>
                             <group>
                                 <group string="Platform">
-                                    <field name="rebuild_einvoice_provider"/>
+                                    <field name="rebuild_einvoice_provider"
+                                        readonly="1"/>
                                     <field name="rebuild_einvoice_provider_contract_status"/>
                                     <field name="account_peppol_contact_email"
                                         string="Contact Email"/>
-                                    <field name="account_peppol_phone_number"
-                                        string="Contact Mobile"/>
                                 </group>
                                 <group string="Activation">
                                     <field name="rebuild_einvoice_environment"/>

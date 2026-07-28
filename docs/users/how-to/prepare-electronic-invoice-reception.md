@@ -9,13 +9,14 @@ release is **ready but inactive** until production activation.
 1. Open **Accounting > Configuration > Invoicing > E-Invoicing**.
 2. Select the company. Read the state literally:
    - **Configuration incomplete** lists company or journal details to finish;
-   - **Not yet verified** means a test or provider-access decision remains;
+   - **Not yet verified** means the safe reception test has not passed;
    - **Test passed** proves the safe software journey for this company;
-   - **Ready but inactive** means no live reception is running;
+   - **Ready but inactive** means the software is prepared and no live
+     reception is running;
    - **Production activation required** identifies a deliberate production step;
    - **Active** means scheduled production reception is enabled.
 3. Follow **Next Action**. It shows only the current phase: company setup,
-   offline test, platform verification or production activation.
+   offline test or production activation.
 4. Under **Reception setup**, complete the accounting country, VAT number,
    SIREN/SIRET, French scheme `0225` identifier and purchase journal.
 5. Select **Test Reception**. This creates a synthetic two-line
@@ -25,8 +26,9 @@ release is **ready but inactive** until production activation.
 7. Open the vendor bill and its **E-Invoice Evidence** tab. Do not post the test
    bill as a real supplier liability.
 
-Provider eligibility and production activation remain separate. A passed test
-does not mean USL is registered or connected.
+No provider contact is needed for these checks. Production identity
+verification, acceptance of the platform terms and French-directory
+registration happen later in the approved production change window.
 
 ## Process a received invoice
 
