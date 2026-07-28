@@ -1332,7 +1332,7 @@ class TestRebuildAccountMigration(TransactionCase):
         )
         self.assertEqual(
             {button.get("string") for button in hygiene_alert_actions},
-            {"blocking issues", "Review them"},
+            {"Review issues"},
         )
         closing_alert_actions = home_arch.xpath(
             "//div[contains(@class, 'alert-warning')]"
@@ -1358,14 +1358,45 @@ class TestRebuildAccountMigration(TransactionCase):
             "bank_review_count == 0",
         )
 
-        customer_action = home.action_open_customer_documents()
-        vendor_action = home.action_open_vendor_documents()
-        for action in (customer_action, vendor_action):
-            self.assertIn(("state", "=", "draft"), action["domain"])
-            self.assertEqual(action["context"]["search_default_draft"], 1)
         expense_action = home.action_open_expenses()
         self.assertEqual(expense_action["view_mode"], "list,form,graph,pivot")
         self.assertEqual(expense_action["views"][0], (False, "list"))
+
+    def test_overview_drilldown_status_filters_are_removable(self):
+        home = self.env["rebuild.account.overview"].search([
+            ("company_id", "=", self.company.id),
+        ])
+        self.assertTrue(home)
+
+        document_actions = (
+            (
+                home.action_open_customer_documents(),
+                ("move_type", "in", ["out_invoice", "out_refund", "out_receipt"]),
+            ),
+            (
+                home.action_open_vendor_documents(),
+                ("move_type", "in", ["in_invoice", "in_refund", "in_receipt"]),
+            ),
+        )
+        for action, document_scope in document_actions:
+            self.assertIn(("company_id", "=", self.company.id), action["domain"])
+            self.assertIn(document_scope, action["domain"])
+            self.assertNotIn(("state", "=", "draft"), action["domain"])
+            self.assertEqual(action["context"]["search_default_draft"], 1)
+
+        bank_review_action = home.action_open_bank_review()
+        self.assertIn(
+            ("company_id", "=", self.company.id),
+            bank_review_action["domain"],
+        )
+        self.assertNotIn(
+            ("move_id.review_state", "in", ("todo", "anomaly")),
+            bank_review_action["domain"],
+        )
+        self.assertEqual(
+            bank_review_action["context"]["search_default_to_review"],
+            1,
+        )
 
     def test_bank_statement_import_is_contextual_and_supports_real_formats(self):
         bank_journal = self._journal("bank")
@@ -1896,6 +1927,10 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(
             reconciliation_action["context"]["search_default_group_by_account"],
             1,
+        )
+        self.assertNotIn(
+            "search_default_unreconciled",
+            reconciliation_action["context"],
         )
         expense_action = home.action_open_cash_projection_unpaid_expenses()
         unpaid_expenses = self.env["hr.expense"].search(
@@ -3778,9 +3813,9 @@ class TestRebuildAccountMigration(TransactionCase):
             transaction_action["domain"],
             [("journal_id", "=", bank_journal.id)],
         )
-        self.assertEqual(
-            transaction_action["context"]["search_default_journal_id"],
-            bank_journal.id,
+        self.assertNotIn(
+            "search_default_journal_id",
+            transaction_action["context"],
         )
         self.assertIn(bank_journal.display_name, matching_action["name"])
         self.assertEqual(
