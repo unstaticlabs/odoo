@@ -101,9 +101,27 @@ html .o_web_client > .o_action_manager > .o_action.o_usl_accounting_report {
         flex-basis: 155px !important;
     }
 
+    .o_usl_report_filter_unit {
+        flex-basis: 112px !important;
+    }
+
     .o_usl_report_search {
         flex: 1 1 205px !important;
         min-width: 190px;
+
+        > label {
+            width: 100%;
+        }
+
+        .input-group {
+            flex-wrap: nowrap;
+        }
+
+        input {
+            flex: 1 1 auto;
+            width: 1%;
+            min-width: 0;
+        }
     }
 
     .o_usl_report_more_filters {
@@ -261,6 +279,12 @@ html .o_web_client > .o_action_manager > .o_action.o_usl_accounting_report {
         background: #fff;
     }
 
+    > .alert {
+        margin: 0.4rem 1.25rem !important;
+        padding: 0.52rem 0.75rem;
+        font-size: 0.77rem;
+    }
+
     .o_usl_report_table {
         margin: 0;
         color: #273b4d;
@@ -291,11 +315,24 @@ html .o_web_client > .o_action_manager > .o_action.o_usl_accounting_report {
         }
 
         .o_usl_report_label {
-            min-width: 320px;
+            min-width: clamp(260px, 34vw, 520px);
+            overflow-wrap: anywhere;
         }
 
         .o_usl_report_action {
             width: 3rem;
+        }
+
+        td.text-end,
+        th.text-end {
+            white-space: nowrap;
+        }
+
+        th small {
+            font-size: inherit;
+            font-weight: inherit;
+            letter-spacing: 0;
+            text-transform: none;
         }
     }
 
@@ -319,6 +356,14 @@ html .o_web_client > .o_action_manager > .o_action.o_usl_accounting_report {
         .btn-link,
         .o_usl_report_code {
             color: #fff;
+        }
+
+        .o_usl_report_negative {
+            color: #ffd7dc;
+        }
+
+        .o_usl_report_zero {
+            color: rgba(#fff, 0.62);
         }
     }
 
@@ -439,6 +484,22 @@ html .o_web_client > .o_action_manager > .o_action.o_usl_accounting_report {
         background: rgba(#fff, 0.72);
         color: #475467;
         font-weight: 600;
+    }
+
+    @media (max-width: 1200px) {
+        .o_usl_report_filters {
+            label {
+                flex-basis: 132px;
+            }
+        }
+
+        .o_usl_report_filter_period {
+            flex-basis: 140px !important;
+        }
+
+        .o_usl_report_search {
+            min-width: 175px;
+        }
     }
 
     @media (max-width: 768px) {

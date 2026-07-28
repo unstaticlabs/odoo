@@ -35,6 +35,13 @@ PDF and XLSX.
 
 No core Odoo patch is required.
 
+For navigation, retaining Odoo's four broad report families was also compared
+with one flat list and with purpose-based families. A flat list made common
+books and statements compete with specialist outputs. The selected structure
+uses six stable purposes—accounts and journals, financial statements, partners
+and ageing, tax, management, and assets/periods—while preserving the configured
+actions behind every canonical report.
+
 ## Interaction rules
 
 - Results and the principal result/control appear before filter configuration.
@@ -44,6 +51,12 @@ No core Odoo patch is required.
   editable.
 - Less common journal, account, partner and analytic filters use progressive
   disclosure and remain visible as removable active-scope chips.
+- The display unit is a first-level choice. Units, thousands and millions use
+  the selected company's currency symbol and scale company-currency figures;
+  an original foreign-currency amount remains in its own unscaled currency.
+- French statement variants are resolved by the configured definition for the
+  selected company and period. The client presents that resolved variant
+  instead of asking users to choose an inapplicable historical ruleset.
 - Client action state retains filters and collapsed groups while drilling into
   journal items and returning through the action stack.
 - Material values retain direct source drill-down.
@@ -56,8 +69,11 @@ No core Odoo patch is required.
 PDF and XLSX carry the same company, resolved dates, posted/draft scope,
 comparison, filters, grouping, search and report variant as the screen.
 Hierarchy roles determine shading, weight, indentation and total rules in both
-formats. The XLSX `Audit Data` sheet remains intentionally raw and machine
-oriented; the `Report` sheet is the accountant-readable statement.
+formats. Folding is part of the displayed statement state: a download contains
+the same visible hierarchy, and its metadata records the collapsed group keys.
+Display-unit scaling applies to the readable statement while the XLSX `Audit
+Data` sheet remains intentionally raw and machine oriented. The `Report` sheet
+is the accountant-readable statement.
 
 An export is provisional accounting evidence. It does not replace statutory
 review, filing or a recorded closing decision.

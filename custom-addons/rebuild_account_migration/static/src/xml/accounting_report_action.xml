@@ -8,21 +8,27 @@
                     <h1 t-esc="state.data.title"/>
                     <div class="o_usl_report_period">
                         <strong t-esc="periodLabel"/>
-                        <span><t t-esc="periodPresetLabel"/> · <t t-esc="state.data.currency.name"/></span>
+                        <span>
+                            <t t-esc="periodPresetLabel"/> ·
+                            <t t-esc="state.data.currency.name"/> ·
+                            <t t-esc="state.data.display_unit.label"/>
+                            (<t t-esc="displayUnitLabel"/>)
+                        </span>
                     </div>
                     <div class="o_usl_report_subtitle">
                         <t t-esc="state.data.row_count"/> lignes · actualisé le
-                        <t t-esc="formatTimestamp(state.data.generated_at)"/>
+                        <t t-esc="formatTimestamp(state.data.generated_at)"/> ·
+                        <t t-esc="state.data.variant.label"/>
                     </div>
                 </div>
                 <div class="o_usl_report_exports">
                     <button t-if="state.data.capabilities.pdf !== false" class="btn btn-outline-secondary"
-                            title="Download this displayed report as a PDF with the same period, filters, hierarchy, and totals."
+                            title="Télécharger en PDF le rapport affiché avec la même période, les mêmes filtres, la même hiérarchie et les mêmes totaux."
                             t-on-click="() => this.exportReport('pdf')">
                         <i class="fa fa-file-pdf-o me-1"/> PDF
                     </button>
                     <button t-if="state.data.capabilities.xlsx !== false" class="btn btn-primary"
-                            title="Download this displayed report as an XLSX workbook with the same period, filters, hierarchy, and totals."
+                            title="Télécharger en XLSX le rapport affiché avec la même période, les mêmes filtres, la même hiérarchie et les mêmes totaux."
                             t-on-click="() => this.exportReport('xlsx')">
                         <i class="fa fa-file-excel-o me-1"/> XLSX
                     </button>
@@ -98,8 +104,18 @@
                         </t>
                     </select>
                 </label>
+                <label t-if="capabilities.display_unit" class="o_usl_report_filter_unit">
+                    <span>Unité</span>
+                    <select name="display_unit" t-on-change="onFilterChange">
+                        <t t-foreach="state.data.options.display_unit" t-as="option" t-key="option.value">
+                            <option t-att-value="option.value"
+                                    t-att-selected="option.value === state.filters.display_unit"
+                                    t-esc="filterOptionLabel('display_unit', option)"/>
+                        </t>
+                    </select>
+                </label>
                 <button class="btn btn-outline-secondary o_usl_report_more_filters" type="button"
-                        title="Show or hide the less frequently used journal, account, partner, and analytic filters."
+                        title="Afficher ou masquer les filtres secondaires de journal, compte, partenaire et analytique."
                         t-on-click="() => state.advancedOpen = !state.advancedOpen">
                     <i class="fa fa-filter me-1"/>
                     Filtres
@@ -118,7 +134,7 @@
                     </label>
                 </form>
                 <button t-if="hasOptionalFilters" class="btn btn-link o_usl_report_clear_filters"
-                        type="button" title="Remove optional filters while keeping the company, period, and posted-entry scope."
+                        type="button" title="Effacer les filtres facultatifs en conservant la société, la période et le statut des écritures."
                         t-on-click="clearOptionalFilters">
                     Effacer
                 </button>
@@ -150,6 +166,12 @@
                 </span>
                 <span class="badge rounded-pill text-bg-light" t-if="state.filters.target_move === 'posted'">Écritures comptabilisées</span>
                 <span class="badge rounded-pill text-bg-light" t-else="">Brouillons inclus</span>
+                <span class="badge rounded-pill text-bg-light">
+                    Unité : <t t-esc="displayUnitLabel"/>
+                </span>
+                <span class="badge rounded-pill text-bg-light" t-if="state.data.variant.key !== 'standard'">
+                    <t t-esc="state.data.variant.label"/>
+                </span>
                 <span class="badge rounded-pill text-bg-light" t-if="state.filters.comparison_mode !== 'none'">
                     Comparaison : <t t-esc="comparisonLabel"/>
                     <button type="button" t-on-click="() => this.removeFilter('comparison_mode')" title="Supprimer la comparaison">
@@ -194,20 +216,22 @@
                             <th t-if="isDetailedLedger">Date</th>
                             <th t-if="isDetailedLedger">Journal</th>
                             <th t-if="isDetailedLedger">Écriture</th>
-                            <th class="text-end" t-if="isDetailedLedger">Solde d'ouverture</th>
+                            <th class="text-end" t-if="isDetailedLedger">
+                                Solde d'ouverture <small>(<t t-esc="displayUnitLabel"/>)</small>
+                            </th>
                             <th class="text-end" t-if="isDetailedLedger and showForeignCurrency">Devise d'origine</th>
-                            <th class="text-end" t-if="isTrialBalance">Ouverture</th>
-                            <th class="text-end" t-if="isTrialBalance or isDetailedLedger">Débit</th>
-                            <th class="text-end" t-if="isTrialBalance or isDetailedLedger">Crédit</th>
-                            <th class="text-end" t-if="isDetailedLedger">Solde progressif</th>
-                            <th class="text-end" t-if="isTrialBalance">Clôture</th>
-                            <th class="text-end" t-if="isDetailedLedger and showResidual">Résiduel</th>
+                            <th class="text-end" t-if="isTrialBalance">Ouverture <small>(<t t-esc="displayUnitLabel"/>)</small></th>
+                            <th class="text-end" t-if="isTrialBalance or isDetailedLedger">Débit <small>(<t t-esc="displayUnitLabel"/>)</small></th>
+                            <th class="text-end" t-if="isTrialBalance or isDetailedLedger">Crédit <small>(<t t-esc="displayUnitLabel"/>)</small></th>
+                            <th class="text-end" t-if="isDetailedLedger">Solde progressif <small>(<t t-esc="displayUnitLabel"/>)</small></th>
+                            <th class="text-end" t-if="isTrialBalance">Clôture <small>(<t t-esc="displayUnitLabel"/>)</small></th>
+                            <th class="text-end" t-if="isDetailedLedger and showResidual">Résiduel <small>(<t t-esc="displayUnitLabel"/>)</small></th>
                             <th t-if="isDetailedLedger and showMatching">Lettrage</th>
                             <th t-if="isDynamicReport" t-foreach="state.data.columns" t-as="column"
                                 t-key="column.key"
                                 t-att-class="column.type === 'currency' or column.type === 'number' ? 'text-end' : ''"
                                 t-esc="column.label"/>
-                            <th class="text-end" t-if="isTrialBalance and showComparison">Comparaison</th>
+                            <th class="text-end" t-if="isTrialBalance and showComparison">Comparaison <small>(<t t-esc="displayUnitLabel"/>)</small></th>
                             <th class="o_usl_report_action"/>
                         </tr>
                     </thead>

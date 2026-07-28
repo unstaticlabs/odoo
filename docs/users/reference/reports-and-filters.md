@@ -16,11 +16,27 @@ the page in place, and PDF or XLSX downloads the same report scope.
 | Due-date analysis | Balance âgée clients / Balance âgée fournisseurs |
 | Financial position | Bilan / Bilan détaillé |
 | Performance | Compte de résultat / Compte de résultat détaillé |
-| French tax | TVA et taxes / Liasse fiscale française |
+| French tax | TVA et taxes |
 | Fixed assets | Registre des immobilisations / Plan d’amortissement |
 | Management analysis | SIG / CAF / Management Ratios |
-| Designed analytical statement | Compte de résultat analytique / Revenue vs Spending |
-| Free-form analytic exploration | Reporting > Analyse analytique |
+| Designed analytical statement | Compte de résultat analytique |
+| Free-form analytic exploration | Reporting > Pilotage > Analyse analytique |
+
+The Reporting menu is organized by purpose:
+
+- **Comptes et journaux** for the trial balance, ledgers, journal report,
+  reconciliation, currency exposure and FEC;
+- **États financiers** for balance sheet, profit and loss, detailed French
+  statements and SIG/CAF;
+- **Tiers et échéances** for partner ledgers, open items and ageing;
+- **Fiscalité** for VAT and tax analysis;
+- **Pilotage** for cash flow, management synthesis and analytical reporting;
+- **Immobilisations et périodes** for fixed assets, depreciation and deferrals.
+
+Prototype, imported-audit and duplicate native entries stay outside the normal
+menu. The period-specific French tax-package mapping remains governed under
+**Configuration > Reports** until a definition applies to the selected fiscal
+year. There is one normal entry point for each end-user report.
 
 ## Common filters
 
@@ -33,8 +49,13 @@ The available subset depends on the report:
 - journals, accounts and partners;
 - analytic plan and account;
 - posted entries only or drafts included;
-- variant, currency and display unit;
+- resolved report variant and display unit;
 - text search.
+
+**Unité** is available beside the period and comparison. It displays values in
+the selected company currency as units, thousands or millions; the header,
+active scope and amount columns always repeat the chosen unit. Original
+foreign-currency amounts are not rescaled.
 
 Less common journal, account, partner and analytic choices are under
 **Filtres**. Active choices appear as removable pills and **Effacer** removes
@@ -63,8 +84,9 @@ Draft warnings mean the displayed period includes unposted accounting that can s
 ## Screen and exports
 
 The screen, PDF and readable XLSX `Report` sheet share the resolved period,
-filters, grouping, hierarchy, calculations and totals. XLSX also contains a raw
-`Audit Data` sheet for analysis; it is not the presentation reference.
+filters, grouping, visible folded hierarchy, display unit, calculations and
+totals. XLSX also contains a raw `Audit Data` sheet for analysis; its monetary
+values remain in source units and it is not the presentation reference.
 
 Each report resolves a governed definition for the selected company and period.
 Its version and origin are retained in the report session and export metadata.

@@ -27,3 +27,24 @@ test("ledger reveals foreign currency and matching evidence when present", () =>
     expect(report.showForeignCurrency).toBe(true);
     expect(report.showMatching).toBe(true);
 });
+
+test("display unit scales company-currency amounts and labels dynamically", () => {
+    const report = reportWith([]);
+    report.state.data.locale = "fr-FR";
+    report.state.data.currency = { name: "CHF", symbol: "CHF" };
+    report.state.data.display_unit = {
+        key: "thousands",
+        factor: 1000,
+        short_label: "kCHF",
+    };
+
+    expect(report.displayUnitFactor).toBe(1000);
+    expect(report.displayUnitLabel).toBe("kCHF");
+    expect(report.formatAmount(123456.78)).toBe("123,46");
+    expect(
+        report.filterOptionLabel("display_unit", {
+            value: "millions",
+            label: "Millions",
+        }),
+    ).toBe("Millions (MCHF)");
+});

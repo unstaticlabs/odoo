@@ -133,6 +133,22 @@ export class AccountingReportAction extends Component {
     }
 
     filterOptionLabel(fieldName, option) {
+        if (fieldName === "display_unit") {
+            const symbol =
+                this.state.data.currency?.symbol ||
+                this.state.data.currency?.name ||
+                "";
+            const unitLabels = {
+                units: ["Unités", symbol],
+                thousands: ["Milliers", `k${symbol}`],
+                millions: ["Millions", `M${symbol}`],
+            };
+            const [label, shortLabel] = unitLabels[option.value] || [
+                option.label,
+                "",
+            ];
+            return shortLabel ? `${label} (${shortLabel})` : label;
+        }
         const labels = {
             period_preset: {
                 custom: "Dates personnalisées",
@@ -261,7 +277,7 @@ export class AccountingReportAction extends Component {
         return new Intl.NumberFormat(this.state.data.locale || undefined, {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
-        }).format(value || 0);
+        }).format(Number(value || 0) / this.displayUnitFactor);
     }
 
     formatForeignAmount(value, currency) {
@@ -348,6 +364,14 @@ export class AccountingReportAction extends Component {
 
     get capabilities() {
         return this.state.data.capabilities;
+    }
+
+    get displayUnitFactor() {
+        return Number(this.state.data.display_unit?.factor || 1);
+    }
+
+    get displayUnitLabel() {
+        return this.state.data.display_unit?.short_label || "";
     }
 
     formatCell(value, valueType) {
