@@ -36,6 +36,12 @@ Valentin and the accountant must be able to:
 
 - Standard accounting records form the authoritative ledger.
 - Custom workflows orchestrate accounting; they do not create parallel ledgers.
+- Every Accounting feature resolves a fiscal year through the same
+  company-governed boundary contract. The exceptional first USL exercise is
+  10/01/2024–30/09/2025; recurring exercises then run from 1 October to
+  30 September. Reports, exports, FEC defaults, cash/tax projections,
+  analytics, spreadsheets, declarations, closings and fiscal sequence ranges
+  must agree for the same reference date.
 - Smart recommendations expose their scored source facts and intended ledger
   effects. Low-confidence partner inference may inform a harmless suggestion,
   but never silently authorizes an accounting action. A user-approved bank

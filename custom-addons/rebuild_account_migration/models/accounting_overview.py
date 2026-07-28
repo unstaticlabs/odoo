@@ -687,10 +687,8 @@ class RebuildAccountOverview(models.Model):
     def action_open_report_export_wizard(self):
         self.ensure_one()
         today = fields.Date.context_today(self)
-        fiscal_from, fiscal_to = date_utils.get_fiscal_year(
-            today,
-            day=self.company_id.fiscalyear_last_day,
-            month=int(self.company_id.fiscalyear_last_month),
+        fiscal_from, fiscal_to = (
+            self.company_id.rebuild_compute_fiscalyear_dates(today)
         )
         return {
             "type": "ir.actions.act_window",

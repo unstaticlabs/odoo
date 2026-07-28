@@ -15,4 +15,9 @@ until the evaluator works again.
 
 Preparation does not close the accounts. Internal approval records that the configured blocking work is complete. Lock dates then protect journal entries for the relevant population and period according to the user’s authority.
 
-The company’s configured fiscal-year dates drive the workspace and declaration periods. Accountant review can be recorded, but its absence does not prevent the internal product from preparing a complete, reproducible closing package.
+The company’s configured recurring fiscal-year end and exceptional first-year
+boundaries drive the workspace and declaration periods. The same boundaries
+also drive reports, FEC defaults, cash/tax projections, analytics and
+accounting spreadsheets. Accountant review can be recorded, but its absence
+does not prevent the internal product from preparing a complete, reproducible
+closing package.

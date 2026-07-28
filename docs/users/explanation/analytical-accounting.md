@@ -15,4 +15,8 @@ the native analytic amount. The default current-fiscal-year view can be
 regrouped by any configured analytic plan, date interval, financial account,
 partner, product, journal or company.
 
+The current-fiscal-year filter uses the same company boundaries as financial
+reports. It therefore includes 10/01/2024–30/09/2025 for USL’s exceptional
+first exercise and uses the recurring cadence afterward.
+
 Analytic totals should reconcile to the selected general-ledger scope. Missing distributions are review work surfaced by Accounting Hygiene.
