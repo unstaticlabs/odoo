@@ -16,11 +16,11 @@
                         <button
                             name="action_rebuild_analyze_rule_opportunities"
                             type="object"
-                            string="Find Opportunities"
+                            string="Find"
                             icon="fa-magic"
                             display="always"
                             groups="account.group_account_manager"
-                            title="Analyze consistently categorized bank transactions and create inert rule suggestions for manager review. This does not change accounting or activate automation."
+                            title="Find repeated, consistently categorized bank transactions and create review-only rule suggestions. This never changes accounting or activates a rule."
                         />
                     </header>
                     <field name="sequence" widget="handle"/>

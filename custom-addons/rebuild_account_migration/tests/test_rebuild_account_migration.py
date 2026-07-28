@@ -7,11 +7,13 @@ from pathlib import Path
 from unittest.mock import patch
 
 from lxml import etree
+from psycopg2 import IntegrityError
 
 from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError, ValidationError
+from odoo.service.model import call_kw
 from odoo.tests import TransactionCase, tagged
-from odoo.tools import format_date
+from odoo.tools import format_date, mute_logger
 from odoo.tools.safe_eval import safe_eval
 
 from odoo.addons.rebuild_account_migration.controllers import user_docs
@@ -560,6 +562,18 @@ class TestRebuildAccountMigration(TransactionCase):
             partner_only_rule.with_user(
                 finance_operator,
             ).action_rebuild_archive_rule()
+        with self.assertRaisesRegex(
+            AccessError,
+            "Only an Accounting Manager",
+        ):
+            call_kw(
+                self.env["account.reconcile.model"].with_user(
+                    finance_operator,
+                ),
+                "action_rebuild_analyze_rule_opportunities",
+                [[]],
+                {},
+            )
 
         proven_rule = self.env["account.reconcile.model"].create({
             "name": "Unit historically used rule",
@@ -609,6 +623,22 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(
             trigger_field.get("decoration-warning"),
             "trigger == 'auto_reconcile'",
+        )
+        find_buttons = list_arch.xpath(
+            "//list/header/button"
+            "[@name='action_rebuild_analyze_rule_opportunities']",
+        )
+        self.assertEqual(len(find_buttons), 1)
+        self.assertEqual(find_buttons[0].get("string"), "Find")
+        self.assertEqual(find_buttons[0].get("icon"), "fa-magic")
+        self.assertEqual(find_buttons[0].get("display"), "always")
+        self.assertEqual(
+            find_buttons[0].get("groups"),
+            "account.group_account_manager",
+        )
+        self.assertIn(
+            "never changes accounting or activates a rule",
+            find_buttons[0].get("title", "").lower(),
         )
 
         form_arch = self.env.ref(
@@ -678,7 +708,25 @@ class TestRebuildAccountMigration(TransactionCase):
                 opportunity_key: opportunity_groups[opportunity_key],
             },
         ):
-            rule_model.action_rebuild_analyze_rule_opportunities()
+            action = call_kw(
+                rule_model,
+                "action_rebuild_analyze_rule_opportunities",
+                [[]],
+                {},
+            )
+            repeated_action = call_kw(
+                rule_model,
+                "action_rebuild_analyze_rule_opportunities",
+                [[]],
+                {},
+            )
+        self.assertEqual(action["name"], "Rule Suggestions")
+        self.assertEqual(action["res_model"], "account.reconcile.model")
+        self.assertEqual(repeated_action["tag"], "display_notification")
+        self.assertEqual(
+            repeated_action["params"]["title"],
+            "No new suggestions",
+        )
         proposal_key = (
             f"{self.company.id}:{bank_journal.id}:{expense.id}:0:"
             "unit recurring platform fee"
@@ -687,7 +735,21 @@ class TestRebuildAccountMigration(TransactionCase):
             ("rebuild_proposal_key", "=", proposal_key),
         ])
         self.assertEqual(len(proposal), 1)
+        self.assertEqual(action["domain"], [("id", "in", proposal.ids)])
+        self.assertEqual(proposal.company_id, self.company)
         self.assertTrue(proposal.rebuild_is_proposal)
+        with (
+            self.assertRaises(IntegrityError),
+            self.cr.savepoint(),
+            mute_logger("odoo.sql_db"),
+        ):
+            self.env["account.reconcile.model"].create({
+                "name": "Unit duplicate evidence suggestion",
+                "company_id": self.company.id,
+                "trigger": "manual",
+                "rebuild_is_proposal": True,
+                "rebuild_proposal_key": proposal_key,
+            })
         self.assertEqual(proposal.rebuild_health_state, "suggested")
         self.assertTrue(proposal.rebuild_has_actionable_guidance)
         self.assertEqual(proposal.rebuild_proposal_source, "deterministic")
