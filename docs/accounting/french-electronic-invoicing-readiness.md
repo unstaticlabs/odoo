@@ -11,8 +11,17 @@ invoice.
 
 This release is **ready but inactive**. It can prove the complete software
 reception journey without a network call. It does not prove that USL is
-commercially eligible for Odoo's approved-platform service, registered in the
+accepted by Odoo's production identity-verification process, registered in the
 French directory, or connected in production.
+
+Odoo documents generic Peppol registration as free and available in Community:
+[Electronic invoicing — Peppol](https://www.odoo.com/documentation/19.0/applications/finance/accounting/customer_invoices/electronic_invoicing.html#peppol).
+For the French reform, Odoo documents its certified Approved Platform and the
+`l10n_fr_pdp` workflow separately:
+[France — E-invoicing](https://www.odoo.com/documentation/19.0/applications/finance/fiscal_localizations/france.html#e-invoicing).
+Both client modules are LGPL-3 in this source tree. The documentation does not
+explicitly guarantee hosted-service access for an independently maintained
+fork, so production acceptance, terms and support remain **Not yet verified**.
 
 ## Architecture decision
 
@@ -46,7 +55,7 @@ product states and the current next action:
 - **Configuration incomplete** — the accounting country, company identifiers
   or incoming purchase journal is missing;
 - **Not yet verified** — configuration may be present, but the representative
-  offline reception test or provider eligibility verification is outstanding;
+  offline reception test or production provider access is outstanding;
 - **Test passed** — the current company produced a correct native draft bill
   from the maintained safe fixture;
 - **Ready but inactive** — company configuration, safe test and provider
@@ -60,7 +69,9 @@ product states and the current next action:
 The screen never interprets installed code as proof of a provider contract or
 live connectivity. **Next Action** is phase-aware: it first resolves reception
 setup, then the offline test, platform verification and deliberate production
-activation.
+activation. **Odoo Approved Platform** is selected by default for French
+companies because it is the only French Approved Platform adapter implemented
+in this release; that default does not create an account or contact Odoo.
 
 ## Reception and evidence
 
@@ -104,7 +115,7 @@ Production reception requires all of the following:
 
 1. French company identifiers, scheme `0225`, contact and purchase journal;
 2. the representative offline test marked **Test passed**;
-3. verified provider eligibility, subscription and terms;
+3. verified provider identity, service terms and support path;
 4. an actual production deployment;
 5. `USL_EINVOICE_LIVE_ENABLED=1` in that deployment;
 6. Accounting Manager approval;

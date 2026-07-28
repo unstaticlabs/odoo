@@ -9,7 +9,7 @@ release is **ready but inactive** until production activation.
 1. Open **Accounting > Configuration > Invoicing > E-Invoicing**.
 2. Select the company. Read the state literally:
    - **Configuration incomplete** lists company or journal details to finish;
-   - **Not yet verified** means a test or provider eligibility decision remains;
+   - **Not yet verified** means a test or provider-access decision remains;
    - **Test passed** proves the safe software journey for this company;
    - **Ready but inactive** means no live reception is running;
    - **Production activation required** identifies a deliberate production step;

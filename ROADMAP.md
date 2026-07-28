@@ -80,7 +80,7 @@ the target must not introduce any additional exception.
 
 ### September 2026 electronic-invoice activation
 
-1. Verify production approved-platform eligibility, subscription, terms,
+1. Verify production approved-platform identity acceptance, service terms,
    credentials, support and rollback contacts.
 2. Review company identifiers, reception journal and access roles; rerun the
    safe offline acceptance test after the production upgrade.

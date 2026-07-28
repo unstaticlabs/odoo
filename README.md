@@ -313,9 +313,9 @@ Deliberate product boundaries: Community does not provide the Enterprise
 application launcher or unrelated Enterprise applications such as Documents,
 Sign, Knowledge, To-do, AI features or TESE Payroll. Live bank synchronization
 and production electronic-invoicing connectivity remain inactive. Provider
-eligibility/subscription must be verified before activation; passing the
-offline reception tests does not prove commercial access to a production
-approved-platform service. Brands such
+identity acceptance, service terms and support must be verified before
+activation; passing the offline reception tests does not prove access to the
+production approved-platform service from this fork. Brands such
 as SBFH, GBC, Yoshi, Smash and KinkVerse are represented as projects or
 analytic contexts under the single legal company.
 

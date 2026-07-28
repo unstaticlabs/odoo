@@ -164,8 +164,10 @@
                         </page>
                         <page string="Production connection">
                             <p class="text-muted">
-                                Complete this section only after the offline test passes
-                                and the approved platform confirms production access.
+                                Default: Odoo Approved Platform for France.
+                                <a href="https://www.odoo.com/documentation/19.0/applications/finance/fiscal_localizations/france.html#e-invoicing"
+                                    target="_blank">Provider documentation</a>.
+                                Complete identity verification only in production.
                             </p>
                             <group>
                                 <group string="Platform">

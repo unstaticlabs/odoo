@@ -81,7 +81,7 @@ Resolved validation iterations are retained here for honesty:
 
 ## Not verified by software tests
 
-- USL's production eligibility/subscription and provider contract;
+- USL's production identity acceptance and applicable provider terms;
 - approved-platform production credentials and support route;
 - live French directory registration and effective date;
 - delivery of the first real supplier invoice;
