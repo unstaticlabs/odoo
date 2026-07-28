@@ -1,4 +1,4 @@
-import { expect, test } from "@odoo/hoot";
+import { expect, getFixture, test } from "@odoo/hoot";
 
 import { AccountingReportAction } from "../src/js/accounting_report_action";
 
@@ -79,4 +79,28 @@ test("report workspace and document theme stay presentation-driven", () => {
     expect(report.reportWorkspaceClass).toBe(
         "o_usl_report_workspace o_usl_report_workspace_landscape",
     );
+});
+
+test.tags("desktop");
+test("report action owns vertical scrolling without clipping the paper", () => {
+    const fixture = getFixture();
+    fixture.innerHTML = `
+        <div class="o_web_client" style="height: 240px">
+            <div class="o_action_manager" style="height: 240px">
+                <div class="o_action o_usl_accounting_report"
+                     style="display: flex; height: 240px">
+                    <div class="o_usl_report_workspace">
+                        <div style="height: 800px">Long accounting statement</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    const action = fixture.querySelector(".o_usl_accounting_report");
+    const workspace = fixture.querySelector(".o_usl_report_workspace");
+
+    expect(getComputedStyle(workspace).flexShrink).toBe("0");
+    expect(action.scrollHeight).toBeGreaterThan(action.clientHeight);
+    action.scrollTop = 120;
+    expect(action.scrollTop).toBe(120);
 });

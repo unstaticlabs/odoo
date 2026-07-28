@@ -14,6 +14,9 @@ html .o_web_client > .o_action_manager > .o_action.o_usl_accounting_report {
     background: #f6f7f8;
 
     .o_usl_report_workspace {
+        // The Odoo action is a flex container. Keep the paper at its natural
+        // document height so the action itself owns vertical scrolling.
+        flex: 0 0 auto;
         width: calc(100% - 2rem);
         margin: 1rem auto 2rem;
         overflow: hidden;
