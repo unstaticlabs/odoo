@@ -33,7 +33,7 @@ COMPOSE_PROJECT = os.environ.get(
 SOURCE_DB = "odoo_online_source_saas_19_2"
 EXACT_VALIDATION_DB = "odoo_saas_19_2_validation_exact"
 NATIVE_VALIDATION_DB = "odoo_saas_19_2_validation_native"
-DEV_QA_DB = "odoo_dev"
+DEV_QA_DB = os.environ.get("ACCOUNTING_COMPAT_DEV_DB", "odoo_dev")
 READONLY_ROLE = "accounting_source_ro"
 DEFAULT_SOURCE_DIR = "usl-online-dump"
 DEFAULT_POSTGRES_IMAGE = "pgvector/pgvector:pg16-bookworm"
@@ -467,6 +467,135 @@ def query_json(db: str, sql: str, *, set_readonly_role: bool = True) -> Any:
 def query_rows(db: str, sql: str, *, set_readonly_role: bool = True) -> list[dict[str, Any]]:
     wrapped = f"SELECT COALESCE(jsonb_agg(to_jsonb(q)), '[]'::jsonb) FROM ({sql}) q"
     return query_json(db, wrapped, set_readonly_role=set_readonly_role)
+
+
+def source_manager_accounting_identity() -> dict[str, Any]:
+    return query_json(
+        SOURCE_DB,
+        """
+        WITH manager AS (
+            SELECT employee.id AS employee_id,
+                   employee.work_contact_id AS partner_id,
+                   users.partner_id AS user_partner_id,
+                   NULLIF(
+                       partner.property_account_payable_id ->> employee.company_id::text,
+                       ''
+                   )::integer AS payable_account_id
+            FROM hr_employee employee
+            JOIN res_partner partner
+              ON partner.id = employee.work_contact_id
+            JOIN res_users users
+              ON users.id = employee.user_id
+            WHERE employee.company_id = 1
+              AND employee.name ILIKE '%Valentin%'
+            ORDER BY employee.id
+            LIMIT 1
+        )
+        SELECT jsonb_build_object(
+            'employee_source_id', manager.employee_id,
+            'partner_source_id', manager.partner_id,
+            'user_partner_source_id', manager.user_partner_id,
+            'payable_source_account_id', manager.payable_account_id,
+            'payable_code', account.code_store ->> '1',
+            'payable_reconcile', account.reconcile,
+            'cca_line_count', (
+                SELECT count(*)
+                FROM account_move_line line
+                WHERE line.account_id = manager.payable_account_id
+                  AND line.partner_id = manager.partner_id
+            ),
+            'open_debit_count', (
+                SELECT count(*)
+                FROM account_move_line line
+                JOIN account_move move ON move.id = line.move_id
+                WHERE line.account_id = manager.payable_account_id
+                  AND line.partner_id = manager.partner_id
+                  AND move.state = 'posted'
+                  AND NOT line.reconciled
+                  AND line.balance > 0
+            )
+        )
+        FROM manager
+        JOIN account_account account
+          ON account.id = manager.payable_account_id
+        """,
+    )
+
+
+def target_manager_accounting_identity(db: str) -> dict[str, Any]:
+    return query_json(
+        db,
+        """
+        WITH manager AS (
+            SELECT employee.id AS employee_id,
+                   employee.rebuild_source_id AS employee_source_id,
+                   employee.company_id AS company_id,
+                   employee.work_contact_id AS partner_id,
+                   users.partner_id AS user_partner_id,
+                   partner.rebuild_source_id AS partner_source_id,
+                   user_partner.rebuild_source_id AS user_partner_source_id,
+                   NULLIF(
+                       partner.property_account_payable_id ->> employee.company_id::text,
+                       ''
+                   )::integer AS payable_account_id
+            FROM hr_employee employee
+            JOIN res_users users ON users.id = employee.user_id
+            JOIN res_partner partner ON partner.id = employee.work_contact_id
+            JOIN res_partner user_partner ON user_partner.id = users.partner_id
+            WHERE users.login = 'valentin'
+              AND employee.rebuild_source_model = 'hr.employee'
+            ORDER BY employee.id
+            LIMIT 1
+        )
+        SELECT jsonb_build_object(
+            'employee_source_id', manager.employee_source_id,
+            'partner_source_id', manager.partner_source_id,
+            'user_partner_source_id', manager.user_partner_source_id,
+            'payable_source_account_id', account.rebuild_source_id,
+            'payable_code', account.code_store ->> company.rebuild_source_id::text,
+            'payable_reconcile', account.reconcile,
+            'canonical_partner', manager.partner_id = manager.user_partner_id,
+            'cca_line_count', (
+                SELECT count(*)
+                FROM account_move_line line
+                WHERE line.account_id = manager.payable_account_id
+                  AND line.partner_id = manager.partner_id
+            ),
+            'open_debit_count', (
+                SELECT count(*)
+                FROM account_move_line line
+                JOIN account_move move ON move.id = line.move_id
+                WHERE line.account_id = manager.payable_account_id
+                  AND line.partner_id = manager.partner_id
+                  AND move.state = 'posted'
+                  AND NOT line.reconciled
+                  AND line.balance > 0
+            )
+        )
+        FROM manager
+        JOIN account_account account
+          ON account.id = manager.payable_account_id
+        JOIN res_company company
+          ON company.id = manager.company_id
+        """,
+        set_readonly_role=False,
+    )
+
+
+def manager_accounting_identity_matches(
+    source: dict[str, Any] | None,
+    target: dict[str, Any] | None,
+) -> bool:
+    return bool(
+        source
+        and target
+        and target
+        == {
+            **source,
+            "canonical_partner": True,
+        }
+        and target["open_debit_count"] > 0,
+    )
 
 
 def scalar(db: str, sql: str, *, set_readonly_role: bool = True) -> str | None:
@@ -3531,6 +3660,7 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
         """,
     )
     source_date_to = source_profile["date_to"]
+    source_manager_identity = source_manager_accounting_identity()
     import_script = PRIVATE_ARTIFACTS / "dev-import-source-snapshot.py"
     import_script.write_text(
         "\n".join([
@@ -3617,7 +3747,32 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             "reviewer_group = env.ref(",
             "    'rebuild_account_migration.group_rebuild_accountant_reviewer',",
             ")",
-            "def provision_user(login, name, password, company, allowed_companies, groups):",
+            "manager_employees = env['hr.employee'].search([",
+            "    ('company_id', '=', main_company.id),",
+            "    ('name', 'ilike', 'Valentin'),",
+            "    ('rebuild_source_model', '=', 'hr.employee'),",
+            "])",
+            "if len(manager_employees) != 1:",
+            "    raise RuntimeError(",
+            "        'Expected one source-traced Valentin employee, found %s'",
+            "        % len(manager_employees)",
+            "    )",
+            "manager_employee = manager_employees",
+            "manager_partner = manager_employee.work_contact_id",
+            "if not manager_partner or manager_partner.rebuild_source_model != 'res.partner':",
+            "    raise RuntimeError(",
+            "        'The source-traced Valentin employee has no source-traced work contact.'",
+            "    )",
+            "manager_payable = manager_partner.with_company(",
+            "    main_company",
+            ").property_account_payable_id",
+            "if not manager_payable:",
+            "    raise RuntimeError(",
+            "        'The source-traced Valentin work contact has no payable account.'",
+            "    )",
+            "def provision_user(",
+            "    login, name, password, company, allowed_companies, groups, partner=False",
+            "):",
             "    values = {",
             "        'name': name,",
             "        'login': login,",
@@ -3628,6 +3783,8 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             "        'group_ids': [(6, 0, [group.id for group in groups])],",
             "        'password': password,",
             "    }",
+            "    if partner:",
+            "        values['partner_id'] = partner.id",
             "    user = Users.search([('login', '=', login)], limit=1)",
             "    if user:",
             "        user.write(values)",
@@ -3641,6 +3798,7 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             "    main_company,",
             "    companies,",
             "    base_group | manager_group | expense_manager_group,",
+            "    partner=manager_partner,",
             ")",
             "reviewer_user = provision_user(",
             "    'prosper',",
@@ -3650,19 +3808,25 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             "    main_company,",
             "    base_group | reviewer_group,",
             ")",
-            "manager_employee = env['hr.employee'].search([",
-            "    ('company_id', '=', main_company.id),",
-            "    ('name', 'ilike', 'Valentin'),",
-            "], order='id', limit=1)",
-            "if not manager_employee:",
-            "    manager_employee = env['hr.employee'].create({",
-            "        'name': manager_user.name,",
-            "        'company_id': main_company.id,",
-            "    })",
             "manager_employee.write({",
             "        'user_id': manager_user.id,",
             "        'expense_manager_id': manager_user.id,",
             "    })",
+            "manager_partner = manager_employee.work_contact_id",
+            "manager_payable = manager_partner.with_company(",
+            "    main_company",
+            ").property_account_payable_id",
+            "manager_cca_line_count = env['account.move.line'].search_count([",
+            "    ('account_id', '=', manager_payable.id),",
+            "    ('partner_id', '=', manager_partner.id),",
+            "])",
+            "manager_open_debit_count = env['account.move.line'].search_count([",
+            "    ('account_id', '=', manager_payable.id),",
+            "    ('partner_id', '=', manager_partner.id),",
+            "    ('parent_state', '=', 'posted'),",
+            "    ('reconciled', '=', False),",
+            "    ('balance', '>', 0),",
+            "])",
             "env['product.product'].search([",
             "    ('can_be_expensed', '=', True),",
             "    ('default_code', '=', 'TELETRAVAIL FORFAIT'),",
@@ -3693,6 +3857,18 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             "            'employee_linked': (",
             "                manager_employee.user_id == manager_user",
             "            ),",
+            "            'partner_id': manager_user.partner_id.id,",
+            "            'work_contact_id': manager_employee.work_contact_id.id,",
+            "            'canonical_partner': (",
+            "                manager_user.partner_id == manager_employee.work_contact_id",
+            "            ),",
+            "            'source_partner_id': manager_partner.rebuild_source_id,",
+            "            'payable_account_id': manager_payable.id,",
+            "            'payable_source_account_id': manager_payable.rebuild_source_id,",
+            "            'payable_code': manager_payable.code,",
+            "            'payable_reconcile': manager_payable.reconcile,",
+            "            'cca_line_count': manager_cca_line_count,",
+            "            'open_debit_count': manager_open_debit_count,",
             "        },",
             "        'accountant': {",
             "            'id': reviewer_user.id,",
@@ -3810,6 +3986,20 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
         and payload["users"]["manager"]["account_manager"] is True
         and payload["users"]["manager"]["expense_manager"] is True
         and payload["users"]["manager"]["employee_linked"] is True
+        and payload["users"]["manager"]["canonical_partner"] is True
+        and payload["users"]["manager"]["source_partner_id"]
+        == source_manager_identity["partner_source_id"]
+        and payload["users"]["manager"]["payable_source_account_id"]
+        == source_manager_identity["payable_source_account_id"]
+        and payload["users"]["manager"]["payable_code"]
+        == source_manager_identity["payable_code"]
+        and payload["users"]["manager"]["payable_reconcile"]
+        == source_manager_identity["payable_reconcile"]
+        and payload["users"]["manager"]["cca_line_count"]
+        == source_manager_identity["cca_line_count"]
+        and payload["users"]["manager"]["open_debit_count"]
+        == source_manager_identity["open_debit_count"]
+        and payload["users"]["manager"]["open_debit_count"] > 0
         and payload["users"]["accountant"]["login"] == "prosper"
         and payload["users"]["accountant"]["reviewer"] is True
         and payload["users"]["accountant"]["account_manager"] is False
@@ -3829,6 +4019,8 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
         "expense_run_status": payload["expense_run_status"],
         "asset_run_id": payload["asset_run_id"],
         "asset_run_status": payload["asset_run_status"],
+        "source_manager_accounting_identity": source_manager_identity,
+        "target_manager_accounting_identity": payload["users"]["manager"],
         "expected": expected,
         "checks": checks,
         "statistics": stats,
@@ -3851,6 +4043,12 @@ def dev_validate(args: argparse.Namespace) -> dict[str, Any]:
             "Run replacement reset and import before replacement validation."
         )
         raise HarnessError(message)
+    source_manager_identity = source_manager_accounting_identity()
+    target_manager_identity = target_manager_accounting_identity(DEV_QA_DB)
+    manager_identity_matches = manager_accounting_identity_matches(
+        source_manager_identity,
+        target_manager_identity,
+    )
     source_historical = query_rows(
         SOURCE_DB,
         """
@@ -4816,6 +5014,7 @@ def dev_validate(args: argparse.Namespace) -> dict[str, Any]:
                 "duplicate_source_move_representation_count",
             ) == "0"
         ),
+        "manager_accounting_identity_matches": manager_identity_matches,
     }
     current_gross_totals_match = source_current == target_current
     current_account_balances_match = not balance_differences
@@ -4892,6 +5091,11 @@ def dev_validate(args: argparse.Namespace) -> dict[str, Any]:
         "critical_checks": critical_checks,
         "product_count_checks": product_counts_match,
         "runtime_signature": runtime_signature,
+        "manager_accounting_identity": {
+            "source": source_manager_identity,
+            "target": target_manager_identity,
+            "matches": manager_identity_matches,
+        },
         "source_snapshot": source_snapshot,
         "target_snapshot": target_snapshot,
         "historical": {

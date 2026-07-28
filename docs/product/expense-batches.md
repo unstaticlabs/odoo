@@ -165,6 +165,46 @@ The implementation must preserve these invariants:
 7. Read-only accountants can inspect batches but cannot mutate or trigger
    workflow actions.
 
+## Employee reimbursement account and canonical contact
+
+For an employee-paid expense, standard Odoo takes the payable account from the
+employee's **Work Contact**. The Notes de frais journal and expense category
+control the journal and expense side of the entry; they do not select the
+employee liability account.
+
+USL's source configuration uses one canonical Valentin contact for all three
+roles:
+
+- the related partner of the `valentin` login;
+- the employee's Work Contact;
+- the partner on account `455100`, **Associés - Comptes courants - Valentin**.
+
+That contact has `455100` as its company-specific payable account, and the
+account is reconcilable. This lets a newly posted employee-paid expense credit
+the same account and partner as existing CCA debits. Native Odoo can then show
+those debits as outstanding items and reconcile or partially reconcile them.
+
+Two repair options were considered:
+
+1. change the company-wide payable default or the Notes de frais journal;
+2. preserve the source contact identity and its partner-specific payable
+   account.
+
+The second is required. A company-wide `455100` default would incorrectly send
+ordinary supplier liabilities to Valentin's shareholder account, while the
+journal default does not control the employee payable line.
+
+The reconstruction therefore provisions the manager login on the imported
+source-traced Work Contact before assigning the user to the employee. Both the
+import and final validation gates compare the employee, contact, payable
+account, reconciliation flag, CCA line count and open CCA debit count against
+the read-only source. A split identity or fallback to `401100` fails the
+reconstruction instead of producing a superficially valid demo.
+
+This configuration affects future postings. Correcting it does not rewrite an
+already posted expense receipt; historical corrections require a controlled
+reset/repost in disposable QA or an accountant-approved reclassification.
+
 ## Isolated QA environment
 
 Feature QA must not update or run the feature branch against canonical
