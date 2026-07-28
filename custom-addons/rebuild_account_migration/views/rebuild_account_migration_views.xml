@@ -1,5 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <record id="view_account_settings_cca_projection" model="ir.ui.view">
+        <field name="name">res.config.settings.account.cca.projection</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="account.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='account']/block[@name='fiscal_localization_setting_container']" position="after">
+                <block title="Management Projections" name="rebuild_management_projections">
+                    <setting
+                        id="rebuild_cca_projection"
+                        string="Shareholder current account"
+                        company_dependent="1"
+                        help="Show a transparent estimate of the selected shareholder's position on Accounting Overview. This is a management projection and does not post or reclassify accounting entries.">
+                        <div class="content-group">
+                            <div class="row mt16">
+                                <label for="rebuild_overview_cca_account_id" string="Account" class="col-lg-4 o_light_label"/>
+                                <field
+                                    name="rebuild_overview_cca_account_id"
+                                    domain="[('company_ids', 'in', company_id), ('code', '=like', '455%')]"
+                                    options="{'no_create': True}"/>
+                            </div>
+                            <div class="row">
+                                <label for="rebuild_overview_cca_employee_id" string="Shareholder / expense owner" class="col-lg-4 o_light_label"/>
+                                <field
+                                    name="rebuild_overview_cca_employee_id"
+                                    domain="[('company_id', '=', company_id)]"
+                                    options="{'no_create': True}"/>
+                            </div>
+                            <div class="text-muted">
+                                Unpaid employee-paid expenses for this person are netted with the posted account balance unless they are already posted to that account.
+                            </div>
+                        </div>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+
     <record id="view_rebuild_currency_rate_list_trace" model="ir.ui.view">
         <field name="name">res.currency.rate.list.rebuild.trace</field>
         <field name="model">res.currency.rate</field>
@@ -1330,9 +1367,6 @@
                         <button name="action_open_bank_transactions" type="object" class="oe_stat_button" icon="fa-bank">
                             <field name="bank_transaction_count" widget="statinfo" string="Transactions"/>
                         </button>
-                        <button name="action_open_bank_matching" type="object" class="oe_stat_button" icon="fa-random">
-                            <field name="unmatched_bank_transaction_count" widget="statinfo" string="To Match"/>
-                        </button>
                         <button name="action_open_customer_documents" type="object" class="oe_stat_button" icon="fa-file-text-o">
                             <field name="draft_customer_document_count" widget="statinfo" string="Draft Invoices"/>
                         </button>
@@ -1357,7 +1391,19 @@
                             <div class="row g-3 align-items-start">
                                 <div class="col-12 col-md-6">
                                     <div class="o_usl_overview_card o_usl_cash_position_card">
-                                        <h4 class="o_usl_overview_card_title">Cash on banks</h4>
+                                        <div class="o_usl_cash_card_header">
+                                            <h4 class="o_usl_overview_card_title">Cash on banks</h4>
+                                            <button
+                                                name="action_open_bank_matching"
+                                                type="object"
+                                                class="btn btn-link o_usl_accounting_status_chip"
+                                                invisible="unmatched_bank_transaction_count == 0"
+                                                title="Open Bank Matching to review transactions that still need a counterpart or accounting category.">
+                                                <i class="fa fa-exclamation-circle" aria-hidden="true"/>
+                                                <field name="unmatched_bank_transaction_count" nolabel="1"/>
+                                                <span>to match</span>
+                                            </button>
+                                        </div>
                                         <button
                                             name="action_open_cash_position_journals"
                                             type="object"
@@ -1536,13 +1582,74 @@
                                     </div>
                                 </div>
                                 <div class="col-12 col-md-6">
-                                    <div class="o_usl_overview_card">
-                                        <h4 class="o_usl_overview_card_title">Transactions to match</h4>
-                                        <span class="o_usl_overview_value">
-                                            <field name="unmatched_bank_transaction_count" nolabel="1"/>
-                                        </span>
-                                        <div class="o_usl_overview_detail">Bank transactions still needing a counterpart or category.</div>
-                                        <button name="action_open_bank_matching" type="object" string="Continue bank matching" class="btn-link"/>
+                                    <div class="o_usl_overview_card o_usl_cca_position_card">
+                                        <h4 class="o_usl_overview_card_title">Compte Courant Associé</h4>
+                                        <div class="o_usl_cca_owner" invisible="not cca_projection_ready">
+                                            <field name="cca_projection_owner_name" nolabel="1"/>
+                                        </div>
+                                        <div invisible="not cca_projection_ready">
+                                            <span class="o_usl_overview_value">
+                                                <field name="cca_projected_balance_display" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                            </span>
+                                            <div class="o_usl_cca_direction">
+                                                <span invisible="cca_projection_direction != 'company_owes'">
+                                                    Estimated amount USL owes
+                                                </span>
+                                                <span invisible="cca_projection_direction != 'shareholder_owes'">
+                                                    Estimated amount due to USL
+                                                </span>
+                                                <span invisible="cca_projection_direction != 'settled'">
+                                                    Estimated position settled
+                                                </span>
+                                            </div>
+                                            <details class="o_usl_cash_breakdown o_usl_cca_breakdown">
+                                                <summary>View projection details</summary>
+                                                <div class="o_usl_cash_breakdown_body">
+                                                    <div class="o_usl_cash_breakdown_row">
+                                                        <button
+                                                            name="action_open_cca_journal_items"
+                                                            type="object"
+                                                            string="Posted account position"
+                                                            class="btn-link"
+                                                            title="Open all posted journal items on the configured shareholder current account through today."/>
+                                                        <span class="o_usl_cash_breakdown_amount">
+                                                            <field name="cca_posted_balance_display" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                                        </span>
+                                                    </div>
+                                                    <div class="o_usl_cash_breakdown_context">
+                                                        <field name="cca_projection_account_label" nolabel="1"/>
+                                                        <span invisible="cca_posted_balance &gt;= 0"> · due to USL</span>
+                                                        <span invisible="cca_posted_balance &lt;= 0"> · owed by USL</span>
+                                                    </div>
+                                                    <div class="o_usl_cash_breakdown_row">
+                                                        <button
+                                                            name="action_open_cca_unpaid_expenses"
+                                                            type="object"
+                                                            string="Unpaid expenses not yet in this account"
+                                                            class="btn-link"
+                                                            title="Open employee-paid expenses attributed to or entered by this person that remain unpaid and are not already posted to the configured shareholder account."/>
+                                                        <span class="o_usl_cash_breakdown_amount">
+                                                            <field name="cca_unpaid_expense_amount" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                                        </span>
+                                                    </div>
+                                                    <div class="o_usl_cash_breakdown_context">
+                                                        <field name="cca_unpaid_expense_count" nolabel="1"/>
+                                                        expense records
+                                                    </div>
+                                                    <div class="o_usl_cash_projection_note">
+                                                        This management estimate nets the posted account position with unpaid expenses. It does not post, reimburse or reclassify anything.
+                                                    </div>
+                                                    <div
+                                                        class="o_usl_cash_projection_note"
+                                                        invisible="not cca_projection_uses_inferred_config">
+                                                        Account and owner were inferred conservatively from the unique 455100 account and employee-paid expense owner. Confirm them in Accounting Settings.
+                                                    </div>
+                                                </div>
+                                            </details>
+                                        </div>
+                                        <div class="o_usl_overview_detail" invisible="cca_projection_ready">
+                                            Select the account and shareholder in Accounting Settings to enable this estimate.
+                                        </div>
                                     </div>
                                 </div>
                             </div>

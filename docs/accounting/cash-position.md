@@ -191,3 +191,72 @@ and its audit routes:
 All amounts use the selected company's currency. Posted residuals dated after
 today are excluded; currently open unposted employee reimbursements are
 included regardless of expense date.
+
+## Compte Courant Associé
+
+The adjacent **Compte Courant Associé** card is a separate management
+projection for the shareholder selected in **Accounting > Configuration >
+Settings > Management Projections**. It is not part of Cash on banks and it
+does not post or reclassify an entry.
+
+French PCG account 455 records at credit the funds an associate temporarily
+makes available to the entity. The card therefore normalizes the accounting
+sign into plain-language direction:
+
+- a credit balance is shown as an amount USL owes the shareholder;
+- a debit balance is shown as an amount the shareholder owes USL;
+- unpaid employee-paid expenses increase the amount USL is estimated to owe.
+
+The projected position is:
+
+> shareholder-perspective posted 455 balance + unpaid attributable expenses
+> not already posted to that 455 account
+
+The expense population covers Draft, Submitted, Approved, Posted and
+In-payment employee-paid expenses attributed to the configured employee or
+entered by their linked user. Unposted expenses contribute their
+company-currency total. A posted or partially paid expense contributes only
+its residual. An expense whose entry already uses the configured 455 account
+is excluded from the expense component because its amount is already in the
+posted account balance.
+
+This last rule preserves the estimate as work progresses: posting an expense
+directly to 455 moves it from the “unpaid expenses” component to the “posted
+account position” component without changing the net projection twice.
+
+The foldout links to the exact journal items and expense records behind both
+components. On `odoo_dev` at 28 July 2026:
+
+- account 455100 has a €12,639.57 debit balance, so Valentin currently owes
+  that amount to USL on the posted ledger;
+- €16,831.02 of Valentin's employee-paid expenses remain unposted;
+- the net projected position is therefore **€4,191.45 estimated owed by USL
+  to Valentin**.
+
+Two approaches were assessed:
+
+1. show the raw 455 debit/credit balance and add every expense total;
+2. normalize the direction from the shareholder's perspective and exclude
+   expenses already represented by posted 455 entries.
+
+The second is used because it states who owes whom and prevents
+double-counting. Native Odoo and the installed OCA modules provide the ledger
+and expense workflows but no maintained Community shareholder-current-account
+projection to adopt. The implementation remains an isolated, read-only
+Overview extension.
+
+For clean USL reconstructions, a conservative fallback accepts only the unique
+exact account 455100 and unique employee-paid expense owner. Any ambiguity
+disables the estimate instead of guessing. Saving the explicit account and
+employee in Accounting Settings is the durable configuration.
+
+Accounting basis:
+
+- [French PCG account 455 definition on
+  Légifrance](https://www.legifrance.gouv.fr/jorf/article_jo/JORFARTI000029583902);
+- [BOFiP presentation of a creditor shareholder current-account balance as
+  other debt](https://bofip.impots.gouv.fr/bofip/6175-PGP.html/identifiant%3DBOI-ANNX-000411-20140428).
+
+The **transactions to match** count is no longer a competing Overview card.
+When non-zero, it appears as an alert chip on Cash on banks and opens the
+canonical Bank Matching workspace.

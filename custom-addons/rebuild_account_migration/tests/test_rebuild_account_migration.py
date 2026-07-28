@@ -1107,7 +1107,8 @@ class TestRebuildAccountMigration(TransactionCase):
             ),
         )
         cash_breakdown = home_arch.xpath(
-            "//details[contains(@class, 'o_usl_cash_breakdown')]",
+            "//div[contains(@class, 'o_usl_cash_position_card')]"
+            "/details[contains(@class, 'o_usl_cash_breakdown')]",
         )
         self.assertEqual(len(cash_breakdown), 1)
         self.assertEqual(
@@ -1155,6 +1156,34 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertFalse(
             home_arch.xpath(
                 "//*[normalize-space(.)='Included bank accounts']",
+            ),
+        )
+        self.assertFalse(
+            home_arch.xpath(
+                "//*[normalize-space(.)='Transactions to match']",
+            ),
+        )
+        matching_chips = home_arch.xpath(
+            "//div[contains(@class, 'o_usl_cash_position_card')]"
+            "//button[contains(@class, 'o_usl_accounting_status_chip') "
+            "and @name='action_open_bank_matching']",
+        )
+        self.assertEqual(len(matching_chips), 1)
+        self.assertEqual(
+            matching_chips[0].get("invisible"),
+            "unmatched_bank_transaction_count == 0",
+        )
+        self.assertTrue(
+            home_arch.xpath(
+                "//div[contains(@class, 'o_usl_cca_position_card')]"
+                "[.//h4[normalize-space(.)='Compte Courant Associé']]"
+                "//details[normalize-space(summary)='View projection details']",
+            ),
+        )
+        self.assertFalse(
+            home_arch.xpath(
+                "//div[contains(@class, 'oe_button_box')]"
+                "/button[@name='action_open_bank_matching']",
             ),
         )
         review_buttons = home_arch.xpath(
@@ -1442,6 +1471,12 @@ class TestRebuildAccountMigration(TransactionCase):
             "name": "Cash Position Employee",
             "company_id": company.id,
         })
+        company.write({
+            "rebuild_overview_cca_account_id": (
+                general_reconcile_account.id
+            ),
+            "rebuild_overview_cca_employee_id": employee.id,
+        })
         expense_category = self.env["product.product"].with_company(
             company,
         ).create({
@@ -1535,7 +1570,7 @@ class TestRebuildAccountMigration(TransactionCase):
             "payment_mode": "own_account",
             "total_amount_currency": 40.0,
         })
-        expense_model.create({
+        approved_projection_expense = expense_model.create({
             "name": "Approved cash projection expense",
             "employee_id": employee.id,
             "product_id": expense_category.id,
@@ -1591,6 +1626,19 @@ class TestRebuildAccountMigration(TransactionCase):
             60.0,
         )
         self.assertAlmostEqual(home.projected_cash_after_settlement, 95.0)
+        self.assertTrue(home.cca_projection_ready)
+        self.assertFalse(home.cca_projection_uses_inferred_config)
+        self.assertEqual(
+            home.cca_projection_owner_name,
+            "Cash Position Employee",
+        )
+        self.assertAlmostEqual(home.cca_posted_balance, -70.0)
+        self.assertAlmostEqual(home.cca_posted_balance_display, 70.0)
+        self.assertAlmostEqual(home.cca_unpaid_expense_amount, 125.0)
+        self.assertEqual(home.cca_unpaid_expense_count, 3)
+        self.assertAlmostEqual(home.cca_projected_balance, 55.0)
+        self.assertAlmostEqual(home.cca_projected_balance_display, 55.0)
+        self.assertEqual(home.cca_projection_direction, "company_owes")
         self.assertTrue(home.cash_projection_tax_estimate_enabled)
         self.assertAlmostEqual(
             home.cash_projection_ytd_profit_before_tax,
@@ -1694,6 +1742,44 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertAlmostEqual(
             sum(unpaid_expenses.mapped("total_amount")),
             home.cash_projection_unpaid_expense_amount,
+        )
+        cca_line_action = home.action_open_cca_journal_items()
+        self.assertEqual(
+            self.env["account.move.line"].search(
+                cca_line_action["domain"],
+            ).account_id,
+            general_reconcile_account,
+        )
+        cca_expense_action = home.action_open_cca_unpaid_expenses()
+        cca_expenses = self.env["hr.expense"].search(
+            cca_expense_action["domain"],
+        )
+        self.assertEqual(len(cca_expenses), 3)
+        self.assertAlmostEqual(
+            sum(cca_expenses.mapped("total_amount")),
+            home.cca_unpaid_expense_amount,
+        )
+
+        posted_cca_expense_move = post_entry(
+            offset_account,
+            general_reconcile_account,
+            60.0,
+        )
+        approved_projection_expense.account_move_id = (
+            posted_cca_expense_move
+        )
+        self.env.flush_all()
+        home.invalidate_recordset()
+        self.assertAlmostEqual(home.cca_posted_balance, -10.0)
+        self.assertAlmostEqual(home.cca_unpaid_expense_amount, 65.0)
+        self.assertEqual(home.cca_unpaid_expense_count, 2)
+        self.assertAlmostEqual(
+            home.cca_projected_balance,
+            55.0,
+            msg=(
+                "Posting an expense directly to the configured shareholder "
+                "account must move it between components, not count it twice."
+            ),
         )
 
         post_entry(corporate_tax_account, offset_account, 2000.0)

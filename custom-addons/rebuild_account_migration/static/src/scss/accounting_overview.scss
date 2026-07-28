@@ -40,6 +40,49 @@
         font-weight: 600;
     }
 
+    .o_usl_cash_card_header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+
+        .o_usl_overview_card_title {
+            margin: 0;
+        }
+    }
+
+    .o_usl_accounting_status_chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        width: fit-content;
+        min-height: 1.65rem;
+        padding: 0.2rem 0.55rem;
+        border: 1px solid rgba(#b54708, 0.24);
+        border-radius: 999px;
+        background: rgba(#f79009, 0.1);
+        color: #93370d;
+        font-size: 0.75rem;
+        font-weight: 650;
+        line-height: 1.1;
+        text-decoration: none;
+
+        .o_field_widget {
+            color: inherit;
+            font-size: inherit;
+            font-weight: inherit;
+            font-variant-numeric: tabular-nums;
+        }
+
+        &:hover,
+        &:focus-visible {
+            border-color: rgba(#b54708, 0.42);
+            background: rgba(#f79009, 0.17);
+            color: #7a2e0e;
+            text-decoration: none;
+        }
+    }
+
     .o_usl_overview_value {
         display: block;
         margin: 0.2rem 0 0.5rem;
@@ -311,6 +354,28 @@
 
     .o_usl_cash_breakdown_unresolved {
         color: #667085;
+    }
+
+    .o_usl_cca_position_card {
+        .o_usl_overview_value {
+            margin-bottom: 0.15rem;
+        }
+    }
+
+    .o_usl_cca_owner {
+        margin-top: 0.1rem;
+        color: var(--usl-overview-muted);
+        font-size: 0.78rem;
+    }
+
+    .o_usl_cca_direction {
+        color: #475467;
+        font-size: 0.82rem;
+        font-weight: 550;
+    }
+
+    .o_usl_cca_breakdown {
+        margin-top: 0.9rem;
     }
 
     .o_usl_overview_status {

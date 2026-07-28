@@ -16,6 +16,17 @@ balance, identified receipt/payment subsets, Draft/Submitted/Approved expense
 totals, posted profit before IS, rate bands and account 444 instalments. Select
 any amount to inspect its records or the related declarations.
 
+When bank transactions still need a counterpart or accounting category, a
+compact **N to match** alert appears on Cash on banks and opens Bank Matching.
+It disappears naturally when the queue is clear.
+
+**Compte Courant Associé** shows the estimated net position with the
+shareholder configured in Accounting Settings. The amount says whether USL
+owes the shareholder or the shareholder owes USL. Expand **View projection
+details** to reconcile the posted account 455 balance with unpaid expenses
+that are not already posted to that account. The estimate is read-only and
+does not reimburse, post or reclassify anything.
+
 The tax figure is planning guidance, not the final 2065 result. Unposted
 expenses do not reduce it, and fiscal adjustments, losses and credits remain
 for declaration review. In the 25% band, a genuinely deductible €1 expense
@@ -92,6 +103,10 @@ shared Accounting Framework. Accounting Managers govern Controls, Reports and
 Declarations from one discoverable area. Read-only accountants inspect the
 operational results, while Technical Administrators can see installed engine
 keys and implementation boundaries.
+
+Under **Settings > Management Projections**, Accounting Managers select the
+account and employee used by the Overview shareholder current-account
+projection.
 
 **Configuration > Electronic Invoicing** shows software capability,
 production readiness and live-connection status separately. It holds company
