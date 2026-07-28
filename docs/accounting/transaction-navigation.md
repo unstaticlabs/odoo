@@ -17,12 +17,30 @@ Every navigation target in Transactions has one meaning:
 | Click **Linked document or entry** | The related `account.move` | Open the matched invoice, bill, refund or journal entry. It must never fall through to the statement-line row action. |
 | Click **Open Entry** | The bank statement line's own `move_id` | Inspect the journal entry generated for the bank transaction. |
 | Click **Match** | The selected line in Bank Matching | Match or categorize an unreconciled transaction. |
+| Click the matching-reference chip | Every journal item sharing that matching code | Inspect both sides of the reconciliation without changing it. |
+| Click **Undo Match** | The reopened bank transaction and affected journal items | Remove a completed match after explicit confirmation. Accounting users only. |
 
 The linked-document column is a primary navigation shortcut, not an exhaustive
 reconciliation graph. When several moves are connected, business documents
 are preferred over miscellaneous journal entries. Matching references,
 residuals, the bank entry and Matched Items/Undo remain the complete evidence
 paths.
+
+## Transaction form states
+
+The transaction form is an investigation surface. It does not duplicate the
+Bank Matching workbench.
+
+| State | Primary status | Available accounting action | Evidence shown |
+| --- | --- | --- | --- |
+| Unmatched | **To match** | **Match** | Amount still to match, running balance, partner evidence and bank-source details |
+| Partially matched | **Partially matched** | **Match** | Residual, matching-reference drill-down and linked document or entry |
+| Fully matched | **Matched** | **Undo Match** for Accounting users | Matching reference, linked document or entry, related payment and bank entry |
+| Any entry flagged for review | Separate **To Review** or **Anomaly** badge | Review remains governed on the journal entry or in Bank Matching | Matching state remains visible independently; “matched” never hides a review obligation |
+
+The scoped read-only accountant sees the same accounting evidence and can open
+the bank entry, linked document and matched items. Match, undo and
+partner-changing actions are absent.
 
 ## Accounting and access invariants
 
@@ -36,10 +54,14 @@ paths.
 - The navigation performs no write, posting, matching or reconciliation.
 - A missing related move leaves the column empty; it must not manufacture a
   target from a label or reference.
+- Matching status and review status are separate. A reconciled transaction can
+  still require review.
+- The amount, date, partner and bank evidence stay company- and
+  currency-scoped through native fields and record rules.
 
 ## Implementation decision
 
-Two frontend approaches were considered:
+Two list-navigation approaches were considered:
 
 1. patch the global list renderer or add a custom click handler for the
    Transactions column;
@@ -60,11 +82,26 @@ Option 2 is the governed contract because the model and record ID are explicit.
 `rebuild_linked_document` remains only as a temporary cached-client metadata
 alias and is not used by the current view.
 
+Two form approaches were considered:
+
+1. keep inheriting OCA's generic statement-line form and add more XPath
+   fragments to its single grid;
+2. use a dedicated Transactions form while retaining OCA's form exclusively
+   for Bank Matching.
+
+Option 2 is used. The generic form is intentionally minimal and reusable, but
+its single grid is not a suitable investigation layout; injecting suggestion
+buttons into that grid caused later labels and values to shift into unrelated
+columns. The dedicated form uses native Odoo fields and actions, keeps the bank
+description and amount dominant, shows operational evidence by accounting
+state, and progressively discloses source-bank details. Matching logic remains
+owned by OCA Bank Matching.
+
 Implementation locations:
 
 - target computation:
   `custom-addons/rebuild_account_migration/models/account_reconcile_compat.py`;
-- list declaration:
+- list and transaction-form declarations:
   `custom-addons/rebuild_account_migration/views/rebuild_account_migration_views.xml`;
 - model and view regression:
   `custom-addons/rebuild_account_migration/tests/test_rebuild_account_migration.py`;

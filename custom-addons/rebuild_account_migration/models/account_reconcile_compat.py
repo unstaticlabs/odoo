@@ -467,11 +467,15 @@ class AccountBankStatementLine(models.Model):
     rebuild_transaction_status = fields.Selection(
         selection=[
             ("open", "To match"),
-            ("review", "To review"),
+            ("partial", "Partially matched"),
             ("matched", "Matched"),
         ],
         compute="_compute_rebuild_transaction_display",
         string="Matching status",
+    )
+    rebuild_review_state = fields.Selection(
+        related="move_id.review_state",
+        string="Review status",
     )
     rebuild_remaining_amount = fields.Monetary(
         compute="_compute_rebuild_transaction_display",
@@ -510,13 +514,6 @@ class AccountBankStatementLine(models.Model):
     )
     def _compute_rebuild_transaction_display(self):
         for statement_line in self:
-            if statement_line.is_reconciled:
-                statement_line.rebuild_transaction_status = "matched"
-            elif statement_line.move_id.review_state in {"todo", "anomaly"}:
-                statement_line.rebuild_transaction_status = "review"
-            else:
-                statement_line.rebuild_transaction_status = "open"
-
             move_lines = statement_line.move_id.line_ids
             liquidity_account = statement_line.journal_id.default_account_id
             counterpart_lines = move_lines.filtered(
@@ -540,6 +537,21 @@ class AccountBankStatementLine(models.Model):
                 counterpart_lines.matched_debit_ids
                 | counterpart_lines.matched_credit_ids
             )
+            if (
+                statement_line.is_reconciled
+                or (
+                    partials
+                    and statement_line.currency_id.is_zero(
+                        statement_line.rebuild_remaining_amount,
+                    )
+                )
+            ):
+                statement_line.rebuild_transaction_status = "matched"
+            elif partials:
+                statement_line.rebuild_transaction_status = "partial"
+            else:
+                statement_line.rebuild_transaction_status = "open"
+
             linked_lines = (
                 partials.debit_move_id | partials.credit_move_id
             ) - move_lines
@@ -555,6 +567,37 @@ class AccountBankStatementLine(models.Model):
             statement_line.rebuild_linked_document = (
                 statement_line.rebuild_linked_move_id.display_name
             )
+
+    def action_rebuild_open_matching_items(self):
+        self.ensure_one()
+        matching_references = [
+            reference.strip()
+            for reference in (self.rebuild_matching_reference or "").split(",")
+            if reference.strip()
+        ]
+        if not matching_references:
+            raise UserError(
+                _("This bank transaction has no matching reference."),
+            )
+
+        action = self.env["account.move.line"].action_rebuild_open_matching_number(
+            matching_references[0],
+            self.company_id.id,
+        )
+        if len(matching_references) > 1:
+            action.update({
+                "name": _("Matched items"),
+                "domain": [
+                    ("company_id", "=", self.company_id.id),
+                    ("matching_number", "in", matching_references),
+                    (
+                        "display_type",
+                        "not in",
+                        ("line_section", "line_subsection", "line_note"),
+                    ),
+                ],
+            })
+        return action
 
     def action_rebuild_open_bank_matching(self):
         self.ensure_one()
