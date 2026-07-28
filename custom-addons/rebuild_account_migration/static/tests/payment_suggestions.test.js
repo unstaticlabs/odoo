@@ -28,6 +28,8 @@ class AccountMove extends models.Model {
                         is_best_match: true,
                         match_reason:
                             "Exact amount · Same currency · Date within 7 days · Native payment",
+                        match_summary:
+                            "Exact amount · Date within 7 days",
                     },
                 ],
                 move_id: 1,
@@ -48,6 +50,7 @@ class AccountMove extends models.Model {
                         date: "2026-06-10",
                         can_assign: true,
                         match_reason: "Exact amount · Same currency",
+                        match_summary: "Exact amount",
                     },
                 ],
                 move_id: 2,
@@ -72,6 +75,8 @@ class AccountMove extends models.Model {
                         match_confidence: "medium",
                         match_reason:
                             "Exact amount · Date 1 day from due date · Assigned partner Wrong Supplier differs from bill supplier IWG",
+                        match_summary:
+                            "Exact amount · Date 1 day from due date",
                         partner_reassignment_required: true,
                         assigned_partner_name: "Wrong Supplier",
                         account_reassignment_required: true,
@@ -110,10 +115,21 @@ test("draft bill payment suggestion keeps matching details outside the native ro
     expect(
         "tr.o_rebuild_payment_suggestion .open_account_move .badge"
     ).toHaveCount(0);
-    expect("tr.o_rebuild_payment_suggestion_detail .badge").toHaveText(
-        "Best match"
+    expect(
+        "tr.o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_best"
+    ).toHaveText("Best match");
+    expect(
+        "tr.o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_evidence"
+    ).toHaveText(
+        "Exact amount · Date within 7 days"
     );
-    expect("tr.o_rebuild_payment_suggestion_detail .text-muted").toHaveText(
+    expect(
+        "tr.o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_source"
+    ).toHaveText("Evidence");
+    expect(
+        "tr.o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_source"
+    ).toHaveAttribute(
+        "title",
         "Exact amount · Same currency · Date within 7 days · Native payment"
     );
     expect("tr.o_rebuild_payment_suggestion [aria-disabled='true']").toHaveText(
@@ -142,7 +158,7 @@ test("posted bill keeps Odoo's native Add matching action", async () => {
     expect(".outstanding_credit_assign").toHaveText("Add");
     expect(".outstanding_credit_assign").toHaveAttribute(
         "title",
-        "Match this existing payment to the posted invoice or bill."
+        "Add this existing payment to the bill and reconcile the available amount."
     );
     expect("[aria-disabled='true']").toHaveCount(0);
 });
@@ -163,18 +179,19 @@ test("bank suggestion discloses partner and account reassignment", async () => {
     });
 
     expect(
-        "tr.o_rebuild_payment_suggestion_detail .text-warning-emphasis"
+        "tr.o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_partner_change"
     ).toHaveText(
-        "Partner change: selecting this suggestion will set the bank transaction to the bill supplier instead of Wrong Supplier."
+        "When added, the bank transaction will use the bill supplier instead of Wrong Supplier."
     );
     expect(
-        "tr.o_rebuild_payment_suggestion_detail .text-muted.mt-1"
+        "tr.o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_account_change"
     ).toHaveText(
-        "The bank counterpart will move from 471000 Suspense to 401100 Payable before native reconciliation."
+        "When added, move the outstanding amount from suspense to the bill payable account, then reconcile it."
     );
-    expect(".outstanding_credit_assign").toHaveText("Match & reassign");
+    expect("tr.o_rebuild_payment_suggestion_detail .badge").toHaveCount(0);
+    expect(".outstanding_credit_assign").toHaveText("Add");
     expect(".outstanding_credit_assign").toHaveAttribute(
         "title",
-        "Set the bill supplier on this bank transaction, move its counterpart to the payable account, and reconcile it."
+        "Add this bank transaction to the bill. Odoo will use the bill supplier, move the outstanding amount to the payable account, and reconcile the available amount."
     );
 });

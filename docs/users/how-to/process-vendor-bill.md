@@ -6,7 +6,7 @@
 2. Confirm supplier, invoice date, reference, payment terms and currency.
 3. Review every business line: description, expense or asset account, taxes and analytic distribution.
 4. Attach the supplier invoice as primary evidence.
-5. Review **Suggested existing payments** below the totals. Existing payments
+5. Review **Suggested payments** below the totals. Existing payments
    and close unreconciled bank transactions are ranked by reference, amount,
    currency, date and partner evidence. A partner inferred from bank evidence
    remains useful even when it was not reliable enough for automatic
@@ -15,11 +15,12 @@
    matching would make. Draft suggestions are informational: post the bill
    before matching.
 6. Select **Confirm/Post** and review the generated journal items. If the
-   highest-ranked payment is correct, select **Add**. For an uncategorized bank
-   transaction, **Match bank transaction** moves its suspense counterpart to
-   the bill payable account. **Match & reassign** also replaces a missing or
-   different bank partner with the bill supplier. Both actions then use native
-   reconciliation and record the amount, date and partner evidence in chatter.
+   highest-ranked payment is correct, select **Add**. The button helper states
+   exactly what will happen. For an uncategorized bank transaction, Add moves
+   its outstanding amount to the bill payable account. It also replaces a
+   missing or different bank partner with the bill supplier when the disclosed
+   match requires it. The action then uses native reconciliation and records
+   the amount, date and partner evidence in chatter.
    Otherwise register a new payment when payment is initiated or recorded.
 7. Open the relevant bank journal and choose **Bank Matching**.
 8. Select the bank transaction. The **Reconcile** tab starts with removable **Closest amount** and **Closest date** filters.

@@ -239,7 +239,7 @@ class TestRebuildAccountMigration(TransactionCase):
         ])
         draft_widget = bill.invoice_outstanding_credits_debits_widget
         self.assertTrue(draft_widget["draft_suggestions"])
-        self.assertEqual(draft_widget["title"], "Suggested existing payments")
+        self.assertEqual(draft_widget["title"], "Suggested payments")
         exact_suggestions = [
             suggestion
             for suggestion in draft_widget["content"]
@@ -419,7 +419,7 @@ class TestRebuildAccountMigration(TransactionCase):
             inferred_candidate["account_reassignment_required"],
         )
         self.assertIn(
-            "Partner suggested from bank evidence",
+            "Bank history suggests partner",
             inferred_candidate["match_reason"],
         )
         self.assertFalse(inferred_candidate["can_assign"])
