@@ -7,7 +7,6 @@ from dateutil.relativedelta import relativedelta
 
 from odoo import api, fields, models
 from odoo.exceptions import AccessError, UserError
-from odoo.tools import date_utils
 
 from .configurable_definition import ACCOUNTING_DEFINITION_ORIGINS
 
@@ -372,10 +371,8 @@ class RebuildAccountClosingPeriod(models.Model):
             ("state", "=", "posted"),
         ], order="date desc", limit=1)
         data_end = min(max_move.date or today, today)
-        fiscal_start, fiscal_end = date_utils.get_fiscal_year(
-            data_end,
-            day=company.fiscalyear_last_day,
-            month=int(company.fiscalyear_last_month),
+        fiscal_start, fiscal_end = (
+            company.rebuild_compute_fiscalyear_dates(data_end)
         )
         closings = self.browse()
         cursor = fiscal_start
@@ -391,13 +388,11 @@ class RebuildAccountClosingPeriod(models.Model):
             quarter_start = quarter_end + relativedelta(days=1)
         closings |= self._upsert_period(company, "annual", fiscal_start, fiscal_end, fiscal_start, fiscal_end)
         if company.fiscalyear_lock_date:
-            locked_start, locked_end = date_utils.get_fiscal_year(
-                company.fiscalyear_lock_date,
-                day=company.fiscalyear_last_day,
-                month=int(company.fiscalyear_last_month),
+            locked_start, locked_end = (
+                company.rebuild_compute_fiscalyear_dates(
+                    company.fiscalyear_lock_date,
+                )
             )
-            if company.rebuild_first_fiscalyear_start and locked_end == company.fiscalyear_lock_date:
-                locked_start = company.rebuild_first_fiscalyear_start
             closings |= self._upsert_period(company, "annual", locked_start, locked_end, locked_start, locked_end)
         closings.action_refresh_controls()
         return closings

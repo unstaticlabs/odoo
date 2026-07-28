@@ -771,6 +771,7 @@
                             <field name="rebuild_profit_tax_regime" required="rebuild_declaration_profile_active"/>
                             <field name="rebuild_vat_regime" required="rebuild_declaration_profile_active"/>
                             <field name="rebuild_first_fiscalyear_start"/>
+                            <field name="rebuild_first_fiscalyear_end"/>
                         </group>
                         <group>
                             <button name="action_sync_accounting_obligations" type="object" string="Synchronize Declarations and Closing Workspaces" class="oe_highlight" groups="account.group_account_manager"/>

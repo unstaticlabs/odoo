@@ -14,6 +14,22 @@ Accounting managers use **Configuration** for:
 - the configurable Accounting Framework for Controls, Reports and
   Declarations.
 
+## Fiscal years
+
+Configure the recurring closing day and month under
+**Accounting > Configuration > Settings > Fiscal Year End**.
+
+When the first exercise is exceptional, open
+**Configuration > Companies**, select the company, then set
+**First Reconstructed Fiscal-Year Start** and
+**First Reconstructed Fiscal-Year End** under
+**French Declaration Profile**.
+
+For Unstatic Labs, the exceptional first exercise is
+**10/01/2024–30/09/2025**; the recurring cadence then runs from 1 October to
+30 September. The report presets **Fiscal Year** and **Fiscal Year to Date**
+use these governed boundaries on screen and in PDF/XLSX exports.
+
 ## Bank Matching Rules
 
 Open **Configuration > Bank Matching Rules** to govern recurring direct

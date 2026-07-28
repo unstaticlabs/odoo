@@ -6969,6 +6969,52 @@ class TestRebuildAccountMigration(TransactionCase):
             if row.get("account_code") == "T625100"
         ])
 
+    def test_fiscal_year_to_date_uses_exceptional_first_year_in_pdf(self):
+        self.company.write({
+            "fiscalyear_last_day": 30,
+            "fiscalyear_last_month": "9",
+            "rebuild_first_fiscalyear_start": "2024-01-10",
+            "rebuild_first_fiscalyear_end": "2025-09-30",
+        })
+        Report = self.env["rebuild.account.report.export.wizard"]
+
+        report = Report.report_client_load(
+            "balance_sheet",
+            {
+                "period_preset": "year_to_date",
+                "period_anchor_date": "2025-07-28",
+            },
+        )
+        wizard = Report.browse(report["wizard_id"])
+
+        self.assertEqual(str(wizard.date_from), "2024-01-10")
+        self.assertEqual(str(wizard.date_to), "2025-07-28")
+        self.assertEqual(report["filters"]["date_from"], "2024-01-10")
+        self.assertEqual(report["filters"]["date_to"], "2025-07-28")
+        self.assertEqual(
+            wizard._fiscal_year_dates(fields.Date.to_date("2026-07-28")),
+            (
+                fields.Date.to_date("2025-10-01"),
+                fields.Date.to_date("2026-09-30"),
+            ),
+        )
+
+        Report.report_client_export(wizard.id, "pdf")
+        pdf_text = "\n".join(
+            page.extract_text() or ""
+            for page in PdfReader(
+                BytesIO(base64.b64decode(wizard.export_file)),
+            ).pages
+        )
+        self.assertIn(
+            "Exercice du 10/01/2024 au 28/07/2025",
+            pdf_text,
+        )
+        self.assertNotIn(
+            "Exercice du 01/10/2024 au 28/07/2025",
+            pdf_text,
+        )
+
     def test_dynamic_report_workbench_multi_company_metadata(self):
         second_company = self.env["res.company"].create({
             "name": "Dynamic Report Second Company",
