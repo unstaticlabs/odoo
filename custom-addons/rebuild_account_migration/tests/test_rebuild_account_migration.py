@@ -7403,6 +7403,15 @@ class TestRebuildAccountMigration(TransactionCase):
         )
         self.assertIn("DOCUMENT COMPTABLE OFFICIEL", profit_loss_pdf_text)
         self.assertIn("Charges d’exploitation", profit_loss_pdf_text)
+        self.assertNotIn("Périmètre", profit_loss_pdf_text)
+        self.assertNotIn(
+            "Présentation française résolue",
+            profit_loss_pdf_text,
+        )
+        self.assertNotIn(
+            "écritures comptabilisées",
+            profit_loss_pdf_text,
+        )
 
         compared = Report.report_client_load(
             "trial_balance",

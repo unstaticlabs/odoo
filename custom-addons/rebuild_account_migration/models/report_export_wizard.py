@@ -3305,11 +3305,6 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             canvas.restoreState()
 
         title = "Dossier de clôture" if self.report_type == "closing_package" else self._report_type_label()
-        target_move_display = (
-            "écritures comptabilisées"
-            if metadata["target_move"] == "posted"
-            else "brouillons inclus"
-        )
         story = [
             Paragraph(clean_text(title), styles["USLTitle"]),
             Paragraph(
@@ -3317,33 +3312,11 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                     f"{metadata['company']} - Exercice du {date_from_display} au {date_to_display} - "
                     f"Monnaie {metadata['currency']} - "
                     f"{metadata['display_unit_label']} "
-                    f"({metadata['display_unit_short_label']}) - "
-                    f"{target_move_display}",
+                    f"({metadata['display_unit_short_label']})",
                 ),
                 styles["USLSubtitle"],
             ),
         ]
-        identity_data = [
-            [Paragraph("Société", styles["USLHeaderCell"]), cell(metadata["legal_name"]),
-             Paragraph("Identifiant", styles["USLHeaderCell"]), cell(metadata["company_registry"] or metadata["vat_number"] or "Non renseigné")],
-            [Paragraph("Adresse", styles["USLHeaderCell"]), cell(metadata["address"] or "Non renseignée"),
-             Paragraph("Périmètre", styles["USLHeaderCell"]), cell(f"{len(rows)} ligne(s), {target_move_display}")],
-        ]
-        identity_value_width = (document.width - (49 * mm)) / 2
-        identity_table = Table(identity_data, colWidths=[24 * mm, identity_value_width, 25 * mm, identity_value_width])
-        identity_table.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (0, -1), section_background_color),
-            ("BACKGROUND", (2, 0), (2, -1), section_background_color),
-            ("GRID", (0, 0), (-1, -1), 0.4, light_rule_color),
-            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-            ("LEFTPADDING", (0, 0), (-1, -1), 5),
-            ("RIGHTPADDING", (0, 0), (-1, -1), 5),
-            ("TOPPADDING", (0, 0), (-1, -1), 5),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
-        ]))
-        story.extend([identity_table, Spacer(1, 4 * mm)])
-        if metadata.get("report_variant_basis"):
-            story.append(Paragraph(clean_text(metadata["report_variant_basis"]), styles["USLNote"]))
 
         if self.report_type == "closing_package":
             story.append(Paragraph(
