@@ -90,3 +90,27 @@ permettent de parcourir :
 
 Odoo regroupe les dépenses remboursables compatibles et conserve une écriture
 distincte pour chaque dépense payée par la société.
+
+## Rapprocher une dépense avec le compte courant d'associé
+
+Pour une dépense payée personnellement par Valentin, Odoo utilise le
+**Compte fournisseur** de sa **Coordonnée professionnelle**. Cette coordonnée
+doit être le même contact que celui du compte utilisateur Valentin et des
+écritures du compte `455100 — Associés - Comptes courants - Valentin`.
+
+Après comptabilisation, les débits CCA non rapprochés peuvent alors apparaître
+dans **Débits en circulation** sur l'écriture de la note de frais. Choisissez
+un débit pour compenser tout ou partie de la somme due.
+
+Si aucun débit CCA n'est proposé, demandez à un responsable comptable de
+vérifier :
+
+1. que l'écriture de la note utilise le compte `455100`;
+2. que l'écriture et le débit CCA utilisent exactement le même contact
+   Valentin ;
+3. que le débit CCA est comptabilisé, non rapproché et positif.
+
+Le paramètre se trouve sur le contact Valentin, onglet
+**Comptabilité/Facturation**, et non sur le journal Notes de frais. Une
+correction de configuration ne modifie pas rétroactivement une écriture déjà
+comptabilisée.
