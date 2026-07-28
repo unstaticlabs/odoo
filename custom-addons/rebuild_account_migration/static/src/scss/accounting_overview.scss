@@ -388,6 +388,31 @@
         }
     }
 
+    .o_usl_cca_card_link {
+        display: block;
+        margin: -0.4rem -0.4rem 0;
+        padding: 0.4rem;
+        border-radius: 0.55rem;
+        color: inherit;
+        cursor: pointer;
+        text-decoration: none;
+        transition:
+            background-color 120ms ease,
+            box-shadow 120ms ease;
+
+        &:hover {
+            background: rgba(#475467, 0.055);
+            color: inherit;
+            text-decoration: none;
+        }
+
+        &:focus-visible {
+            color: inherit;
+            outline: none;
+            box-shadow: 0 0 0 0.18rem rgba(#714b67, 0.18);
+        }
+    }
+
     .o_usl_cca_owner {
         margin-top: 0.1rem;
         color: var(--usl-overview-muted);

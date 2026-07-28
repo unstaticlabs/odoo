@@ -1647,11 +1647,16 @@
                                 </div>
                                 <div class="col-12 col-md-6">
                                     <div class="o_usl_overview_card o_usl_cca_position_card">
-                                        <h4 class="o_usl_overview_card_title">Compte Courant Associé</h4>
-                                        <div class="o_usl_cca_owner" invisible="not cca_projection_ready">
-                                            <field name="cca_projection_owner_name" nolabel="1"/>
-                                        </div>
-                                        <div invisible="not cca_projection_ready">
+                                        <a
+                                            name="action_open_cca_journal_items"
+                                            type="object"
+                                            class="o_usl_cca_card_link"
+                                            invisible="not cca_projection_ready"
+                                            title="Open the posted journal items on this shareholder current account through today.">
+                                            <h4 class="o_usl_overview_card_title">Compte Courant Associé</h4>
+                                            <div class="o_usl_cca_owner">
+                                                <field name="cca_projection_owner_name" nolabel="1"/>
+                                            </div>
                                             <span class="o_usl_overview_value">
                                                 <field name="cca_projected_balance_display" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                                             </span>
@@ -1666,6 +1671,8 @@
                                                     Estimated position settled
                                                 </span>
                                             </div>
+                                        </a>
+                                        <div invisible="not cca_projection_ready">
                                             <details class="o_usl_cash_breakdown o_usl_cca_breakdown">
                                                 <summary>View projection details</summary>
                                                 <div class="o_usl_cash_breakdown_body">
@@ -1712,6 +1719,7 @@
                                             </details>
                                         </div>
                                         <div class="o_usl_overview_detail" invisible="cca_projection_ready">
+                                            <h4 class="o_usl_overview_card_title">Compte Courant Associé</h4>
                                             Select the account and shareholder in Accounting Settings to enable this estimate.
                                         </div>
                                     </div>
