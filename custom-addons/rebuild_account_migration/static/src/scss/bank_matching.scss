@@ -6,6 +6,43 @@
     background-color: $o-gray-200;
 }
 
+// Keep OCA's shared accounting-line presentation readable in both the
+// operational matching form and the read-only Transactions variant.
+.o_field_account_reconcile_oca_data .o_reconcile_widget_table {
+    min-width: 52rem;
+
+    th,
+    td {
+        padding-right: .5rem;
+        padding-left: .5rem;
+        vertical-align: middle;
+    }
+
+    .o_account_reconcile_oca_data_line_account,
+    .o_account_reconcile_oca_data_line_name {
+        overflow-wrap: anywhere;
+        white-space: normal;
+    }
+
+    .o_account_reconcile_oca_data_line_account {
+        min-width: 10rem;
+    }
+
+    .o_account_reconcile_oca_data_line_partner {
+        min-width: 7rem;
+    }
+
+    th:nth-child(3),
+    td:nth-child(3) {
+        min-width: 6.5rem;
+        white-space: nowrap;
+    }
+
+    .o_account_reconcile_oca_data_line_name {
+        min-width: 13rem;
+    }
+}
+
 // Transactions is an investigation surface, not a second matching workbench.
 // Keep the bank description and amount dominant, with evidence below it.
 .o_rebuild_bank_transaction_form {
@@ -78,21 +115,9 @@
         }
     }
 
-    .o_rebuild_transaction_entry_lines {
-        .o_list_renderer {
-            border: 0;
-        }
-
-        .o_list_table {
-            margin-bottom: 0;
-        }
-
-        .o_list_renderer .o_list_table tbody > tr > td[name="account_id"] {
-            min-width: 14rem;
-            overflow-wrap: anywhere;
-            text-overflow: initial !important;
-            white-space: normal !important;
-        }
+    .o_rebuild_transaction_reconcile_data {
+        display: block;
+        overflow-x: auto;
     }
 
     @include media-breakpoint-down(lg) {

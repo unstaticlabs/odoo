@@ -4016,7 +4016,7 @@ class TestRebuildAccountMigration(TransactionCase):
             "account_number",
             "narration",
             "move_id",
-            "line_ids",
+            "reconcile_data_info",
         ):
             self.assertTrue(
                 transaction_form_arch.xpath(
@@ -4033,24 +4033,15 @@ class TestRebuildAccountMigration(TransactionCase):
             editable_partner[0].get("readonly"),
             "rebuild_transaction_status != 'open'",
         )
-        entry_lines = transaction_form_arch.xpath(
-            "//field[@name='line_ids']/list",
+        entry_presentation = transaction_form_arch.xpath(
+            "//field[@name='reconcile_data_info']"
+            "[@widget='rebuild_reconcile_data_presentation']",
         )
-        self.assertEqual(len(entry_lines), 1)
-        self.assertEqual(entry_lines[0].get("create"), "0")
-        self.assertEqual(entry_lines[0].get("edit"), "0")
-        self.assertEqual(entry_lines[0].get("delete"), "0")
-        for field_name in (
-            "account_id",
-            "name",
-            "debit",
-            "credit",
-            "matching_number",
-        ):
-            self.assertTrue(
-                entry_lines[0].xpath(f"./field[@name='{field_name}']"),
-                field_name,
-            )
+        self.assertEqual(len(entry_presentation), 1)
+        self.assertEqual(entry_presentation[0].get("readonly"), "1")
+        self.assertFalse(
+            transaction_form_arch.xpath("//field[@name='line_ids']"),
+        )
         self.assertEqual(
             transaction_form_arch.xpath(
                 "//field[@name='rebuild_matching_reference']",
@@ -4169,7 +4160,7 @@ class TestRebuildAccountMigration(TransactionCase):
         )
         for evidence_field in (
             "move_id",
-            "line_ids",
+            "reconcile_data_info",
             "rebuild_linked_move_id",
             "rebuild_matching_reference",
             "rebuild_remaining_amount",

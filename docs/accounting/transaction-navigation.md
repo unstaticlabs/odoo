@@ -96,14 +96,19 @@ Two form approaches were considered:
 Option 2 is used. The generic form is intentionally minimal and reusable, but
 its single grid is not a suitable investigation layout; injecting suggestion
 buttons into that grid caused later labels and values to shift into unrelated
-columns. The dedicated form uses native Odoo fields and actions, keeps the bank
-description and amount dominant, shows operational evidence by accounting
-state, and progressively discloses source-bank details. The native
-`account.move.line` relation is embedded read-only beside the bank transaction
-on wide screens and stacks below it on narrower screens. This was preferred to
-an OWL split-view editor: the native relation stays hydrated by Odoo's form
-model, preserves record rules and avoids a second client-side copy of the
-journal entry. Matching logic remains owned by OCA Bank Matching.
+columns. The dedicated form therefore owns only the investigation layout: bank
+identity, partner evidence and progressive disclosure.
+
+The accounting-line presentation is not duplicated. Transactions uses a
+read-only template inherited from OCA's `account_reconcile_oca_data` component.
+Both screens therefore consume the same `reconcile_data_info` contract and the
+same amount, currency, counterpart and open-balance formatting. On an open
+transaction this represents the current matching proposal; on a matched
+transaction OCA rebuilds it from the posted entry. The Transactions variant
+removes line selection and deletion because operational matching remains in
+Bank Matching. This shared-component approach was preferred to both a separate
+`account.move.line` table and a custom split-view engine: it follows OCA
+changes, refreshes through Odoo's form model and avoids parallel client state.
 
 Implementation locations:
 
@@ -111,6 +116,9 @@ Implementation locations:
   `custom-addons/rebuild_account_migration/models/account_reconcile_compat.py`;
 - list and transaction-form declarations:
   `custom-addons/rebuild_account_migration/views/rebuild_account_migration_views.xml`;
+- shared OCA presentation variant:
+  `custom-addons/rebuild_account_migration/static/src/js/reconcile_data_presentation.js`
+  and `static/src/xml/reconcile_data_presentation.xml`;
 - model and view regression:
   `custom-addons/rebuild_account_migration/tests/test_rebuild_account_migration.py`;
 - click-propagation regression:
