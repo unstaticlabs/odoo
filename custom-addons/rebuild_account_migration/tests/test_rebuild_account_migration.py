@@ -3829,6 +3829,26 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(bank_line.rebuild_remaining_amount, 100.0)
         self.assertFalse(bank_line.rebuild_matching_reference)
 
+        manual_partner = self.env["res.partner"].create({
+            "name": "Transaction manual partner",
+        })
+        suggested_partner = self.env["res.partner"].create({
+            "name": "Transaction suggested partner",
+        })
+        bank_line.with_context(
+            rebuild_skip_partner_inference=True,
+        ).write({
+            "rebuild_partner_suggestion_id": suggested_partner.id,
+            "rebuild_partner_suggestion_confidence": 60,
+            "rebuild_partner_suggestion_source": "partner_name",
+            "rebuild_partner_suggestion_reason": "Counterparty name",
+        })
+        bank_line.partner_id = manual_partner
+        self.assertEqual(bank_line.partner_id, manual_partner)
+        self.assertEqual(bank_line.move_id.partner_id, manual_partner)
+        self.assertFalse(bank_line.rebuild_partner_suggestion_id)
+        bank_line.partner_id = False
+
         matching_action = bank_line.action_rebuild_open_bank_matching()
         self.assertEqual(matching_action["domain"], [("id", "=", bank_line.id)])
         self.assertEqual(
@@ -3995,11 +4015,40 @@ class TestRebuildAccountMigration(TransactionCase):
             "partner_name",
             "account_number",
             "narration",
+            "move_id",
+            "line_ids",
         ):
             self.assertTrue(
                 transaction_form_arch.xpath(
                     f"//field[@name='{field_name}']",
                 ),
+                field_name,
+            )
+        editable_partner = transaction_form_arch.xpath(
+            "//field[@name='partner_id']"
+            "[@groups='account.group_account_user']",
+        )
+        self.assertEqual(len(editable_partner), 1)
+        self.assertEqual(
+            editable_partner[0].get("readonly"),
+            "rebuild_transaction_status != 'open'",
+        )
+        entry_lines = transaction_form_arch.xpath(
+            "//field[@name='line_ids']/list",
+        )
+        self.assertEqual(len(entry_lines), 1)
+        self.assertEqual(entry_lines[0].get("create"), "0")
+        self.assertEqual(entry_lines[0].get("edit"), "0")
+        self.assertEqual(entry_lines[0].get("delete"), "0")
+        for field_name in (
+            "account_id",
+            "name",
+            "debit",
+            "credit",
+            "matching_number",
+        ):
+            self.assertTrue(
+                entry_lines[0].xpath(f"./field[@name='{field_name}']"),
                 field_name,
             )
         self.assertEqual(
@@ -4025,6 +4074,11 @@ class TestRebuildAccountMigration(TransactionCase):
             "account.group_account_user",
         )
         self.assertTrue(undo_button[0].get("confirm"))
+        self.assertFalse(
+            transaction_form_arch.xpath(
+                "//header/button[@name='action_open_journal_entry']",
+            ),
+        )
         self.assertFalse(
             transaction_form_arch.xpath(
                 "//*[normalize-space(.)='Technical Information']",
@@ -4110,10 +4164,12 @@ class TestRebuildAccountMigration(TransactionCase):
             )
         self.assertTrue(
             reviewer_arch.xpath(
-                "//button[@name='action_open_journal_entry']",
+                "//field[@name='partner_id']",
             ),
         )
         for evidence_field in (
+            "move_id",
+            "line_ids",
             "rebuild_linked_move_id",
             "rebuild_matching_reference",
             "rebuild_remaining_amount",
@@ -4279,7 +4335,6 @@ class TestRebuildAccountMigration(TransactionCase):
                 (
                     "action_rebuild_open_bank_matching",
                     "action_undo_reconciliation",
-                    "action_open_journal_entry",
                     "action_rebuild_apply_partner_suggestion",
                     "action_rebuild_refresh_partner_suggestions",
                 ),
