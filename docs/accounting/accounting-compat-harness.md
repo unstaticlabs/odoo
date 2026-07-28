@@ -148,7 +148,7 @@ Stage dependencies:
 | `make accounting-dev-reset` | Completed and validated Track B native state | Fresh `odoo_dev` clone with the current migration add-on upgraded | It refuses to clone incomplete Track B state and preserves both the exact-replay baseline and the isolated native proof. |
 | `make accounting-dev-import` | Canonical historical snapshot plus the replacement clone | Exact benchmark history in the replacement database, reusing only four checksum/shape-validated native move representations | It adds the locked historical ledger without duplicating the four current native moves that already represent source history. |
 | `make accounting-dev-validate` | Source database and completed replacement candidate | Historical parity, current-period difference decomposition and promotion-gate evidence | It requires exact benchmark parity, balanced/unique native state and a classification for every current journal and account-balance difference. A classified difference can still require professional acceptance. |
-| `make accounting-currency-rate-provider` | Imported target company configuration and the official ECB daily XML feed | Native future-dated `res.currency.rate` rows plus provider, retrieval, cron and idempotence evidence | It runs after historical replay. It must never replace a source-traced historical rate, and its reference rows remain separate from transaction-specific bank or platform conversion evidence. |
+| `make accounting-currency-rate-provider` | Imported target company configuration and the official ECB publication-history XML feed | Native `res.currency.rate` rows for every missing published day, plus provider, retrieval, cron and idempotence evidence | It runs after restored rates are loaded. It never replaces a restored or manager-entered rate, and its reference rows remain separate from transaction-specific bank or platform conversion evidence. |
 | `make accounting-reports` | Imported and validated target database | Report preview/export/drill-down evidence artifacts | It proves the user-facing report surfaces can generate and trace values. |
 
 Do not stop `accounting-source-db` after `accounting-source-restore`. Later stages still query it for source metadata, snapshot dates, controls and comparisons. If a later stage fails with `service "accounting-source-db" is not running`, restart it:
@@ -428,15 +428,31 @@ database.
 
 `make accounting-validation-exact-failure-tests` checks duplicate trace invariants on the native move, move-line, payment and reconciliation models. Review-model fallbacks are not part of the accepted schema.
 
-## Future reference-rate provider
+## Native reference-rate automation
 
-Historical reconstruction and future automation deliberately use different paths. Three credible alternatives were assessed:
+There is one runtime currency-rate truth: Odoo's native
+`res.currency.rate`. Restored source rows, manual manager entries and automated
+ECB rows carry provenance on that same model; there is no parallel historical
+rate implementation. Three credible alternatives were assessed:
 
 1. rely on the absent Enterprise live-currency module;
 2. install a maintained OCA 19 currency updater;
 3. add a focused adapter that writes official ECB reference rates through Odoo's native `res.currency.rate` model.
 
-The checked Community/OCA dependency set contains no deployable automatic updater, so option 3 is selected for future reference rates. Historical source-traced rows remain immutable; the adapter skips any same-date row carrying a source trace. It parses the official ECB XML with entity and network resolution disabled, validates one date and positive finite rates, calculates cross-rates for a non-EUR company currency, limits the response size, and stores `ecb` plus the retrieval timestamp on native rate rows.
+The checked Community/OCA dependency set contains no deployable automatic
+updater, so option 3 is selected. The adapter establishes an explicit coverage
+boundary after the latest restored or manual foreign-currency rate. A manager
+run reads the official ECB history and fills every missing published business
+day through the latest reference date. The daily cron reads the recent
+90-day history, so an interrupted run is recovered automatically. Restored and
+manual rows are immutable; an existing ECB row is corrected only if the
+official value changed.
+
+The parser disables entity and network resolution, validates unique dates and
+positive finite rates, calculates cross-rates for a non-EUR company currency,
+limits response size and stores `ecb` plus the retrieval timestamp on native
+rate rows. EUR is USL's company currency and remains Odoo's implicit rate
+`1.0`; automation only creates rows for active foreign currencies.
 
 Accounting Managers configure and run it under:
 
@@ -444,14 +460,17 @@ Accounting Managers configure and run it under:
 Accounting > Configuration > Currency Rate Automation
 ```
 
-The daily cron is enabled and scheduled after the ECB's normal publication window. ECB rates are reference information: when a bank, card processor or platform conversion defines a transaction, preserve that actual conversion instead of replacing it with the reference rate.
+The daily cron is enabled and scheduled after the ECB's normal publication
+window. The long-running Compose service has one cron thread; init, test and
+reconstruction helpers keep cron disabled. ECB rates are reference
+information: when a bank, card processor or platform conversion defines a
+transaction, preserve that actual conversion instead of replacing it with the
+reference rate.
 
 `make accounting-currency-rate-provider` performs two live updates on
-`odoo_saas_19_2_validation_exact`, proves the second creates no row, checks the
-daily cron and provider trace, and verifies the source-traced historical-rate
-count is unchanged. The 2026-07-23 Odoo 19 proof retrieved the 2026-07-22 feed,
-wrote GBP `0.8534` and USD `1.1408` per EUR, found no duplicate currency/date
-row, and preserved all `1,877` then-imported source rates.
+`odoo_validation_exact`, proves the second creates or corrects no row, checks
+the daily cron and provider trace, and verifies the restored source-rate count
+is unchanged.
 
 ## Current Odoo-facing report views
 

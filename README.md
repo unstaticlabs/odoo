@@ -183,6 +183,12 @@ dev_mode = reload,xml,qweb
 
 `max_cron_threads = 0` is intentional for local accounting parity work. It prevents scheduled jobs from sending mail, polling external services, or running e-invoicing/background integrations while imported production-derived data is being inspected.
 
+The normal long-running Compose `odoo` service instead defaults to one cron
+thread so configured product automation, including currency-rate retrieval,
+actually runs. Init, test and Dev Container helper services remain at zero.
+Set `ODOO_MAX_CRON_THREADS=0` explicitly while restoring or auditing an
+imported database.
+
 Develop custom modules in `custom-addons/`. Do not modify Odoo core unless the change is intentionally part of this fork.
 
 Useful commands inside the Dev Container:

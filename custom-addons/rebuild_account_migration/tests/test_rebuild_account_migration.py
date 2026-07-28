@@ -1332,7 +1332,7 @@ class TestRebuildAccountMigration(TransactionCase):
         )
         self.assertEqual(
             {button.get("string") for button in hygiene_alert_actions},
-            {"blocking issues", "Review them"},
+            {"Review issues"},
         )
         closing_alert_actions = home_arch.xpath(
             "//div[contains(@class, 'alert-warning')]"
@@ -1358,14 +1358,45 @@ class TestRebuildAccountMigration(TransactionCase):
             "bank_review_count == 0",
         )
 
-        customer_action = home.action_open_customer_documents()
-        vendor_action = home.action_open_vendor_documents()
-        for action in (customer_action, vendor_action):
-            self.assertIn(("state", "=", "draft"), action["domain"])
-            self.assertEqual(action["context"]["search_default_draft"], 1)
         expense_action = home.action_open_expenses()
         self.assertEqual(expense_action["view_mode"], "list,form,graph,pivot")
         self.assertEqual(expense_action["views"][0], (False, "list"))
+
+    def test_overview_drilldown_status_filters_are_removable(self):
+        home = self.env["rebuild.account.overview"].search([
+            ("company_id", "=", self.company.id),
+        ])
+        self.assertTrue(home)
+
+        document_actions = (
+            (
+                home.action_open_customer_documents(),
+                ("move_type", "in", ["out_invoice", "out_refund", "out_receipt"]),
+            ),
+            (
+                home.action_open_vendor_documents(),
+                ("move_type", "in", ["in_invoice", "in_refund", "in_receipt"]),
+            ),
+        )
+        for action, document_scope in document_actions:
+            self.assertIn(("company_id", "=", self.company.id), action["domain"])
+            self.assertIn(document_scope, action["domain"])
+            self.assertNotIn(("state", "=", "draft"), action["domain"])
+            self.assertEqual(action["context"]["search_default_draft"], 1)
+
+        bank_review_action = home.action_open_bank_review()
+        self.assertIn(
+            ("company_id", "=", self.company.id),
+            bank_review_action["domain"],
+        )
+        self.assertNotIn(
+            ("move_id.review_state", "in", ("todo", "anomaly")),
+            bank_review_action["domain"],
+        )
+        self.assertEqual(
+            bank_review_action["context"]["search_default_to_review"],
+            1,
+        )
 
     def test_bank_statement_import_is_contextual_and_supports_real_formats(self):
         bank_journal = self._journal("bank")
@@ -1896,6 +1927,10 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(
             reconciliation_action["context"]["search_default_group_by_account"],
             1,
+        )
+        self.assertNotIn(
+            "search_default_unreconciled",
+            reconciliation_action["context"],
         )
         expense_action = home.action_open_cash_projection_unpaid_expenses()
         unpaid_expenses = self.env["hr.expense"].search(
@@ -3778,9 +3813,9 @@ class TestRebuildAccountMigration(TransactionCase):
             transaction_action["domain"],
             [("journal_id", "=", bank_journal.id)],
         )
-        self.assertEqual(
-            transaction_action["context"]["search_default_journal_id"],
-            bank_journal.id,
+        self.assertNotIn(
+            "search_default_journal_id",
+            transaction_action["context"],
         )
         self.assertIn(bank_journal.display_name, matching_action["name"])
         self.assertEqual(
@@ -5602,8 +5637,8 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(result["status"], "passed")
         self.assertEqual(result["provider"], "ecb")
         self.assertEqual(result["reference_date"], "2026-07-22")
-        self.assertIn("USD", result["updated_currency_codes"])
-        self.assertIn("GBP", result["updated_currency_codes"])
+        self.assertIn("USD", result["covered_currency_codes"])
+        self.assertIn("GBP", result["covered_currency_codes"])
         usd_rate = self.env["res.currency.rate"].search([
             ("company_id", "=", company.id),
             ("currency_id", "=", usd.id),
@@ -5638,21 +5673,112 @@ class TestRebuildAccountMigration(TransactionCase):
         )
 
         self.assertEqual(repeated["created_count"], 0)
-        self.assertGreaterEqual(repeated["updated_count"], 2)
+        self.assertEqual(repeated["updated_count"], 0)
+        self.assertGreaterEqual(repeated["unchanged_count"], 2)
+        self.assertIn("USD", repeated["covered_currency_codes"])
+        self.assertIn("GBP", repeated["covered_currency_codes"])
         self.assertEqual(self.env["res.currency.rate"].search_count([
             ("company_id", "=", company.id),
             ("name", "=", "2026-07-22"),
             ("currency_id", "in", [usd.id, gbp.id]),
         ]), 2)
 
+    def test_ecb_reference_rate_provider_fills_every_missing_published_day(self):
+        eur = self.env.ref("base.EUR")
+        usd = self.env.ref("base.USD")
+        gbp = self.env.ref("base.GBP")
+        usd.active = True
+        gbp.active = True
+        company = self.env["res.company"].create({
+            "name": "Unit ECB missing-rate company",
+            "currency_id": eur.id,
+            "rebuild_currency_rate_provider": "ecb",
+        })
+        source_rates = self.env["res.currency.rate"].create([
+            {
+                "name": "2026-07-24",
+                "currency_id": currency.id,
+                "company_id": company.id,
+                "rate": rate,
+                "rebuild_source_model": "res.currency.rate",
+                "rebuild_source_id": source_id,
+                "rebuild_rate_provider": "ecb",
+            }
+            for currency, rate, source_id in (
+                (usd, 1.1377, 9900241),
+                (gbp, 0.85388, 9900242),
+            )
+        ])
+        payload = b"""<gesmes:Envelope
+    xmlns:gesmes="http://www.gesmes.org/xml/2002-08-01"
+    xmlns="http://www.ecb.int/vocabulary/2002-08-01/eurofxref">
+  <Cube>
+    <Cube time="2026-07-28">
+      <Cube currency="USD" rate="1.1367"/>
+      <Cube currency="GBP" rate="0.85550"/>
+    </Cube>
+    <Cube time="2026-07-24">
+      <Cube currency="USD" rate="1.1377"/>
+      <Cube currency="GBP" rate="0.85388"/>
+    </Cube>
+    <Cube time="2026-07-27">
+      <Cube currency="USD" rate="1.1389"/>
+      <Cube currency="GBP" rate="0.85524"/>
+    </Cube>
+  </Cube>
+</gesmes:Envelope>"""
+
+        first = company._rebuild_update_ecb_currency_rates(
+            payload=payload,
+            retrieved_at="2026-07-28 16:05:00",
+            backfill=True,
+        )
+
+        self.assertEqual(first["coverage_start_date"], "2026-07-25")
+        self.assertEqual(first["reference_date"], "2026-07-28")
+        self.assertEqual(first["processed_reference_date_count"], 2)
+        self.assertEqual(first["created_count"], 4)
+        self.assertEqual(first["updated_count"], 0)
+        self.assertEqual(source_rates.mapped("rate"), [1.1377, 0.85388])
+        self.assertEqual(
+            self.env["res.currency.rate"].search_count([
+                ("company_id", "=", company.id),
+                ("currency_id", "=", eur.id),
+                ("name", "in", ["2026-07-27", "2026-07-28"]),
+            ]),
+            0,
+        )
+        self.assertEqual(
+            self.env["res.currency.rate"].search_count([
+                ("company_id", "=", company.id),
+                ("currency_id", "in", [usd.id, gbp.id]),
+                ("name", "in", ["2026-07-27", "2026-07-28"]),
+                ("rebuild_rate_provider", "=", "ecb"),
+            ]),
+            4,
+        )
+
+        repeated = company._rebuild_update_ecb_currency_rates(
+            payload=payload,
+            retrieved_at="2026-07-28 16:10:00",
+            backfill=True,
+        )
+
+        self.assertEqual(repeated["created_count"], 0)
+        self.assertEqual(repeated["updated_count"], 0)
+        self.assertEqual(repeated["unchanged_count"], 4)
+
     def test_ecb_reference_rate_provider_preserves_source_traced_rate(self):
         eur = self.env.ref("base.EUR")
         usd = self.env.ref("base.USD")
+        gbp = self.env.ref("base.GBP")
         usd.active = True
+        gbp.active = True
         company = self.env["res.company"].create({
             "name": "Unit ECB source-preservation company",
             "currency_id": eur.id,
             "rebuild_currency_rate_provider": "ecb",
+            "rebuild_currency_rate_coverage_start": "2026-07-22",
         })
         source_rate = self.env["res.currency.rate"].create({
             "name": "2026-07-22",
@@ -5664,11 +5790,18 @@ class TestRebuildAccountMigration(TransactionCase):
             "rebuild_source_snapshot": "unit-source-rate",
             "rebuild_rate_provider": "ecb",
         })
+        manual_rate = self.env["res.currency.rate"].create({
+            "name": "2026-07-22",
+            "currency_id": gbp.id,
+            "company_id": company.id,
+            "rate": 0.85,
+        })
         payload = b"""<gesmes:Envelope
     xmlns:gesmes="http://www.gesmes.org/xml/2002-08-01"
     xmlns="http://www.ecb.int/vocabulary/2002-08-01/eurofxref">
   <Cube><Cube time="2026-07-22">
     <Cube currency="USD" rate="1.1408"/>
+    <Cube currency="GBP" rate="0.85340"/>
   </Cube></Cube>
 </gesmes:Envelope>"""
 
@@ -5678,8 +5811,10 @@ class TestRebuildAccountMigration(TransactionCase):
         )
 
         self.assertEqual(result["preserved_source_count"], 1)
+        self.assertEqual(result["preserved_manual_count"], 1)
         self.assertAlmostEqual(source_rate.rate, 1.1394)
         self.assertEqual(source_rate.rebuild_source_id, 990022)
+        self.assertAlmostEqual(manual_rate.rate, 0.85)
 
     def test_currency_rate_automation_menu_and_permissions(self):
         menu = self.env.ref(
