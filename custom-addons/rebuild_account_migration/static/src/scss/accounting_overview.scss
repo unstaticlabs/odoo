@@ -142,6 +142,59 @@
         }
     }
 
+    .o_usl_cash_tax_projection {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.55rem 0.85rem 0;
+        color: var(--usl-overview-muted);
+        font-size: 0.8rem;
+
+        .o_usl_cash_projection_label {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+
+            strong {
+                color: #475467;
+                font-size: 0.84rem;
+                font-weight: 650;
+            }
+
+            span {
+                margin-top: 0.05rem;
+                font-size: 0.72rem;
+                line-height: 1.25;
+            }
+        }
+
+        .o_usl_cash_projection_link,
+        .o_field_widget {
+            color: #475467;
+            font-size: 0.96rem;
+            font-weight: 650;
+            white-space: nowrap;
+        }
+
+        .o_usl_cash_projection_link {
+            padding: 0;
+
+            &:hover,
+            &:focus-visible,
+            &:hover .o_field_widget,
+            &:focus-visible .o_field_widget {
+                color: var(--o-action, #714b67);
+            }
+        }
+
+        @media (max-width: 480px) {
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+    }
+
     .o_usl_cash_breakdown {
         margin-top: 0.65rem;
         color: var(--usl-overview-muted);
@@ -176,6 +229,19 @@
         margin-top: 0.55rem;
         padding-top: 0.45rem;
         border-top: 1px solid var(--usl-overview-border);
+    }
+
+    .o_usl_cash_breakdown_section {
+        margin-top: 0.55rem;
+        padding-top: 0.55rem;
+        border-top: 1px solid var(--usl-overview-border);
+    }
+
+    .o_usl_cash_breakdown_section_title {
+        margin-bottom: 0.15rem;
+        color: #344054;
+        font-size: 0.78rem;
+        font-weight: 700;
     }
 
     .o_usl_cash_breakdown_row {

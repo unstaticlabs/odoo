@@ -765,6 +765,9 @@
                             <field name="rebuild_declaration_profile_active"/>
                             <field name="rebuild_legal_form" required="rebuild_declaration_profile_active"/>
                             <field name="rebuild_corporate_tax_regime" required="rebuild_declaration_profile_active"/>
+                            <field
+                                name="rebuild_corporate_tax_projection_profile"
+                                invisible="not rebuild_declaration_profile_active or rebuild_corporate_tax_regime != 'is'"/>
                             <field name="rebuild_profit_tax_regime" required="rebuild_declaration_profile_active"/>
                             <field name="rebuild_vat_regime" required="rebuild_declaration_profile_active"/>
                             <field name="rebuild_first_fiscalyear_start"/>

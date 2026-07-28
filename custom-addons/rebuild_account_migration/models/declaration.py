@@ -43,6 +43,27 @@ class ResCompany(models.Model):
         ],
         string="Corporate Tax Regime",
     )
+    rebuild_corporate_tax_projection_profile = fields.Selection(
+        [
+            ("standard_25", "Standard 25% (Conservative)"),
+            (
+                "fr_sme_15_25",
+                "French SME 15% / 25% (Annual Review)",
+            ),
+            ("disabled", "Do Not Estimate"),
+        ],
+        string="Cash Projection IS Profile",
+        default="standard_25",
+        required=True,
+        help=(
+            "Controls the management-only corporate-tax reserve shown on the "
+            "Accounting Overview. Select the French SME profile when the "
+            "available evidence supports the reduced rate, then reconfirm "
+            "turnover, fully paid capital and ownership during each 2065 "
+            "review. This does not create an accounting entry or a tax "
+            "declaration."
+        ),
+    )
     rebuild_profit_tax_regime = fields.Selection(
         [
             ("bic_simplified", "BIC/IS Simplified (RSI)"),

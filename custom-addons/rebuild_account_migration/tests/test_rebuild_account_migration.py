@@ -1124,6 +1124,9 @@ class TestRebuildAccountMigration(TransactionCase):
                 "action_open_expected_payments",
                 "action_open_cash_projection_reconciliation",
                 "action_open_cash_projection_unpaid_expenses",
+                "action_open_cash_projection_tax_base",
+                "action_open_cash_projection_tax_items",
+                "action_open_projected_cash_after_taxes",
             },
         )
         self.assertTrue(
@@ -1139,6 +1142,14 @@ class TestRebuildAccountMigration(TransactionCase):
                 "/div[contains(@class, 'o_usl_overview_projection')]"
                 "/button[@name='action_open_projected_cash_accounts']"
                 "/field[@name='projected_cash_after_settlement']",
+            ),
+        )
+        self.assertTrue(
+            home_arch.xpath(
+                "//div[contains(@class, 'o_usl_cash_position_card')]"
+                "/div[contains(@class, 'o_usl_cash_tax_projection')]"
+                "/button[@name='action_open_projected_cash_after_taxes']"
+                "/field[@name='projected_cash_after_taxes']",
             ),
         )
         self.assertFalse(
@@ -1290,6 +1301,10 @@ class TestRebuildAccountMigration(TransactionCase):
             manager_summary.projected_cash_after_settlement,
         )
         self.assertAlmostEqual(
+            visible.projected_cash_after_taxes,
+            manager_summary.projected_cash_after_taxes,
+        )
+        self.assertAlmostEqual(
             visible.cash_projection_unpaid_expense_amount,
             manager_summary.cash_projection_unpaid_expense_amount,
         )
@@ -1304,6 +1319,13 @@ class TestRebuildAccountMigration(TransactionCase):
         company = self.env["res.company"].create({
             "name": "Cash Position Company",
             "currency_id": self.company.currency_id.id,
+            "country_id": self.env.ref("base.fr").id,
+            "account_fiscal_country_id": self.env.ref("base.fr").id,
+            "fiscalyear_last_day": 30,
+            "fiscalyear_last_month": "9",
+            "rebuild_declaration_profile_active": True,
+            "rebuild_corporate_tax_regime": "is",
+            "rebuild_corporate_tax_projection_profile": "fr_sme_15_25",
         })
         account_model = self.env["account.account"].with_company(company)
         journal_model = self.env["account.journal"].with_company(company)
@@ -1359,6 +1381,12 @@ class TestRebuildAccountMigration(TransactionCase):
             "asset_current",
         )
         general_reconcile_account.reconcile = True
+        corporate_tax_account = account(
+            "444CP1",
+            "Cash position corporate tax",
+            "liability_current",
+        )
+        corporate_tax_account.reconcile = True
         income_account = account(
             "706CP1",
             "Cash position income",
@@ -1496,6 +1524,7 @@ class TestRebuildAccountMigration(TransactionCase):
             ],
         })
         bill.action_post()
+        post_entry(offset_account, income_account, 100000.0)
         expense_model = self.env["hr.expense"].with_company(company)
         expense_model.create({
             "name": "Draft cash projection expense",
@@ -1562,6 +1591,28 @@ class TestRebuildAccountMigration(TransactionCase):
             60.0,
         )
         self.assertAlmostEqual(home.projected_cash_after_settlement, 95.0)
+        self.assertTrue(home.cash_projection_tax_estimate_enabled)
+        self.assertAlmostEqual(
+            home.cash_projection_ytd_profit_before_tax,
+            100100.0,
+        )
+        self.assertAlmostEqual(
+            home.cash_projection_tax_reduced_rate_base,
+            42500.0,
+        )
+        self.assertAlmostEqual(
+            home.cash_projection_tax_standard_rate_base,
+            57600.0,
+        )
+        self.assertAlmostEqual(
+            home.cash_projection_estimated_corporate_tax,
+            20775.0,
+        )
+        self.assertAlmostEqual(
+            home.cash_projection_corporate_tax_reserve,
+            20775.0,
+        )
+        self.assertAlmostEqual(home.projected_cash_after_taxes, -20680.0)
         (
             projected_receipts,
             projected_payments,
@@ -1643,6 +1694,80 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertAlmostEqual(
             sum(unpaid_expenses.mapped("total_amount")),
             home.cash_projection_unpaid_expense_amount,
+        )
+
+        post_entry(corporate_tax_account, offset_account, 2000.0)
+        post_entry(offset_account, corporate_tax_account, 5000.0)
+        self.env.flush_all()
+        home.invalidate_recordset()
+        current_tax_items = self.env["account.move.line"].search([
+            ("account_id", "=", corporate_tax_account.id),
+        ])
+        self.assertEqual(
+            sorted(
+                (
+                    line.account_id.with_company(company).code,
+                    line.account_id.reconcile,
+                    line.reconciled,
+                    line.date,
+                    line.balance,
+                    line.amount_residual,
+                )
+                for line in current_tax_items
+            ),
+            [
+                (
+                    "444CP1",
+                    True,
+                    False,
+                    fields.Date.context_today(self),
+                    -5000.0,
+                    -5000.0,
+                ),
+                (
+                    "444CP1",
+                    True,
+                    False,
+                    fields.Date.context_today(self),
+                    2000.0,
+                    2000.0,
+                ),
+            ],
+        )
+        self.assertAlmostEqual(
+            home.cash_projection_tax_prepayment_amount,
+            2000.0,
+        )
+        self.assertAlmostEqual(
+            home.cash_projection_tax_recognized_liability_amount,
+            5000.0,
+        )
+        self.assertAlmostEqual(
+            home.cash_projection_corporate_tax_reserve,
+            15775.0,
+        )
+        self.assertAlmostEqual(
+            home.projected_cash_after_settlement,
+            -2905.0,
+        )
+        self.assertAlmostEqual(home.projected_cash_after_taxes, -18680.0)
+        tax_base_action = home.action_open_cash_projection_tax_base()
+        tax_base_lines = self.env["account.move.line"].search(
+            tax_base_action["domain"],
+        )
+        self.assertAlmostEqual(
+            -sum(tax_base_lines.mapped("balance")),
+            home.cash_projection_ytd_profit_before_tax,
+        )
+        tax_items_action = home.action_open_cash_projection_tax_items()
+        tax_items = self.env["account.move.line"].search(
+            tax_items_action["domain"],
+        )
+        self.assertEqual(tax_items.account_id, corporate_tax_account)
+        declaration_action = home.action_open_projected_cash_after_taxes()
+        self.assertIn(
+            ("rule_id.code", "in", ("FR_2571", "FR_2572", "FR_2065")),
+            declaration_action["domain"],
         )
 
     def test_accounting_manager_gets_the_full_accounting_application(self):
