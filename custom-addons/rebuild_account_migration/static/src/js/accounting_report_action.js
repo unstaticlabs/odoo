@@ -278,7 +278,17 @@ export class AccountingReportAction extends Component {
                 { ...this.state.filters },
             ],
         );
+        this.applyExportReportPayload(data.report_payload);
         await download({ url: "/web/content", data });
+    }
+
+    applyExportReportPayload(payload) {
+        if (!payload) {
+            return;
+        }
+        this.state.data = payload;
+        this.state.filters = { ...payload.filters };
+        this.props?.updateActionState?.({ resId: payload.wizard_id });
     }
 
     async toggleGroup(line) {

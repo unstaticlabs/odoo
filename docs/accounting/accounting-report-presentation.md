@@ -41,6 +41,15 @@ PDF and XLSX.
 
 No core Odoo patch is required.
 
+For misleading imported account labels, two alternatives were rejected:
+rewriting posted-ledger account master data during an upgrade would blur source
+traceability, while hardcoding labels independently in the browser and PDF
+would recreate output drift. A governed account-presentation model is used
+instead. Shared upgrade-managed corrections can be overridden per company and
+per report; the engine resolves the label once before grouping, drill-down and
+export. This keeps the imported account identity unchanged and gives the
+Accounting Manager an auditable configuration surface.
+
 For statement drill-down, three credible approaches were compared:
 
 1. switch the whole statement to **Regrouper par > Compte**, which exposes
@@ -103,8 +112,9 @@ actions behind every canonical report.
 - Applicable reports offer **Masquer les lignes à zéro**. It removes only
   detail lines and accounts whose displayed current, comparison and activity
   columns are all zero; offset debit/credit activity is not mistaken for an
-  empty account, and empty PCG branches are pruned without removing sections,
-  subtotals or statement totals.
+  empty account, and empty PCG branches are pruned. Structural sections,
+  statement totals and balance controls remain; zero detail and intermediate
+  subtotal rows may be omitted.
 - The display unit is a first-level choice. Units, thousands and millions use
   the selected company's currency symbol and scale company-currency figures;
   an original foreign-currency amount remains in its own unscaled currency.
@@ -117,6 +127,9 @@ actions behind every canonical report.
   statement. Unfolding reveals French PCG group codes and names, their native
   subgroups where configured, then the full account number and account label.
 - Material values retain direct source drill-down.
+- Calculated parents such as total equity do not repeat the same account
+  subtree already exposed by their contributing result line. An account leaf
+  appears once under its reconciling statement source line.
 - Accounting statements use French date and number conventions independently
   from the user's general Odoo interface language, with tabular figures,
   restrained negative emphasis and de-emphasized zeros.
@@ -134,7 +147,9 @@ comparison, filters, grouping, search and report variant as the screen.
 The export call receives the client's current filter object and refreshes the
 same wizard session before rendering, preventing a download from using a stale
 pre-filter state. The zero-line choice appears in export metadata and as a
-concise document-context label when active.
+concise document-context label when active. The export response returns the
+refreshed preview identifiers to the client, preventing a subsequent fold or
+drill-down from referring to lines replaced during export synchronization.
 Readable periods, row dates, metadata, headers and generation timestamps are
 day-first in both formats. ISO dates remain confined to machine metadata and
 the XLSX raw audit sheet.
@@ -151,6 +166,25 @@ date, official-document label and page number. Column headers and section rows
 use high-contrast light fills with dark text; final totals retain formal
 accounting rules rather than decorative saturated fills.
 
+The French annual package adds deterministic cover, contents and preparation
+status pages before the canonical statements, then SIG/CAF and defined
+management ratios. It says that it was prepared by the company and is not
+professionally attested. The product never generates the previous
+accountant's attestation or implies professional approval. Controlled
+accounting-method narratives remain a closing input; the generated status note
+does not fabricate policies that have not been reviewed.
+
+PCG classification rules used by the canonical statements include:
+
+- `701`–`706` in production sold and `707` (net of `7097`) in merchandise
+  sales and commercial margin;
+- `455` associate current accounts in financial/associate debt, not supplier
+  payables;
+- visible other operating products and explicit total products/total charges;
+- ratios calculated from the same statement rows, with `€`/display-unit,
+  `jours` or `x` shown beside every value and no denominator-zero result
+  presented as a real zero.
+
 An export is provisional accounting evidence. It does not replace statutory
 review, filing or a recorded closing decision.
 
@@ -163,4 +197,8 @@ review, filing or a recorded closing decision.
 - Odoo 19 account-prefix and grouping report expressions:
   https://www.odoo.com/documentation/19.0/applications/finance/accounting/reporting/customize.html
 - Autorité des normes comptables, Plan comptable général:
-  https://www.anc.gouv.fr/plan-comptable-general-0
+  https://www.anc.gouv.fr/files/anc/files/1_Normes_fran%C3%A7aises/Reglements/Recueils/PCG_Janvier2025/Recueil-NF-Janvier-2025.pdf
+- Code de commerce, composition et structure des comptes annuels:
+  https://www.legifrance.gouv.fr/loda/id/LEGISCTA000034161774
+- Bpifrance Création, formules des soldes intermédiaires de gestion:
+  https://bpifrance-creation.fr/encyclopedie/piloter-lentreprise/finance-pilotage-economique/comprendre-calculer-soldes

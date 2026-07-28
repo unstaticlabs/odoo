@@ -1,6 +1,6 @@
 # Milestone 13 reporting and closing UX target
 
-Last updated: 2026-07-25
+Last updated: 2026-07-28
 
 Audience: product owner, accountant, finance operator, and implementation agents.
 
@@ -173,6 +173,21 @@ Official Odoo 19 documentation describes dynamic accounting reports with expand/
 - https://www.odoo.com/documentation/19.0/applications/finance/accounting/reporting.html
 
 The final USL product should match that interaction model where it matters for USL, while adding USL-specific French SASU guidance.
+
+Verified implementation notes:
+
+- **Compte de résultat** is the single canonical French profit-and-loss
+  experience; legacy technical aliases resolve to it instead of creating a
+  duplicate menu entry.
+- French statements unfold from statutory section to PCG account number, then
+  drill into journal items and their source documents without losing filters.
+- The optional **Masquer les lignes à zéro** filter affects the screen and the
+  PDF/XLSX generated from that same report state.
+- Dates are rendered as `DD/MM/YYYY` in report controls, screen context and
+  exports.
+- The annual-package parity control for `10/01/2024`–`30/09/2025`, including
+  disclosed semantic differences, is recorded in
+  `accountant-plaquette-parity-2025-09-30.md`.
 
 ## PDF and XLSX report target
 

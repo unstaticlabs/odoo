@@ -75,6 +75,27 @@ test("checkbox filters send booleans to the shared report state", async () => {
     expect(changes).toEqual({ hide_zero_accounts: true });
 });
 
+test("export refreshes transient line identifiers before further navigation", () => {
+    const report = reportWith([{ id: 10, label: "Ancienne ligne" }]);
+    report.state.filters = { hide_zero_accounts: false };
+    let actionState;
+    report.props = {
+        updateActionState: (state) => {
+            actionState = state;
+        },
+    };
+
+    report.applyExportReportPayload({
+        wizard_id: 42,
+        filters: { hide_zero_accounts: true },
+        lines: [{ id: 11, label: "Ligne exportée" }],
+    });
+
+    expect(report.state.data.lines[0].id).toBe(11);
+    expect(report.state.filters).toEqual({ hide_zero_accounts: true });
+    expect(actionState).toEqual({ resId: 42 });
+});
+
 test("report date filters serialize day-first Odoo dates", async () => {
     const report = reportWith([]);
     report.state.data.locale = "fr-FR";

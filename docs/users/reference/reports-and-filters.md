@@ -18,7 +18,7 @@ the page in place, and PDF or XLSX downloads the same report scope.
 | Performance | Compte de résultat |
 | French tax | TVA et taxes |
 | Fixed assets | Registre des immobilisations / Plan d’amortissement |
-| Management analysis | SIG / CAF / Management Ratios |
+| Management analysis | SIG et CAF / Synthèse de gestion |
 | Designed analytical statement | Compte de résultat analytique |
 | Free-form analytic exploration | Reporting > Pilotage > Analyse analytique |
 
@@ -63,7 +63,9 @@ foreign-currency amounts are not rescaled.
 displayed monetary column is zero. A fully settled account with debit or credit
 activity remains visible, as does a line with a non-zero comparison value.
 Empty PCG branches are removed with their zero accounts, while statement
-sections, subtotals and totals remain visible.
+sections, final totals and balance controls remain visible. A zero-valued
+detail or intermediate subtotal may therefore disappear when the option is
+active.
 
 Less common journal, account, partner and analytic choices are under
 **Filtres**. Active choices appear as removable pills and **Effacer** removes
@@ -89,8 +91,19 @@ show a validation conclusion separately.
 
 **Compte de résultat** is the only normal performance-statement entry. It
 contains the familiar French products, charges, intermediate results,
-financial result and result for the year; there is no separate detailed report
-to choose.
+financial result, total products, total charges and result for the year; there
+is no separate detailed report to choose. In accordance with the French PCG,
+account `701` is presented in production sold and account `707` in merchandise
+sales and commercial margin.
+
+In the Bilan, an associate current account `455` appears under **Emprunts et
+dettes financières diverses**, never under supplier payables. The amount
+remains drillable to the account and its journal items.
+
+**Synthèse de gestion** separates monetary **Indicateurs clés** from
+**Ratios de gestion**. Every value has an explicit unit (`€`, `k€`, `M€`,
+`jours` or `x`) and a concise formula. A ratio with no valid denominator is
+left blank instead of displaying a false zero.
 
 Source lines start folded so the statement remains compact. Use fold/unfold to
 move from the financial section to the familiar French PCG group code and
@@ -110,7 +123,9 @@ XLSX `Report` sheet share the resolved period, filters, grouping, visible
 folded hierarchy, PCG group/account codes, display unit, calculations and
 totals. Clicking PDF or XLSX resynchronizes the export from the filters visible
 in the report before generating the file. The active zero-line choice is
-therefore applied to the downloaded rows and recorded in its context. XLSX
+therefore applied to the downloaded rows and recorded in its context. The
+refreshed line identifiers are also returned to the page, so folding and
+drill-down remain usable immediately after a download. XLSX
 also contains a raw `Audit Data` sheet for analysis; its monetary
 values remain in source units and it is not the presentation reference.
 Readable PDF/XLSX periods, date columns, headers, metadata and generation
@@ -122,6 +137,19 @@ Its version and origin are retained in the report session and export metadata.
 Accounting Managers inspect or adapt these definitions under **Configuration >
 Reports**, including the validated official-document template and colors used
 by all three outputs.
+
+The PDF for **États financiers français** adds a cover, contents, preparation
+status, canonical statements, SIG/CAF and management ratios. It is explicitly
+marked **prepared by the company — not professionally attested**. It does not
+copy or imply the previous accountant's attestation, and it reminds the reader
+that closing methods, inventory work and any required legal notes still need
+their accountable review.
+
+Imported account master-data labels are not silently rewritten for cosmetic
+purposes. Accounting Managers can inspect the governed report-only corrections
+under **Configuration > Accounting Framework > Libellés de comptes** and make
+a company-specific override. The chosen label is shared by screen, PDF and
+XLSX while the original account and source identity remain intact.
 
 ## Analytic pivot
 
