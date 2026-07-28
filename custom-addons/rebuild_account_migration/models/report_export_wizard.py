@@ -3334,15 +3334,25 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             )
             canvas.restoreState()
 
-        title = "Dossier de clôture" if self.report_type == "closing_package" else self._report_type_label()
+        title = (
+            "Dossier de clôture"
+            if self.report_type == "closing_package"
+            else self._report_type_label()
+        )
+        display_scale_context = (
+            ""
+            if metadata["display_unit"] == "units"
+            else (
+                f" - {metadata['display_unit_label']} "
+                f"({metadata['display_unit_short_label']})"
+            )
+        )
         story = [
             Paragraph(clean_text(title), styles["USLTitle"]),
             Paragraph(
                 clean_text(
                     f"{metadata['company']} - Exercice du {date_from_display} au {date_to_display} - "
-                    f"Monnaie {metadata['currency']} - "
-                    f"{metadata['display_unit_label']} "
-                    f"({metadata['display_unit_short_label']})",
+                    f"Monnaie {metadata['currency']}{display_scale_context}",
                 ),
                 styles["USLSubtitle"],
             ),
