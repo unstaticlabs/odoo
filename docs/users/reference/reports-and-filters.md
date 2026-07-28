@@ -81,10 +81,13 @@ contains the familiar French products, charges, intermediate results,
 financial result and result for the year; there is no separate detailed report
 to choose.
 
-Use fold/unfold to move from sections to account groups and accounts. Select
-the drill-down icon on a material line to inspect journal items, then open the
-original invoice, bill, payment or entry. Browser Back returns to the same
-report session with its filters and opened groups.
+Source lines start folded so the statement remains compact. Use fold/unfold to
+move from the financial section to the familiar French PCG group code and
+name, then through any configured subgroup to the full account number and
+label. The account rows add up to their displayed source line. Select the
+drill-down icon on a material line, PCG group or account to inspect its scoped
+journal items, then open the original invoice, bill, payment or entry. Browser
+Back returns to the same report session with its filters and opened groups.
 
 Draft warnings mean the displayed period includes unposted accounting that can still change.
 
@@ -92,8 +95,8 @@ Draft warnings mean the displayed period includes unposted accounting that can s
 
 The screen uses a centered A4-like reading width for portrait statements and a
 bounded landscape width for column-heavy ledgers. The screen, PDF and readable
-XLSX `Report` sheet share the resolved period,
-filters, grouping, visible folded hierarchy, display unit, calculations and
+XLSX `Report` sheet share the resolved period, filters, grouping, visible
+folded hierarchy, PCG group/account codes, display unit, calculations and
 totals. XLSX also contains a raw `Audit Data` sheet for analysis; its monetary
 values remain in source units and it is not the presentation reference.
 

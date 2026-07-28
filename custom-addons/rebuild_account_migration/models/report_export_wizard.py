@@ -123,6 +123,8 @@ FRENCH_PROFIT_LOSS_SUBTOTALS = {
     "CR_RESULTAT_EXCEPTIONNEL",
 }
 
+HIERARCHY_STATE_SENTINEL = "__pcg_hierarchy_initialized__"
+
 
 def _amount(value):
     return Decimal(str(value or "0")).quantize(Decimal("0.01"))
@@ -1270,7 +1272,9 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         self.ensure_one()
         self.write({
             "show_details": True,
-            "collapsed_group_keys": "[]",
+            "collapsed_group_keys": json.dumps([
+                HIERARCHY_STATE_SENTINEL,
+            ]),
         })
         return self.action_preview_report()
 
@@ -1290,6 +1294,21 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             )
             raise UserError(message)
         rows = self._report_rows()
+        collapsed_groups = self._collapsed_group_key_set()
+        if HIERARCHY_STATE_SENTINEL not in collapsed_groups:
+            default_collapsed = sorted({
+                str(row.get("group_key"))
+                for row in rows
+                if row.get("hierarchy_kind") == "statement"
+                and row.get("group_key")
+            })
+            if default_collapsed:
+                self.write({
+                    "collapsed_group_keys": json.dumps([
+                        HIERARCHY_STATE_SENTINEL,
+                        *default_collapsed,
+                    ]),
+                })
         limit = max(1, min(self.preview_limit or 500, 5000))
         visible_rows = self._visible_preview_rows(rows)
         preview_rows = (
@@ -2275,7 +2294,8 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "group_by": self.group_by,
             "show_details": self.show_details,
             "collapsed_group_keys": sorted(
-                self._collapsed_group_key_set(),
+                self._collapsed_group_key_set()
+                - {HIERARCHY_STATE_SENTINEL},
             ),
             "search_text": self.search_text or "",
             "row_count": row_count,
@@ -2542,9 +2562,9 @@ class RebuildAccountReportExportWizard(models.TransientModel):
     @staticmethod
     def _report_export_row_value(row, fieldname):
         value = row.get(fieldname)
-        if fieldname != "label" or value not in (None, "", False):
+        if fieldname != "label":
             return value
-        label = (
+        label = value or (
             row.get("line_name")
             or row.get("field_label")
             or row.get("asset_name")
@@ -2555,7 +2575,17 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             or row.get("report_section")
             or ""
         )
-        if row.get("is_group") not in (True, "true"):
+        account_code = str(row.get("account_code") or "").strip()
+        if (
+            account_code
+            and row.get("hierarchy_kind") in {"pcg_group", "account"}
+            and not str(label).startswith(f"{account_code} ")
+        ):
+            label = f"{account_code} {label}"
+        if (
+            row.get("is_group") not in (True, "true")
+            and row.get("hierarchy_kind") not in {"account"}
+        ):
             label = f"  {label}"
         return label
 
@@ -3669,16 +3699,152 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                     children[-1].get("running_balance") or "0.00"
                 )
             result.append(group_row)
-            result.extend([
-                {
-                    **row,
-                    "is_group": "false",
-                    "row_level": 1,
-                    "parent_group_key": group_key,
-                }
-                for row in children
-            ])
+            for row in children:
+                result.extend(
+                    self._statement_hierarchy_rows(
+                        row,
+                        section_group_key=group_key,
+                    ),
+                )
         return result
+
+    def _statement_hierarchy_rows(self, row, *, section_group_key):
+        """Expand one statement line through PCG groups to account numbers."""
+        self.ensure_one()
+        breakdown = row.get("account_breakdown") or []
+        statement_key = (
+            f"{section_group_key}|statement|"
+            f"{row.get('line_code') or row.get('line_name') or 'line'}"
+        )
+        statement_row = {
+            **row,
+            "is_group": "true" if breakdown else "false",
+            "row_level": 1,
+            "parent_group_key": section_group_key,
+        }
+        if not breakdown:
+            return [statement_row]
+        statement_row.update({
+            "group_key": statement_key,
+            "hierarchy_kind": "statement",
+            "presentation_role": (
+                row.get("presentation_role") or "detail"
+            ),
+        })
+
+        tree = {"entries": {}}
+        for account_row in breakdown:
+            node = tree
+            for group in account_row.get("group_chain") or []:
+                entry_key = f"group:{group['id']}"
+                entry = node["entries"].setdefault(entry_key, {
+                    "kind": "group",
+                    "sort_key": group.get("code") or "",
+                    "group": group,
+                    "entries": {},
+                })
+                node = entry
+            account_key = (
+                f"account:{account_row.get('account_id') or ''}:"
+                f"{account_row.get('account_code') or ''}"
+            )
+            node["entries"][account_key] = {
+                "kind": "account",
+                "sort_key": account_row.get("account_code") or "",
+                "account": account_row,
+            }
+
+        def descendant_accounts(node):
+            accounts = []
+            for entry in node["entries"].values():
+                if entry["kind"] == "account":
+                    accounts.append(entry["account"])
+                else:
+                    accounts.extend(descendant_accounts(entry))
+            return accounts
+
+        def flatten(node, *, parent_key, level):
+            flattened = []
+            entries = sorted(
+                node["entries"].values(),
+                key=lambda entry: (
+                    entry.get("sort_key") or "",
+                    entry["kind"] != "group",
+                ),
+            )
+            for entry in entries:
+                if entry["kind"] == "account":
+                    account = entry["account"]
+                    flattened.append({
+                        "statement_key": row.get("statement_key"),
+                        "section": row.get("section"),
+                        "line_code": row.get("line_code"),
+                        "label": account.get("account_name") or "",
+                        "account_code": account.get("account_code") or "",
+                        "account_name": account.get("account_name") or "",
+                        "source_account_id": (
+                            account.get("source_account_id") or ""
+                        ),
+                        "drilldown_account_codes": (
+                            account.get("account_code") or ""
+                        ),
+                        "move_line_count": str(
+                            account.get("move_line_count") or 0,
+                        ),
+                        "amount": _amount_text(account.get("amount")),
+                        "net_amount": _amount_text(account.get("amount")),
+                        "is_group": "false",
+                        "row_level": level,
+                        "parent_group_key": parent_key,
+                        "presentation_role": "detail",
+                        "hierarchy_kind": "account",
+                    })
+                    continue
+                group = entry["group"]
+                accounts = descendant_accounts(entry)
+                group_key = f"{parent_key}|pcg_group|{group['id']}"
+                amount = sum(
+                    (_amount(account.get("amount")) for account in accounts),
+                    Decimal("0.00"),
+                )
+                codes = sorted({
+                    account.get("account_code") or ""
+                    for account in accounts
+                    if account.get("account_code")
+                })
+                flattened.append({
+                    "statement_key": row.get("statement_key"),
+                    "section": row.get("section"),
+                    "line_code": row.get("line_code"),
+                    "label": group.get("name") or "",
+                    "account_code": group.get("code") or "",
+                    "drilldown_account_codes": ",".join(codes),
+                    "move_line_count": str(sum(
+                        int(account.get("move_line_count") or 0)
+                        for account in accounts
+                    )),
+                    "amount": _amount_text(amount),
+                    "net_amount": _amount_text(amount),
+                    "is_group": "true",
+                    "row_level": level,
+                    "group_key": group_key,
+                    "parent_group_key": parent_key,
+                    "presentation_role": "group",
+                    "hierarchy_kind": "pcg_group",
+                })
+                flattened.extend(
+                    flatten(
+                        entry,
+                        parent_key=group_key,
+                        level=level + 1,
+                    ),
+                )
+            return flattened
+
+        return [
+            statement_row,
+            *flatten(tree, parent_key=statement_key, level=2),
+        ]
 
     def _report_group(self, row):
         company_key = str(row.get("report_company_id") or "")
@@ -4354,6 +4520,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             f"""
             SELECT {ACCOUNT_CODE_SQL} AS account_code,
                    {ACCOUNT_NAME_SQL} AS account_name,
+                   account.id::text AS account_id,
                    account.account_type AS account_type,
                    account.rebuild_source_id::text AS source_account_id,
                    count(line.id) FILTER (
@@ -5921,6 +6088,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 item["presentation_role"] = "total"
             elif item["line_code"] in FRENCH_PROFIT_LOSS_SUBTOTALS:
                 item["presentation_role"] = "subtotal"
+        self._attach_statement_account_breakdowns(rows, tb)
         if statement_keys:
             rows = [item for item in rows if item["statement_key"] in statement_keys]
         if report_variant:
@@ -5928,6 +6096,86 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 item["report_variant"] = report_variant
                 item["applicability_basis"] = self._report_variant_basis()
         return rows
+
+    def _attach_statement_account_breakdowns(self, rows, trial_balance_rows):
+        """Attach only account contributions that reconcile to their line."""
+        self.ensure_one()
+        account_ids = [
+            int(item["account_id"])
+            for item in trial_balance_rows
+            if item.get("account_id")
+        ]
+        accounts = self.env["account.account"].browse(account_ids)
+        account_by_id = {
+            account.id: account.with_company(self.company_id)
+            for account in accounts
+        }
+        for row in rows:
+            if row.get("presentation_role") in {"subtotal", "total"}:
+                continue
+            prefixes = [
+                prefix.strip()
+                for prefix in (
+                    row.get("drilldown_account_prefixes") or ""
+                ).split(",")
+                if prefix.strip()
+            ]
+            if not prefixes:
+                continue
+            contributions = [
+                item
+                for item in trial_balance_rows
+                if _matches(item, prefixes)
+                and _amount(item.get("balance"))
+                and int(item.get("move_line_count") or 0)
+            ]
+            if not contributions:
+                continue
+            raw_total = sum(
+                (_amount(item.get("balance")) for item in contributions),
+                Decimal("0.00"),
+            )
+            statement_amount = _amount(
+                row.get("amount") or row.get("net_amount"),
+            )
+            if abs(statement_amount - raw_total) <= Decimal("0.01"):
+                sign = Decimal("1.00")
+            elif abs(statement_amount + raw_total) <= Decimal("0.01"):
+                sign = Decimal("-1.00")
+            else:
+                # Derived totals and conditionally filtered balances remain
+                # calculation rows until their exact source rule is available.
+                continue
+            breakdown = []
+            for item in contributions:
+                account = account_by_id.get(int(item["account_id"]))
+                groups = []
+                group = account.group_id if account else False
+                while group:
+                    group_code = str(group.code_prefix_start or "")
+                    if (
+                        group.code_prefix_end
+                        and group.code_prefix_end != group.code_prefix_start
+                    ):
+                        group_code += f"-{group.code_prefix_end}"
+                    groups.append({
+                        "id": group.id,
+                        "code": group_code,
+                        "name": group.with_context(lang="fr_FR").name,
+                    })
+                    group = group.parent_id
+                breakdown.append({
+                    "account_id": int(item["account_id"]),
+                    "source_account_id": item.get("source_account_id") or "",
+                    "account_code": item.get("account_code") or "",
+                    "account_name": item.get("account_name") or "",
+                    "move_line_count": int(item.get("move_line_count") or 0),
+                    "amount": _amount_text(
+                        _amount(item.get("balance")) * sign,
+                    ),
+                    "group_chain": list(reversed(groups)),
+                })
+            row["account_breakdown"] = breakdown
 
     def _french_tax_package_rows(self):
         period_key = "USL benchmark 2024-01-10 to 2025-09-30"

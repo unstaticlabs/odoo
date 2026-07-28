@@ -54,6 +54,11 @@ Valentin and the accountant must be able to:
 - Interactive reports are statement-first: one shared filter and interaction
   system presents explicit sections, groups, details, subtotals, totals and
   controls consistently on screen, in PDF and in the readable XLSX sheet.
+- Financial statement source lines unfold through the company's native PCG
+  `account.group` hierarchy to full account numbers. An account breakdown is
+  displayed only when its signed contributions reconcile to the statement
+  value; screen, source drill-down, PDF and readable XLSX retain the same
+  codes, labels and amounts.
 - Each accounting need has one canonical end-user report. **Compte de
   résultat** is the single French performance statement; historical generic
   and detailed aliases may remain for migration compatibility but are not

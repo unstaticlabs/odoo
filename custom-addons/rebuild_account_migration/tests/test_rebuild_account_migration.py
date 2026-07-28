@@ -6,6 +6,7 @@ from email.message import EmailMessage
 from io import BytesIO
 from pathlib import Path
 from unittest.mock import patch
+from zipfile import ZipFile
 
 from lxml import etree
 
@@ -7500,6 +7501,123 @@ class TestRebuildAccountMigration(TransactionCase):
             self.assertTrue(
                 base64.b64decode(wizard.export_file).startswith(signature),
             )
+
+    def test_profit_loss_unfolds_through_pcg_groups_to_account_number(self):
+        expense = self._account(
+            "604991",
+            "PCG hierarchy test services",
+            "expense",
+        )
+        bank = self._account(
+            "512991",
+            "PCG hierarchy test bank",
+            "asset_cash",
+        )
+        expense.invalidate_recordset(["group_id"])
+        if not expense.group_id:
+            self.env["account.group"].create({
+                "name": "PCG hierarchy test group",
+                "code_prefix_start": "604991",
+                "code_prefix_end": "604991",
+                "company_id": self.company.root_id.id,
+            })
+            expense.invalidate_recordset(["group_id"])
+        self.assertTrue(expense.group_id)
+        move = self.env["account.move"].create({
+            "move_type": "entry",
+            "date": "2099-06-30",
+            "journal_id": self._journal().id,
+            "line_ids": [
+                Command.create({
+                    "name": "PCG hierarchy test",
+                    "account_id": expense.id,
+                    "debit": 123.45,
+                    "credit": 0.0,
+                }),
+                Command.create({
+                    "name": "PCG hierarchy test",
+                    "account_id": bank.id,
+                    "debit": 0.0,
+                    "credit": 123.45,
+                }),
+            ],
+        })
+        move.action_post()
+
+        Report = self.env["rebuild.account.report.export.wizard"]
+        payload = Report.report_client_load(
+            "profit_loss",
+            {
+                "date_from": "2099-01-01",
+                "date_to": "2099-12-31",
+            },
+        )
+        wizard = Report.browse(payload["wizard_id"])
+        statement_line = wizard.preview_line_ids.filtered(
+            lambda line: line.line_code == "CR_CHARGES_EXTERNES",
+        )
+        self.assertEqual(len(statement_line), 1)
+        self.assertTrue(statement_line.is_group)
+        self.assertIn(
+            statement_line.group_key,
+            wizard._collapsed_group_key_set(),
+        )
+        self.assertFalse(
+            any(line["account_code"] == "604991" for line in payload["lines"]),
+        )
+
+        unfolded = Report.report_client_toggle_group(
+            wizard.id,
+            statement_line.id,
+        )
+        account_line = next(
+            line
+            for line in unfolded["lines"]
+            if line["account_code"] == "604991"
+        )
+        pcg_groups = [
+            line
+            for line in unfolded["lines"]
+            if line["is_group"]
+            and line["level"] >= 2
+            and line["account_code"]
+        ]
+        self.assertTrue(pcg_groups)
+        self.assertGreater(
+            account_line["level"],
+            min(line["level"] for line in pcg_groups),
+        )
+        self.assertAlmostEqual(account_line["balance"], 123.45)
+
+        account_preview = wizard.preview_line_ids.filtered(
+            lambda line: line.account_code == "604991",
+        )
+        source_action = Report.report_client_open_sources(
+            wizard.id,
+            account_preview.id,
+        )
+        self.assertEqual(source_action["res_model"], "account.move.line")
+        self.assertIn(("account_id", "in", [expense.id]), source_action["domain"])
+
+        Report.report_client_export(wizard.id, "pdf")
+        pdf_text = "\n".join(
+            page.extract_text() or ""
+            for page in PdfReader(
+                BytesIO(base64.b64decode(wizard.export_file)),
+            ).pages
+        )
+        self.assertIn("604991", pdf_text)
+        Report.report_client_export(wizard.id, "xlsx")
+        with ZipFile(
+            BytesIO(base64.b64decode(wizard.export_file)),
+        ) as workbook:
+            readable_xml = b"\n".join(
+                workbook.read(name)
+                for name in workbook.namelist()
+                if name == "xl/sharedStrings.xml"
+                or name.startswith("xl/worksheets/sheet")
+            )
+        self.assertIn(b"604991", readable_xml)
 
     def test_canonical_asset_reports_use_native_assets_and_drill_down(self):
         asset_account = self._account(
