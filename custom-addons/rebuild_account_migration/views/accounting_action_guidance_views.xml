@@ -343,13 +343,13 @@
     <record id="view_rebuild_bank_transaction_partner_action_guidance" model="ir.ui.view">
         <field name="name">account.bank.statement.line.partner.action.guidance</field>
         <field name="model">account.bank.statement.line</field>
-        <field name="inherit_id" ref="view_rebuild_bank_transaction_form_partner_suggestion"/>
+        <field name="inherit_id" ref="view_rebuild_bank_transaction_form"/>
         <field name="arch" type="xml">
             <xpath expr="//button[@name='action_rebuild_apply_partner_suggestion']" position="attributes">
                 <attribute name="title">Set the suggested partner on this bank transaction. This does not reconcile or post anything.</attribute>
             </xpath>
             <xpath expr="//button[@name='action_rebuild_refresh_partner_suggestions']" position="attributes">
-                <attribute name="title">Re-evaluate the partner from the current reference, amount, account, and transaction evidence.</attribute>
+                <attribute name="title">Re-evaluate the current bank evidence. A sufficiently reliable result may set the partner automatically.</attribute>
             </xpath>
         </field>
     </record>

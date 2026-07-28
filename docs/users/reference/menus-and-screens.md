@@ -49,7 +49,15 @@ The native journal dashboard. Use journal cards to open entries, documents, full
 The complete bank-transaction history. Clicking a row opens the bank
 transaction. **Linked document or entry** opens the matched invoice, bill,
 refund or journal entry; **Open Entry** opens the bank transaction's own journal
-entry. **Match** opens an unreconciled line in Bank Matching.
+entry. **Match** opens an unreconciled or partially matched line in Bank
+Matching. A matching-reference chip opens every journal item in that matching
+group. Fully matched transactions offer **Undo Match** to Accounting users
+after confirmation.
+
+The transaction form keeps matching and review status separate. It shows the
+remaining amount, balance after the transaction, linked document and bank
+evidence when relevant. The read-only accountant can inspect these paths but
+cannot match, undo or change partner suggestions.
 
 ## Customers and Vendors
 

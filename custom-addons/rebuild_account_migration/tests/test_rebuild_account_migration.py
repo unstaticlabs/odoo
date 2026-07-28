@@ -3825,10 +3825,7 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(len(counterpart), 1)
         counterpart.account_id.reconcile = True
         bank_line.invalidate_recordset()
-        self.assertIn(
-            bank_line.rebuild_transaction_status,
-            {"open", "review"},
-        )
+        self.assertEqual(bank_line.rebuild_transaction_status, "open")
         self.assertEqual(bank_line.rebuild_remaining_amount, 100.0)
         self.assertFalse(bank_line.rebuild_matching_reference)
 
@@ -3845,6 +3842,7 @@ class TestRebuildAccountMigration(TransactionCase):
             "asset_current",
         )
         counterpart_balance = counterpart.balance
+        first_match_balance = -counterpart_balance * 0.6
         clearing_move = self.env["account.move"].create({
             "move_type": "entry",
             "date": fields.Date.today(),
@@ -3853,14 +3851,14 @@ class TestRebuildAccountMigration(TransactionCase):
                 Command.create({
                     "name": "Transaction list counterpart",
                     "account_id": counterpart.account_id.id,
-                    "debit": max(-counterpart_balance, 0.0),
-                    "credit": max(counterpart_balance, 0.0),
+                    "debit": max(first_match_balance, 0.0),
+                    "credit": max(-first_match_balance, 0.0),
                 }),
                 Command.create({
                     "name": "Transaction list offset",
                     "account_id": offset.id,
-                    "debit": max(counterpart_balance, 0.0),
-                    "credit": max(-counterpart_balance, 0.0),
+                    "debit": max(-first_match_balance, 0.0),
+                    "credit": max(first_match_balance, 0.0),
                 }),
             ],
         })
@@ -3871,7 +3869,45 @@ class TestRebuildAccountMigration(TransactionCase):
         (counterpart | clearing_line).reconcile()
         bank_line.invalidate_recordset()
 
+        self.assertEqual(bank_line.rebuild_transaction_status, "partial")
+        self.assertEqual(bank_line.rebuild_remaining_amount, 40.0)
+        self.assertTrue(bank_line.rebuild_matching_reference)
+        matching_action = bank_line.action_rebuild_open_matching_items()
+        self.assertIn(
+            ("matching_number", "=", bank_line.rebuild_matching_reference),
+            matching_action["domain"],
+        )
+
+        remaining_balance = -counterpart.amount_residual
+        final_move = self.env["account.move"].create({
+            "move_type": "entry",
+            "date": fields.Date.today(),
+            "journal_id": self._journal().id,
+            "line_ids": [
+                Command.create({
+                    "name": "Transaction list final counterpart",
+                    "account_id": counterpart.account_id.id,
+                    "debit": max(remaining_balance, 0.0),
+                    "credit": max(-remaining_balance, 0.0),
+                }),
+                Command.create({
+                    "name": "Transaction list final offset",
+                    "account_id": offset.id,
+                    "debit": max(-remaining_balance, 0.0),
+                    "credit": max(remaining_balance, 0.0),
+                }),
+            ],
+        })
+        final_move.action_post()
+        final_line = final_move.line_ids.filtered(
+            lambda line: line.account_id == counterpart.account_id,
+        )
+        (counterpart | final_line).reconcile()
+        bank_line.invalidate_recordset()
+        bank_line.move_id.review_state = "todo"
+
         self.assertEqual(bank_line.rebuild_transaction_status, "matched")
+        self.assertEqual(bank_line.rebuild_review_state, "todo")
         self.assertEqual(bank_line.rebuild_remaining_amount, 0.0)
         self.assertTrue(bank_line.rebuild_matching_reference)
         self.assertEqual(
@@ -3889,10 +3925,15 @@ class TestRebuildAccountMigration(TransactionCase):
         transaction_view = self.env.ref(
             "rebuild_account_migration.view_rebuild_bank_transaction_list",
         )
+        transaction_form = self.env.ref(
+            "rebuild_account_migration.view_rebuild_bank_transaction_form",
+        )
         transaction_arch = etree.fromstring(transaction_view.arch_db)
+        transaction_form_arch = etree.fromstring(transaction_form.arch_db)
         self.assertEqual(action.name, "Transactions")
         self.assertEqual(action.view_mode, "list,form")
         self.assertEqual(action.view_ids[0].view_id, transaction_view)
+        self.assertEqual(action.view_ids[1].view_id, transaction_form)
         self.assertEqual(transaction_arch.get("create"), "0")
         self.assertEqual(transaction_arch.get("edit"), "0")
         for field_name in (
@@ -3912,6 +3953,12 @@ class TestRebuildAccountMigration(TransactionCase):
             "//field[@name='rebuild_linked_move_id']",
         )
         self.assertEqual(linked_move_field[0].get("widget"), "many2one")
+        self.assertEqual(
+            transaction_arch.xpath(
+                "//field[@name='rebuild_matching_reference']",
+            )[0].get("widget"),
+            "rebuild_matching_badge",
+        )
         self.assertFalse(
             transaction_arch.xpath(
                 "//field[@name='rebuild_transaction_status']",
@@ -3928,6 +3975,74 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertIn(
             "text-success",
             reconciled_entry_button[0].get("class"),
+        )
+        self.assertEqual(
+            transaction_form_arch.xpath(
+                "//field[@name='rebuild_transaction_status']",
+            )[0].get("widget"),
+            "statusbar",
+        )
+        for field_name in (
+            "payment_ref",
+            "partner_id",
+            "amount",
+            "running_balance",
+            "rebuild_review_state",
+            "rebuild_linked_move_id",
+            "rebuild_matching_reference",
+            "rebuild_remaining_amount",
+            "transaction_type",
+            "partner_name",
+            "account_number",
+            "narration",
+        ):
+            self.assertTrue(
+                transaction_form_arch.xpath(
+                    f"//field[@name='{field_name}']",
+                ),
+                field_name,
+            )
+        self.assertEqual(
+            transaction_form_arch.xpath(
+                "//field[@name='rebuild_matching_reference']",
+            )[0].get("widget"),
+            "rebuild_matching_badge",
+        )
+        match_button = transaction_form_arch.xpath(
+            "//button[@name='action_rebuild_open_bank_matching']",
+        )
+        undo_button = transaction_form_arch.xpath(
+            "//button[@name='action_undo_reconciliation']",
+        )
+        self.assertEqual(len(match_button), 1)
+        self.assertEqual(len(undo_button), 1)
+        self.assertEqual(
+            match_button[0].get("groups"),
+            "account.group_account_user",
+        )
+        self.assertEqual(
+            undo_button[0].get("groups"),
+            "account.group_account_user",
+        )
+        self.assertTrue(undo_button[0].get("confirm"))
+        self.assertFalse(
+            transaction_form_arch.xpath(
+                "//*[normalize-space(.)='Technical Information']",
+            ),
+        )
+        generic_form_arch = self.env.ref(
+            "account_statement_base.account_bank_statement_line_form",
+        )._get_combined_arch()
+        compatibility_buttons = generic_form_arch.xpath(
+            "//button[@name='action_rebuild_refresh_partner_suggestions']"
+            " | //button[@name='action_rebuild_apply_partner_suggestion']",
+        )
+        self.assertEqual(len(compatibility_buttons), 2)
+        self.assertTrue(
+            all(
+                button.get("invisible") == "1"
+                for button in compatibility_buttons
+            ),
         )
 
         transaction_action = bank_journal.action_rebuild_open_transactions()
@@ -3951,6 +4066,65 @@ class TestRebuildAccountMigration(TransactionCase):
             matching_action["context"]["search_default_not_reconciled"],
             1,
         )
+
+    def test_transaction_form_keeps_reviewer_journey_read_only(self):
+        reviewer = self.env["res.users"].with_context(
+            no_reset_password=True,
+        ).create({
+            "name": "Bank Transaction Reviewer",
+            "login": "bank.transaction.reviewer@example.invalid",
+            "company_id": self.company.id,
+            "company_ids": [Command.set(self.company.ids)],
+            "group_ids": [Command.set([
+                self.env.ref("base.group_user").id,
+                self.reviewer_group.id,
+            ])],
+        })
+        transaction_form = self.env.ref(
+            "rebuild_account_migration.view_rebuild_bank_transaction_form",
+        )
+        reviewer_view = self.env[
+            "account.bank.statement.line"
+        ].with_user(reviewer).get_view(
+            transaction_form.id,
+            "form",
+        )
+        reviewer_arch = etree.fromstring(reviewer_view["arch"])
+        for access_attribute in ("create", "edit", "delete"):
+            self.assertIn(
+                str(reviewer_arch.get(access_attribute)).lower(),
+                {"0", "false"},
+            )
+
+        for forbidden_action in (
+            "action_rebuild_open_bank_matching",
+            "action_undo_reconciliation",
+            "action_rebuild_apply_partner_suggestion",
+            "action_rebuild_refresh_partner_suggestions",
+        ):
+            self.assertFalse(
+                reviewer_arch.xpath(
+                    f"//button[@name='{forbidden_action}']",
+                ),
+                forbidden_action,
+            )
+        self.assertTrue(
+            reviewer_arch.xpath(
+                "//button[@name='action_open_journal_entry']",
+            ),
+        )
+        for evidence_field in (
+            "rebuild_linked_move_id",
+            "rebuild_matching_reference",
+            "rebuild_remaining_amount",
+            "running_balance",
+        ):
+            self.assertTrue(
+                reviewer_arch.xpath(
+                    f"//field[@name='{evidence_field}']",
+                ),
+                evidence_field,
+            )
 
     def test_native_expenses_use_the_expenses_app_not_vendor_navigation(self):
         expenses_menu = self.env.ref("hr_expense.menu_hr_expense_account_employee_expenses")
@@ -4096,6 +4270,18 @@ class TestRebuildAccountMigration(TransactionCase):
                     "action_to_check",
                     "action_checked",
                     "action_show_move",
+                ),
+            ),
+            (
+                "account.bank.statement.line",
+                "rebuild_account_migration.view_rebuild_bank_transaction_form",
+                "form",
+                (
+                    "action_rebuild_open_bank_matching",
+                    "action_undo_reconciliation",
+                    "action_open_journal_entry",
+                    "action_rebuild_apply_partner_suggestion",
+                    "action_rebuild_refresh_partner_suggestions",
                 ),
             ),
             (

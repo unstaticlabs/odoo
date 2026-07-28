@@ -5,3 +5,53 @@
     .o_kanban_record.o_kanban_record_reconcile_oca_selected {
     background-color: $o-gray-200;
 }
+
+// Transactions is an investigation surface, not a second matching workbench.
+// Keep the bank description and amount dominant, with evidence below it.
+.o_rebuild_bank_transaction_form {
+    max-width: 1120px;
+
+    .o_rebuild_transaction_heading {
+        padding-bottom: 1rem;
+        border-bottom: 1px solid $o-gray-200;
+    }
+
+    .o_rebuild_transaction_identity {
+        min-width: 0;
+
+        h1 {
+            max-width: 48rem;
+            overflow-wrap: anywhere;
+        }
+    }
+
+    .o_rebuild_transaction_amount {
+        min-width: 13rem;
+    }
+
+    .o_rebuild_transaction_amount_value {
+        font-size: clamp(1.5rem, 2.5vw, 2rem);
+        font-weight: 600;
+        line-height: 1.15;
+        white-space: nowrap;
+    }
+
+    .o_rebuild_transaction_partner_empty .btn-link {
+        font-size: inherit;
+        line-height: inherit;
+        vertical-align: baseline;
+    }
+
+    .o_rebuild_transaction_core,
+    .o_rebuild_transaction_details,
+    .o_rebuild_transaction_notes {
+        margin-bottom: 0;
+    }
+
+    @include media-breakpoint-down(lg) {
+        .o_rebuild_transaction_amount {
+            min-width: 0;
+            text-align: start;
+        }
+    }
+}
