@@ -4,6 +4,11 @@ Use this runbook only for the deployed production Accounting database after
 change approval. Never use it on development, staging, reconstruction, copied
 or restored databases.
 
+The browser-accessible operator checklist is
+[Activate electronic-invoice reception in production](../users/how-to/activate-electronic-invoice-reception.md).
+Keep that page open during the change window; this document retains the
+maintainer-level activation and recovery contract.
+
 ## Production prerequisites
 
 Before the change window:

@@ -1,6 +1,6 @@
 # French Electronic-Invoicing Validation Evidence
 
-Status date: 28 July 2026
+Status date: 29 July 2026
 
 ## Automated evidence
 
@@ -48,7 +48,7 @@ databases. The final installation database was
 deployment targets. The user-facing QA database is
 `odoo_peppol_qa_20260728` in the same isolated project.
 
-The following final checks passed on 28 July 2026:
+The following final checks passed on 28–29 July 2026:
 
 | Check | Command scope | Result |
 |---|---|---|
@@ -56,6 +56,7 @@ The following final checks passed on 28 July 2026:
 | Explicit module upgrade and prior reception regression | test image on `odoo_peppol_release_20260728`, `--update=rebuild_account_migration --test-tags=/rebuild_account_migration:TestRebuildAccountMigration.test_french_einvoice_reception_is_offline_traceable_and_deduplicated --without-demo=true` | Upgrade completed; 1 method / 3 Odoo assertions; 0 failures, 0 errors |
 | Browser acceptance | Chromium test image on `odoo_peppol_defaults_test2_20260728`, `--test-tags=/rebuild_account_migration:TestFrenchEinvoiceReceptionBrowser` | Accounting Manager 9/9 steps and read-only accountant 6/6 steps; 0 failures, 0 errors |
 | Deployed QA acceptance | `scripts/odoo-dev bootstrap-einvoice-qa`, followed by in-app browser review | French commercial chart, EUR, 20% and 10% VAT, €175 total, original UBL, normal Confirm action, Odoo PA Demo invoice, manager controls and read-only visibility verified |
+| Production user guide | focused renderer test plus authenticated review of `/usl/user-docs/how-to/activate-electronic-invoice-reception.md` | Fresh install passed; production prerequisites, onboarding, startup, first invoice, rollback and unsafe-action boundary render correctly; all 28 user-doc links resolve |
 | Python lint | `ruff check` on the reception model, new suite and modified regression suite, using the current Ruff container | Passed |
 | Python syntax | `python3 -m compileall -q` on the same Python files | Passed |
 | XML syntax | `xmllint --noout` on the cron data, readiness views and representative UBL | Passed |

@@ -6,7 +6,6 @@ from pathlib import Path
 from odoo import http
 from odoo.http import request
 
-
 DOCS_ROUTE = "/usl/user-docs"
 DOCS_ENV_VAR = "USL_USER_DOCS_PATH"
 ACCOUNTING_READONLY_GROUP = "account.group_account_readonly"
@@ -83,6 +82,7 @@ def _slug(text):
 def _render_inline(text, current_doc):
     escaped = html.escape(text)
     escaped = re.sub(r"`([^`]+)`", r"<code>\1</code>", escaped)
+    escaped = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", escaped)
 
     def link(match):
         label = match.group(1)
@@ -157,7 +157,7 @@ def render_markdown(markdown, current_doc="README.md"):
             code_lines.append(line)
             i += 1
             continue
-        if stripped == "":
+        if not stripped:
             flush_paragraph()
             close_lists()
             i += 1
@@ -203,6 +203,15 @@ def render_markdown(markdown, current_doc="README.md"):
                 output.append("<ol>")
                 in_ol = True
             output.append(f"<li>{_render_inline(numbered.group(1), current_doc)}</li>")
+            i += 1
+            continue
+        if (in_ul or in_ol) and output and output[-1].startswith("<li>"):
+            output[-1] = (
+                output[-1][:-5]
+                + " "
+                + _render_inline(stripped, current_doc)
+                + "</li>"
+            )
             i += 1
             continue
         paragraph.append(stripped)
