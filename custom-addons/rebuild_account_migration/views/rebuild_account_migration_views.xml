@@ -4552,6 +4552,7 @@
                         </group>
                         <group string="View">
                             <field name="group_by"/>
+                            <field name="display_unit"/>
                             <field name="search_text" placeholder="Account, partner, entry, label…"/>
                             <field name="preview_limit"/>
                             <field name="show_details" invisible="group_by == 'none'"/>
@@ -5471,17 +5472,17 @@
         <field name="context">{'report_type': 'french_annual'}</field>
     </record>
     <record id="action_rebuild_interactive_french_balance_sheet_2024" model="ir.actions.client">
-        <field name="name">Bilan détaillé (PCG 2024)</field>
+        <field name="name">Bilan détaillé</field>
         <field name="tag">rebuild_accounting_report</field>
         <field name="context">{'report_type': 'french_balance_sheet_2024'}</field>
     </record>
     <record id="action_rebuild_interactive_french_profit_loss_2024" model="ir.actions.client">
-        <field name="name">Compte de résultat détaillé (PCG 2024)</field>
+        <field name="name">Compte de résultat détaillé</field>
         <field name="tag">rebuild_accounting_report</field>
         <field name="context">{'report_type': 'french_profit_loss_2024'}</field>
     </record>
     <record id="action_rebuild_interactive_sig_caf_2024" model="ir.actions.client">
-        <field name="name">SIG et CAF (PCG 2024)</field>
+        <field name="name">SIG et CAF</field>
         <field name="tag">rebuild_accounting_report</field>
         <field name="context">{'report_type': 'sig_caf_2024'}</field>
     </record>
@@ -5561,24 +5562,53 @@
         <field name="context">{'report_type': 'french_tax_package'}</field>
     </record>
 
+    <record id="account.account_reports_legal_statements_menu" model="ir.ui.menu">
+        <field name="name">États financiers</field>
+        <field name="sequence">2</field>
+    </record>
+    <record id="account.account_reports_partners_reports_menu" model="ir.ui.menu">
+        <field name="name">Tiers et échéances</field>
+        <field name="sequence">3</field>
+    </record>
+    <record id="account.account_reports_taxes_and_fiscal_menu" model="ir.ui.menu">
+        <field name="name">Fiscalité</field>
+        <field name="sequence">4</field>
+    </record>
+    <record id="account.account_reports_management_menu" model="ir.ui.menu">
+        <field name="name">Pilotage</field>
+        <field name="sequence">5</field>
+    </record>
+    <menuitem
+        id="menu_rebuild_account_reports_accounting_books"
+        name="Comptes et journaux"
+        parent="account.menu_finance_reports"
+        sequence="1"
+        groups="account.group_account_readonly"/>
+    <menuitem
+        id="menu_rebuild_account_reports_periods_assets"
+        name="Immobilisations et périodes"
+        parent="account.menu_finance_reports"
+        sequence="6"
+        groups="account.group_account_readonly"/>
+
     <menuitem
         id="menu_rebuild_account_report_trial_balance_launcher"
         name="Balance générale"
-        parent="account.account_reports_legal_statements_menu"
+        parent="menu_rebuild_account_reports_accounting_books"
         action="action_rebuild_interactive_trial_balance"
         sequence="1"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_general_ledger_launcher"
         name="Grand livre"
-        parent="account.account_reports_legal_statements_menu"
+        parent="menu_rebuild_account_reports_accounting_books"
         action="action_rebuild_interactive_general_ledger"
         sequence="2"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_journal_report_launcher"
         name="Journal comptable"
-        parent="account.account_reports_legal_statements_menu"
+        parent="menu_rebuild_account_reports_accounting_books"
         action="action_rebuild_interactive_journal_report"
         sequence="3"
         groups="account.group_account_readonly"/>
@@ -5605,21 +5635,21 @@
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_french_balance_sheet_2024_launcher"
-        name="Bilan détaillé (PCG 2024)"
+        name="Bilan détaillé"
         parent="account.account_reports_legal_statements_menu"
         action="action_rebuild_interactive_french_balance_sheet_2024"
         sequence="7"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_french_profit_loss_2024_launcher"
-        name="Compte de résultat détaillé (PCG 2024)"
+        name="Compte de résultat détaillé"
         parent="account.account_reports_legal_statements_menu"
         action="action_rebuild_interactive_french_profit_loss_2024"
         sequence="8"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_sig_caf_2024_launcher"
-        name="SIG et CAF (PCG 2024)"
+        name="SIG et CAF"
         parent="account.account_reports_legal_statements_menu"
         action="action_rebuild_interactive_sig_caf_2024"
         sequence="9"
@@ -5627,49 +5657,49 @@
     <menuitem
         id="menu_rebuild_account_report_fec_launcher"
         name="FEC"
-        parent="account.account_reports_legal_statements_menu"
+        parent="menu_rebuild_account_reports_accounting_books"
         action="action_rebuild_account_report_export_fec"
         sequence="10"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_bank_reconciliation_launcher"
         name="État de rapprochement bancaire"
-        parent="account.account_reports_legal_statements_menu"
+        parent="menu_rebuild_account_reports_accounting_books"
         action="action_rebuild_interactive_bank_reconciliation"
         sequence="8"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_currency_launcher"
         name="Gains, pertes et exposition de change"
-        parent="account.account_reports_legal_statements_menu"
+        parent="menu_rebuild_account_reports_accounting_books"
         action="action_rebuild_interactive_currency_report"
         sequence="9"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_fixed_assets_launcher"
         name="Registre des immobilisations"
-        parent="account.account_reports_legal_statements_menu"
+        parent="menu_rebuild_account_reports_periods_assets"
         action="action_rebuild_interactive_fixed_assets"
         sequence="10"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_fixed_asset_group_account_launcher"
         name="Immobilisations par compte"
-        parent="account.account_reports_legal_statements_menu"
+        parent="menu_rebuild_account_reports_periods_assets"
         action="action_rebuild_account_report_export_fixed_asset_group_account"
         sequence="11"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_depreciation_schedule_launcher"
         name="Plan d’amortissement"
-        parent="account.account_reports_legal_statements_menu"
+        parent="menu_rebuild_account_reports_periods_assets"
         action="action_rebuild_interactive_depreciation_schedule"
         sequence="12"
         groups="account.group_account_readonly"/>
     <menuitem
         id="menu_rebuild_account_report_deferred_schedule_launcher"
         name="Charges et produits constatés d’avance"
-        parent="account.account_reports_legal_statements_menu"
+        parent="menu_rebuild_account_reports_periods_assets"
         action="action_rebuild_interactive_deferred_schedule"
         sequence="13"
         groups="account.group_account_readonly"/>
@@ -6089,6 +6119,18 @@
         <field name="active" eval="False"/>
     </record>
     <record id="menu_rebuild_account_report_oss_imports_launcher" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="menu_rebuild_account_revenue_spending_reporting" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="menu_rebuild_account_report_french_tax_package_launcher" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="account.menu_action_account_invoice_report_all" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+    <record id="l10n_fr_pdp.l10n_fr_pdp_reports_menu_flows" model="ir.ui.menu">
         <field name="active" eval="False"/>
     </record>
 </odoo>

@@ -3,10 +3,16 @@ import hashlib
 import json
 import tempfile
 from email.message import EmailMessage
+from io import BytesIO
 from pathlib import Path
 from unittest.mock import patch
 
 from lxml import etree
+
+try:
+    from pypdf import PdfReader
+except ImportError:
+    from PyPDF2 import PdfReader
 
 from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError, ValidationError
@@ -1270,7 +1276,7 @@ class TestRebuildAccountMigration(TransactionCase):
         )
         self.assertEqual(
             {button.get("string") for button in hygiene_alert_actions},
-            {"blocking issues", "Review them"},
+            {"Review issues"},
         )
         closing_alert_actions = home_arch.xpath(
             "//div[contains(@class, 'alert-warning')]"
@@ -2550,9 +2556,9 @@ class TestRebuildAccountMigration(TransactionCase):
         )
         self.assertEqual(
             menu.parent_id,
-            self.env.ref("account.menu_finance_reports"),
+            self.env.ref("account.account_reports_management_menu"),
         )
-        self.assertEqual(menu.sequence, 0)
+        self.assertEqual(menu.sequence, 4)
         self.assertEqual(menu.action, action)
 
     def test_accounting_configuration_and_review_navigation(self):
@@ -6671,7 +6677,10 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(wizard.preview_row_count, 0)
         self.assertFalse(wizard.preview_truncated)
         self.assertEqual(len(wizard.preview_line_ids), 1)
-        self.assertEqual(wizard.preview_line_ids.label, "No rows for the selected report filters")
+        self.assertEqual(
+            wizard.preview_line_ids.label,
+            "Aucune ligne pour les filtres sélectionnés",
+        )
         metadata = json.loads(wizard.preview_metadata)
         self.assertEqual(metadata["report_type"], "trial_balance")
         self.assertEqual(metadata["report_name"], "Balance générale")
@@ -6967,7 +6976,10 @@ class TestRebuildAccountMigration(TransactionCase):
         wizard.action_preview_report()
         wizard.action_generate_export()
 
-        self.assertEqual(wizard.preview_line_ids.label, "No rows for the selected report filters")
+        self.assertEqual(
+            wizard.preview_line_ids.label,
+            "Aucune ligne pour les filtres sélectionnés",
+        )
         self.assertTrue(base64.b64decode(wizard.export_file).startswith(b"PK"))
         analytic_wizard = Wizard.create({
             "company_id": self.company.id,
@@ -6981,7 +6993,7 @@ class TestRebuildAccountMigration(TransactionCase):
         analytic_wizard.action_preview_report()
         self.assertEqual(
             analytic_wizard.preview_line_ids.label,
-            "No rows for the selected report filters",
+            "Aucune ligne pour les filtres sélectionnés",
         )
 
     def test_report_launcher_actions_preselect_expected_report_types(self):
@@ -7047,6 +7059,26 @@ class TestRebuildAccountMigration(TransactionCase):
         Definition._ensure_standard_definitions()
         self.assertEqual(standard.name, "Balance générale")
         self.assertEqual(standard.origin, "usl")
+
+        sig_definition = definitions.filtered(
+            lambda definition: definition.code == "sig_caf_2024",
+        )
+        sig_definition.with_context(accounting_definition_seed=True).write({
+            "name": "SIG et CAF (PCG 2024)",
+            "business_purpose": (
+                "Provide the governed SIG et CAF (PCG 2024) used for "
+                "accounting review, investigation, and evidence."
+            ),
+        })
+        Definition._ensure_standard_definitions()
+        self.assertEqual(sig_definition.name, "SIG et CAF")
+        self.assertEqual(
+            sig_definition.business_purpose,
+            (
+                "Provide the governed SIG et CAF used for accounting review, "
+                "investigation, and evidence."
+            ),
+        )
 
         action = standard.action_customize_for_company()
         company_definition = Definition.browse(action["res_id"])
@@ -7122,11 +7154,15 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertTrue(trial["options"]["journals"])
         self.assertIn("analytic_accounts", trial["options"])
         self.assertTrue(trial["capabilities"]["period_presets"])
+        self.assertTrue(trial["capabilities"]["display_unit"])
         self.assertTrue(trial["capabilities"]["comparison"])
         self.assertTrue(trial["capabilities"]["analytics"])
+        self.assertEqual(trial["filters"]["display_unit"], "units")
+        self.assertEqual(trial["display_unit"]["factor"], 1)
+        self.assertEqual(trial["variant"]["key"], "standard")
         self.assertEqual(
             trial["lines"][0]["label"],
-            "No rows for the selected report filters",
+            "Aucune ligne pour les filtres sélectionnés",
         )
         self.assertFalse(trial["lines"][0]["can_drilldown"])
         self.assertEqual(trial["lines"][0]["presentation_role"], "empty")
@@ -7145,12 +7181,19 @@ class TestRebuildAccountMigration(TransactionCase):
             {
                 "journal_ids": [journal.id],
                 "target_move": "all",
+                "display_unit": "thousands",
                 "search_text": "",
             },
             trial["wizard_id"],
         )
         self.assertEqual(filtered["filters"]["journal_ids"], [journal.id])
         self.assertEqual(filtered["filters"]["target_move"], "all")
+        self.assertEqual(filtered["filters"]["display_unit"], "thousands")
+        self.assertEqual(filtered["display_unit"]["factor"], 1000)
+        self.assertEqual(
+            filtered["display_unit"]["short_label"],
+            f"k{self.env.company.currency_id.symbol}",
+        )
         filtered_wizard = Report.browse(filtered["wizard_id"])
         group_line = filtered_wizard.preview_line_ids.filtered("is_group")[:1]
         if group_line:
@@ -7161,6 +7204,18 @@ class TestRebuildAccountMigration(TransactionCase):
                 group_line.id,
             )
             self.assertEqual(folded["summary"], summary_before_fold)
+            Report.report_client_export(
+                filtered_wizard.id,
+                "xlsx",
+            )
+            folded_metadata = json.loads(
+                filtered_wizard.export_metadata,
+            )
+            self.assertEqual(
+                folded_metadata["collapsed_group_keys"],
+                [group_key],
+            )
+            self.assertEqual(folded_metadata["display_unit_factor"], 1000)
             folded_group_line = filtered_wizard.preview_line_ids.filtered(
                 lambda line: line.group_key == group_key,
             )[:1]
@@ -7225,6 +7280,38 @@ class TestRebuildAccountMigration(TransactionCase):
                 metadata["report_definition"]["code"],
                 "trial_balance",
             )
+            self.assertEqual(metadata["display_unit"], "thousands")
+            self.assertEqual(metadata["display_unit_factor"], 1000)
+
+        sig_caf = Report.report_client_load(
+            "sig_caf_2024",
+            {
+                "date_from": "2099-01-01",
+                "date_to": "2099-12-31",
+            },
+        )
+        sig_labels = {
+            line["label"]
+            for line in sig_caf["lines"]
+        }
+        self.assertGreaterEqual(len(sig_caf["lines"]), 40)
+        self.assertIn("Marge commerciale (I)", sig_labels)
+        self.assertIn("Production de l’exercice (II)", sig_labels)
+        self.assertIn("Résultat courant avant impôts", sig_labels)
+        self.assertIn("CAF — Résultat net comptable", sig_labels)
+        self.assertIn("Capacité d’autofinancement", sig_labels)
+        self.assertIn(
+            "subtotal",
+            {
+                line["presentation_role"]
+                for line in sig_caf["lines"]
+            },
+        )
+        Report.report_client_export(sig_caf["wizard_id"], "pdf")
+        sig_pdf = base64.b64decode(
+            Report.browse(sig_caf["wizard_id"]).export_file,
+        )
+        self.assertEqual(len(PdfReader(BytesIO(sig_pdf)).pages), 2)
 
         compared = Report.report_client_load(
             "trial_balance",
@@ -7288,6 +7375,11 @@ class TestRebuildAccountMigration(TransactionCase):
         )
         self.assertAlmostEqual(control["value"], 0.0, places=2)
         self.assertEqual(control["status"], "success")
+        self.assertEqual(french_balance["variant"]["key"], "pcg_fr")
+        self.assertEqual(
+            french_balance["variant"]["label"],
+            "Présentation française (PCG)",
+        )
         self.assertIn(
             "total",
             {
@@ -7453,6 +7545,27 @@ class TestRebuildAccountMigration(TransactionCase):
             self.assertEqual(context["default_payable_accounts_only"], payable_only)
 
     def test_primary_report_menus_open_canonical_interactive_reports(self):
+        reporting_root = self.env.ref("account.menu_finance_reports")
+        menu_families = {
+            "rebuild_account_migration.menu_rebuild_account_reports_accounting_books":
+                ("Comptes et journaux", 1),
+            "account.account_reports_legal_statements_menu":
+                ("États financiers", 2),
+            "account.account_reports_partners_reports_menu":
+                ("Tiers et échéances", 3),
+            "account.account_reports_taxes_and_fiscal_menu":
+                ("Fiscalité", 4),
+            "account.account_reports_management_menu":
+                ("Pilotage", 5),
+            "rebuild_account_migration.menu_rebuild_account_reports_periods_assets":
+                ("Immobilisations et périodes", 6),
+        }
+        for menu_xmlid, (name, sequence) in menu_families.items():
+            family = self.env.ref(menu_xmlid)
+            self.assertEqual(family.parent_id, reporting_root)
+            self.assertEqual(family.name, name)
+            self.assertEqual(family.sequence, sequence)
+
         expected_menus = {
             "menu_rebuild_account_report_trial_balance_launcher": "rebuild_account_migration.action_rebuild_interactive_trial_balance",
             "menu_rebuild_account_report_general_ledger_launcher": "rebuild_account_migration.action_rebuild_interactive_general_ledger",
@@ -7483,6 +7596,10 @@ class TestRebuildAccountMigration(TransactionCase):
             "rebuild_account_migration.menu_rebuild_account_report_ec_sales_launcher",
             "rebuild_account_migration.menu_rebuild_account_report_oss_sales_launcher",
             "rebuild_account_migration.menu_rebuild_account_report_oss_imports_launcher",
+            "rebuild_account_migration.menu_rebuild_account_revenue_spending_reporting",
+            "rebuild_account_migration.menu_rebuild_account_report_french_tax_package_launcher",
+            "account.menu_action_account_invoice_report_all",
+            "l10n_fr_pdp.l10n_fr_pdp_reports_menu_flows",
         ]
         for menu_xmlid in hidden_competitors:
             self.assertFalse(self.env.ref(menu_xmlid).active)
@@ -8043,8 +8160,8 @@ class TestRebuildAccountMigration(TransactionCase):
             },
         ]))
 
-        self.assertEqual(columns["quantity"], "Quantity")
-        self.assertEqual(columns["value_text"], "Value / note")
+        self.assertEqual(columns["quantity"], "Quantité")
+        self.assertEqual(columns["value_text"], "Valeur / note")
 
     def test_accountant_reviewer_can_prepare_test_fec_through_standard_and_custom_paths(self):
         reviewer = self.env["res.users"].with_context(no_reset_password=True).create({

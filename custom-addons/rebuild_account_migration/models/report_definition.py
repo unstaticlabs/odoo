@@ -32,12 +32,12 @@ ACCOUNTING_REPORT_TYPES = [
     ("depreciation_schedule", "Plan d’amortissement"),
     ("deferred_schedule", "Charges et produits constatés d’avance"),
     ("french_annual", "États financiers français"),
-    ("french_balance_sheet_2024", "Bilan détaillé (PCG 2024)"),
+    ("french_balance_sheet_2024", "Bilan détaillé"),
     (
         "french_profit_loss_2024",
-        "Compte de résultat détaillé (PCG 2024)",
+        "Compte de résultat détaillé",
     ),
-    ("sig_caf_2024", "SIG et CAF (PCG 2024)"),
+    ("sig_caf_2024", "SIG et CAF"),
     ("french_tax_package", "Liasse fiscale française"),
     ("closing_package", "Dossier de revue de clôture"),
     ("fec", "FEC"),
@@ -70,6 +70,9 @@ LEGACY_STANDARD_REPORT_NAMES = {
     "fixed_asset_group_account": "Fixed Asset Register by Account",
     "depreciation_schedule": "Depreciation Schedule",
     "deferred_schedule": "Deferred Expense and Revenue Schedule",
+    "french_balance_sheet_2024": "Bilan détaillé (PCG 2024)",
+    "french_profit_loss_2024": "Compte de résultat détaillé (PCG 2024)",
+    "sig_caf_2024": "SIG et CAF (PCG 2024)",
     "french_tax_package": "French Tax Package Mapping",
     "closing_package": "Closing Review Package",
 }
@@ -378,6 +381,18 @@ class RebuildAccountReportDefinition(models.Model):
                 values = {}
                 if legacy_name and definition.name == legacy_name:
                     values["name"] = name
+                if legacy_name:
+                    legacy_seed_values = _report_seed_values(
+                        report_type,
+                        legacy_name,
+                    )
+                    if (
+                        definition.business_purpose
+                        == legacy_seed_values["business_purpose"]
+                    ):
+                        values["business_purpose"] = seed_values[
+                            "business_purpose"
+                        ]
                 if definition.origin != seed_values["origin"]:
                     values["origin"] = seed_values["origin"]
                 if values:
