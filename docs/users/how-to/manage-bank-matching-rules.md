@@ -36,12 +36,13 @@ result, such as a bank fee or a controlled internal transfer. Prefer **Require
 Review** until the rule has narrow conditions and repeated correct outcomes.
 Use **Automate** only when every match has one unambiguous treatment.
 
-## Find new opportunities
+## Find suggested rules
 
-Choose **Find Opportunities** from the rules list. The analysis looks back two
-years for at least three reconciled bank transactions with the same label,
-journal and counterpart account. It ignores invoice/payment matching and
-partner-only patterns.
+Choose **Find** from the rules list. The analysis looks back two years for at
+least three reconciled bank transactions with the same label, journal and
+counterpart account. It ignores invoice/payment matching and partner-only
+patterns. Running it again is safe: it does not duplicate an existing
+suggestion or equivalent rule.
 
 The resulting records are inert **Suggestions**:
 
@@ -50,6 +51,10 @@ The resulting records are inert **Suggestions**:
 - they cannot participate in Bank Matching;
 - an Accounting Manager must review the condition and counterpart entry, then
   choose **Approve Rule** or **Dismiss**.
+
+**Find** never changes a bank transaction, journal entry or reconciliation and
+never activates a rule. If there is no new pattern to review, it reports that
+there are no new suggestions.
 
 A future Accounting Agent may create the same kind of suggestion through MCP
 by setting the structured suggestion source, confidence and evidence fields.
