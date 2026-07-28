@@ -54,32 +54,53 @@
     .o_usl_accounting_status_chip {
         display: inline-flex;
         align-items: center;
-        gap: 0.3rem;
+        justify-content: center;
+        gap: 0.32rem;
         width: fit-content;
-        min-height: 1.65rem;
-        padding: 0.2rem 0.55rem;
-        border: 1px solid rgba(#b54708, 0.24);
+        min-height: 1.6rem;
+        padding: 0.22rem 0.6rem;
+        border: 1px solid rgba(#b54708, 0.28);
         border-radius: 999px;
-        background: rgba(#f79009, 0.1);
+        background: #fff7ed;
         color: #93370d;
+        box-shadow: none;
+        cursor: pointer;
         font-size: 0.75rem;
         font-weight: 650;
-        line-height: 1.1;
+        line-height: 1;
         text-decoration: none;
+        white-space: nowrap;
 
         .o_field_widget {
+            display: inline-flex;
+            align-items: center;
             color: inherit;
             font-size: inherit;
             font-weight: inherit;
             font-variant-numeric: tabular-nums;
+            line-height: inherit;
+        }
+
+        .o_usl_accounting_status_dot {
+            width: 0.42rem;
+            height: 0.42rem;
+            border-radius: 50%;
+            background: #f79009;
+            box-shadow: 0 0 0 0.16rem rgba(#f79009, 0.13);
+            flex: 0 0 auto;
         }
 
         &:hover,
         &:focus-visible {
             border-color: rgba(#b54708, 0.42);
-            background: rgba(#f79009, 0.17);
+            background: #ffedd5;
             color: #7a2e0e;
+            outline: none;
             text-decoration: none;
+        }
+
+        &:focus-visible {
+            box-shadow: 0 0 0 0.18rem rgba(#f79009, 0.2);
         }
     }
 
@@ -133,8 +154,8 @@
         align-items: center;
         justify-content: space-between;
         gap: 1rem;
-        margin-top: 0.75rem;
-        padding: 0.75rem 0.85rem;
+        margin-top: 0.6rem;
+        padding: 0.65rem 0.8rem;
         border: 1px solid rgba(#714b67, 0.16);
         border-radius: 0.6rem;
         background: rgba(#714b67, 0.055);
@@ -152,11 +173,6 @@
                 font-weight: 700;
             }
 
-            span {
-                margin-top: 0.1rem;
-                font-size: 0.74rem;
-                line-height: 1.25;
-            }
         }
 
         .o_usl_cash_projection_link,
@@ -190,7 +206,7 @@
         align-items: center;
         justify-content: space-between;
         gap: 1rem;
-        padding: 0.55rem 0.85rem 0;
+        padding: 0.55rem 0.8rem 0;
         color: var(--usl-overview-muted);
         font-size: 0.8rem;
 
@@ -205,11 +221,6 @@
                 font-weight: 650;
             }
 
-            span {
-                margin-top: 0.05rem;
-                font-size: 0.72rem;
-                line-height: 1.25;
-            }
         }
 
         .o_usl_cash_projection_link,

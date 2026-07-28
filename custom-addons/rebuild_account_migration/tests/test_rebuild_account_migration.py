@@ -1174,7 +1174,7 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(len(cash_breakdown), 1)
         self.assertEqual(
             cash_breakdown[0].xpath("normalize-space(summary)"),
-            "How this estimate is built",
+            "Projection details",
         )
         self.assertEqual(
             {
@@ -1233,6 +1233,22 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(
             matching_chips[0].get("invisible"),
             "unmatched_bank_transaction_count == 0",
+        )
+        self.assertNotIn("btn-link", matching_chips[0].get("class", ""))
+        self.assertEqual(
+            len(
+                matching_chips[0].xpath(
+                    "./span[contains(@class, "
+                    "'o_usl_accounting_status_dot')]",
+                ),
+            ),
+            1,
+        )
+        self.assertFalse(
+            home_arch.xpath(
+                "//*[normalize-space(.)='Open balances and expenses included' "
+                "or normalize-space(.)='Includes an estimated YTD IS reserve']",
+            ),
         )
         self.assertTrue(
             home_arch.xpath(
