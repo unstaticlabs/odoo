@@ -477,27 +477,46 @@ def source_manager_accounting_identity() -> dict[str, Any]:
             SELECT employee.id AS employee_id,
                    employee.work_contact_id AS partner_id,
                    users.partner_id AS user_partner_id,
-                   NULLIF(
-                       partner.property_account_payable_id ->> employee.company_id::text,
-                       ''
-                   )::integer AS payable_account_id
+                   account.id AS payable_account_id,
+                   account.code_store ->> employee.company_id::text AS payable_code,
+                   account.reconcile AS payable_reconcile,
+                   count(*) OVER () AS candidate_count
             FROM hr_employee employee
             JOIN res_partner partner
               ON partner.id = employee.work_contact_id
             JOIN res_users users
               ON users.id = employee.user_id
+            JOIN account_account account
+              ON account.id = NULLIF(
+                  partner.property_account_payable_id
+                    ->> employee.company_id::text,
+                  ''
+              )::integer
             WHERE employee.company_id = 1
-              AND employee.name ILIKE '%Valentin%'
+              AND employee.work_contact_id = users.partner_id
+              AND account.code_store ->> employee.company_id::text = '455100'
+              AND account.reconcile
+              AND EXISTS (
+                  SELECT 1
+                  FROM account_move_line line
+                  JOIN account_move move ON move.id = line.move_id
+                  WHERE line.account_id = account.id
+                    AND line.partner_id = partner.id
+                    AND move.state = 'posted'
+                    AND NOT line.reconciled
+                    AND line.balance > 0
+              )
             ORDER BY employee.id
             LIMIT 1
         )
         SELECT jsonb_build_object(
+            'candidate_count', manager.candidate_count,
             'employee_source_id', manager.employee_id,
             'partner_source_id', manager.partner_id,
             'user_partner_source_id', manager.user_partner_id,
             'payable_source_account_id', manager.payable_account_id,
-            'payable_code', account.code_store ->> '1',
-            'payable_reconcile', account.reconcile,
+            'payable_code', manager.payable_code,
+            'payable_reconcile', manager.payable_reconcile,
             'cca_line_count', (
                 SELECT count(*)
                 FROM account_move_line line
@@ -516,8 +535,6 @@ def source_manager_accounting_identity() -> dict[str, Any]:
             )
         )
         FROM manager
-        JOIN account_account account
-          ON account.id = manager.payable_account_id
         """,
     )
 
@@ -555,6 +572,10 @@ def target_manager_accounting_identity(db: str) -> dict[str, Any]:
             'payable_code', account.code_store ->> company.rebuild_source_id::text,
             'payable_reconcile', account.reconcile,
             'canonical_partner', manager.partner_id = manager.user_partner_id,
+            'configured_cca_account',
+                company.rebuild_overview_cca_account_id = manager.payable_account_id,
+            'configured_cca_employee',
+                company.rebuild_overview_cca_employee_id = manager.employee_id,
             'cca_line_count', (
                 SELECT count(*)
                 FROM account_move_line line
@@ -586,15 +607,25 @@ def manager_accounting_identity_matches(
     source: dict[str, Any] | None,
     target: dict[str, Any] | None,
 ) -> bool:
+    identity_fields = (
+        "employee_source_id",
+        "partner_source_id",
+        "user_partner_source_id",
+        "payable_source_account_id",
+        "payable_code",
+        "payable_reconcile",
+        "cca_line_count",
+        "open_debit_count",
+    )
     return bool(
         source
         and target
-        and target
-        == {
-            **source,
-            "canonical_partner": True,
-        }
-        and target["open_debit_count"] > 0,
+        and source.get("candidate_count") == 1
+        and target.get("canonical_partner") is True
+        and target.get("configured_cca_account") is True
+        and target.get("configured_cca_employee") is True
+        and all(target.get(key) == source.get(key) for key in identity_fields)
+        and target.get("open_debit_count", 0) > 0,
     )
 
 
@@ -1782,7 +1813,6 @@ def inspect_source(args: argparse.Namespace) -> dict[str, Any]:
     validation = validate_source(args)
     dump_sha = validation["dump"]["sha256"] or "unknown"
     snapshot_id = f"source-{dump_sha[:12]}"
-    import_date_to = source_snapshot_date() or USL_BENCHMARK_END
     snapshot_dir = PRIVATE_SNAPSHOTS / snapshot_id
     snapshot_dir.mkdir(parents=True, exist_ok=True)
 
@@ -3749,12 +3779,12 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             ")",
             "manager_employees = env['hr.employee'].search([",
             "    ('company_id', '=', main_company.id),",
-            "    ('name', 'ilike', 'Valentin'),",
             "    ('rebuild_source_model', '=', 'hr.employee'),",
+            f"    ('rebuild_source_id', '=', {source_manager_identity['employee_source_id']}),",
             "])",
             "if len(manager_employees) != 1:",
             "    raise RuntimeError(",
-            "        'Expected one source-traced Valentin employee, found %s'",
+            "        'Expected one source-traced manager employee, found %s'",
             "        % len(manager_employees)",
             "    )",
             "manager_employee = manager_employees",
@@ -3816,6 +3846,10 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             "manager_payable = manager_partner.with_company(",
             "    main_company",
             ").property_account_payable_id",
+            "main_company.write({",
+            "    'rebuild_overview_cca_account_id': manager_payable.id,",
+            "    'rebuild_overview_cca_employee_id': manager_employee.id,",
+            "})",
             "manager_cca_line_count = env['account.move.line'].search_count([",
             "    ('account_id', '=', manager_payable.id),",
             "    ('partner_id', '=', manager_partner.id),",
@@ -3861,6 +3895,14 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             "            'work_contact_id': manager_employee.work_contact_id.id,",
             "            'canonical_partner': (",
             "                manager_user.partner_id == manager_employee.work_contact_id",
+            "            ),",
+            "            'configured_cca_account': (",
+            "                main_company.rebuild_overview_cca_account_id",
+            "                == manager_payable",
+            "            ),",
+            "            'configured_cca_employee': (",
+            "                main_company.rebuild_overview_cca_employee_id",
+            "                == manager_employee",
             "            ),",
             "            'source_partner_id': manager_partner.rebuild_source_id,",
             "            'payable_account_id': manager_payable.id,",
@@ -3987,6 +4029,8 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
         and payload["users"]["manager"]["expense_manager"] is True
         and payload["users"]["manager"]["employee_linked"] is True
         and payload["users"]["manager"]["canonical_partner"] is True
+        and payload["users"]["manager"]["configured_cca_account"] is True
+        and payload["users"]["manager"]["configured_cca_employee"] is True
         and payload["users"]["manager"]["source_partner_id"]
         == source_manager_identity["partner_source_id"]
         and payload["users"]["manager"]["payable_source_account_id"]
@@ -6518,7 +6562,7 @@ def target_posted_summary() -> dict[str, Any]:
 def source_posted_line_amount_profile() -> dict[str, Any]:
     return query_json(
         SOURCE_DB,
-        f"""
+        """
         SELECT jsonb_build_object(
             'move_line_count', count(*)::text,
             'zero_amount_line_count', count(*) FILTER (WHERE aml.debit = 0 AND aml.credit = 0)::text,
@@ -7406,7 +7450,7 @@ def sequence_chronology_summary(
 def source_move_comparison_rows() -> list[dict[str, Any]]:
     return query_rows(
         SOURCE_DB,
-        f"""
+        """
         SELECT am.id::text AS source_move_id,
                COALESCE(am.name::text, '/') AS move_name,
                am.date::text AS date,
@@ -7462,7 +7506,7 @@ def target_move_comparison_rows(
 def source_line_comparison_rows() -> list[dict[str, Any]]:
     return query_rows(
         SOURCE_DB,
-        f"""
+        """
         SELECT aml.id::text AS source_line_id,
                aml.move_id::text AS source_move_id,
                COALESCE(aml.account_id::text, '') AS source_account_id,

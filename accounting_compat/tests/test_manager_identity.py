@@ -13,6 +13,7 @@ from accounting_compat import cli
 
 class ManagerAccountingIdentityTest(unittest.TestCase):
     source = {
+        "candidate_count": 1,
         "employee_source_id": 1,
         "partner_source_id": 3,
         "user_partner_source_id": 3,
@@ -25,8 +26,14 @@ class ManagerAccountingIdentityTest(unittest.TestCase):
 
     def test_accepts_one_canonical_source_faithful_identity(self):
         target = {
-            **self.source,
+            **{
+                key: value
+                for key, value in self.source.items()
+                if key != "candidate_count"
+            },
             "canonical_partner": True,
+            "configured_cca_account": True,
+            "configured_cca_employee": True,
         }
 
         self.assertTrue(
@@ -35,8 +42,14 @@ class ManagerAccountingIdentityTest(unittest.TestCase):
 
     def test_rejects_split_user_and_employee_contacts(self):
         target = {
-            **self.source,
+            **{
+                key: value
+                for key, value in self.source.items()
+                if key != "candidate_count"
+            },
             "canonical_partner": False,
+            "configured_cca_account": True,
+            "configured_cca_employee": True,
         }
 
         self.assertFalse(
@@ -45,15 +58,27 @@ class ManagerAccountingIdentityTest(unittest.TestCase):
 
     def test_rejects_wrong_payable_or_missing_outstanding_debit(self):
         wrong_payable = {
-            **self.source,
+            **{
+                key: value
+                for key, value in self.source.items()
+                if key != "candidate_count"
+            },
             "payable_source_account_id": 999,
             "payable_code": "401100",
             "canonical_partner": True,
+            "configured_cca_account": True,
+            "configured_cca_employee": True,
         }
         no_outstanding_debit = {
-            **self.source,
+            **{
+                key: value
+                for key, value in self.source.items()
+                if key != "candidate_count"
+            },
             "open_debit_count": 0,
             "canonical_partner": True,
+            "configured_cca_account": True,
+            "configured_cca_employee": True,
         }
 
         self.assertFalse(
@@ -75,6 +100,28 @@ class ManagerAccountingIdentityTest(unittest.TestCase):
         )
         self.assertFalse(
             cli.manager_accounting_identity_matches(self.source, None),
+        )
+
+    def test_rejects_ambiguous_source_or_unconfigured_projection(self):
+        target = {
+            **{
+                key: value
+                for key, value in self.source.items()
+                if key != "candidate_count"
+            },
+            "canonical_partner": True,
+            "configured_cca_account": True,
+            "configured_cca_employee": False,
+        }
+
+        self.assertFalse(
+            cli.manager_accounting_identity_matches(
+                {**self.source, "candidate_count": 2},
+                target,
+            ),
+        )
+        self.assertFalse(
+            cli.manager_accounting_identity_matches(self.source, target),
         )
 
     def test_generated_import_script_reuses_the_source_partner(self):
@@ -124,6 +171,19 @@ class ManagerAccountingIdentityTest(unittest.TestCase):
         self.assertIn("values['partner_id'] = partner.id", generated)
         self.assertIn("partner=manager_partner", generated)
         self.assertIn("'canonical_partner': (", generated)
+        self.assertIn(
+            "'rebuild_source_id', '=', 1",
+            generated,
+        )
+        self.assertIn(
+            "'rebuild_overview_cca_account_id': manager_payable.id",
+            generated,
+        )
+        self.assertIn(
+            "'rebuild_overview_cca_employee_id': manager_employee.id",
+            generated,
+        )
+        self.assertNotIn("('name', 'ilike', 'Valentin')", generated)
         self.assertNotIn(
             "manager_employee = env['hr.employee'].create",
             generated,

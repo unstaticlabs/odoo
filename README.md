@@ -199,6 +199,17 @@ odoo --config=/etc/odoo/odoo.conf --database=odoo_dev --update=your_module --sto
 odoo --config=/etc/odoo/odoo.conf --database=odoo_dev --test-enable --stop-after-init --init=your_module
 ```
 
+From the host, run:
+
+```bash
+scripts/odoo-dev test your_module odoo_test_your_module
+```
+
+This performs a clean, module-scoped install/test run. The helper stops and
+restores the normal development server and removes the named test database,
+filestore and container afterward. It refuses to use `odoo_dev` as a test
+database.
+
 Debug configurations are available in `.devcontainer/launch.json`:
 
 - `Odoo: Run`
