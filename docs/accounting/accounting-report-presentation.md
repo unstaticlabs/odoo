@@ -97,11 +97,11 @@ actions behind every canonical report.
   editable.
 - Less common journal, account, partner and analytic filters use progressive
   disclosure and remain visible as removable active-scope chips.
-- Reports with account-level rows offer **Masquer les comptes à zéro**. It
-  removes only accounts whose displayed current, comparison and activity
+- Applicable reports offer **Masquer les lignes à zéro**. It removes only
+  detail lines and accounts whose displayed current, comparison and activity
   columns are all zero; offset debit/credit activity is not mistaken for an
-  empty account, and empty PCG branches are pruned without removing statement
-  totals.
+  empty account, and empty PCG branches are pruned without removing sections,
+  subtotals or statement totals.
 - The display unit is a first-level choice. Units, thousands and millions use
   the selected company's currency symbol and scale company-currency figures;
   an original foreign-currency amount remains in its own unscaled currency.
@@ -130,7 +130,7 @@ PDF and XLSX carry the same company, resolved dates, posted/draft scope,
 comparison, filters, grouping, search and report variant as the screen.
 The export call receives the client's current filter object and refreshes the
 same wizard session before rendering, preventing a download from using a stale
-pre-filter state. The zero-account choice appears in export metadata and as a
+pre-filter state. The zero-line choice appears in export metadata and as a
 concise document-context label when active.
 Hierarchy roles determine shading, weight, indentation and total rules in both
 formats. Folding is part of the displayed statement state: a download contains

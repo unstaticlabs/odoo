@@ -50,8 +50,7 @@ The available subset depends on the report:
 - analytic plan and account;
 - posted entries only or drafts included;
 - resolved report variant and display unit;
-- account display with zero-valued accounts shown or hidden where the report
-  contains account-level rows;
+- zero-valued detail lines and accounts shown or hidden where applicable;
 - text search.
 
 **Unité** is available beside the period and comparison. It displays values in
@@ -60,10 +59,10 @@ principal result, active scope and amount columns always repeat the chosen
 unit. Original
 foreign-currency amounts are not rescaled.
 
-**Masquer les comptes à zéro** removes an account only when every monetary
-column shown for that account is zero. A fully settled account with debit or
-credit activity remains visible, as does an account with a non-zero comparison
-value. Empty PCG branches are removed with their zero accounts, while statement
+**Masquer les lignes à zéro** removes a detail line or account only when every
+displayed monetary column is zero. A fully settled account with debit or credit
+activity remains visible, as does a line with a non-zero comparison value.
+Empty PCG branches are removed with their zero accounts, while statement
 sections, subtotals and totals remain visible.
 
 Less common journal, account, partner and analytic choices are under
@@ -106,7 +105,7 @@ bounded landscape width for column-heavy ledgers. The screen, PDF and readable
 XLSX `Report` sheet share the resolved period, filters, grouping, visible
 folded hierarchy, PCG group/account codes, display unit, calculations and
 totals. Clicking PDF or XLSX resynchronizes the export from the filters visible
-in the report before generating the file. The active zero-account choice is
+in the report before generating the file. The active zero-line choice is
 therefore applied to the downloaded rows and recorded in its context. XLSX
 also contains a raw `Audit Data` sheet for analysis; its monetary
 values remain in source units and it is not the presentation reference.
