@@ -64,6 +64,27 @@ types without changing or duplicating the underlying accounting records.
 
 Employee expense claims remain in the separate **Expenses** application.
 
+## Expenses application
+
+Use **Expenses > My Expenses** for individual expense evidence and workflow.
+The list shows **Attachment status**, each expense's normal status and its
+optional **Expense Batch** link. It deliberately does not show a permanent
+**Batch readiness** column.
+
+The default **Not in a batch** filter keeps the working list limited to
+expenses that can still be grouped; remove it to review historical batched
+expenses. Use **Ready to submit**, **Needs information** and **Already in a
+batch** for more specific review. Select one or more unbatched Draft, Approved
+or Posted expenses, then use the single **Create expense batch** action. The
+former automatic **Submit ready expenses** action is not part of the product.
+The preview shows aggregate readiness, attachment and expense statuses, and
+missing information before the batch is saved or its Draft lines are
+submitted. Both completion actions close the preview and refresh the list.
+
+Managers use **My Expenses > Expense Batches** to review the shared purpose,
+period, totals, analytic context and individual evidence. Accounting entries
+retain a direct link back to the batch and its expenses.
+
 ## Action explanations
 
 Consequential or non-obvious Accounting buttons provide a concise explanation
