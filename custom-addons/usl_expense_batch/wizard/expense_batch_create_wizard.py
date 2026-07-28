@@ -211,26 +211,12 @@ class UslExpenseBatchCreateWizard(models.TransientModel):
         })
 
     def action_create_batch(self):
-        batch = self._create_batch()
-        return {
-            "name": batch.name,
-            "type": "ir.actions.act_window",
-            "res_model": "usl.expense.batch",
-            "view_mode": "form",
-            "views": [(False, "form")],
-            "res_id": batch.id,
-        }
+        self._create_batch()
+        return {"type": "ir.actions.act_window_close"}
 
     def action_create_and_submit(self):
         if not self.draft_count:
             raise UserError(_("This selection has no draft expenses to submit."))
         batch = self._create_batch()
         batch.action_submit()
-        return {
-            "name": batch.name,
-            "type": "ir.actions.act_window",
-            "res_model": "usl.expense.batch",
-            "view_mode": "form",
-            "views": [(False, "form")],
-            "res_id": batch.id,
-        }
+        return {"type": "ir.actions.act_window_close"}

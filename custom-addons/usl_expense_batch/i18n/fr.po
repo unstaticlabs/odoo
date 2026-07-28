@@ -93,6 +93,11 @@ msgid "Already in a batch"
 msgstr "Déjà dans une note de frais"
 
 #. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_hr_expense_search_batch
+msgid "Not in a batch"
+msgstr "Hors note de frais"
+
+#. module: usl_expense_batch
 #: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
 msgid "Approve batch"
 msgstr "Approuver la note de frais"

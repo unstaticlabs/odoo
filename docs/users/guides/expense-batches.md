@@ -12,6 +12,10 @@ requis**), la **Note de frais** associée, lorsqu'elle existe, et le statut
 normal de la dépense. Elle n'affiche pas de colonne permanente **Préparation
 de la note**.
 
+Le filtre **Hors note de frais** est activé par défaut. La liste de travail
+affiche ainsi uniquement les dépenses qui peuvent encore être regroupées.
+Retirez ce filtre pour retrouver les dépenses déjà incluses dans une note.
+
 Utilisez plutôt les filtres **Prête à soumettre**, **Informations requises**
 et **Déjà dans une note de frais**. Le contrôle détaillé de préparation
 apparaît ensuite dans l'aperçu de création, avant tout enregistrement ou
@@ -37,6 +41,10 @@ soumission.
      statut de dépense ;
    - **Soumettre la note de frais** crée le regroupement puis soumet uniquement
      ses dépenses en brouillon au responsable.
+
+Après l’une ou l’autre action, l’aperçu se ferme et la liste se met à jour.
+Avec le filtre **Hors note de frais**, les dépenses qui viennent d’être
+regroupées disparaissent immédiatement de la liste de travail.
 
 **Prête à soumettre** signifie que la description, la catégorie, le montant et
 le justificatif éventuellement requis sont présents. **Informations
