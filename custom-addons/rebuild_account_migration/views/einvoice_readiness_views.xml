@@ -31,13 +31,13 @@
             <form create="0" delete="0">
                 <header>
                     <button name="action_rebuild_run_einvoice_acceptance_test"
-                        type="object" string="Run Offline Reception Test"
+                        type="object" string="Test Reception"
                         class="oe_highlight"
                         title="Create a safe representative supplier invoice through the native decoder. No provider, supplier, directory, or external endpoint is contacted."
                         groups="account.group_account_manager"
                         invisible="rebuild_einvoice_connection_status == 'active'"/>
                     <button name="action_rebuild_approve_einvoice_activation"
-                        type="object" string="Approve Production Activation"
+                        type="object" string="Approve Activation"
                         class="oe_highlight"
                         title="Record Accounting Manager approval on the deployed production system. This does not register the company or enable retrieval."
                         groups="account.group_account_manager"
@@ -48,13 +48,13 @@
                         groups="account.group_account_manager"
                         invisible="not rebuild_einvoice_activation_approved"/>
                     <button name="action_rebuild_enable_einvoice_exchange"
-                        type="object" string="Enable Scheduled Reception"
+                        type="object" string="Start Reception"
                         class="oe_highlight"
                         title="Enable invoice reception jobs after approved-platform registration is connected. E-reporting jobs remain disabled."
                         groups="account.group_account_manager"
                         invisible="rebuild_einvoice_connection_status != 'connected_suspended'"/>
                     <button name="action_rebuild_suspend_einvoice_exchange"
-                        type="object" string="Suspend Scheduled Reception"
+                        type="object" string="Pause Reception"
                         title="Stop scheduled reception immediately. Existing bills and evidence are preserved."
                         groups="account.group_account_manager"
                         invisible="rebuild_einvoice_connection_status != 'active'"/>
@@ -73,68 +73,74 @@
                         bg_color="text-bg-success"
                         invisible="rebuild_einvoice_readiness_status != 'active'"/>
                     <div class="oe_title">
-                        <h1>Electronic-Invoice Reception</h1>
+                        <h1>E-Invoicing</h1>
                         <h2><field name="name" readonly="1"/></h2>
                     </div>
+                    <p class="text-muted">
+                        Configure and test incoming supplier invoices here. The live
+                        connection is activated separately in production.
+                    </p>
 
-                    <div class="alert alert-info" role="alert"
-                        invisible="rebuild_einvoice_connection_status != 'inactive'">
-                        The software can be tested without contacting a platform. Live
-                        registration and retrieval remain blocked until production
-                        deployment, platform eligibility verification, Accounting Manager
-                        approval, and the deployment-level live guard are all present.
-                    </div>
-                    <div class="alert alert-success" role="alert"
-                        invisible="rebuild_einvoice_test_status != 'passed'">
-                        The representative offline reception test passed. Its draft bill
-                        is test evidence, not a real supplier document.
+                    <separator string="Status"/>
+                    <div class="row g-3">
+                        <div class="col-12 col-md-4">
+                            <div class="text-muted small mb-1">Reception readiness</div>
+                            <field name="rebuild_einvoice_readiness_status"
+                                widget="badge" nolabel="1"/>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <div class="text-muted small mb-1">Offline test</div>
+                            <field name="rebuild_einvoice_test_status"
+                                widget="badge" nolabel="1"/>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <div class="text-muted small mb-1">Live connection</div>
+                            <field name="rebuild_einvoice_connection_status"
+                                widget="badge" nolabel="1"/>
+                        </div>
                     </div>
 
-                    <group string="Readiness">
-                        <group>
-                            <field name="rebuild_einvoice_readiness_status" widget="badge"/>
-                            <field name="rebuild_einvoice_capability_status" widget="badge"/>
-                            <field name="rebuild_einvoice_connection_status" widget="badge"/>
+                    <div class="alert alert-warning mt-3" role="status"
+                        invisible="rebuild_einvoice_readiness_status == 'active'">
+                        <div class="fw-bold mb-1">
+                            <field name="rebuild_einvoice_next_action"
+                                nolabel="1" readonly="1"/>
+                        </div>
+                        <field name="rebuild_einvoice_next_steps"
+                            widget="html" nolabel="1" readonly="1"
+                            class="w-100"/>
+                    </div>
+                    <div class="alert alert-success mt-3" role="status"
+                        invisible="rebuild_einvoice_readiness_status != 'active'">
+                        Reception is active. Monitor the connection and received invoices.
+                    </div>
+
+                    <separator string="Reception setup"/>
+                    <p class="text-muted">
+                        These values identify the company and decide where received
+                        supplier invoices become draft bills.
+                    </p>
+                    <group>
+                        <group string="Company identity">
+                            <field name="account_fiscal_country_id"
+                                string="Accounting Country"/>
+                            <field name="vat" string="French VAT Number"/>
+                            <field name="company_registry"
+                                string="SIREN or SIRET"/>
+                            <field name="peppol_eas"
+                                string="Identifier Scheme"
+                                help="Use scheme 0225 for a French SIRET identifier."/>
+                            <field name="peppol_endpoint"
+                                string="E-Invoicing Identifier"
+                                help="Company identifier published to the French electronic-invoicing directory."/>
                         </group>
-                        <group>
-                            <field name="rebuild_einvoice_test_status" widget="badge"/>
+                        <group string="Incoming bills">
+                            <field name="peppol_purchase_journal_id"
+                                string="Purchase Journal"
+                                help="Received supplier invoices are created as draft bills in this journal."/>
                             <field name="rebuild_einvoice_tested_at"/>
                             <field name="rebuild_einvoice_test_reception_id"/>
                         </group>
-                    </group>
-
-                    <group string="Company and Reception Prerequisites">
-                        <group>
-                            <field name="vat"/>
-                            <field name="company_registry"/>
-                            <field name="peppol_eas"/>
-                            <field name="peppol_endpoint"/>
-                        </group>
-                        <group>
-                            <field name="account_peppol_contact_email"/>
-                            <field name="account_peppol_phone_number"/>
-                            <field name="peppol_purchase_journal_id"/>
-                        </group>
-                    </group>
-
-                    <group string="Controlled Production Activation">
-                        <group>
-                            <field name="rebuild_einvoice_provider"/>
-                            <field name="rebuild_einvoice_provider_contract_status"/>
-                            <field name="rebuild_einvoice_environment"/>
-                        </group>
-                        <group>
-                            <field name="rebuild_einvoice_activation_approved"/>
-                            <field name="rebuild_einvoice_approved_by_id"/>
-                            <field name="rebuild_einvoice_approved_at"/>
-                            <field name="l10n_fr_pdp_annuaire_start_date"
-                                string="Directory Effective Date"
-                                readonly="1"/>
-                        </group>
-                    </group>
-
-                    <group string="Remaining Prerequisites">
-                        <field name="rebuild_einvoice_blockers" nolabel="1" readonly="1"/>
                     </group>
 
                     <notebook>
@@ -156,35 +162,52 @@
                                 </list>
                             </field>
                         </page>
-                        <page string="Connection Health">
+                        <page string="Production connection">
+                            <p class="text-muted">
+                                Complete this section only after the offline test passes
+                                and the approved platform confirms production access.
+                            </p>
+                            <group>
+                                <group string="Platform">
+                                    <field name="rebuild_einvoice_provider"/>
+                                    <field name="rebuild_einvoice_provider_contract_status"/>
+                                    <field name="account_peppol_contact_email"
+                                        string="Contact Email"/>
+                                    <field name="account_peppol_phone_number"
+                                        string="Contact Mobile"/>
+                                </group>
+                                <group string="Activation">
+                                    <field name="rebuild_einvoice_environment"/>
+                                    <field name="rebuild_einvoice_activation_approved"/>
+                                    <field name="rebuild_einvoice_approved_by_id"/>
+                                    <field name="rebuild_einvoice_approved_at"/>
+                                    <field name="l10n_fr_pdp_annuaire_start_date"
+                                        string="Directory Effective Date"
+                                        readonly="1"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Connection">
                             <group>
                                 <field name="rebuild_einvoice_last_poll_status" widget="badge"/>
                                 <field name="rebuild_einvoice_last_poll_at"/>
                                 <field name="rebuild_einvoice_last_poll_message"/>
                             </group>
                             <p class="text-muted">
-                                No platform check is expected while reception is inactive.
-                                Authentication or temporary platform failures retain documents
-                                for a later retry and never create duplicate bills.
-                            </p>
-                        </page>
-                        <page string="Activation Boundary">
-                            <p>
-                                Offline testing never calls an external service. Registration
-                                becomes available only after deliberate production approval.
-                                Scheduled reception is enabled separately after registration.
-                                E-reporting and outgoing regulatory-flow jobs are not enabled by
-                                reception activation.
+                                No check is expected while reception is inactive. Failures
+                                retain the original document for a safe retry.
                             </p>
                         </page>
                     </notebook>
+                    <field name="rebuild_einvoice_capability_status" invisible="1"/>
+                    <field name="rebuild_einvoice_blockers" invisible="1"/>
                 </sheet>
             </form>
         </field>
     </record>
 
     <record id="action_rebuild_einvoice_readiness" model="ir.actions.act_window">
-        <field name="name">Electronic-Invoice Readiness</field>
+        <field name="name">E-Invoicing</field>
         <field name="res_model">res.company</field>
         <field name="view_mode">list,form</field>
         <field name="domain">[('id', 'in', allowed_company_ids)]</field>
@@ -364,8 +387,8 @@
                     · <field name="rebuild_einvoice_connection_status"/>
                     <p class="mb-0">
                         Review prerequisites and run the offline test under
-                        Accounting &gt; Configuration &gt; Electronic-Invoice
-                        Readiness before opening live approved-platform registration.
+                        Accounting &gt; Configuration &gt; Invoicing &gt;
+                        E-Invoicing before opening live approved-platform registration.
                     </p>
                 </div>
             </xpath>
@@ -385,10 +408,10 @@
     </record>
 
     <menuitem id="menu_rebuild_einvoice_readiness"
-        name="Electronic-Invoice Readiness"
-        parent="account.menu_finance_configuration"
+        name="E-Invoicing"
+        parent="account.account_invoicing_menu"
         action="action_rebuild_einvoice_readiness"
-        sequence="45"
+        sequence="5"
         groups="account.group_account_manager"/>
     <menuitem id="menu_rebuild_einvoice_reception"
         name="Electronic Invoice Reception"

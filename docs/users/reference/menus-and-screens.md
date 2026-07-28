@@ -115,11 +115,11 @@ Under **Settings > Management Projections**, Accounting Managers select the
 account and employee used by the Overview shareholder current-account
 projection.
 
-**Configuration > Electronic-Invoice Readiness** shows honest product states:
+**Configuration > Invoicing > E-Invoicing** shows honest product states:
 **Configuration incomplete**, **Not yet verified**, **Test passed**, **Ready
-but inactive**, **Production activation required** or **Active**. It holds
-company identifiers, provider eligibility decision, reception journal, safe
-offline test and controlled production approval. Development remains inactive.
+but inactive**, **Production activation required** or **Active**. A full-width
+**Next Action** leads to the relevant reception setup, test or production
+connection fields. Development remains inactive.
 
 Migration, reconstruction, parity, dump and test-orchestration menus are not
 part of normal Accounting. Retained machinery is inaccessible from the daily

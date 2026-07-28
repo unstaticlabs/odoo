@@ -15,8 +15,8 @@ Before the change window:
    is not proven by Community software tests;
 3. record the VAT number, SIREN/SIRET, scheme `0225` endpoint, platform contact
    email/mobile and incoming purchase journal;
-4. run **Accounting > Configuration > Electronic-Invoice Readiness > Run
-   Offline Reception Test** and inspect the resulting two-line €175 draft bill,
+4. run **Accounting > Configuration > Invoicing > E-Invoicing > Test
+   Reception** and inspect the resulting two-line €175 draft bill,
    original XML and **Test passed** state;
 5. select **Odoo Approved Platform** and mark provider eligibility **Verified**;
 6. keep `USL_EREPORTING_LIVE_ENABLED=0`;

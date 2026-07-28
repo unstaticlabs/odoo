@@ -40,11 +40,11 @@ is unchanged.
 
 ## User-facing states
 
-**Accounting > Configuration > Electronic-Invoice Readiness** presents only
-product states:
+**Accounting > Configuration > Invoicing > E-Invoicing** presents only
+product states and the current next action:
 
-- **Configuration incomplete** — one or more company identifiers, journal or
-  contact prerequisites are missing;
+- **Configuration incomplete** — the accounting country, company identifiers
+  or incoming purchase journal is missing;
 - **Not yet verified** — configuration may be present, but the representative
   offline reception test or provider eligibility verification is outstanding;
 - **Test passed** — the current company produced a correct native draft bill
@@ -58,7 +58,9 @@ product states:
   jobs are all present.
 
 The screen never interprets installed code as proof of a provider contract or
-live connectivity.
+live connectivity. **Next Action** is phase-aware: it first resolves reception
+setup, then the offline test, platform verification and deliberate production
+activation.
 
 ## Reception and evidence
 
