@@ -1222,13 +1222,6 @@
                         confirm="Undo this bank match? The transaction and affected journal items will be reopened."
                         title="Remove this transaction's current matching and reopen the affected journal items."
                     />
-                    <button
-                        name="action_open_journal_entry"
-                        string="Open Entry"
-                        type="object"
-                        class="btn-secondary"
-                        title="Open the journal entry generated for this bank transaction."
-                    />
                     <field
                         name="rebuild_transaction_status"
                         widget="statusbar"
@@ -1262,21 +1255,13 @@
                                     placeholder="Bank transaction"
                                 />
                             </h1>
-                            <div class="d-flex flex-wrap gap-2 align-items-center">
-                                <field
-                                    name="partner_id"
-                                    nolabel="1"
-                                    readonly="1"
-                                    placeholder="No partner set"
-                                />
-                                <field
-                                    name="rebuild_review_state"
-                                    widget="badge"
-                                    invisible="not rebuild_review_state"
-                                    decoration-warning="rebuild_review_state in ('todo', 'anomaly')"
-                                    decoration-success="rebuild_review_state in ('reviewed', 'supervised')"
-                                />
-                            </div>
+                            <field
+                                name="rebuild_review_state"
+                                widget="badge"
+                                invisible="not rebuild_review_state"
+                                decoration-warning="rebuild_review_state in ('todo', 'anomaly')"
+                                decoration-success="rebuild_review_state in ('reviewed', 'supervised')"
+                            />
                         </div>
                         <div class="o_rebuild_transaction_amount text-lg-end">
                             <div class="text-muted text-uppercase small fw-semibold">
@@ -1305,130 +1290,202 @@
                         </div>
                     </div>
 
-                    <div
-                        class="alert alert-success py-2 px-3 mt-3 mb-0"
-                        role="status"
-                        invisible="not rebuild_partner_auto_assigned">
-                        <strong>Partner inferred automatically.</strong>
-                        <field
-                            name="rebuild_partner_suggestion_reason"
-                            nolabel="1"
-                            readonly="1"
-                            class="ms-1"
-                        />
-                    </div>
-                    <div
-                        class="alert alert-info d-flex flex-column flex-md-row gap-2 justify-content-between align-items-md-center py-2 px-3 mt-3 mb-0"
-                        role="status"
-                        invisible="is_reconciled or partner_id or not rebuild_partner_suggestion_id">
-                        <div>
-                            <strong>Suggested partner:</strong>
-                            <field
-                                name="rebuild_partner_suggestion_id"
-                                nolabel="1"
-                                readonly="1"
-                            />
-                            <span class="text-muted ms-1">
+                    <div class="o_rebuild_transaction_workspace row g-4 mt-0">
+                        <section class="col-12 col-xl-4">
+                            <div class="o_rebuild_transaction_panel h-100">
+                                <h2 class="o_rebuild_transaction_section_title">
+                                    Bank transaction
+                                </h2>
+                                <div class="o_rebuild_transaction_partner mb-3">
+                                    <label
+                                        for="partner_id"
+                                        class="o_form_label mb-1">
+                                        Partner
+                                    </label>
+                                    <field
+                                        name="partner_id"
+                                        nolabel="1"
+                                        groups="account.group_account_user"
+                                        readonly="rebuild_transaction_status != 'open'"
+                                        options="{'no_quick_create': True}"
+                                        placeholder="Choose a partner…"
+                                    />
+                                    <field
+                                        name="partner_id"
+                                        nolabel="1"
+                                        groups="account.group_account_readonly,!account.group_account_user"
+                                        readonly="1"
+                                        placeholder="No partner"
+                                    />
+                                    <div
+                                        class="o_rebuild_partner_evidence small text-muted mt-1"
+                                        invisible="not rebuild_partner_auto_assigned">
+                                        Inferred from
+                                        <field
+                                            name="rebuild_partner_suggestion_reason"
+                                            nolabel="1"
+                                            readonly="1"
+                                        />
+                                    </div>
+                                    <div
+                                        class="o_rebuild_partner_suggestion d-flex flex-wrap align-items-center gap-2 mt-2"
+                                        invisible="is_reconciled or partner_id or not rebuild_partner_suggestion_id">
+                                        <span class="badge rounded-pill text-bg-light">
+                                            Suggested:
+                                            <field
+                                                name="rebuild_partner_suggestion_id"
+                                                nolabel="1"
+                                                readonly="1"
+                                            />
+                                        </span>
+                                        <button
+                                            name="action_rebuild_apply_partner_suggestion"
+                                            string="Use"
+                                            type="object"
+                                            class="btn btn-link btn-sm p-0"
+                                            groups="account.group_account_user"
+                                            title="Set this suggested partner without posting or matching the transaction."
+                                        />
+                                        <span class="small text-muted">
+                                            <field
+                                                name="rebuild_partner_suggestion_reason"
+                                                nolabel="1"
+                                                readonly="1"
+                                            />
+                                        </span>
+                                    </div>
+                                    <div
+                                        class="o_rebuild_transaction_partner_empty d-flex flex-wrap gap-2 align-items-center small text-muted mt-1"
+                                        invisible="is_reconciled or partner_id or rebuild_partner_suggestion_id">
+                                        <span>No suggestion</span>
+                                        <button
+                                            name="action_rebuild_refresh_partner_suggestions"
+                                            string="Try again"
+                                            type="object"
+                                            class="btn btn-link btn-sm p-0"
+                                            groups="account.group_account_user"
+                                            title="Re-evaluate the current bank evidence. A sufficiently reliable result may set the partner automatically."
+                                        />
+                                    </div>
+                                </div>
+
+                                <group class="o_rebuild_transaction_core">
+                                    <field name="date" readonly="1"/>
+                                    <field name="journal_id" readonly="1"/>
+                                    <field
+                                        name="running_balance"
+                                        string="Balance after"
+                                        widget="monetary"
+                                        options="{'currency_field': 'currency_id'}"
+                                        readonly="1"
+                                    />
+                                </group>
+
+                                <details
+                                    class="o_rebuild_transaction_more mt-3"
+                                    invisible="not transaction_type and not partner_name and not account_number and not partner_bank_id and not statement_id and not narration">
+                                    <summary>Bank details</summary>
+                                    <group class="mt-2">
+                                        <field name="partner_name" string="Bank counterparty" readonly="1"/>
+                                        <field name="account_number" string="Bank account" readonly="1"/>
+                                        <field name="partner_bank_id" string="Known bank account" readonly="1"/>
+                                        <field name="transaction_type" readonly="1"/>
+                                        <field
+                                            name="statement_id"
+                                            domain="[('journal_id', '=', journal_id)]"
+                                            readonly="1"
+                                        />
+                                        <field name="narration" readonly="1" invisible="not narration"/>
+                                    </group>
+                                </details>
+                            </div>
+                        </section>
+
+                        <section class="col-12 col-xl-8">
+                            <div class="o_rebuild_transaction_panel h-100">
+                                <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-2">
+                                    <h2 class="o_rebuild_transaction_section_title mb-0">
+                                        Accounting entry
+                                    </h2>
+                                    <field
+                                        name="move_id"
+                                        string="Entry"
+                                        nolabel="1"
+                                        readonly="1"
+                                    />
+                                </div>
                                 <field
-                                    name="rebuild_partner_suggestion_reason"
+                                    name="line_ids"
                                     nolabel="1"
                                     readonly="1"
-                                />
-                            </span>
-                        </div>
-                        <button
-                            name="action_rebuild_apply_partner_suggestion"
-                            string="Use Partner"
-                            type="object"
-                            class="btn btn-primary flex-shrink-0"
-                            groups="account.group_account_user"
-                            title="Set this suggested partner without posting or reconciling the transaction."
-                        />
+                                    class="o_rebuild_transaction_entry_lines">
+                                    <list
+                                        string="Accounting entry"
+                                        create="0"
+                                        edit="0"
+                                        delete="0"
+                                        default_order="sequence, id">
+                                        <field name="account_id" readonly="1"/>
+                                        <field name="name" string="Label" readonly="1" optional="hide"/>
+                                        <field
+                                            name="analytic_distribution"
+                                            widget="analytic_distribution"
+                                            readonly="1"
+                                            optional="hide"
+                                            groups="analytic.group_analytic_accounting"
+                                            options="{'account_field': 'account_id'}"
+                                        />
+                                        <field name="debit" readonly="1" sum="Debit"/>
+                                        <field name="credit" readonly="1" sum="Credit"/>
+                                        <field
+                                            name="matching_number"
+                                            string="Matching"
+                                            widget="rebuild_matching_badge"
+                                            options="{'color_field': 'rebuild_matching_color'}"
+                                            readonly="1"
+                                            optional="show"
+                                        />
+                                        <field name="rebuild_matching_color" column_invisible="True"/>
+                                        <field name="currency_id" column_invisible="True"/>
+                                    </list>
+                                </field>
+
+                                <div class="o_rebuild_transaction_matching mt-3">
+                                    <group>
+                                        <field
+                                            name="rebuild_linked_move_id"
+                                            string="Matched with"
+                                            readonly="1"
+                                            invisible="not rebuild_linked_move_id"
+                                        />
+                                        <field
+                                            name="rebuild_matching_reference"
+                                            string="Matching reference"
+                                            widget="rebuild_matching_badge"
+                                            options="{'color_field': 'rebuild_matching_color'}"
+                                            readonly="1"
+                                            invisible="not rebuild_matching_reference"
+                                        />
+                                        <field
+                                            name="rebuild_remaining_amount"
+                                            string="Still to match"
+                                            widget="monetary"
+                                            options="{'currency_field': 'currency_id'}"
+                                            readonly="1"
+                                            invisible="rebuild_transaction_status == 'matched'"
+                                        />
+                                        <field
+                                            name="payment_ids"
+                                            string="Related payments"
+                                            widget="many2many_tags"
+                                            readonly="1"
+                                            invisible="not payment_ids"
+                                        />
+                                    </group>
+                                </div>
+                            </div>
+                        </section>
                     </div>
-                    <div
-                        class="o_rebuild_transaction_partner_empty text-muted small mt-3"
-                        invisible="is_reconciled or partner_id or rebuild_partner_suggestion_id">
-                        No reliable partner is currently identified.
-                        <button
-                            name="action_rebuild_refresh_partner_suggestions"
-                            string="Refresh partner match"
-                            type="object"
-                            class="btn btn-link btn-sm p-0 ms-1 align-baseline"
-                            groups="account.group_account_user"
-                            title="Re-evaluate the current bank evidence. A sufficiently reliable result may set the partner automatically."
-                        />
-                    </div>
-
-                    <group class="o_rebuild_transaction_core mt-4">
-                        <group string="Transaction">
-                            <field name="date" readonly="1"/>
-                            <field name="journal_id" readonly="1"/>
-                            <field
-                                name="running_balance"
-                                string="Balance after transaction"
-                                widget="monetary"
-                                options="{'currency_field': 'currency_id'}"
-                                readonly="1"
-                            />
-                        </group>
-                        <group string="Accounting">
-                            <field
-                                name="rebuild_linked_move_id"
-                                string="Matched with"
-                                readonly="1"
-                                invisible="not rebuild_linked_move_id"
-                            />
-                            <field
-                                name="rebuild_matching_reference"
-                                string="Matching reference"
-                                widget="rebuild_matching_badge"
-                                options="{'color_field': 'rebuild_matching_color'}"
-                                readonly="1"
-                                invisible="not rebuild_matching_reference"
-                            />
-                            <field
-                                name="rebuild_remaining_amount"
-                                string="Amount still to match"
-                                widget="monetary"
-                                options="{'currency_field': 'currency_id'}"
-                                readonly="1"
-                                invisible="rebuild_transaction_status == 'matched'"
-                            />
-                            <field
-                                name="payment_ids"
-                                string="Related payments"
-                                widget="many2many_tags"
-                                readonly="1"
-                                invisible="not payment_ids"
-                            />
-                        </group>
-                    </group>
-
-                    <group
-                        string="Bank details"
-                        class="o_rebuild_transaction_details mt-2"
-                        invisible="not transaction_type and not partner_name and not account_number and not partner_bank_id and not statement_id">
-                        <group>
-                            <field name="partner_name" string="Bank counterparty" readonly="1"/>
-                            <field name="account_number" string="Bank account" readonly="1"/>
-                            <field name="partner_bank_id" string="Known bank account" readonly="1"/>
-                        </group>
-                        <group>
-                            <field name="transaction_type" readonly="1"/>
-                            <field
-                                name="statement_id"
-                                domain="[('journal_id', '=', journal_id)]"
-                                readonly="1"
-                            />
-                        </group>
-                    </group>
-
-                    <group
-                        string="Notes"
-                        class="o_rebuild_transaction_notes mt-2"
-                        invisible="not narration">
-                        <field name="narration" nolabel="1" readonly="1"/>
-                    </group>
                 </sheet>
             </form>
         </field>

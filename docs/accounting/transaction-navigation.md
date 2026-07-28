@@ -15,7 +15,7 @@ Every navigation target in Transactions has one meaning:
 | --- | --- | --- |
 | Click the transaction row outside an explicit link or button | The selected `account.bank.statement.line` | Inspect the bank transaction. |
 | Click **Linked document or entry** | The related `account.move` | Open the matched invoice, bill, refund or journal entry. It must never fall through to the statement-line row action. |
-| Click **Open Entry** | The bank statement line's own `move_id` | Inspect the journal entry generated for the bank transaction. |
+| Click **Open Entry** in the list | The bank statement line's own `move_id` | Open the full journal entry directly from the compact history. The transaction form already displays its journal items. |
 | Click **Match** | The selected line in Bank Matching | Match or categorize an unreconciled transaction. |
 | Click the matching-reference chip | Every journal item sharing that matching code | Inspect both sides of the reconciliation without changing it. |
 | Click **Undo Match** | The reopened bank transaction and affected journal items | Remove a completed match after explicit confirmation. Accounting users only. |
@@ -28,19 +28,23 @@ paths.
 
 ## Transaction form states
 
-The transaction form is an investigation surface. It does not duplicate the
-Bank Matching workbench.
+The transaction form is an investigation surface. It shows the bank fact and
+the accounting entry together; it does not duplicate the Bank Matching
+workbench.
 
 | State | Primary status | Available accounting action | Evidence shown |
 | --- | --- | --- | --- |
-| Unmatched | **To match** | **Match** | Amount still to match, running balance, partner evidence and bank-source details |
+| Unmatched | **To match** | Set or correct the partner directly, then **Match** | Journal items, amount still to match, running balance, partner evidence and bank-source details |
 | Partially matched | **Partially matched** | **Match** | Residual, matching-reference drill-down and linked document or entry |
 | Fully matched | **Matched** | **Undo Match** for Accounting users | Matching reference, linked document or entry, related payment and bank entry |
 | Any entry flagged for review | Separate **To Review** or **Anomaly** badge | Review remains governed on the journal entry or in Bank Matching | Matching state remains visible independently; “matched” never hides a review obligation |
 
 The scoped read-only accountant sees the same accounting evidence and can open
-the bank entry, linked document and matched items. Match, undo and
-partner-changing actions are absent.
+the full bank entry, linked document and matched items. Match, undo and
+partner-changing actions are absent. Accounting users can edit the partner only
+while the transaction is still unmatched. Odoo's native statement-line write
+synchronization updates the generated entry; partial or completed matches are
+kept read-only to protect their accounting links.
 
 ## Accounting and access invariants
 
@@ -94,8 +98,12 @@ its single grid is not a suitable investigation layout; injecting suggestion
 buttons into that grid caused later labels and values to shift into unrelated
 columns. The dedicated form uses native Odoo fields and actions, keeps the bank
 description and amount dominant, shows operational evidence by accounting
-state, and progressively discloses source-bank details. Matching logic remains
-owned by OCA Bank Matching.
+state, and progressively discloses source-bank details. The native
+`account.move.line` relation is embedded read-only beside the bank transaction
+on wide screens and stacks below it on narrower screens. This was preferred to
+an OWL split-view editor: the native relation stays hydrated by Odoo's form
+model, preserves record rules and avoids a second client-side copy of the
+journal entry. Matching logic remains owned by OCA Bank Matching.
 
 Implementation locations:
 

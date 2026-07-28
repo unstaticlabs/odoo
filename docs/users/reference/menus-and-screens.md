@@ -54,10 +54,12 @@ Matching. A matching-reference chip opens every journal item in that matching
 group. Fully matched transactions offer **Undo Match** to Accounting users
 after confirmation.
 
-The transaction form keeps matching and review status separate. It shows the
-remaining amount, balance after the transaction, linked document and bank
-evidence when relevant. The read-only accountant can inspect these paths but
-cannot match, undo or change partner suggestions.
+The transaction form keeps matching and review status separate. It places the
+bank transaction beside its accounting entry on wide screens, including the
+accounts, labels, debit, credit and matching codes. Accounting users can set or
+correct the partner directly before matching; suggestions remain optional
+shortcuts. The read-only accountant can inspect the same evidence but cannot
+match, undo or change the partner.
 
 ## Customers and Vendors
 

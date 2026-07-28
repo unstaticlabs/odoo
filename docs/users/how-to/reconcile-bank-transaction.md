@@ -26,10 +26,12 @@
 
 **Transactions** is the full-width bank history and investigation screen. **Bank Matching** is the operational queue. They are intentionally separate.
 
-In Transactions, click **Linked document or entry** to open the matched
-invoice, bill, refund or journal entry. Click **Open Entry** for the bank
-transaction's own journal entry. Clicking elsewhere on the row opens the bank
-transaction itself.
+In Transactions, clicking a row opens the bank transaction and its generated
+accounting entry together. Before matching, set or correct the **Partner**
+directly when needed; an automatic suggestion is only a shortcut. Click
+**Linked document or entry** to open the matched invoice, bill, refund or
+journal entry. The compact list also retains **Open Entry** as a direct shortcut
+to the full bank journal entry.
 
 Partner inference only identifies the counterparty. It never posts, reconciles,
 changes an amount or chooses a ledger account. The **Matching evidence** column
