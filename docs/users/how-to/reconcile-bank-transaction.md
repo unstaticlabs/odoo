@@ -13,8 +13,16 @@
 7. Choose an existing invoice, bill, payment or journal item when it is the true counterpart.
 8. For a direct charge or receipt, deliberately choose a manual operation, then set partner, account, tax and label.
 9. Check the remaining difference before confirming.
-10. After matching, keep the result visible. Confirm the matching-reference chip, Full or Partial status, and residual.
-11. Use **Undo** if the counterpart is wrong. For a partial match, continue with the remaining residual later.
+10. Choose the action that matches your decision:
+    - **Complete Match** applies the prepared counterpart and reconciles the
+      transaction.
+    - **Reconcile & Review** applies the prepared match and reconciles the
+      transaction, but keeps its entry flagged **To Review** for a later
+      accounting check.
+    - **Mark for Review** appears when the proposal is incomplete. It records
+      the follow-up flag without changing the reconciliation.
+11. After matching, keep the result visible. Confirm the matching-reference chip, Full or Partial status, and residual.
+12. Use **Undo** if the counterpart is wrong. For a partial match, continue with the remaining residual later.
 
 **Transactions** is the full-width bank history and investigation screen. **Bank Matching** is the operational queue. They are intentionally separate.
 

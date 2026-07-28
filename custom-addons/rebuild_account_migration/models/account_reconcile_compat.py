@@ -354,7 +354,7 @@ class AccountMoveLine(models.Model):
                     key.append(
                         abs(
                             abs(line.amount_residual)
-                            - abs(general_amount)
+                            - abs(general_amount),
                         ),
                     )
                 if general_closest_date and general_date:
@@ -409,6 +409,7 @@ class AccountMoveLine(models.Model):
             )
 
         candidates = self.search(domain, order=order)
+
         def ranking_key(line):
             key = []
             if closest_amount:
@@ -442,13 +443,25 @@ class AccountMoveLine(models.Model):
 class AccountBankStatementLine(models.Model):
     _inherit = "account.bank.statement.line"
 
+    rebuild_review_will_reconcile = fields.Boolean(
+        compute="_compute_rebuild_review_will_reconcile",
+    )
+
+    @api.depends("can_reconcile", "journal_id.reconcile_mode")
+    def _compute_rebuild_review_will_reconcile(self):
+        for statement_line in self:
+            statement_line.rebuild_review_will_reconcile = (
+                statement_line.can_reconcile
+                and statement_line.journal_id.reconcile_mode == "edit"
+            )
+
     def _auto_reconcile(self):
         if self.env.context.get("rebuild_skip_auto_reconcile"):
             for statement_line in self:
                 statement_line.reconcile_data_info = (
                     statement_line._default_reconcile_data()
                 )
-            return
+            return None
         return super()._auto_reconcile()
 
     rebuild_transaction_status = fields.Selection(
@@ -558,6 +571,7 @@ class AccountBankStatementLine(models.Model):
             ),
         }
         return action
+
 
 class AccountJournal(models.Model):
     _inherit = "account.journal"

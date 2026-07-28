@@ -12,7 +12,7 @@ from psycopg2 import IntegrityError
 from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.service.model import call_kw
-from odoo.tests import TransactionCase, tagged
+from odoo.tests import Form, TransactionCase, tagged
 from odoo.tools import format_date, mute_logger
 from odoo.tools.safe_eval import safe_eval
 
@@ -3270,7 +3270,6 @@ class TestRebuildAccountMigration(TransactionCase):
         expected_labels = {
             "unreconcile_bank_line": "Undo Match",
             "clean_reconcile": "Clear Selection",
-            "action_to_check": "Mark for Review",
             "action_checked": "Mark Reviewed",
             "action_show_move": "Open Entry",
         }
@@ -3284,6 +3283,38 @@ class TestRebuildAccountMigration(TransactionCase):
                 {label},
             )
             self.assertTrue(all(button.get("title") for button in buttons))
+        review_buttons = combined_arch.xpath(
+            "//button[@name='action_to_check']",
+        )
+        self.assertEqual(len(review_buttons), 2)
+        self.assertEqual(
+            {button.get("string") for button in review_buttons},
+            {"Reconcile & Review", "Mark for Review"},
+        )
+        review_buttons_by_label = {
+            button.get("string"): button
+            for button in review_buttons
+        }
+        self.assertIn(
+            "not rebuild_review_will_reconcile",
+            review_buttons_by_label["Reconcile & Review"].get("invisible"),
+        )
+        self.assertIn(
+            "rebuild_review_will_reconcile",
+            review_buttons_by_label["Mark for Review"].get("invisible"),
+        )
+        self.assertIn(
+            "reconcile",
+            review_buttons_by_label["Reconcile & Review"]
+            .get("title")
+            .lower(),
+        )
+        self.assertIn(
+            "without reconciling",
+            review_buttons_by_label["Mark for Review"]
+            .get("title")
+            .lower(),
+        )
         complete_match_buttons = combined_arch.xpath(
             "//button[@name='reconcile_bank_line']",
         )
@@ -3330,6 +3361,58 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(bank_line.move_id.review_state, "reviewed")
         with self.assertRaises(AccessError):
             bank_line.move_id.with_user(reviewer).write({"ref": "forbidden"})
+
+    def test_bank_review_action_discloses_its_accounting_effect(self):
+        journal = self._journal("bank")
+        journal.reconcile_mode = "edit"
+        direct_account = self._account(
+            "T512901",
+            "Review Action Counterpart",
+            "asset_current",
+        )
+        rule = self.env["account.reconcile.model"].create({
+            "name": "Review action test",
+            "trigger": "manual",
+            "line_ids": [
+                Command.create({"account_id": direct_account.id}),
+            ],
+        })
+        ready_line = self.env["account.bank.statement.line"].with_context(
+            _test_account_reconcile_oca=True,
+        ).create({
+            "journal_id": journal.id,
+            "date": fields.Date.today(),
+            "payment_ref": "Prepared review match",
+            "amount": 30.0,
+        })
+        with Form(
+            ready_line,
+            view=(
+                "account_reconcile_oca."
+                "bank_statement_line_form_reconcile_view"
+            ),
+        ) as form:
+            form.manual_model_id = rule
+
+        self.assertTrue(ready_line.can_reconcile)
+        self.assertTrue(ready_line.rebuild_review_will_reconcile)
+        ready_line.action_to_check()
+        self.assertTrue(ready_line.is_reconciled)
+        self.assertEqual(ready_line.move_id.review_state, "todo")
+
+        open_line = self.env["account.bank.statement.line"].with_context(
+            _test_account_reconcile_oca=True,
+        ).create({
+            "journal_id": journal.id,
+            "date": fields.Date.today(),
+            "payment_ref": "Unprepared review match",
+            "amount": 45.0,
+        })
+        self.assertFalse(open_line.can_reconcile)
+        self.assertFalse(open_line.rebuild_review_will_reconcile)
+        open_line.action_to_check()
+        self.assertFalse(open_line.is_reconciled)
+        self.assertEqual(open_line.move_id.review_state, "todo")
 
     def test_bank_partner_inference_is_confident_explainable_and_safe(self):
         journal = self._journal("bank")
