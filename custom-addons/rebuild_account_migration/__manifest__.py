@@ -4,7 +4,7 @@
         "USL Accounting cockpit, controls, reports, declarations, "
         "and audit evidence."
     ),
-    "version": "saas~19.2.1.7.31",
+    "version": "saas~19.2.1.7.33",
     "category": "Accounting/Accounting",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
@@ -72,6 +72,9 @@
             "rebuild_account_migration/static/tests/report_presentation.test.js",
             "rebuild_account_migration/static/tests/review_state_badge.test.js",
             "rebuild_account_migration/static/tests/transactions_navigation.test.js",
+        ],
+        "web.assets_tests": [
+            "rebuild_account_migration/static/tests/tours/einvoice_reception_tours.js",
         ],
     },
     "application": False,

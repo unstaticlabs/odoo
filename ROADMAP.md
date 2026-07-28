@@ -6,7 +6,7 @@ Historical implementation checklists and reconstruction notes belong in
 
 ## Current release — Accounting v1
 
-Status date: 26 July 2026
+Status date: 28 July 2026
 
 - Branch: `saas-19.2-usl-feat-accounting`
 - Upstream baseline: `8a44ecc8da96e341ac472fec27352d138ed2edd7`
@@ -37,9 +37,10 @@ USL behavior isolated in custom add-ons and maintained OCA dependencies.
   French FEC generation.
 - Scoped read-only accountant access to records, evidence, reports and
   permitted exports without accounting mutation.
-- French electronic-invoice reception capability, representative document
-  validation and a controlled readiness screen. It remains deliberately
-  disconnected.
+- French electronic-invoice reception for UBL, CII and Factur-X invoices and
+  credit notes, including native draft bills, original evidence,
+  duplicate/retry controls, role-aware browser journeys and controlled
+  readiness. It is ready but deliberately inactive.
 - Complete reconstruction of 704 Accounting attachments with source metadata,
   native record/chatter links and access inheritance.
 - Reproducible development, reconstruction, parity and evidence workflows.
@@ -79,14 +80,20 @@ the target must not introduce any additional exception.
 
 ### September 2026 electronic-invoice activation
 
-1. Select and approve the production platform.
-2. Review company identifiers, reception journal and access roles.
-3. Authorize activation explicitly in production.
-4. Receive and validate one controlled supplier invoice.
-5. Confirm duplicate, rejection, suspension and rollback procedures.
+1. Verify production approved-platform eligibility, subscription, terms,
+   credentials, support and rollback contacts.
+2. Review company identifiers, reception journal and access roles; rerun the
+   safe offline acceptance test after the production upgrade.
+3. Authorize the deployment-level reception guard and Accounting Manager
+   approval explicitly in production while keeping e-reporting disabled.
+4. Register the receiver, enable reception-only jobs, and validate one
+   controlled supplier invoice through posting, payment and reconciliation.
+5. Confirm duplicate, retry, rejection, authentication, suspension and
+   rollback procedures from the retained evidence.
 
-No development environment may register USL in a live directory or run live
-scheduled exchanges.
+No additional product development is planned for reception activation. No
+non-production environment may register USL, contact a live provider, retrieve
+or send real documents, run live scheduled exchange or submit e-reporting.
 
 ### Maintenance
 

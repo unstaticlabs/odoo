@@ -12,10 +12,11 @@ financial reports, PDF/XLSX exports and FEC. A scoped read-only accountant can
 inspect the same accounting and evidence without posting, reconciling,
 configuring or locking records.
 
-French electronic-invoice reception is implemented and validated offline. It
-remains visibly **Not Connected** in development: no directory registration,
-production provider endpoint or scheduled exchange may be enabled before the
-production activation procedure is approved.
+French electronic-invoice reception is implemented and validated offline for
+UBL, CII and Factur-X invoices and credit notes. It remains **Ready but
+inactive**: no directory registration, production provider endpoint, scheduled
+reception or e-reporting may be enabled before the deliberate production
+activation procedure is approved.
 
 Primary entry points:
 
@@ -128,6 +129,10 @@ Other useful variables:
 - `ODOO_HTTP_PORT` and `ODOO_GEVENT_PORT`: host ports. Defaults: Odoo's standard
   development ports `8069` and `8072`.
 - `ODOO_WORKERS`, `ODOO_PROXY_MODE`, `ODOO_DB_FILTER`, and limits: deployment-oriented runtime controls.
+- `USL_EINVOICE_LIVE_ENABLED`: external reception guard; default `0` and set
+  to `1` only during the documented production activation.
+- `USL_EREPORTING_LIVE_ENABLED`: separate regulatory-flow guard; default `0`
+  and never enabled as part of invoice-reception activation.
 
 ### 1. Developer workflow: Dev Container
 
@@ -182,6 +187,12 @@ dev_mode = reload,xml,qweb
 ```
 
 `max_cron_threads = 0` is intentional for local accounting parity work. It prevents scheduled jobs from sending mail, polling external services, or running e-invoicing/background integrations while imported production-derived data is being inspected.
+
+The normal long-running Compose `odoo` service instead defaults to one cron
+thread so configured product automation, including currency-rate retrieval,
+actually runs. Init, test and Dev Container helper services remain at zero.
+Set `ODOO_MAX_CRON_THREADS=0` explicitly while restoring or auditing an
+imported database.
 
 Develop custom modules in `custom-addons/`. Do not modify Odoo core unless the change is intentionally part of this fork.
 
@@ -301,7 +312,10 @@ Installed application domains: Contacts, Discuss, Accounting/Invoicing, French a
 Deliberate product boundaries: Community does not provide the Enterprise
 application launcher or unrelated Enterprise applications such as Documents,
 Sign, Knowledge, To-do, AI features or TESE Payroll. Live bank synchronization
-and production electronic-invoicing connectivity remain inactive. Brands such
+and production electronic-invoicing connectivity remain inactive. Provider
+eligibility/subscription must be verified before activation; passing the
+offline reception tests does not prove commercial access to a production
+approved-platform service. Brands such
 as SBFH, GBC, Yoshi, Smash and KinkVerse are represented as projects or
 analytic contexts under the single legal company.
 

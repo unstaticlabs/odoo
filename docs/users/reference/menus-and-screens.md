@@ -85,8 +85,10 @@ Journal entries, journal items, payments, assets, general reconciliation and clo
 
 Accounting Hygiene and other focused review work. Technical audit tools are available only in the advanced area.
 
-**Electronic Invoice Reception** lists every approved-platform payload and its
-draft bill, duplicate, rejection or technical-failure evidence.
+**Electronic Invoice Reception** lists every approved-platform delivery as
+**Draft Bill Created**, **Duplicate Controlled**, **Rejected by Platform** or
+**Action Required**. It links the original structured document to the native
+draft bill without exposing provider internals.
 
 ## Reporting
 
@@ -113,7 +115,12 @@ Under **Settings > Management Projections**, Accounting Managers select the
 account and employee used by the Overview shareholder current-account
 projection.
 
-**Configuration > Electronic Invoicing** shows software capability,
-production readiness and live-connection status separately. It holds company
-identifiers, provider decision, reception journal and controlled activation
-approval. Development remains visibly **Not Connected**.
+**Configuration > Electronic-Invoice Readiness** shows honest product states:
+**Configuration incomplete**, **Not yet verified**, **Test passed**, **Ready
+but inactive**, **Production activation required** or **Active**. It holds
+company identifiers, provider eligibility decision, reception journal, safe
+offline test and controlled production approval. Development remains inactive.
+
+Migration, reconstruction, parity, dump and test-orchestration menus are not
+part of normal Accounting. Retained machinery is inaccessible from the daily
+manager and read-only-accountant menus.
