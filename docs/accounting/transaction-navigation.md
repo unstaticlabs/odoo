@@ -62,6 +62,12 @@ completed matches are kept read-only to protect their accounting links.
   still require review.
 - The amount, date, partner and bank evidence stay company- and
   currency-scoped through native fields and record rules.
+- Entering Bank Matching never replaces the preceding Accounting route during
+  automatic first-line selection. Browser Back therefore returns to Overview,
+  Transactions or the source document that opened the queue.
+- Selecting or advancing to another bank line updates the current Bank Matching
+  route synchronously. It does not create one browser-history entry per line
+  and cannot apply a delayed route update after the user has navigated away.
 
 ## Implementation decision
 
@@ -110,6 +116,19 @@ Bank Matching. This shared-component approach was preferred to both a separate
 `account.move.line` table and a custom split-view engine: it follows OCA
 changes, refreshes through Odoo's form model and avoids parallel client state.
 
+For Bank Matching history, two approaches were compared:
+
+1. retain OCA's `pushState` call for every automatically or manually selected
+   line;
+2. leave the entry route untouched during automatic selection, then
+   synchronously replace only the current Bank Matching route when the
+   selection changes.
+
+Option 2 is used. Option 1 makes users press Back once for every line inspected
+before they can return to the feature that opened Bank Matching. Removing line
+IDs from the route entirely was also rejected because refreshes and direct
+links should retain an explicitly selected transaction.
+
 Implementation locations:
 
 - target computation:
@@ -119,6 +138,8 @@ Implementation locations:
 - shared OCA presentation variant:
   `custom-addons/rebuild_account_migration/static/src/js/reconcile_data_presentation.js`
   and `static/src/xml/reconcile_data_presentation.xml`;
+- Bank Matching route ownership:
+  `custom-addons/rebuild_account_migration/static/src/js/reconcile_navigation.js`;
 - model and view regression:
   `custom-addons/rebuild_account_migration/tests/test_rebuild_account_migration.py`;
 - click-propagation regression:
@@ -138,6 +159,10 @@ Run the module's frontend unit tests:
 ```bash
 scripts/odoo-dev test-js rebuild_account_migration
 ```
+
+`bank_matching_navigation.test.js` protects both sides of the route contract:
+automatic selection performs no history write, while later selection performs
+one synchronous replacement of the current entry.
 
 The frontend helper uses the repository's dedicated `test` image, which
 provides Chromium and pins `websocket-client==1.9.0`. Both focused-test helpers

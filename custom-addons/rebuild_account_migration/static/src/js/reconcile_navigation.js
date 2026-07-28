@@ -5,7 +5,10 @@ import { patch } from "@web/core/utils/patch";
 
 patch(ReconcileController.prototype, {
     updateURL(resId) {
-        router.replaceState({ id: resId });
+        if (this.initialLoad) {
+            return;
+        }
+        router.replaceState({ id: resId }, { sync: true });
     },
 });
 
