@@ -6,7 +6,7 @@ release is **ready but inactive** until production activation.
 
 ## Check readiness safely
 
-1. Open **Accounting > Configuration > Electronic-Invoice Readiness**.
+1. Open **Accounting > Configuration > Invoicing > E-Invoicing**.
 2. Select the company. Read the state literally:
    - **Configuration incomplete** lists company or journal details to finish;
    - **Not yet verified** means a test or provider eligibility decision remains;
@@ -14,13 +14,15 @@ release is **ready but inactive** until production activation.
    - **Ready but inactive** means no live reception is running;
    - **Production activation required** identifies a deliberate production step;
    - **Active** means scheduled production reception is enabled.
-3. Complete the VAT number, SIREN/SIRET, French scheme `0225` identifier,
-   platform contact email/mobile and incoming purchase journal.
-4. Select **Run Offline Reception Test**. This creates a synthetic two-line
+3. Follow **Next Action**. It shows only the current phase: company setup,
+   offline test, platform verification or production activation.
+4. Under **Reception setup**, complete the accounting country, VAT number,
+   SIREN/SIRET, French scheme `0225` identifier and purchase journal.
+5. Select **Test Reception**. This creates a synthetic two-line
    supplier invoice without contacting a supplier, directory or platform.
-5. On the **Safe test** evidence, confirm **Draft Bill Created**, €175 total,
+6. On the **Safe test** evidence, confirm **Draft Bill Created**, €175 total,
    two lines and the original XML.
-6. Open the vendor bill and its **E-Invoice Evidence** tab. Do not post the test
+7. Open the vendor bill and its **E-Invoice Evidence** tab. Do not post the test
    bill as a real supplier liability.
 
 Provider eligibility and production activation remain separate. A passed test

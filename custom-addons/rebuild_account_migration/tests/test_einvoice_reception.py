@@ -289,11 +289,19 @@ class TestFrenchEinvoiceReception(
     def test_readiness_offline_test_and_normal_bill_lifecycle(self):
         self.assertEqual(
             self.company.rebuild_einvoice_readiness_status,
-            "configuration_incomplete",
+            "not_verified",
         )
         self.assertEqual(
             self.company.rebuild_einvoice_capability_status,
             "not_verified",
+        )
+        self.assertEqual(
+            self.company.rebuild_einvoice_next_action,
+            "Test invoice reception",
+        )
+        self.assertIn(
+            "Run the offline reception test",
+            self.company.rebuild_einvoice_next_steps,
         )
 
         action = self.company.with_user(
@@ -330,6 +338,10 @@ class TestFrenchEinvoiceReception(
         self.assertEqual(
             self.company.rebuild_einvoice_readiness_status,
             "ready_inactive",
+        )
+        self.assertEqual(
+            self.company.rebuild_einvoice_next_action,
+            "Continue during production deployment",
         )
         self.assertFalse(self.company.rebuild_einvoice_exchange_enabled)
 
@@ -692,6 +704,20 @@ class TestFrenchEinvoiceReception(
                 "rebuild_account_migration.menu_rebuild_einvoice_readiness",
             ).id,
             manager_visible,
+        )
+        readiness_menu = self.env.ref(
+            "rebuild_account_migration.menu_rebuild_einvoice_readiness",
+        )
+        self.assertEqual(readiness_menu.name, "E-Invoicing")
+        self.assertEqual(
+            readiness_menu.parent_id,
+            self.env.ref("account.account_invoicing_menu"),
+        )
+        self.assertEqual(
+            self.env.ref(
+                "rebuild_account_migration.action_rebuild_einvoice_readiness",
+            ).name,
+            "E-Invoicing",
         )
         self.assertIn(
             self.env.ref(

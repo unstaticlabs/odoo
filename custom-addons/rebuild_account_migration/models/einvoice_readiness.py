@@ -3,6 +3,7 @@ import os
 import uuid as uuid_lib
 
 from lxml import etree
+from markupsafe import Markup
 
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError
@@ -259,6 +260,7 @@ class ResCompany(models.Model):
             ("other", "Different Approved Platform (not implemented)"),
         ],
         string="Approved Platform",
+        help="Platform intended for the production connection. This release supports the Odoo Approved Platform.",
         tracking=True,
     )
     rebuild_einvoice_provider_contract_status = fields.Selection(
@@ -267,6 +269,7 @@ class ResCompany(models.Model):
             ("verified", "Verified for production"),
         ],
         string="Platform Eligibility",
+        help="Confirm only after the provider has verified production eligibility, subscription, and terms.",
         required=True,
         default="not_verified",
         tracking=True,
@@ -277,6 +280,7 @@ class ResCompany(models.Model):
             ("production", "Production"),
         ],
         string="Accounting Deployment",
+        help="Live activation is allowed only on the deployed production system.",
         required=True,
         default="development",
         tracking=True,
@@ -352,8 +356,17 @@ class ResCompany(models.Model):
         compute="_compute_rebuild_einvoice_exchange_enabled",
     )
     rebuild_einvoice_blockers = fields.Text(
-        string="Remaining Prerequisites",
+        string="Full Activation Checklist",
         compute="_compute_rebuild_einvoice_readiness",
+    )
+    rebuild_einvoice_next_action = fields.Char(
+        string="Next Action",
+        compute="_compute_rebuild_einvoice_readiness",
+    )
+    rebuild_einvoice_next_steps = fields.Html(
+        string="Next Steps",
+        compute="_compute_rebuild_einvoice_readiness",
+        sanitize=True,
     )
     rebuild_einvoice_last_poll_at = fields.Datetime(
         string="Last Reception Check",
@@ -459,6 +472,107 @@ class ResCompany(models.Model):
             )
         return blockers
 
+    def _rebuild_einvoice_user_guidance(self, modules_ready):
+        self.ensure_one()
+        if not modules_ready:
+            return (
+                _("Install e-invoicing support"),
+                [_("Install or upgrade the required Odoo e-invoicing modules.")],
+            )
+
+        setup_steps = self._rebuild_einvoice_configuration_blockers(
+            include_provider=False,
+        )
+        if setup_steps:
+            return _("Complete reception setup"), setup_steps
+
+        if self.rebuild_einvoice_test_status != "passed":
+            return (
+                _("Test invoice reception"),
+                [_("Run the offline reception test and inspect the draft bill.")],
+            )
+
+        platform_steps = self._rebuild_einvoice_configuration_blockers(
+            include_provider=True,
+        )
+        if platform_steps:
+            return _("Complete platform setup"), platform_steps
+
+        if self.rebuild_einvoice_provider_contract_status != "verified":
+            return (
+                _("Verify production access"),
+                [
+                    _(
+                        "Confirm eligibility, subscription, terms, credentials, "
+                        "and support with the approved platform.",
+                    ),
+                ],
+            )
+
+        if self.rebuild_einvoice_environment != "production":
+            return (
+                _("Continue during production deployment"),
+                [
+                    _(
+                        "Deploy this release to production, rerun the offline "
+                        "test there, and follow the activation runbook.",
+                    ),
+                ],
+            )
+
+        if not self._rebuild_einvoice_runtime_guard_enabled():
+            return (
+                _("Authorize live reception on the production host"),
+                [
+                    _(
+                        "Enable the deployment-level reception guard after the "
+                        "approved change window begins.",
+                    ),
+                ],
+            )
+
+        if not self.rebuild_einvoice_activation_approved:
+            return (
+                _("Approve production activation"),
+                [
+                    _(
+                        "Ask an Accounting Manager to approve activation on "
+                        "this production database.",
+                    ),
+                ],
+            )
+
+        connection_status = self.rebuild_einvoice_connection_status
+        if connection_status == "rejected":
+            return (
+                _("Resolve the platform registration"),
+                [_("Review the platform rejection before trying registration again.")],
+            )
+        if connection_status == "registration_pending":
+            return (
+                _("Complete platform registration"),
+                [_("Finish registration and verify the French directory effective date.")],
+            )
+        if connection_status == "inactive":
+            return (
+                _("Register the production receiver"),
+                [_("Complete the approved-platform receiver registration in Settings.")],
+            )
+        if connection_status == "connected_suspended":
+            return (
+                _("Start scheduled reception"),
+                [
+                    _(
+                        "Verify the first-invoice plan, then enable scheduled "
+                        "reception.",
+                    ),
+                ],
+            )
+        return (
+            _("No action required"),
+            [_("Production reception is active and monitored.")],
+        )
+
     @api.depends(
         "account_fiscal_country_id",
         "vat",
@@ -479,7 +593,9 @@ class ResCompany(models.Model):
         modules_ready = self._rebuild_einvoice_modules_ready()
         for company in self:
             configuration_blockers = (
-                company._rebuild_einvoice_configuration_blockers()
+                company._rebuild_einvoice_configuration_blockers(
+                    include_provider=False,
+                )
             )
             production_blockers = company._rebuild_einvoice_production_blockers()
             exchange_enabled = company.rebuild_einvoice_exchange_enabled
@@ -530,6 +646,16 @@ class ResCompany(models.Model):
             company.rebuild_einvoice_blockers = "\n".join(
                 f"• {blocker}" for blocker in dict.fromkeys(production_blockers)
             ) or _("No prerequisite remains; reception can be activated deliberately.")
+            next_action, next_steps = company._rebuild_einvoice_user_guidance(
+                modules_ready,
+            )
+            company.rebuild_einvoice_next_action = next_action
+            company.rebuild_einvoice_next_steps = Markup(
+                '<ul class="mb-0 ps-3">%s</ul>',
+            ) % Markup().join(
+                Markup("<li>%s</li>") % step
+                for step in dict.fromkeys(next_steps)
+            )
 
     @api.depends_context("uid")
     def _compute_rebuild_einvoice_exchange_enabled(self):
