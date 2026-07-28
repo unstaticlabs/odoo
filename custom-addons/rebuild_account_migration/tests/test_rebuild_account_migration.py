@@ -3265,7 +3265,7 @@ class TestRebuildAccountMigration(TransactionCase):
 
         self.assertEqual(
             combined_arch.xpath("//notebook/page/@name"),
-            ["reconcile_line", "manual", "narration", "chatter"],
+            ["reconcile_line", "manual", "chatter"],
         )
         expected_labels = {
             "unreconcile_bank_line": "Undo Match",
@@ -3326,6 +3326,27 @@ class TestRebuildAccountMigration(TransactionCase):
             button.get("title")
             for button in complete_match_buttons
         ))
+        categorize_page = combined_arch.xpath(
+            "//page[@name='manual'][@string='Categorize']",
+        )
+        self.assertEqual(len(categorize_page), 1)
+        self.assertTrue(
+            categorize_page[0].xpath(
+                ".//details[summary='Transaction details']"
+                "/group[@id='rebuild-transaction-details']"
+                "//field[@name='payment_ref'][@string='Bank reference']",
+            ),
+        )
+        self.assertTrue(
+            categorize_page[0].xpath(
+                ".//details[summary='Transaction details']"
+                "/group[@id='rebuild-transaction-details']"
+                "//field[@name='narration']",
+            ),
+        )
+        self.assertFalse(
+            combined_arch.xpath("//page[@name='narration']"),
+        )
         bank_matching_action = self.env.ref(
             "rebuild_account_migration."
             "action_rebuild_account_reconcile_bank_transactions",

@@ -24,6 +24,11 @@
 11. After matching, keep the result visible. Confirm the matching-reference chip, Full or Partial status, and residual.
 12. Use **Undo** if the counterpart is wrong. For a partial match, continue with the remaining residual later.
 
+Use **Reconcile** when an existing open item is the counterpart. Use
+**Categorize** for a direct account treatment such as a fee, transfer or bank
+feed. Reference and narration remain available in that same tab under
+**Transaction details**; there is no separate “Other Info” workflow.
+
 **Transactions** is the full-width bank history and investigation screen. **Bank Matching** is the operational queue. They are intentionally separate.
 
 In Transactions, clicking a row opens the bank transaction and the same

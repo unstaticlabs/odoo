@@ -962,7 +962,7 @@
                 <xpath expr="//page[@name='chatter']" position="move"/>
             </xpath>
             <xpath expr="//page[@name='manual']" position="attributes">
-                <attribute name="string">Manual Operation</attribute>
+                <attribute name="string">Categorize</attribute>
             </xpath>
             <xpath expr="//page[@name='manual']/group" position="before">
                 <div
@@ -972,6 +972,26 @@
                     Choose a prepared operation above, or select a counterpart line, when the match requires an account, partner, fee, transfer, or exchange adjustment.
                 </div>
             </xpath>
+            <xpath expr="//page[@name='manual']/group" position="after">
+                <details class="mt-3">
+                    <summary>Transaction details</summary>
+                    <group id="rebuild-transaction-details">
+                        <field
+                            name="payment_ref"
+                            string="Bank reference"
+                            readonly="is_reconciled"
+                        />
+                        <field
+                            name="narration"
+                            colspan="2"
+                            nolabel="1"
+                            placeholder="Bank-provided memo or notes"
+                            readonly="is_reconciled"
+                        />
+                    </group>
+                </details>
+            </xpath>
+            <xpath expr="//page[@name='narration']" position="replace"/>
             <xpath expr="//page[@name='manual']//label[@for='manual_move_id']" position="attributes">
                 <attribute name="invisible">manual_move_type not in ['in_invoice', 'in_refund', 'out_invoice', 'out_refund'] or manual_original_amount == 0 or is_reconciled</attribute>
             </xpath>
