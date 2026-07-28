@@ -42,6 +42,10 @@ Valentin and the accountant must be able to:
   30 September. Reports, exports, FEC defaults, cash/tax projections,
   analytics, spreadsheets, declarations, closings and fiscal sequence ranges
   must agree for the same reference date.
+- Financial statements and declaration-oriented reports open with whole-euro
+  presentation; reconciliation-oriented ledgers retain cents by default. The
+  user may change presentation rounding, but screen, PDF and readable XLSX
+  must agree while calculations and audit data retain exact ledger amounts.
 - Smart recommendations expose their scored source facts and intended ledger
   effects. Low-confidence partner inference may inform a harmless suggestion,
   but never silently authorizes an accounting action. A user-approved bank

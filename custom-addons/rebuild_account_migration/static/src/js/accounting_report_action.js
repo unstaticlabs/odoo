@@ -174,6 +174,24 @@ export class AccountingReportAction extends Component {
             ];
             return shortLabel ? `${label} (${shortLabel})` : label;
         }
+        if (fieldName === "amount_rounding") {
+            const labels = {
+                whole: {
+                    units: "À l’euro",
+                    thousands: "Au millier d’euros",
+                    millions: "Au million d’euros",
+                },
+                cents: {
+                    units: "Au centime",
+                    thousands: "Deux décimales en k€",
+                    millions: "Deux décimales en M€",
+                },
+            };
+            return (
+                labels[option.value]?.[this.state.filters.display_unit] ||
+                option.label
+            );
+        }
         const labels = {
             period_preset: {
                 custom: "Dates personnalisées",
@@ -314,9 +332,10 @@ export class AccountingReportAction extends Component {
     }
 
     formatAmount(value) {
+        const decimalPlaces = this.amountDecimalPlaces;
         return new Intl.NumberFormat(this.state.data.locale || undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
+            minimumFractionDigits: decimalPlaces,
+            maximumFractionDigits: decimalPlaces,
         }).format(Number(value || 0) / this.displayUnitFactor);
     }
 
@@ -412,6 +431,10 @@ export class AccountingReportAction extends Component {
 
     get displayUnitLabel() {
         return this.state.data.display_unit?.short_label || "";
+    }
+
+    get amountDecimalPlaces() {
+        return Number(this.state.data.amount_rounding?.decimal_places ?? 2);
     }
 
     get reportWorkspaceClass() {

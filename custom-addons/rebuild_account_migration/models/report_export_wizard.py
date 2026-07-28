@@ -6,12 +6,15 @@ import io
 import json
 import math
 from datetime import date, timedelta
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 
 from odoo import Command, api, fields, models
 from odoo.exceptions import AccessError, UserError
 
-from .report_definition import ACCOUNTING_REPORT_TYPES
+from .report_definition import (
+    ACCOUNTING_REPORT_TYPES,
+    AMOUNT_ROUNDING_SELECTION,
+)
 
 ACCOUNT_CODE_SQL = (
     "COALESCE("
@@ -86,6 +89,15 @@ DISPLAY_UNIT_VALUES = {
         "factor": 1_000_000,
         "label": "Millions",
         "short_label": "M€",
+    },
+}
+
+AMOUNT_ROUNDING_VALUES = {
+    "whole": {
+        "decimal_places": 0,
+    },
+    "cents": {
+        "decimal_places": 2,
     },
 }
 
@@ -245,6 +257,17 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         default="units",
         string="Unité d’affichage",
     )
+    amount_rounding = fields.Selection(
+        AMOUNT_ROUNDING_SELECTION,
+        required=True,
+        default="cents",
+        string="Arrondi",
+        help=(
+            "Arrondit uniquement les montants présentés à l’écran et dans "
+            "les exports. Les calculs et la feuille Audit Data du XLSX "
+            "conservent les montants comptables exacts."
+        ),
+    )
     export_format = fields.Selection(
         [
             ("csv", "CSV"),
@@ -386,6 +409,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 "comparison_mode": "none",
                 "group_by": default_group,
                 "display_unit": "units",
+                "amount_rounding": definition.default_amount_rounding,
                 "preview_limit": 1000,
                 "export_format": "xlsx",
                 "report_definition_id": definition.id,
@@ -413,6 +437,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "comparison_date_to",
             "group_by",
             "display_unit",
+            "amount_rounding",
             "hide_zero_accounts",
             "search_text",
             "journal_ids",
@@ -604,6 +629,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 "position": self.company_id.currency_id.position,
             },
             "display_unit": self._display_unit_metadata(),
+            "amount_rounding": self._amount_rounding_metadata(),
             "filters": {
                 "company_id": self.company_id.id,
                 "date_from": fields.Date.to_string(self.date_from),
@@ -624,6 +650,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 ),
                 "group_by": self.group_by,
                 "display_unit": self.display_unit,
+                "amount_rounding": self.amount_rounding,
                 "hide_zero_accounts": self.hide_zero_accounts,
                 "search_text": self.search_text or "",
                 "journal_ids": self.journal_ids.ids,
@@ -642,6 +669,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 "comparison_mode": selection_options("comparison_mode"),
                 "group_by": selection_options("group_by"),
                 "display_unit": selection_options("display_unit"),
+                "amount_rounding": selection_options("amount_rounding"),
                 "journals": [
                     {
                         "value": journal.id,
@@ -835,6 +863,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         capabilities = {
             "period_presets": True,
             "display_unit": True,
+            "amount_rounding": True,
             "comparison": self.report_type in comparison_reports,
             "group_by": self.report_type not in {
                 "aged_receivable",
@@ -1277,7 +1306,10 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             )
             if not can_generate_official_fec and report_type == "fec":
                 values["fec_test_mode"] = True
-            if not values.get("report_definition_id"):
+            definition = self.env[
+                "rebuild.account.report.definition"
+            ].browse(values.get("report_definition_id")).exists()
+            if not definition:
                 company = self.env["res.company"].browse(
                     values.get("company_id"),
                 ).exists() or self.env.company
@@ -1297,6 +1329,10 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                         definition._definition_snapshot()
                     ),
                 })
+            values.setdefault(
+                "amount_rounding",
+                definition.default_amount_rounding,
+            )
         return super().create(vals_list)
 
     def write(self, values):
@@ -1760,6 +1796,36 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             **metadata,
             "key": self.display_unit,
             "short_label": short_label,
+        }
+
+    def _amount_rounding_metadata(self):
+        self.ensure_one()
+        metadata = AMOUNT_ROUNDING_VALUES.get(
+            self.amount_rounding,
+            AMOUNT_ROUNDING_VALUES["cents"],
+        )
+        labels = {
+            "whole": {
+                "units": "À l’euro",
+                "thousands": "Au millier d’euros",
+                "millions": "Au million d’euros",
+            },
+            "cents": {
+                "units": "Au centime",
+                "thousands": "Deux décimales en k€",
+                "millions": "Deux décimales en M€",
+            },
+        }
+        return {
+            **metadata,
+            "key": self.amount_rounding,
+            "label": labels.get(
+                self.amount_rounding,
+                labels["cents"],
+            ).get(
+                self.display_unit,
+                "Deux décimales",
+            ),
         }
 
     def _preview_line_values(self, sequence, row):
@@ -2300,12 +2366,19 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "date_to": fields.Date.to_string(self.date_to),
             "currency": self.company_id.currency_id.name,
             "display_unit": self.display_unit,
+            "amount_rounding": self.amount_rounding,
             "hide_zero_accounts": self.hide_zero_accounts,
             "display_unit_label": self._display_unit_metadata()["label"],
             "display_unit_short_label": (
                 self._display_unit_metadata()["short_label"]
             ),
             "display_unit_factor": self._display_unit_metadata()["factor"],
+            "amount_rounding_label": (
+                self._amount_rounding_metadata()["label"]
+            ),
+            "amount_decimal_places": (
+                self._amount_rounding_metadata()["decimal_places"]
+            ),
             "generated_at": fields.Datetime.to_string(fields.Datetime.now()),
             "target_move": self.target_move,
             "data_scope": self.data_scope,
@@ -2466,6 +2539,8 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "metric_value": "Valeur",
             "unit": "Unité",
         }
+        if self.report_type == "balance_sheet":
+            labels["amount"] = "Solde"
         preferred = {
             "trial_balance": ["account_code", "account_name", "opening_balance", "debit", "credit", "closing_balance"],
             "general_ledger": ["date", "journal_code", "move_name", "account_code", "account_name", "partner_name", "debit", "credit", "balance"],
@@ -2475,7 +2550,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "open_items": ["date", "due_date", "move_name", "account_code", "partner_name", "balance", "residual"],
             "aged_receivable": ["partner_name", "not_due", "bucket_1", "bucket_2", "bucket_3", "bucket_4", "bucket_5", "residual"],
             "aged_payable": ["partner_name", "not_due", "bucket_1", "bucket_2", "bucket_3", "bucket_4", "bucket_5", "residual"],
-            "balance_sheet": ["section", "line_code", "label", "opening_balance", "movement", "closing_balance"],
+            "balance_sheet": ["section", "line_code", "label", "amount"],
             "profit_loss": ["section", "line_code", "label", "amount"],
             "cash_flow": ["section", "line_code", "label", "amount", "statement_balance"],
             "executive_summary": [
@@ -2653,6 +2728,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         fieldname,
         presentation_role="detail",
         monetary_scale_factor=1,
+        monetary_decimal_places=None,
     ):
         numeric_fields = {
             "opening_balance", "debit", "credit", "balance", "closing_balance", "movement",
@@ -2691,6 +2767,16 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 numeric_value = float(value)
                 if fieldname in MONETARY_REPORT_FIELDS:
                     numeric_value /= monetary_scale_factor or 1
+                    if monetary_decimal_places is not None:
+                        quantum = Decimal(1).scaleb(
+                            -monetary_decimal_places,
+                        )
+                        numeric_value = float(
+                            Decimal(str(numeric_value)).quantize(
+                                quantum,
+                                rounding=ROUND_HALF_UP,
+                            ),
+                        )
                 worksheet.write_number(
                     row,
                     column,
@@ -2726,6 +2812,9 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "comments": "Generated from Odoo Community by the USL accounting report exporter.",
         })
         metadata = self._export_metadata(len(rows))
+        decimal_places = metadata["amount_decimal_places"]
+        decimal_suffix = ".00" if decimal_places else ""
+        number_pattern = f"#,##0{decimal_suffix}"
         document_theme = metadata["document"]
         primary_color = document_theme["primary_color"]
         section_background_color = (
@@ -2764,7 +2853,11 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             }),
             "body": workbook.add_format({"border": 1, "border_color": "#D5DBE1", "valign": "top", "text_wrap": True}),
             "number": workbook.add_format({
-                "border": 1, "border_color": "#D5DBE1", "num_format": "#,##0.00;[Red]-#,##0.00;-",
+                "border": 1,
+                "border_color": "#D5DBE1",
+                "num_format": (
+                    f"{number_pattern};[Red]-{number_pattern};-"
+                ),
                 "align": "right", "valign": "top",
             }),
         }
@@ -2834,9 +2927,11 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 **base_style,
                 "align": "right",
                 "num_format": (
-                    "#,##0.00;-#,##0.00;-"
+                    f"{number_pattern};-{number_pattern};-"
                     if role == "section"
-                    else "#,##0.00;[Red]-#,##0.00;-"
+                    else (
+                        f"{number_pattern};[Red]-{number_pattern};-"
+                    )
                 ),
             })
         metadata_sheet = workbook.add_worksheet("Metadata")
@@ -2874,7 +2969,8 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             f"{metadata['company']} | {date_from_display} au "
             f"{date_to_display} | {metadata['currency']} | "
             f"{metadata['display_unit_label']} "
-            f"({metadata['display_unit_short_label']})"
+            f"({metadata['display_unit_short_label']}) | "
+            f"{metadata['amount_rounding_label']}"
             f"{zero_accounts_label}"
         )
         if last_column:
@@ -2920,6 +3016,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                     fieldname,
                     presentation_role,
                     metadata["display_unit_factor"],
+                    metadata["amount_decimal_places"],
                 )
         report_sheet.freeze_panes(header_row + 1, 0)
         report_sheet.autofilter(header_row, 0, header_row + len(data_rows), last_column)
@@ -3165,6 +3262,17 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 if fieldname in MONETARY_REPORT_FIELDS:
                     amount /= Decimal(
                         str(metadata["display_unit_factor"] or 1),
+                    )
+                    decimal_places = metadata["amount_decimal_places"]
+                    quantum = Decimal(1).scaleb(-decimal_places)
+                    amount = amount.quantize(
+                        quantum,
+                        rounding=ROUND_HALF_UP,
+                    )
+                    return (
+                        f"{amount:,.{decimal_places}f}"
+                        .replace(",", " ")
+                        .replace(".", ",")
                     )
                 return f"{amount:,.2f}".replace(",", " ").replace(".", ",")
             except (ArithmeticError, TypeError, ValueError):
@@ -3474,6 +3582,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 f"({metadata['display_unit_short_label']})"
             )
         )
+        rounding_context = f" - {metadata['amount_rounding_label']}"
         zero_accounts_context = (
             " - Lignes à zéro masquées"
             if metadata["hide_zero_accounts"]
@@ -3485,7 +3594,8 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 clean_text(
                     f"{metadata['company']} - Exercice du {date_from_display} au {date_to_display} - "
                     f"Monnaie {metadata['currency']}"
-                    f"{display_scale_context}{zero_accounts_context}",
+                    f"{display_scale_context}{rounding_context}"
+                    f"{zero_accounts_context}",
                 ),
                 styles["USLSubtitle"],
             ),
@@ -3947,6 +4057,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "comparison_mode": "none",
             "target_move": self.target_move,
             "display_unit": self.display_unit,
+            "amount_rounding": self.amount_rounding,
             "hide_zero_accounts": self.hide_zero_accounts,
             "export_format": self.export_format,
             "fec_test_mode": self.fec_test_mode,

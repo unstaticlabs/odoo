@@ -118,6 +118,11 @@ actions behind every canonical report.
 - The display unit is a first-level choice. Units, thousands and millions use
   the selected company's currency symbol and scale company-currency figures;
   an original foreign-currency amount remains in its own unscaled currency.
+- Presentation rounding is a separate first-level choice. Financial
+  statements, fiscal reports and management summaries default to the nearest
+  euro; reconciliation-oriented ledgers, partner reports and schedules default
+  to cents. The active report definition governs that default and the user can
+  switch it without changing any accounting value.
 - French statement variants are resolved by the configured definition for the
   selected company and period. The client presents that resolved variant
   instead of asking users to choose an inapplicable historical ruleset.
@@ -157,9 +162,12 @@ Hierarchy roles determine shading, weight, indentation and total rules in both
 formats. Folding is part of the displayed statement state: a download contains
 the same visible hierarchy, including visible PCG group codes and account
 numbers, and its metadata records the collapsed group keys.
-Display-unit scaling applies to the readable statement while the XLSX `Audit
-Data` sheet remains intentionally raw and machine oriented. The `Report` sheet
-is the accountant-readable statement.
+Display-unit scaling and the selected rounding apply identically to the
+screen, PDF and readable XLSX `Report` sheet. Whole-euro presentation uses
+commercial half-up rounding: a fraction of `0.50` is rounded to the next euro.
+Calculations continue from exact ledger values and rounding occurs only after
+each report expression has been evaluated. The XLSX `Audit Data` sheet remains
+intentionally exact, unscaled and machine oriented.
 
 PDF pages repeat company identity, registry/VAT context, address, reporting
 date, official-document label and page number. Column headers and section rows
@@ -200,5 +208,9 @@ review, filing or a recorded closing decision.
   https://www.anc.gouv.fr/files/anc/files/1_Normes_fran%C3%A7aises/Reglements/Recueils/PCG_Janvier2025/Recueil-NF-Janvier-2025.pdf
 - Code de commerce, composition et structure des comptes annuels:
   https://www.legifrance.gouv.fr/loda/id/LEGISCTA000034161774
+- CGI, article 1649 undecies, fiscal bases rounded to the nearest euro:
+  https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006069577/LEGISCTA000006147278/
+- Code des impositions sur les biens et services, articles L131-1 and L131-2:
+  https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000044595989/LEGISCTA000044598033/
 - Bpifrance Création, formules des soldes intermédiaires de gestion:
   https://bpifrance-creation.fr/encyclopedie/piloter-lentreprise/finance-pilotage-economique/comprendre-calculer-soldes
