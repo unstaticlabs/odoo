@@ -529,8 +529,11 @@ class TestRebuildAccountMigration(TransactionCase):
         )
         self.assertFalse(partner_only_rule.can_be_proposed)
         self.assertIn(
-            "smart bank evidence",
+            "Partner inference",
             partner_only_rule.rebuild_guidance,
+        )
+        self.assertTrue(
+            partner_only_rule.rebuild_has_actionable_guidance,
         )
         self.assertIn(
             partner_only_rule,
@@ -577,6 +580,63 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(proven_rule.rebuild_historical_use_count, 4)
         self.assertEqual(proven_rule.rebuild_total_use_count, 4)
         self.assertEqual(proven_rule.rebuild_health_state, "proven")
+        self.assertEqual(proven_rule.rebuild_activity_badge, "4 used")
+        self.assertEqual(proven_rule.rebuild_activity_state, "used")
+        self.assertFalse(proven_rule.rebuild_guidance)
+        self.assertFalse(proven_rule.rebuild_has_actionable_guidance)
+
+        list_arch = self.env.ref(
+            "rebuild_account_migration."
+            "view_rebuild_account_reconcile_model_list",
+        )._get_combined_arch()
+        self.assertFalse(
+            list_arch.xpath("//list/field[@name='rebuild_rule_type']"),
+        )
+        self.assertFalse(
+            list_arch.xpath(
+                "//list/field[@name='rebuild_use_badge' or "
+                "@name='rebuild_open_match_badge']",
+            ),
+        )
+        activity_fields = list_arch.xpath(
+            "//list/field[@name='rebuild_activity_badge']",
+        )
+        self.assertEqual(len(activity_fields), 1)
+        self.assertEqual(activity_fields[0].get("string"), "Activity")
+        trigger_field = list_arch.xpath(
+            "//list/field[@name='trigger']",
+        )[0]
+        self.assertEqual(
+            trigger_field.get("decoration-warning"),
+            "trigger == 'auto_reconcile'",
+        )
+
+        form_arch = self.env.ref(
+            "rebuild_account_migration."
+            "view_rebuild_account_reconcile_model_form",
+        )._get_combined_arch()
+        recommendation = form_arch.xpath(
+            "//div[contains(@class, 'o_usl_rule_recommendation')]",
+        )
+        self.assertEqual(len(recommendation), 1)
+        self.assertEqual(
+            recommendation[0].get("invisible"),
+            "not rebuild_has_actionable_guidance",
+        )
+        self.assertTrue(
+            form_arch.xpath(
+                "//section[contains(@class, 'o_usl_rule_counterparts')]",
+            ),
+        )
+        self.assertTrue(
+            form_arch.xpath(
+                "//details[contains(@class, 'o_usl_rule_details')]"
+                "[normalize-space(summary)='Notes and evidence']",
+            ),
+        )
+        self.assertFalse(
+            form_arch.xpath("//group[@string='Business purpose']"),
+        )
 
         statement_lines = self.env["account.bank.statement.line"]
         for index in range(3):
@@ -629,6 +689,7 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(len(proposal), 1)
         self.assertTrue(proposal.rebuild_is_proposal)
         self.assertEqual(proposal.rebuild_health_state, "suggested")
+        self.assertTrue(proposal.rebuild_has_actionable_guidance)
         self.assertEqual(proposal.rebuild_proposal_source, "deterministic")
         self.assertGreaterEqual(proposal.rebuild_proposal_confidence, 70)
         self.assertEqual(
