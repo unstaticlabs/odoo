@@ -84,7 +84,7 @@ case "${1:-help}" in
     deploy "${2:-$DEV_MODULE}"
     ;;
   rebuild)
-    "${COMPOSE[@]}" build odoo init-db
+    "${COMPOSE[@]}" build odoo
     deploy "${2:-$DEV_MODULE}"
     ;;
   stop)
@@ -97,6 +97,7 @@ case "${1:-help}" in
     "${COMPOSE[@]}" logs -f "${@:2}"
     ;;
   init-db)
+    "${COMPOSE[@]}" build odoo
     "${COMPOSE[@]}" --profile init run --rm init-db
     ;;
   shell)

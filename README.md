@@ -51,6 +51,38 @@ disposable product database named `odoo_dev`:
 
 Both workflows build Odoo from this repository, use PostgreSQL from Compose, store PostgreSQL data and the Odoo filestore in named volumes, and keep custom addons outside Odoo core under `custom-addons/`.
 
+### Build design
+
+The root `Dockerfile` uses purpose-specific stages:
+
+- `python-dependencies` compiles pinned Python wheels and is never shipped;
+- `node-dependencies` resolves `rtlcss` without shipping npm's build tooling;
+- `runtime` contains only shared runtime libraries and configuration;
+- `base` adds the Odoo source for self-contained QA/deployment images;
+- `test` adds Chromium only for browser-capable automated tests;
+- `dev` adds developer tools but uses the repository bind mount instead of
+  embedding a second copy of the source tree.
+
+The root `.dockerignore` is an allowlist containing only files copied by the
+Dockerfile. Private dumps, filestores, Git history, custom/OCA add-ons,
+documentation and migration artifacts are therefore never sent to the Docker
+builder. Custom add-ons, pinned OCA add-ons and user documentation remain
+available through the explicit Compose mounts.
+
+System packages, Python wheels, Odoo core and standard add-ons use separate
+cache boundaries. Editing ordinary Python/XML/JavaScript source does not
+recompile Python dependencies; changing only `custom-addons/` does not require
+an image rebuild at all. Use:
+
+```bash
+make deploy    # custom add-on code, views, security or documentation mounts
+make rebuild   # Dockerfile, requirements, system packages or upstream core
+```
+
+Keep BuildKit enabled (the default in current Docker Engine and Docker
+Desktop). The Dockerfile uses cache and bind mounts that do not become image
+layers.
+
 Milestone 13 also uses pinned OCA add-ons for Community accounting reports, reconciliation and spreadsheet/PDF support. Fetch them before running imported-accounting or report work:
 
 ```bash
