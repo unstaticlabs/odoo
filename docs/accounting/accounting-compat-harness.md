@@ -540,6 +540,14 @@ summary with operational buckets and native-record actions. The third option is
 implemented. It avoids duplicate state while covering both ongoing work and the
 current monthly/quarterly/annual controls.
 
+Analytic-allocation results reuse Odoo's native editable
+`account.move.line.analytic_distribution` widget and list multi-edit contract.
+The result action pins a scoped journal-item list with the field visible, while
+writable Accounting users inherit native Analytic Accounting access. This was
+chosen over a custom batch wizard because the native widget already validates
+plans, percentages, company scope and analytic-line synchronization. The
+read-only reviewer does not inherit this writable group.
+
 `Accounting > Review > Control > Accounting Hygiene` now exposes unmatched bank
 transactions, incomplete documents, supplier documents without main evidence,
 expenses without receipts, document/expense work older than 30 days, open

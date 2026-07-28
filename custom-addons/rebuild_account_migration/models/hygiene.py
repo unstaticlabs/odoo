@@ -547,16 +547,28 @@ class RebuildAccountHygieneIssue(models.Model):
             raise UserError("The linked source model is not available.")
         target_ids = json.loads(self.target_res_ids_json or "[]") or [self.target_res_id]
         view_mode = "list,form" if len(target_ids) > 1 else "form"
+        action_name = self.source_label if len(target_ids) == 1 else self.title
+        views = [(False, mode) for mode in view_mode.split(",")]
+        context = {"create": False, "delete": False}
+        if self.issue_type == "analytic" and self.target_model == "account.move.line":
+            analytic_list_view = self.env.ref(
+                "rebuild_account_migration."
+                "view_rebuild_account_move_line_hygiene_analytic",
+            )
+            view_mode = "list,form"
+            views = [(analytic_list_view.id, "list"), (False, "form")]
+            action_name = self.title
+            context["edit"] = True
         return {
             "type": "ir.actions.act_window",
-            "name": self.source_label or self.title,
+            "name": action_name or self.title,
             "res_model": self.target_model,
             "res_id": self.target_res_id if len(target_ids) == 1 else False,
             "view_mode": view_mode,
-            "views": [(False, mode) for mode in view_mode.split(",")],
+            "views": views,
             "domain": [("id", "in", target_ids)],
             "target": "current",
-            "context": {"create": False, "delete": False},
+            "context": context,
         }
 
     def action_check_resolution(self):

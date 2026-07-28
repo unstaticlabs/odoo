@@ -2772,6 +2772,128 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(len(color_fields), 1)
         self.assertEqual(color_fields[0].get("column_invisible"), "True")
 
+    def test_hygiene_analytic_items_use_native_multi_edit(self):
+        account_user_group = self.env.ref("account.group_account_user")
+        analytic_group = self.env.ref("analytic.group_analytic_accounting")
+        self.assertIn(analytic_group, account_user_group.implied_ids)
+
+        view = self.env.ref(
+            "rebuild_account_migration."
+            "view_rebuild_account_move_line_hygiene_analytic",
+        )
+        view_arch = view._get_combined_arch()
+        self.assertEqual(view_arch.xpath("//list")[0].get("multi_edit"), "1")
+        analytic_field = view_arch.xpath(
+            "//list/field[@name='analytic_distribution']",
+        )[0]
+        self.assertEqual(analytic_field.get("optional"), "show")
+        self.assertEqual(analytic_field.get("widget"), "analytic_distribution")
+        self.assertIn(
+            "'multi_edit': true",
+            analytic_field.get("options"),
+        )
+
+        expense_account = self._account(
+            "T625920",
+            "Hygiene Analytic Expense",
+            "expense",
+        )
+        counterpart_account = self._account(
+            "T467920",
+            "Hygiene Analytic Counterpart",
+            "liability_current",
+        )
+        move = self.env["account.move"].create({
+            "move_type": "entry",
+            "journal_id": self._journal().id,
+            "date": fields.Date.today(),
+            "line_ids": [
+                Command.create({
+                    "name": "First missing allocation",
+                    "account_id": expense_account.id,
+                    "debit": 60.0,
+                }),
+                Command.create({
+                    "name": "Second missing allocation",
+                    "account_id": expense_account.id,
+                    "debit": 40.0,
+                }),
+                Command.create({
+                    "name": "Counterpart",
+                    "account_id": counterpart_account.id,
+                    "credit": 100.0,
+                }),
+            ],
+        })
+        move.action_post()
+        target_lines = move.line_ids.filtered(
+            lambda line: line.account_id == expense_account,
+        )
+        issue = self.env["rebuild.account.hygiene.issue"].create({
+            "issue_key": f"unit:analytic:{move.id}",
+            "control_code": "hygiene_analytic_allocation",
+            "company_id": self.company.id,
+            "issue_type": "analytic",
+            "severity": "3_attention",
+            "title": "Review analytic allocation on 2 journal items",
+            "description": "Two posted lines have no analytic distribution.",
+            "why_it_matters": "Analytic reporting is incomplete.",
+            "recommended_action": "Assign the appropriate distribution.",
+            "accounting_consequence": "The general ledger remains unchanged.",
+            "evidence": "Two journal items.",
+            "target_model": "account.move.line",
+            "target_res_id": target_lines[0].id,
+            "target_res_ids_json": json.dumps(target_lines.ids),
+            "source_label": target_lines[0].display_name,
+        })
+
+        action = issue.action_open_source()
+        self.assertEqual(action["name"], issue.title)
+        self.assertEqual(
+            action["views"][0],
+            (view.id, "list"),
+        )
+        self.assertTrue(action["context"]["edit"])
+        self.assertFalse(action["context"]["create"])
+        self.assertEqual(action["domain"], [("id", "in", target_lines.ids)])
+
+        plan = self.env["account.analytic.plan"].create({
+            "name": "Hygiene Multi-edit Plan",
+        })
+        analytic_account = self.env["account.analytic.account"].create({
+            "name": "Hygiene Multi-edit Account",
+            "plan_id": plan.id,
+            "company_id": self.company.id,
+        })
+        operator = self.env["res.users"].with_context(
+            no_reset_password=True,
+        ).create({
+            "name": "Analytic Hygiene Operator",
+            "login": "analytic.hygiene.operator@example.invalid",
+            "company_id": self.company.id,
+            "company_ids": [Command.set([self.company.id])],
+            "group_ids": [Command.set([
+                self.env.ref("base.group_user").id,
+                account_user_group.id,
+            ])],
+        })
+        self.assertTrue(
+            operator.has_group("analytic.group_analytic_accounting"),
+        )
+        target_lines.with_user(operator).write({
+            "analytic_distribution": {str(analytic_account.id): 100},
+        })
+        self.assertTrue(all(
+            line.analytic_distribution == {str(analytic_account.id): 100}
+            for line in target_lines
+        ))
+        for line in target_lines:
+            self.assertEqual(len(line.analytic_line_ids), 1)
+            self.assertEqual(
+                line.analytic_line_ids._get_analytic_accounts(),
+                analytic_account,
+            )
+
     def test_hygiene_results_and_control_definitions_use_readable_narratives(self):
         expected_issue_fields = {
             "description",
