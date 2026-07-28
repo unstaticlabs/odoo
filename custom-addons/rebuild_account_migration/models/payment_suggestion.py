@@ -101,10 +101,8 @@ class AccountMove(models.Model):
 
         if status == "inferred":
             evidence = _(
-                "Partner inferred automatically: %(partner)s "
-                "(%(confidence)s%%)",
+                "Partner inferred from bank history: %(partner)s",
                 partner=bill_partner.display_name,
-                confidence=suggestion_confidence,
             )
         elif status == "same":
             evidence = _(
@@ -113,10 +111,8 @@ class AccountMove(models.Model):
             )
         elif status == "suggested":
             evidence = _(
-                "Partner suggested from bank evidence: %(partner)s "
-                "(%(confidence)s%%)",
+                "Bank history suggests partner %(partner)s",
                 partner=bill_partner.display_name,
-                confidence=suggestion_confidence,
             )
         elif status == "different":
             evidence = _(
@@ -127,10 +123,9 @@ class AccountMove(models.Model):
             )
         elif status == "different_suggestion":
             evidence = _(
-                "Bank evidence suggests %(candidate)s (%(confidence)s%%), "
-                "not bill supplier %(supplier)s",
+                "Bank history suggests %(candidate)s, not bill supplier "
+                "%(supplier)s",
                 candidate=suggested_partner.display_name,
-                confidence=suggestion_confidence,
                 supplier=bill_partner.display_name,
             )
         else:
@@ -157,6 +152,7 @@ class AccountMove(models.Model):
         self.ensure_one()
         score = 0
         reasons = []
+        summary = []
 
         bill_references = {
             self._rebuild_normalize_payment_reference(value)
@@ -187,17 +183,21 @@ class AccountMove(models.Model):
         if reference_match:
             score += 60
             reasons.append(_("Reference match"))
+            summary.append(_("Reference match"))
 
         candidate_amount = candidate["amount"]
         if self.currency_id.compare_amounts(candidate_amount, target_amount) == 0:
             score += 40
             reasons.append(_("Exact amount"))
+            summary.append(_("Exact amount"))
         elif self.currency_id.compare_amounts(candidate_amount, target_amount) < 0:
             score += 12
             reasons.append(_("Possible partial payment"))
+            summary.append(_("Possible partial payment"))
         else:
             score += 6
             reasons.append(_("Larger available payment"))
+            summary.append(_("Larger available payment"))
 
         if line.currency_id == self.currency_id:
             score += 10
@@ -208,11 +208,13 @@ class AccountMove(models.Model):
         if distance is not False:
             if distance <= 7:
                 score += 15
-                reasons.append(_(
-                    "Date %(distance)s day(s) from %(reference)s",
+                date_reason = _(
+                    "%(distance)s-day gap from %(reference)s",
                     distance=distance,
                     reference=date_facts["label"],
-                ))
+                )
+                reasons.append(date_reason)
+                summary.append(date_reason)
             elif distance <= 31:
                 score += 8
                 reasons.append(_(
@@ -238,10 +240,15 @@ class AccountMove(models.Model):
         score += partner_facts["partner_score"]
         reasons.append(partner_facts["partner_evidence"])
         if partner_facts["partner_suggestion_reason"]:
-            reasons.append(partner_facts["partner_suggestion_reason"])
+            source_evidence = re.sub(
+                r"^\s*\d+%\s*[—-]\s*",
+                "",
+                partner_facts["partner_suggestion_reason"],
+            )
+            reasons.append(_("Evidence: %(evidence)s", evidence=source_evidence))
 
         confidence = "high" if score >= 70 else "medium" if score >= 35 else "low"
-        return score, confidence, " · ".join(reasons)
+        return score, confidence, " · ".join(reasons), " · ".join(summary)
 
     def _rebuild_close_bank_payment_candidates(self, target_amount):
         self.ensure_one()
@@ -370,7 +377,12 @@ class AccountMove(models.Model):
                 line = lines_by_id.get(candidate["id"])
                 if not line:
                     continue
-                score, confidence, reason = move._rebuild_payment_suggestion_score(
+                (
+                    score,
+                    confidence,
+                    reason,
+                    summary,
+                ) = move._rebuild_payment_suggestion_score(
                     line,
                     candidate,
                     target_amount,
@@ -380,6 +392,7 @@ class AccountMove(models.Model):
                     "can_assign": move.state == "posted",
                     "match_confidence": confidence,
                     "match_reason": reason,
+                    "match_summary": summary,
                     "match_score": score,
                     **partner_facts,
                 })
@@ -401,7 +414,7 @@ class AccountMove(models.Model):
                 continue
             content[0]["is_best_match"] = True
             widget["content"] = content
-            widget["title"] = _("Suggested existing payments")
+            widget["title"] = _("Suggested payments")
             widget["draft_suggestions"] = move.state == "draft"
             move.invoice_outstanding_credits_debits_widget = widget
 
