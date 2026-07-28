@@ -42,9 +42,27 @@
         <field name="model">res.currency.rate</field>
         <field name="inherit_id" ref="base.view_currency_rate_tree"/>
         <field name="arch" type="xml">
+            <field name="name" position="after">
+                <field
+                    name="currency_id"
+                    string="Currency"
+                    column_invisible="context.get('default_currency_id')"
+                    options="{'no_create': True}"/>
+            </field>
             <field name="write_date" position="after">
                 <field name="rebuild_rate_provider" string="Rate Provider" optional="show"/>
                 <field name="rebuild_rate_retrieved_at" string="Retrieved At" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_rebuild_currency_rate_search" model="ir.ui.view">
+        <field name="name">res.currency.rate.search.rebuild.currency</field>
+        <field name="model">res.currency.rate</field>
+        <field name="inherit_id" ref="base.view_currency_rate_search"/>
+        <field name="arch" type="xml">
+            <field name="name" position="after">
+                <field name="currency_id" string="Currency"/>
             </field>
         </field>
     </record>
