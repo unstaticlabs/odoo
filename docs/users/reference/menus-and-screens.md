@@ -17,8 +17,13 @@ totals, posted profit before IS, rate bands and account 444 instalments. Select
 any amount to inspect its records or the related declarations.
 
 When bank transactions still need a counterpart or accounting category, a
-compact **N to match** alert appears on Cash on banks and opens Bank Matching.
-It disappears naturally when the queue is clear.
+compact **N to match** alert appears on Cash on banks and the **To Match**
+smart indicator remains available above the Overview. Both open Bank Matching;
+the compact cash alert disappears naturally when the queue is clear.
+
+Blocking Hygiene and closing/declaration alerts link directly to the records
+that need review. Cards with no current action show a lightweight green
+**Ready** status.
 
 **Compte Courant Associé** shows the estimated net position with the
 shareholder configured in Accounting Settings. The amount says whether USL

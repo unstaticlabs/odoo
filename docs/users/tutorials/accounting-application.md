@@ -10,16 +10,19 @@ Read it from top to bottom:
 
 1. **Cash on banks**, then the projected amount after open reconciliation
    balances settle and unposted employee expenses are reimbursed;
-2. the **to match** alert on Cash on banks, when bank work remains;
+2. the **To Match** smart indicator and the compact alert on Cash on banks,
+   when bank work remains;
 3. **Compte Courant Associé**, including who is estimated to owe whom;
 4. documents and balances needing attention;
 5. Accounting Hygiene;
 6. the next closing workspace and declaration;
 7. prepared review work.
 
-Open the **to match** chip to inspect Bank Matching, then return with the
-browser Back button. Expand **View projection details** on Compte Courant
-Associé and reconcile its posted-account and unpaid-expense components.
+Open either matching indicator to inspect Bank Matching, then return with the
+browser Back button. Blocking alerts link directly to their issues; green
+**Ready** chips identify sections with no current action. Expand **View
+projection details** on Compte Courant Associé and reconcile its posted-account
+and unpaid-expense components.
 
 ## 2. Inspect Journals and documents
 

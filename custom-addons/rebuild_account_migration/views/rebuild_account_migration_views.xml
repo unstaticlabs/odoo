@@ -1369,16 +1369,39 @@
                         </h2>
                     </div>
                     <div
-                        class="alert alert-danger"
+                        class="alert alert-danger o_usl_overview_alert"
                         role="alert"
                         invisible="hygiene_status != 'blocked'">
-                        Accounting Hygiene has blocking issues. Review them before continuing normal accounting work.
+                        Accounting Hygiene has
+                        <button
+                            name="action_open_hygiene_issues"
+                            type="object"
+                            string="blocking issues"
+                            class="btn btn-link alert-link o_usl_overview_alert_action"/>.
+                        <button
+                            name="action_open_hygiene_issues"
+                            type="object"
+                            string="Review them"
+                            class="btn btn-link alert-link o_usl_overview_alert_action"/>
+                        before continuing normal accounting work.
                     </div>
                     <div
-                        class="alert alert-warning"
+                        class="alert alert-warning o_usl_overview_alert"
                         role="alert"
                         invisible="not overdue_declaration_count and latest_closing_readiness != 'blocked'">
                         A closing control or declaration deadline needs attention.
+                        <button
+                            name="action_open_latest_closing"
+                            type="object"
+                            string="Review closing"
+                            class="btn btn-link alert-link o_usl_overview_alert_action"
+                            invisible="latest_closing_readiness != 'blocked' or not latest_closing_period_id"/>
+                        <button
+                            name="action_open_declarations"
+                            type="object"
+                            string="Review declarations"
+                            class="btn btn-link alert-link o_usl_overview_alert_action"
+                            invisible="overdue_declaration_count == 0"/>
                     </div>
                     <div class="oe_button_box" name="button_box">
                         <button
@@ -1391,6 +1414,14 @@
                         </button>
                         <button name="action_open_bank_transactions" type="object" class="oe_stat_button" icon="fa-bank">
                             <field name="bank_transaction_count" widget="statinfo" string="Transactions"/>
+                        </button>
+                        <button
+                            name="action_open_bank_matching"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-random"
+                            title="Open Bank Matching for transactions that still need a counterpart or accounting category.">
+                            <field name="unmatched_bank_transaction_count" widget="statinfo" string="To Match"/>
                         </button>
                         <button name="action_open_customer_documents" type="object" class="oe_stat_button" icon="fa-file-text-o">
                             <field name="draft_customer_document_count" widget="statinfo" string="Draft Invoices"/>
@@ -1408,7 +1439,6 @@
                     <div class="o_usl_accounting_overview">
                         <p class="o_usl_overview_intro">
                             Start with bank matching and documents waiting for review.
-                            Closing and declaration readiness are shown below when they need attention.
                         </p>
 
                         <section class="o_usl_overview_section">
@@ -1550,7 +1580,7 @@
                                                         <field name="cash_projection_fiscalyear_start" nolabel="1"/>
                                                         to
                                                         <field name="cash_projection_fiscalyear_end" nolabel="1"/>.
-                                                        Unposted expenses and fiscal adjustments are not assumed deductible.
+                                                        Unposted expenses and fiscal adjustments not deducted.
                                                     </div>
                                                     <div class="o_usl_cash_breakdown_row o_usl_cash_breakdown_subrow">
                                                         <span>Estimated base at 15%</span>
@@ -1594,11 +1624,8 @@
                                                         of IS liability is already included as an expected payment, so it is not reserved twice.
                                                     </div>
                                                     <div class="o_usl_cash_projection_note">
-                                                        At the 25% marginal rate, €1 of a genuinely deductible expense lowers this estimate by about €0.25—not €1. An investment may be capitalized and reduce tax only through depreciation. Confirm eligibility, fiscal adjustments, losses and credits in the 2065 review.
+                                                        At the 25% marginal rate, €1 of a genuinely deductible expense lowers this estimate by about €0.25—not €1. An investment may be capitalized and reduce tax only through depreciation. Confirm eligibility.
                                                     </div>
-                                                </div>
-                                                <div class="o_usl_cash_projection_note">
-                                                    This is a planning estimate. Some open balances may clear through reclassification or offset rather than cash.
                                                 </div>
                                             </div>
                                         </details>
@@ -1660,7 +1687,7 @@
                                                         expense records
                                                     </div>
                                                     <div class="o_usl_cash_projection_note">
-                                                        This management estimate nets the posted account position with unpaid expenses. It does not post, reimburse or reclassify anything.
+                                                        This management estimate nets the posted account position with unpaid expenses.
                                                     </div>
                                                     <div
                                                         class="o_usl_cash_projection_note"
@@ -1723,9 +1750,16 @@
                                                 name="hygiene_status"
                                                 nolabel="1"
                                                 widget="badge"
+                                                invisible="hygiene_issue_count == 0"
                                                 decoration-success="hygiene_status == 'ready'"
                                                 decoration-warning="hygiene_status == 'attention'"
                                                 decoration-danger="hygiene_status == 'blocked'"/>
+                                            <span
+                                                class="badge rounded-pill o_usl_ready_status_chip"
+                                                invisible="hygiene_issue_count != 0">
+                                                <i class="fa fa-check" aria-hidden="true"/>
+                                                Ready
+                                            </span>
                                         </div>
                                         <span class="o_usl_overview_value"><field name="hygiene_issue_count" nolabel="1"/></span>
                                         <div class="o_usl_overview_detail">Deterministic recommendations linked directly to records that need review.</div>
@@ -1734,7 +1768,15 @@
                                 </div>
                                 <div class="col-12 col-md-6">
                                     <div class="o_usl_overview_card">
-                                        <h4 class="o_usl_overview_card_title">Evidence follow-up</h4>
+                                        <div class="o_usl_overview_status">
+                                            <h4 class="o_usl_overview_card_title">Evidence follow-up</h4>
+                                            <span
+                                                class="badge rounded-pill o_usl_ready_status_chip"
+                                                invisible="missing_vendor_attachment_count != 0">
+                                                <i class="fa fa-check" aria-hidden="true"/>
+                                                Ready
+                                            </span>
+                                        </div>
                                         <span class="o_usl_overview_value"><field name="missing_vendor_attachment_count" nolabel="1"/></span>
                                         <div class="o_usl_overview_detail">Supplier documents currently missing their primary evidence.</div>
                                         <button name="action_open_missing_vendor_attachments" type="object" string="Review missing evidence" class="btn-link"/>
@@ -1754,10 +1796,17 @@
                                                 name="latest_closing_readiness"
                                                 nolabel="1"
                                                 widget="badge"
+                                                invisible="latest_closing_period_id and latest_closing_blocking_count == 0 and latest_closing_warning_count == 0"
                                                 decoration-success="latest_closing_readiness == 'ready'"
                                                 decoration-warning="latest_closing_readiness == 'warning'"
                                                 decoration-danger="latest_closing_readiness == 'blocked'"
                                                 decoration-muted="latest_closing_readiness == 'not_run'"/>
+                                            <span
+                                                class="badge rounded-pill o_usl_ready_status_chip"
+                                                invisible="not latest_closing_period_id or latest_closing_blocking_count != 0 or latest_closing_warning_count != 0">
+                                                <i class="fa fa-check" aria-hidden="true"/>
+                                                Ready
+                                            </span>
                                         </div>
                                         <span class="o_usl_overview_value"><field name="latest_closing_date_to" nolabel="1"/></span>
                                         <div class="o_usl_overview_detail">
@@ -1775,11 +1824,18 @@
                                                 name="next_declaration_status"
                                                 nolabel="1"
                                                 widget="badge"
+                                                invisible="overdue_declaration_count == 0 and upcoming_declaration_count == 0"
                                                 decoration-success="next_declaration_status in ('ready_to_file', 'filed', 'paid')"
                                                 decoration-info="next_declaration_status in ('internal_review', 'accountant_review', 'accountant_reviewed')"
                                                 decoration-warning="next_declaration_status in ('to_prepare', 'data_missing')"
                                                 decoration-danger="next_declaration_status == 'blocked'"
                                                 decoration-muted="next_declaration_status in ('archived', 'not_applicable')"/>
+                                            <span
+                                                class="badge rounded-pill o_usl_ready_status_chip"
+                                                invisible="overdue_declaration_count != 0 or upcoming_declaration_count != 0">
+                                                <i class="fa fa-check" aria-hidden="true"/>
+                                                Ready
+                                            </span>
                                         </div>
                                         <span class="o_usl_overview_value"><field name="next_declaration_deadline" nolabel="1"/></span>
                                         <div class="o_usl_overview_detail">
