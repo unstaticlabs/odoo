@@ -8,17 +8,22 @@ from requests.exceptions import RequestException
 
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError
+from odoo.tools import float_compare
 
 _logger = logging.getLogger(__name__)
 
-ECB_DAILY_RATE_URL = (
+ECB_RECENT_RATE_URL = (
     "https://www.ecb.europa.eu/stats/eurofxref/"
-    "eurofxref-daily.xml"
+    "eurofxref-hist-90d.xml"
+)
+ECB_FULL_RATE_URL = (
+    "https://www.ecb.europa.eu/stats/eurofxref/"
+    "eurofxref-hist.xml"
 )
 ECB_RATE_NAMESPACE = (
     "http://www.ecb.int/vocabulary/2002-08-01/eurofxref"
 )
-ECB_RESPONSE_LIMIT = 1_000_000
+ECB_RESPONSE_LIMIT = 12_000_000
 
 
 class ResCompany(models.Model):
@@ -64,9 +69,18 @@ class ResCompany(models.Model):
         readonly=True,
         copy=False,
     )
+    rebuild_currency_rate_coverage_start = fields.Date(
+        string="Automated Coverage From",
+        readonly=True,
+        copy=False,
+        help=(
+            "First ECB publication date governed by automation. Restored and "
+            "manual rates before this boundary remain unchanged."
+        ),
+    )
 
     @api.model
-    def _rebuild_parse_ecb_daily_xml(self, payload):
+    def _rebuild_parse_ecb_xml(self, payload):
         if not payload:
             raise UserError(_("The ECB response was empty."))
         if len(payload) > ECB_RESPONSE_LIMIT:
@@ -89,70 +103,86 @@ class ResCompany(models.Model):
             ".//ecb:Cube[@time]",
             namespaces={"ecb": ECB_RATE_NAMESPACE},
         )
-        if len(dated_nodes) != 1:
+        if not dated_nodes:
             raise UserError(
-                _(
-                    "The ECB response must contain exactly one "
-                    "reference-rate date.",
-                ),
-            )
-        try:
-            reference_date = fields.Date.to_date(
-                dated_nodes[0].get("time"),
-            )
-        except (TypeError, ValueError) as error:
-            raise UserError(
-                _("The ECB response contained an invalid reference date."),
-            ) from error
-        if not reference_date:
-            raise UserError(
-                _("The ECB response did not contain a reference date."),
+                _("The ECB response did not contain any reference-rate dates."),
             )
 
-        rates = {"EUR": Decimal("1")}
-        for node in dated_nodes[0].xpath(
-            "./ecb:Cube[@currency][@rate]",
-            namespaces={"ecb": ECB_RATE_NAMESPACE},
-        ):
-            code = (node.get("currency") or "").strip().upper()
-            if len(code) != 3 or not code.isalpha() or code in rates:
-                raise UserError(
-                    _("The ECB response contained an invalid currency code."),
-                )
+        observations = []
+        seen_dates = set()
+        for dated_node in dated_nodes:
             try:
-                value = Decimal(node.get("rate"))
-            except (InvalidOperation, TypeError, ValueError) as error:
+                reference_date = fields.Date.to_date(
+                    dated_node.get("time"),
+                )
+            except (TypeError, ValueError) as error:
                 raise UserError(
-                    _(
-                        "The ECB response contained an invalid rate "
-                        "for %(currency)s.",
-                        currency=code,
-                    ),
+                    _("The ECB response contained an invalid reference date."),
                 ) from error
-            if not value.is_finite() or value <= 0:
+            if not reference_date or reference_date in seen_dates:
                 raise UserError(
                     _(
-                        "The ECB rate for %(currency)s must be positive.",
-                        currency=code,
+                        "The ECB response contained a missing or duplicate "
+                        "reference date.",
                     ),
                 )
-            rates[code] = value
-        if len(rates) == 1:
-            raise UserError(
-                _("The ECB response did not contain any currency rates."),
-            )
-        return reference_date, rates
+            seen_dates.add(reference_date)
+
+            rates = {"EUR": Decimal("1")}
+            for node in dated_node.xpath(
+                "./ecb:Cube[@currency][@rate]",
+                namespaces={"ecb": ECB_RATE_NAMESPACE},
+            ):
+                code = (node.get("currency") or "").strip().upper()
+                if len(code) != 3 or not code.isalpha() or code in rates:
+                    raise UserError(
+                        _(
+                            "The ECB response contained an invalid currency "
+                            "code.",
+                        ),
+                    )
+                try:
+                    value = Decimal(node.get("rate"))
+                except (InvalidOperation, TypeError, ValueError) as error:
+                    raise UserError(
+                        _(
+                            "The ECB response contained an invalid rate "
+                            "for %(currency)s.",
+                            currency=code,
+                        ),
+                    ) from error
+                if not value.is_finite() or value <= 0:
+                    raise UserError(
+                        _(
+                            "The ECB rate for %(currency)s must be positive.",
+                            currency=code,
+                        ),
+                    )
+                rates[code] = value
+            if len(rates) == 1:
+                raise UserError(
+                    _(
+                        "The ECB response did not contain currency rates for "
+                        "%(date)s.",
+                        date=fields.Date.to_string(reference_date),
+                    ),
+                )
+            observations.append((reference_date, rates))
+        return sorted(observations, key=lambda item: item[0])
 
     @api.model
-    def _rebuild_fetch_ecb_daily_xml(self):
+    def _rebuild_fetch_ecb_xml(self, *, backfill=False):
+        provider_url = (
+            ECB_FULL_RATE_URL if backfill else ECB_RECENT_RATE_URL
+        )
         try:
             response = requests.get(
-                ECB_DAILY_RATE_URL,
+                provider_url,
                 headers={
                     "Accept": "application/xml,text/xml",
-                    "User-Agent": "USL-Odoo-Accounting/19.0",
+                    "User-Agent": "USL-Odoo-Accounting/saas-19.2",
                 },
-                timeout=15,
+                timeout=30 if backfill else 15,
             )
             response.raise_for_status()
         except RequestException as error:
@@ -168,7 +198,7 @@ class ResCompany(models.Model):
             raise UserError(
                 _("The ECB response exceeded the accepted size limit."),
             )
-        return payload, fields.Datetime.now()
+        return payload, fields.Datetime.now(), provider_url
 
     def _rebuild_record_currency_rate_failure(self, message):
         self.ensure_one()
@@ -182,6 +212,9 @@ class ResCompany(models.Model):
         self,
         payload=None,
         retrieved_at=None,
+        *,
+        backfill=False,
+        provider_url=None,
     ):
         self.ensure_one()
         if self.rebuild_currency_rate_provider != "ecb":
@@ -192,19 +225,24 @@ class ResCompany(models.Model):
                 ),
             )
         if payload is None:
-            payload, fetched_at = self._rebuild_fetch_ecb_daily_xml()
+            payload, fetched_at, provider_url = self._rebuild_fetch_ecb_xml(
+                backfill=backfill,
+            )
             retrieved_at = retrieved_at or fetched_at
+        provider_url = provider_url or (
+            ECB_FULL_RATE_URL if backfill else ECB_RECENT_RATE_URL
+        )
         retrieved_at = (
             fields.Datetime.to_datetime(retrieved_at)
             if retrieved_at
             else fields.Datetime.now()
         )
-        reference_date, ecb_rates = self._rebuild_parse_ecb_daily_xml(
+        observations = self._rebuild_parse_ecb_xml(
             payload,
         )
+        reference_date = observations[-1][0]
         base_code = self.currency_id.name
-        base_rate = ecb_rates.get(base_code)
-        if not base_rate:
+        if not observations[-1][1].get(base_code):
             raise UserError(
                 _(
                     "The ECB feed does not provide the company currency "
@@ -219,50 +257,98 @@ class ResCompany(models.Model):
             ("active", "=", True),
             ("id", "!=", self.currency_id.id),
         ])
+        coverage_start = self._rebuild_currency_rate_start_date(
+            currencies,
+            reference_date,
+        )
+        observations = [
+            observation
+            for observation in observations
+            if observation[0] >= coverage_start
+        ]
+        existing_rates = Rate.search([
+            ("currency_id", "in", currencies.ids),
+            ("company_id", "=", self.id),
+            ("name", ">=", coverage_start),
+            ("name", "<=", reference_date),
+        ])
+        existing_by_key = {
+            (rate.currency_id.id, rate.name): rate
+            for rate in existing_rates
+        }
         created_count = 0
         updated_count = 0
+        unchanged_count = 0
         preserved_source_count = 0
+        preserved_manual_count = 0
         unavailable_currency_codes = []
-        updated_currency_codes = []
-        for currency in currencies:
-            provider_rate = ecb_rates.get(currency.name)
-            if not provider_rate:
-                unavailable_currency_codes.append(currency.name)
+        covered_currency_codes = set()
+        for observed_date, ecb_rates in observations:
+            base_rate = ecb_rates.get(base_code)
+            if not base_rate:
                 continue
-            technical_rate = provider_rate / base_rate
-            existing = Rate.search([
-                ("currency_id", "=", currency.id),
-                ("company_id", "=", self.id),
-                ("name", "=", reference_date),
-            ], limit=1)
-            if existing and existing.rebuild_source_model:
-                preserved_source_count += 1
-                continue
-            values = {
-                "name": reference_date,
-                "currency_id": currency.id,
-                "company_id": self.id,
-                "rate": float(technical_rate),
-                "rebuild_rate_provider": "ecb",
-                "rebuild_rate_retrieved_at": retrieved_at,
-            }
-            if existing:
-                existing.write(values)
-                updated_count += 1
-            else:
-                Rate.create(values)
-                created_count += 1
-            updated_currency_codes.append(currency.name)
+            for currency in currencies:
+                provider_rate = ecb_rates.get(currency.name)
+                if not provider_rate:
+                    continue
+                covered_currency_codes.add(currency.name)
+                technical_rate = float(provider_rate / base_rate)
+                existing = existing_by_key.get((currency.id, observed_date))
+                if existing and existing.rebuild_source_model:
+                    preserved_source_count += 1
+                    continue
+                if existing and existing.rebuild_rate_provider != "ecb":
+                    preserved_manual_count += 1
+                    continue
+                values = {
+                    "name": observed_date,
+                    "currency_id": currency.id,
+                    "company_id": self.id,
+                    "rate": technical_rate,
+                    "rebuild_rate_provider": "ecb",
+                    "rebuild_rate_retrieved_at": retrieved_at,
+                }
+                if existing:
+                    if float_compare(
+                        existing.rate,
+                        technical_rate,
+                        precision_digits=12,
+                    ):
+                        existing.write(values)
+                        updated_count += 1
+                    else:
+                        unchanged_count += 1
+                else:
+                    existing_by_key[currency.id, observed_date] = (
+                        Rate.create(values)
+                    )
+                    created_count += 1
+
+        latest_rates = observations[-1][1] if observations else {}
+        unavailable_currency_codes = sorted(
+            currency.name
+            for currency in currencies
+            if currency.name not in latest_rates
+        )
 
         message = _(
-            "ECB reference rates for %(date)s: %(created)s created, "
-            "%(updated)s updated, %(preserved)s source-traced rates "
-            "preserved.",
+            "ECB rates through %(date)s, covering published days from "
+            "%(coverage_start)s: %(dates)s day(s) checked, %(created)s "
+            "missing rate(s) created, %(updated)s corrected, %(unchanged)s "
+            "already current.",
             date=fields.Date.to_string(reference_date),
+            coverage_start=fields.Date.to_string(coverage_start),
+            dates=len(observations),
             created=created_count,
             updated=updated_count,
-            preserved=preserved_source_count,
+            unchanged=unchanged_count,
         )
+        if preserved_source_count or preserved_manual_count:
+            message += " " + _(
+                "%(source)s restored and %(manual)s manual rate(s) preserved.",
+                source=preserved_source_count,
+                manual=preserved_manual_count,
+            )
         if unavailable_currency_codes:
             message += " " + _(
                 "No ECB rate was available for: %(currencies)s.",
@@ -271,18 +357,20 @@ class ResCompany(models.Model):
         result = {
             "status": "passed",
             "provider": "ecb",
-            "provider_url": ECB_DAILY_RATE_URL,
+            "provider_url": provider_url,
             "retrieved_at": fields.Datetime.to_string(retrieved_at),
             "reference_date": fields.Date.to_string(reference_date),
+            "coverage_start_date": fields.Date.to_string(coverage_start),
+            "processed_reference_date_count": len(observations),
             "company_id": self.id,
             "company_currency": base_code,
             "created_count": created_count,
             "updated_count": updated_count,
+            "unchanged_count": unchanged_count,
             "preserved_source_count": preserved_source_count,
-            "updated_currency_codes": sorted(updated_currency_codes),
-            "unavailable_currency_codes": sorted(
-                unavailable_currency_codes,
-            ),
+            "preserved_manual_count": preserved_manual_count,
+            "covered_currency_codes": sorted(covered_currency_codes),
+            "unavailable_currency_codes": unavailable_currency_codes,
             "message": message,
         }
         self.sudo().write({
@@ -293,15 +381,65 @@ class ResCompany(models.Model):
         })
         return result
 
+    def _rebuild_currency_rate_start_date(
+        self,
+        currencies,
+        latest_reference_date,
+    ):
+        self.ensure_one()
+        if self.rebuild_currency_rate_coverage_start:
+            return self.rebuild_currency_rate_coverage_start
+
+        Rate = self.env["res.currency.rate"].sudo().with_company(self)
+        protected_rate = Rate.search([
+            ("company_id", "=", self.id),
+            ("currency_id", "in", currencies.ids),
+            "|",
+            ("rebuild_source_model", "!=", False),
+            ("rebuild_rate_provider", "!=", "ecb"),
+        ], order="name desc", limit=1)
+        if protected_rate:
+            coverage_start = fields.Date.add(
+                protected_rate.name,
+                days=1,
+            )
+        else:
+            first_automated_rate = Rate.search([
+                ("company_id", "=", self.id),
+                ("currency_id", "in", currencies.ids),
+                ("rebuild_rate_provider", "=", "ecb"),
+            ], order="name asc", limit=1)
+            coverage_start = (
+                first_automated_rate.name
+                if first_automated_rate
+                else latest_reference_date
+            )
+        self.sudo().rebuild_currency_rate_coverage_start = coverage_start
+        return coverage_start
+
     @api.model
     def _cron_rebuild_update_currency_rates(self):
         companies = self.sudo().search([
             ("rebuild_currency_rate_auto_update", "=", True),
             ("rebuild_currency_rate_provider", "=", "ecb"),
         ])
+        try:
+            payload, retrieved_at, provider_url = (
+                self._rebuild_fetch_ecb_xml()
+            )
+        except Exception as error:  # noqa: BLE001
+            message = str(error)
+            for company in companies:
+                company._rebuild_record_currency_rate_failure(message)
+            _logger.exception("ECB currency-rate retrieval failed")
+            return True
         for company in companies:
             try:
-                company._rebuild_update_ecb_currency_rates()
+                company._rebuild_update_ecb_currency_rates(
+                    payload=payload,
+                    retrieved_at=retrieved_at,
+                    provider_url=provider_url,
+                )
             except Exception as error:  # noqa: BLE001
                 message = str(error)
                 company._rebuild_record_currency_rate_failure(message)
@@ -335,7 +473,11 @@ class RebuildCurrencyRateUpdateWizard(models.TransientModel):
     )
     provider_url = fields.Char(
         string="Official Provider URL",
-        default=ECB_DAILY_RATE_URL,
+        default=ECB_FULL_RATE_URL,
+        readonly=True,
+    )
+    coverage_start_date = fields.Date(
+        string="Automated Coverage From",
         readonly=True,
     )
     last_sync_at = fields.Datetime(readonly=True)
@@ -376,6 +518,9 @@ class RebuildCurrencyRateUpdateWizard(models.TransientModel):
             ),
             "last_sync_message": (
                 company.rebuild_currency_rate_last_sync_message
+            ),
+            "coverage_start_date": (
+                company.rebuild_currency_rate_coverage_start
             ),
         }
 
@@ -426,7 +571,9 @@ class RebuildCurrencyRateUpdateWizard(models.TransientModel):
         self._rebuild_save_configuration()
         try:
             result = (
-                self.company_id._rebuild_update_ecb_currency_rates()
+                self.company_id._rebuild_update_ecb_currency_rates(
+                    backfill=True,
+                )
             )
         except UserError as error:
             self.company_id._rebuild_record_currency_rate_failure(
@@ -435,7 +582,7 @@ class RebuildCurrencyRateUpdateWizard(models.TransientModel):
             result = {
                 "status": "failed",
                 "provider": self.provider,
-                "provider_url": ECB_DAILY_RATE_URL,
+                "provider_url": ECB_FULL_RATE_URL,
                 "company_id": self.company_id.id,
                 "message": str(error),
             }
