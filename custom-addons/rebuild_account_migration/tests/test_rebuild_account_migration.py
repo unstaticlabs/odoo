@@ -18,7 +18,7 @@ except ImportError:
 from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import TransactionCase, tagged
-from odoo.tools import format_date
+from odoo.tools import file_open, format_date
 from odoo.tools.safe_eval import safe_eval
 
 from odoo.addons.rebuild_account_migration.controllers import user_docs
@@ -150,6 +150,29 @@ class TestRebuildAccountMigration(TransactionCase):
                 format_date(self.env, sample_date, lang_code=language_code),
                 "10/06/2026",
             )
+        Report = self.env["rebuild.account.report.export.wizard"]
+        self.assertEqual(
+            Report._report_export_row_value(
+                {"date": "2026-06-10"},
+                "date",
+            ),
+            "10/06/2026",
+        )
+        with file_open(
+            "rebuild_account_migration/static/src/xml/"
+            "accounting_report_action.xml",
+        ) as report_template:
+            template = etree.parse(report_template)
+        self.assertFalse(template.xpath("//input[@type='date']"))
+        date_inputs = template.xpath("//DateTimeInput")
+        self.assertEqual(len(date_inputs), 5)
+        self.assertEqual(
+            {
+                date_input.get("format")
+                for date_input in date_inputs
+            },
+            {"'dd/MM/yyyy'"},
+        )
 
     def test_native_email_gateway_creates_draft_bill_with_source_evidence(self):
         supplier = self.env["res.partner"].create({
@@ -7330,6 +7353,21 @@ class TestRebuildAccountMigration(TransactionCase):
                     f"(k{self.env.company.currency_id.symbol})",
                     exported_text,
                 )
+                self.assertIn("01/01/2099", exported_text)
+                self.assertIn("31/12/2099", exported_text)
+                self.assertRegex(
+                    exported_text,
+                    r"Généré le \d{2}/\d{2}/\d{4} \d{2}:\d{2}",
+                )
+            else:
+                with ZipFile(BytesIO(exported_file)) as workbook:
+                    shared_strings = workbook.read(
+                        "xl/sharedStrings.xml",
+                    )
+                self.assertIn(b"01/01/2099", shared_strings)
+                self.assertIn(b"31/12/2099", shared_strings)
+                self.assertNotIn(b"2099-01-01", shared_strings)
+                self.assertNotIn(b"2099-12-31", shared_strings)
             metadata = json.loads(wizard.export_metadata)
             self.assertEqual(
                 metadata["report_definition_version"],

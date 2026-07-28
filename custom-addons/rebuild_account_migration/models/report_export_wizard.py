@@ -64,6 +64,14 @@ MONETARY_REPORT_FIELDS = {
     "allocated_balance",
 }
 
+DATE_REPORT_FIELDS = {
+    "date",
+    "due_date",
+    "acquisition_date",
+    "depreciation_date",
+    "deferred_date",
+}
+
 DISPLAY_UNIT_VALUES = {
     "units": {
         "factor": 1,
@@ -2602,6 +2610,10 @@ class RebuildAccountReportExportWizard(models.TransientModel):
     @staticmethod
     def _report_export_row_value(row, fieldname):
         value = row.get(fieldname)
+        if fieldname in DATE_REPORT_FIELDS and value:
+            return fields.Date.to_date(str(value)[:10]).strftime(
+                "%d/%m/%Y",
+            )
         if fieldname != "label":
             return value
         label = value or (
@@ -2702,7 +2714,11 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         })
         workbook.set_properties({
             "title": self._report_type_label(),
-            "subject": f"{self.company_id.display_name} - {self.date_from} to {self.date_to}",
+            "subject": (
+                f"{self.company_id.display_name} - "
+                f"{self.date_from.strftime('%d/%m/%Y')} au "
+                f"{self.date_to.strftime('%d/%m/%Y')}"
+            ),
             "company": self.company_id.display_name,
             "comments": "Generated from Odoo Community by the USL accounting report exporter.",
         })
@@ -2826,7 +2842,10 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         metadata_sheet.merge_range(0, 0, 0, 1, self._report_type_label(), formats["title"])
         for row_idx, (key, value) in enumerate(metadata.items(), start=2):
             metadata_sheet.write(row_idx, 0, key.replace("_", " ").title(), formats["metadata_key"])
-            display_value = json.dumps(value, ensure_ascii=False, sort_keys=True) if isinstance(value, (list, dict)) else value
+            display_value = self._export_metadata_display_value(
+                key,
+                value,
+            )
             metadata_sheet.write(row_idx, 1, "" if display_value is None else str(display_value), formats["metadata_value"])
         metadata_sheet.set_column(0, 0, 28)
         metadata_sheet.set_column(1, 1, 88)
@@ -2847,9 +2866,15 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             if metadata["hide_zero_accounts"]
             else ""
         )
+        date_from_display = self._display_export_date(
+            metadata["date_from"],
+        )
+        date_to_display = self._display_export_date(
+            metadata["date_to"],
+        )
         subtitle = (
-            f"{metadata['company']} | {metadata['date_from']} au "
-            f"{metadata['date_to']} | {metadata['currency']} | "
+            f"{metadata['company']} | {date_from_display} au "
+            f"{date_to_display} | {metadata['currency']} | "
             f"{metadata['display_unit_label']} "
             f"({metadata['display_unit_short_label']}) | "
             f"{target_move_label}{zero_accounts_label}"
@@ -2903,11 +2928,16 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         report_sheet.set_landscape()
         report_sheet.fit_to_pages(1, 0)
         report_sheet.repeat_rows(header_row, header_row)
-        report_sheet.set_header(f"&L{self.company_id.display_name}&C{self._report_type_label()}&R{self.date_to}")
+        report_sheet.set_header(
+            f"&L{self.company_id.display_name}"
+            f"&C{self._report_type_label()}"
+            f"&RArrêté au {date_to_display}",
+        )
         report_sheet.set_footer(
             "&LExport comptable Odoo Community"
             "&CPage &P sur &N"
-            "&RGénéré le &D à &T"
+            f"&RGénéré le "
+            f"{self._display_export_datetime(metadata['generated_at'])}"
         )
 
         raw_sheet = workbook.add_worksheet("Audit Data")
@@ -2935,6 +2965,39 @@ class RebuildAccountReportExportWizard(models.TransientModel):
 
         workbook.close()
         return output.getvalue()
+
+    def _export_metadata_display_value(self, key, value):
+        if value in (None, False, ""):
+            return value
+        if key in {
+            "date_from",
+            "date_to",
+            "period_anchor_date",
+            "comparison_date_from",
+            "comparison_date_to",
+        }:
+            return self._display_export_date(value)
+        if key == "generated_at":
+            return self._display_export_datetime(value)
+        if isinstance(value, (list, dict)):
+            return json.dumps(
+                value,
+                ensure_ascii=False,
+                sort_keys=True,
+            )
+        return value
+
+    @staticmethod
+    def _display_export_date(value):
+        return fields.Date.to_date(str(value)[:10]).strftime("%d/%m/%Y")
+
+    def _display_export_datetime(self, value):
+        generated_at = fields.Datetime.to_datetime(value)
+        localized = fields.Datetime.context_timestamp(
+            self,
+            generated_at,
+        )
+        return localized.strftime("%d/%m/%Y %H:%M")
 
     def _pdf_payload(self, rows):
         try:
@@ -3011,7 +3074,8 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             title=self._report_type_label(),
             author=self.company_id.display_name,
             subject=(
-                f"Rapport comptable du {self.date_from} au {self.date_to}"
+                f"Rapport comptable du {date_from_display} au "
+                f"{date_to_display}"
             ),
         )
         styles = getSampleStyleSheet()
@@ -3370,7 +3434,10 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             canvas.drawCentredString(
                 width / 2,
                 7.5 * mm,
-                clean_text(f"Généré le {metadata['generated_at']}"),
+                clean_text(
+                    "Généré le "
+                    f"{self._display_export_datetime(metadata['generated_at'])}"
+                ),
             )
             canvas.drawRightString(
                 width - doc.rightMargin,

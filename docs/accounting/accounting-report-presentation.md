@@ -93,6 +93,9 @@ actions behind every canonical report.
   for example, `Résultat net de l’exercice (€)`.
 - Preset periods expose one reference date; custom periods expose explicit
   start and end dates. The two concepts are not shown simultaneously.
+- Reference, custom and comparison fields use Odoo's calendar input with an
+  explicit `DD/MM/YYYY` display contract. Browser-native date inputs are
+  excluded because they can render month-first independently of Odoo.
 - A custom comparison defaults to the same dates in the prior year and remains
   editable.
 - Less common journal, account, partner and analytic filters use progressive
@@ -132,6 +135,9 @@ The export call receives the client's current filter object and refreshes the
 same wizard session before rendering, preventing a download from using a stale
 pre-filter state. The zero-line choice appears in export metadata and as a
 concise document-context label when active.
+Readable periods, row dates, metadata, headers and generation timestamps are
+day-first in both formats. ISO dates remain confined to machine metadata and
+the XLSX raw audit sheet.
 Hierarchy roles determine shading, weight, indentation and total rules in both
 formats. Folding is part of the displayed statement state: a download contains
 the same visible hierarchy, including visible PCG group codes and account

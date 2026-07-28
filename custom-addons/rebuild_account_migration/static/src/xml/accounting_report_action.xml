@@ -63,15 +63,33 @@
                 </label>
                 <label t-if="state.filters.period_preset !== 'custom'">
                     <span>Date de référence</span>
-                    <input type="date" name="period_anchor_date" t-att-value="state.filters.period_anchor_date" t-on-change="onFilterChange"/>
+                    <DateTimeInput
+                        type="'date'"
+                        format="'dd/MM/yyyy'"
+                        placeholder="'JJ/MM/AAAA'"
+                        value="dateFilterValue('period_anchor_date')"
+                        onChange="(value) => this.onDateFilterChange('period_anchor_date', value)"
+                    />
                 </label>
                 <label t-if="state.filters.period_preset === 'custom'">
                     <span>Du</span>
-                    <input type="date" name="date_from" t-att-value="state.filters.date_from" t-on-change="onFilterChange"/>
+                    <DateTimeInput
+                        type="'date'"
+                        format="'dd/MM/yyyy'"
+                        placeholder="'JJ/MM/AAAA'"
+                        value="dateFilterValue('date_from')"
+                        onChange="(value) => this.onDateFilterChange('date_from', value)"
+                    />
                 </label>
                 <label t-if="state.filters.period_preset === 'custom'">
                     <span>Au</span>
-                    <input type="date" name="date_to" t-att-value="state.filters.date_to" t-on-change="onFilterChange"/>
+                    <DateTimeInput
+                        type="'date'"
+                        format="'dd/MM/yyyy'"
+                        placeholder="'JJ/MM/AAAA'"
+                        value="dateFilterValue('date_to')"
+                        onChange="(value) => this.onDateFilterChange('date_to', value)"
+                    />
                 </label>
                 <label>
                     <span>Écritures</span>
@@ -91,11 +109,23 @@
                 </label>
                 <label t-if="capabilities.comparison and state.filters.comparison_mode === 'custom'">
                     <span>Comparaison du</span>
-                    <input type="date" name="comparison_date_from" t-att-value="state.filters.comparison_date_from" t-on-change="onFilterChange"/>
+                    <DateTimeInput
+                        type="'date'"
+                        format="'dd/MM/yyyy'"
+                        placeholder="'JJ/MM/AAAA'"
+                        value="dateFilterValue('comparison_date_from')"
+                        onChange="(value) => this.onDateFilterChange('comparison_date_from', value)"
+                    />
                 </label>
                 <label t-if="capabilities.comparison and state.filters.comparison_mode === 'custom'">
                     <span>Comparaison au</span>
-                    <input type="date" name="comparison_date_to" t-att-value="state.filters.comparison_date_to" t-on-change="onFilterChange"/>
+                    <DateTimeInput
+                        type="'date'"
+                        format="'dd/MM/yyyy'"
+                        placeholder="'JJ/MM/AAAA'"
+                        value="dateFilterValue('comparison_date_to')"
+                        onChange="(value) => this.onDateFilterChange('comparison_date_to', value)"
+                    />
                 </label>
                 <label t-if="capabilities.group_by">
                     <span>Regrouper par</span>
