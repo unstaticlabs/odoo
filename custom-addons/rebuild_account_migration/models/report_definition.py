@@ -42,6 +42,31 @@ ACCOUNTING_REPORT_TYPES = [
     ("fec", "FEC"),
 ]
 
+AMOUNT_ROUNDING_SELECTION = [
+    ("whole", "Sans décimales"),
+    ("cents", "Deux décimales"),
+]
+
+WHOLE_EURO_DEFAULT_REPORT_TYPES = {
+    "balance_sheet",
+    "profit_loss",
+    "tax_report",
+    "tax_report_group_account_tax",
+    "tax_report_group_tax_account",
+    "ec_sales_list",
+    "oss_sales",
+    "oss_imports",
+    "cash_flow",
+    "executive_summary",
+    "analytic_report",
+    "french_annual",
+    "french_balance_sheet_2024",
+    "french_profit_loss_2024",
+    "sig_caf_2024",
+    "french_tax_package",
+    "closing_package",
+}
+
 STANDARD_ACCOUNT_PRESENTATIONS = {
     "281540": {
         "display_label": "Amortissements du matériel industriel",
@@ -262,11 +287,7 @@ def _report_seed_values(report_type, name):
             else "account_asset_management" if schedule
             else "rebuild_account_migration"
         ),
-        "definition_version": (
-            "saas~19.2.3"
-            if report_type == "executive_summary"
-            else "saas~19.2.2"
-        ),
+        "definition_version": "saas~19.2.4",
         "active": report_type != "french_profit_loss_2024",
         "lifecycle": (
             "deprecated"
@@ -285,6 +306,11 @@ def _report_seed_values(report_type, name):
         "presentation_style": presentation,
         "navigation_group": family,
         "default_group_by": default_groups.get(report_type, "none"),
+        "default_amount_rounding": (
+            "whole"
+            if report_type in WHOLE_EURO_DEFAULT_REPORT_TYPES
+            else "cents"
+        ),
         "target_action_xmlid": REPORT_ACTIONS.get(report_type),
         "supports_comparison": report_type not in no_comparison,
         "supports_journals": not schedule,
@@ -377,6 +403,18 @@ class RebuildAccountReportDefinition(models.Model):
             ("analytic", "Analytic Account"),
         ],
         default="none",
+    )
+    default_amount_rounding = fields.Selection(
+        AMOUNT_ROUNDING_SELECTION,
+        required=True,
+        default="cents",
+        string="Arrondi par défaut",
+        help=(
+            "Précision proposée à l’ouverture du rapport. Elle affecte "
+            "uniquement la présentation ; les calculs et les données d’audit "
+            "conservent les montants comptables exacts. Avec une unité en "
+            "euros, sans décimales signifie un arrondi à l’euro."
+        ),
     )
     hierarchy_guidance = fields.Text(
         default=(
@@ -508,6 +546,13 @@ class RebuildAccountReportDefinition(models.Model):
                         values["default_group_by"] = seed_values[
                             "default_group_by"
                         ]
+                if (
+                    definition.default_amount_rounding
+                    != seed_values["default_amount_rounding"]
+                ):
+                    values["default_amount_rounding"] = seed_values[
+                        "default_amount_rounding"
+                    ]
                 if definition.active != seed_values["active"]:
                     values["active"] = seed_values["active"]
                 if definition.lifecycle != seed_values["lifecycle"]:
@@ -593,6 +638,7 @@ class RebuildAccountReportDefinition(models.Model):
             "muted_color": self.document_muted_color,
             "footer_label": self.document_footer_label,
         }
+        values["default_amount_rounding"] = self.default_amount_rounding
         return values
 
     @api.model
@@ -701,6 +747,7 @@ class RebuildAccountReportDefinition(models.Model):
             "presentation_style",
             "navigation_group",
             "default_group_by",
+            "default_amount_rounding",
             "hierarchy_guidance",
             "supports_comparison",
             "supports_journals",

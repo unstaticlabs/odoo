@@ -39,6 +39,11 @@ test("display unit scales company-currency amounts and labels dynamically", () =
         factor: 1000,
         short_label: "kCHF",
     };
+    report.state.data.amount_rounding = {
+        key: "cents",
+        decimal_places: 2,
+        label: "Au centime",
+    };
 
     expect(report.displayUnitFactor).toBe(1000);
     expect(report.displayUnitLabel).toBe("kCHF");
@@ -55,6 +60,24 @@ test("display unit scales company-currency amounts and labels dynamically", () =
             type: "currency",
         }),
     ).toBe("Résultat net de l’exercice (kCHF)");
+});
+
+test("whole-euro presentation rounds consistently without changing scale", () => {
+    const report = reportWith([]);
+    report.state.data.locale = "fr-FR";
+    report.state.data.display_unit = {
+        key: "units",
+        factor: 1,
+        short_label: "€",
+    };
+    report.state.data.amount_rounding = {
+        key: "whole",
+        decimal_places: 0,
+        label: "À l’euro",
+    };
+
+    expect(report.formatAmount(125.5)).toBe("126");
+    expect(report.formatAmount(-125.5)).toBe("-126");
 });
 
 test("checkbox filters send booleans to the shared report state", async () => {

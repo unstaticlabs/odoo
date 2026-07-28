@@ -3,13 +3,13 @@
 ## PDF or XLSX
 
 1. Open the report itself.
-2. Set the company, dates, comparison, display unit, journals, accounts,
-   partners and analytics.
+2. Set the company, dates, comparison, display unit, rounding, journals,
+   accounts, partners and analytics.
 3. Check the visible hierarchy and totals.
 4. Select **PDF** or **XLSX**. The file downloads immediately with the current filters.
 
 PDF is for reading and review. The readable XLSX `Report` sheet preserves
-numeric cells, selected unit and the same visible
+numeric cells, selected unit, selected rounding and the same visible
 section/group/subtotal/total hierarchy; `Audit Data` retains raw unscaled rows
 and filter metadata for analysis.
 

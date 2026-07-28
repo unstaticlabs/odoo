@@ -13,7 +13,8 @@
                             <t t-esc="periodPresetLabel"/> ·
                             <t t-esc="state.data.currency.name"/> ·
                             <t t-esc="state.data.display_unit.label"/>
-                            (<t t-esc="displayUnitLabel"/>)
+                            (<t t-esc="displayUnitLabel"/>) ·
+                            <t t-esc="state.data.amount_rounding.label"/>
                         </span>
                     </div>
                     <div class="o_usl_report_subtitle">
@@ -142,6 +143,16 @@
                             <option t-att-value="option.value"
                                     t-att-selected="option.value === state.filters.display_unit"
                                     t-esc="filterOptionLabel('display_unit', option)"/>
+                        </t>
+                    </select>
+                </label>
+                <label t-if="capabilities.amount_rounding" class="o_usl_report_filter_unit">
+                    <span>Arrondi</span>
+                    <select name="amount_rounding" t-on-change="onFilterChange">
+                        <t t-foreach="state.data.options.amount_rounding" t-as="option" t-key="option.value">
+                            <option t-att-value="option.value"
+                                    t-att-selected="option.value === state.filters.amount_rounding"
+                                    t-esc="filterOptionLabel('amount_rounding', option)"/>
                         </t>
                     </select>
                 </label>

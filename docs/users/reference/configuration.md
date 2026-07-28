@@ -96,8 +96,12 @@ module evaluators instead of arbitrary Python entered in the UI.
 
 Open **Accounting Framework > Reports** to understand where a report appears,
 its professional presentation style, default hierarchy, available filters and
-PDF/XLSX support. **Open Report** launches the normal polished report; the
-configuration form is not a generic report builder.
+PDF/XLSX support. **Arrondi par défaut** selects **Sans décimales** or **Deux
+décimales** for new sessions (respectively **À l’euro** and **Au centime**
+when the display unit is the euro). Create a company override before changing
+it: shared definitions remain upgrade-managed. **Open Report** launches the
+normal polished report; the configuration form is not a generic report
+builder.
 
 Company overrides take precedence for their company and effective dates. The
 interactive session and export metadata retain the resolved definition version.

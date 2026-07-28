@@ -2,6 +2,7 @@ import base64
 import hashlib
 import json
 import tempfile
+from decimal import Decimal
 from email.message import EmailMessage
 from io import BytesIO
 from pathlib import Path
@@ -7470,6 +7471,18 @@ class TestRebuildAccountMigration(TransactionCase):
                 "footer_label": "Document comptable",
             },
         )
+        self.assertEqual(standard.default_amount_rounding, "cents")
+        self.assertEqual(
+            standard._definition_snapshot()["default_amount_rounding"],
+            "cents",
+        )
+        balance_sheet_definition = definitions.filtered(
+            lambda definition: definition.code == "balance_sheet",
+        )
+        self.assertEqual(
+            balance_sheet_definition.default_amount_rounding,
+            "whole",
+        )
         with self.assertRaises(UserError):
             standard.write({"name": "Unsafe direct customization"})
         standard.with_context(accounting_definition_seed=True).write({
@@ -7778,12 +7791,14 @@ class TestRebuildAccountMigration(TransactionCase):
             fields.Date.to_date("2099-12-31"),
         )
         definition.with_context(accounting_definition_seed=True).write({
-            "definition_version": "saas~19.2.2",
+            "definition_version": "saas~19.2.3",
             "default_group_by": "none",
+            "default_amount_rounding": "cents",
         })
         Definition._ensure_standard_definitions()
-        self.assertEqual(definition.definition_version, "saas~19.2.3")
+        self.assertEqual(definition.definition_version, "saas~19.2.4")
         self.assertEqual(definition.default_group_by, "section")
+        self.assertEqual(definition.default_amount_rounding, "whole")
 
         Report = self.env["rebuild.account.report.export.wizard"]
         wizard = Report.create({
@@ -7860,12 +7875,15 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertIn("analytic_accounts", trial["options"])
         self.assertTrue(trial["capabilities"]["period_presets"])
         self.assertTrue(trial["capabilities"]["display_unit"])
+        self.assertTrue(trial["capabilities"]["amount_rounding"])
         self.assertTrue(trial["capabilities"]["hide_zero_accounts"])
         self.assertTrue(trial["capabilities"]["comparison"])
         self.assertTrue(trial["capabilities"]["analytics"])
         self.assertEqual(trial["filters"]["display_unit"], "units")
+        self.assertEqual(trial["filters"]["amount_rounding"], "cents")
         self.assertFalse(trial["filters"]["hide_zero_accounts"])
         self.assertEqual(trial["display_unit"]["factor"], 1)
+        self.assertEqual(trial["amount_rounding"]["decimal_places"], 2)
         self.assertEqual(trial["variant"]["key"], "standard")
         self.assertEqual(
             trial["lines"][0]["label"],
@@ -7889,6 +7907,7 @@ class TestRebuildAccountMigration(TransactionCase):
                 "journal_ids": [journal.id],
                 "target_move": "all",
                 "display_unit": "thousands",
+                "amount_rounding": "whole",
                 "search_text": "",
             },
             trial["wizard_id"],
@@ -7896,7 +7915,9 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(filtered["filters"]["journal_ids"], [journal.id])
         self.assertEqual(filtered["filters"]["target_move"], "all")
         self.assertEqual(filtered["filters"]["display_unit"], "thousands")
+        self.assertEqual(filtered["filters"]["amount_rounding"], "whole")
         self.assertEqual(filtered["display_unit"]["factor"], 1000)
+        self.assertEqual(filtered["amount_rounding"]["decimal_places"], 0)
         self.assertEqual(
             filtered["display_unit"]["short_label"],
             f"k{self.env.company.currency_id.symbol}",
@@ -7989,6 +8010,7 @@ class TestRebuildAccountMigration(TransactionCase):
                     f"(k{self.env.company.currency_id.symbol})",
                     exported_text,
                 )
+                self.assertIn("Au millier d’euros", exported_text)
                 self.assertIn("01/01/2099", exported_text)
                 self.assertIn("31/12/2099", exported_text)
                 self.assertRegex(
@@ -8002,6 +8024,10 @@ class TestRebuildAccountMigration(TransactionCase):
                     )
                 self.assertIn(b"01/01/2099", shared_strings)
                 self.assertIn(b"31/12/2099", shared_strings)
+                self.assertIn(
+                    "Au millier d’euros".encode(),
+                    shared_strings,
+                )
                 self.assertNotIn(b"2099-01-01", shared_strings)
                 self.assertNotIn(b"2099-12-31", shared_strings)
                 self.assertNotIn(
@@ -8019,6 +8045,8 @@ class TestRebuildAccountMigration(TransactionCase):
             )
             self.assertEqual(metadata["display_unit"], "thousands")
             self.assertEqual(metadata["display_unit_factor"], 1000)
+            self.assertEqual(metadata["amount_rounding"], "whole")
+            self.assertEqual(metadata["amount_decimal_places"], 0)
 
         sig_caf = Report.report_client_load(
             "sig_caf_2024",
@@ -8027,6 +8055,7 @@ class TestRebuildAccountMigration(TransactionCase):
                 "date_to": "2099-12-31",
             },
         )
+        self.assertEqual(sig_caf["filters"]["amount_rounding"], "whole")
         sig_labels = {
             line["label"]
             for line in sig_caf["lines"]
@@ -8234,6 +8263,59 @@ class TestRebuildAccountMigration(TransactionCase):
                 base64.b64decode(wizard.export_file).startswith(signature),
             )
 
+    def test_report_rounding_matches_screen_pdf_xlsx_and_preserves_audit_data(self):
+        Report = self.env["rebuild.account.report.export.wizard"]
+        wizard = Report.create({
+            "report_type": "balance_sheet",
+            "company_id": self.company.id,
+            "company_ids": [Command.set([self.company.id])],
+            "period_preset": "custom",
+            "date_from": "2099-01-01",
+            "date_to": "2099-12-31",
+            "target_move": "posted",
+            "group_by": "section",
+            "display_unit": "units",
+            "amount_rounding": "whole",
+            "export_format": "pdf",
+        })
+        rows = [{
+            "label": "Contrôle d’arrondi",
+            "amount": Decimal("125.50"),
+            "presentation_role": "detail",
+        }]
+
+        self.assertEqual(
+            wizard._report_export_columns(rows),
+            [
+                ("label", "Libellé"),
+                (
+                    "amount",
+                    f"Solde ({self.company.currency_id.symbol})",
+                ),
+            ],
+        )
+        pdf_text = "\n".join(
+            page.extract_text() or ""
+            for page in PdfReader(BytesIO(wizard._pdf_payload(rows))).pages
+        )
+        self.assertIn("À l’euro", pdf_text)
+        self.assertIn("126", pdf_text)
+        self.assertNotIn("125,50", pdf_text)
+
+        with ZipFile(BytesIO(wizard._xlsx_payload(rows))) as workbook:
+            report_sheet = workbook.read("xl/worksheets/sheet2.xml")
+            audit_sheet = workbook.read("xl/worksheets/sheet3.xml")
+        self.assertIn(b"<v>126</v>", report_sheet)
+        self.assertIn(b"<v>125.5</v>", audit_sheet)
+
+        wizard.amount_rounding = "cents"
+        cents_pdf_text = "\n".join(
+            page.extract_text() or ""
+            for page in PdfReader(BytesIO(wizard._pdf_payload(rows))).pages
+        )
+        self.assertIn("Au centime", cents_pdf_text)
+        self.assertIn("125,50", cents_pdf_text)
+
     def test_hide_zero_accounts_filters_screen_and_live_pdf_state(self):
         Report = self.env["rebuild.account.report.export.wizard"]
         payload = Report.report_client_load(
@@ -8312,7 +8394,10 @@ class TestRebuildAccountMigration(TransactionCase):
                 BytesIO(base64.b64decode(wizard.export_file)),
             ).pages
         )
-        self.assertIn("Lignes à zéro masquées", pdf_text)
+        self.assertIn(
+            "Lignes à zéro masquées",
+            " ".join(pdf_text.split()),
+        )
         self.assertNotIn("Compte entièrement nul", pdf_text)
         self.assertIn("Compte soldé avec activité", pdf_text)
         self.assertIn("Compte avec solde", pdf_text)
