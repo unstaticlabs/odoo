@@ -1,6 +1,6 @@
 # Lightweight expense batches
 
-Status: implemented on `codex/feat-expense-batches`
+Status: shipped
 
 End-user workflow: [Notes de frais](../users/guides/expense-batches.md)
 
@@ -205,29 +205,15 @@ This configuration affects future postings. Correcting it does not rewrite an
 already posted expense receipt; historical corrections require a controlled
 reset/repost in disposable QA or an accountant-approved reclassification.
 
-## Isolated QA environment
+## Validation and deployment
 
-Feature QA must not update or run the feature branch against canonical
-`odoo_dev`. Use a separate Compose project, ports and database.
+Expense batches use the repository's standard deployment paths. Normal
+development and product QA update `odoo_dev`; module-install tests create and
+remove their own disposable database through `scripts/odoo-dev test`. The
+canonical source-dump reconstruction remains `scripts/accounting-compat
+dev-reset`, `dev-import` and `dev-validate`.
 
-For focused automated tests, a minimal disposable database is sufficient:
-
-```bash
-ODOO_SAAS_COMPOSE_PROJECT=usl-odoo-expense-batch \
-ODOO_DEV_DB=odoo_expense_batch_qa \
-ODOO_INIT_DB=odoo_expense_batch_qa \
-ODOO_HTTP_PORT=8169 \
-ODOO_GEVENT_PORT=8172 \
-scripts/odoo-dev test usl_expense_batch odoo_expense_batch_test
-```
-
-For integrated browser and product demonstrations, use an isolated database
-and filestore copy of the latest local `odoo_dev`, including its pinned OCA
-dependencies. Update `rebuild_account_migration` and `usl_expense_batch` only
-inside that copy. The current aligned QA database is
-`odoo_expense_batch_aligned_qa` on port `8169`.
-
-This distinction is deliberate: the minimal database proves the feature in
-isolation, while the aligned clone proves that Accounting and Expenses work
-together with representative data. Scheduled jobs remain disabled, and the
-canonical `odoo_dev` database and filestore remain unchanged.
+The reconstruction binds the manager login, imported employee Work Contact,
+partner-specific payable account and configured Overview CCA projection to
+the same source-traced identity. It fails when that identity is ambiguous or
+split rather than creating a fallback employee or a second payable path.

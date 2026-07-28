@@ -1,6 +1,6 @@
 # Accounting development workflow
 
-Last updated: 2026-07-25
+Last updated: 2026-07-28
 
 Audience: implementation agents and developers working on Milestone 13.
 
@@ -31,19 +31,6 @@ extraction.
 Do not enter durable business data in any local database. Recreate `odoo_dev`
 from the harness when import or reconstruction behavior changes; for ordinary
 code and UI work, update it in place.
-
-Feature worktrees that must exercise reconstruction without touching another
-worktree's `odoo_dev` can override the Compose project and development target:
-
-```bash
-ACCOUNTING_COMPAT_COMPOSE_PROJECT=usl-odoo-expense-batch \
-ACCOUNTING_COMPAT_DEV_DB=odoo_expense_batch_reconstruction_qa \
-scripts/accounting-compat dev-reset
-```
-
-The selected Compose project must have its own restored read-only source
-service before `dev-import`. Never point the override at another worktree's
-target database.
 
 ## Fast iteration matrix
 

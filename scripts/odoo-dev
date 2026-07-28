@@ -72,6 +72,84 @@ test_tag() {
     --log-level=test
 }
 
+cleanup_test_database() {
+  local database="$1"
+  case "$database" in
+    ""|"$DEV_DB"|*[!A-Za-z0-9_]*)
+      printf 'Refusing to clean unsafe test database name: %s\n' "$database" >&2
+      return 2
+      ;;
+  esac
+  "${COMPOSE[@]}" up -d --wait db
+  "${COMPOSE[@]}" exec -T \
+    -e TEST_DATABASE="$database" \
+    db sh -c \
+    'dropdb --if-exists --force -U "$POSTGRES_USER" "$TEST_DATABASE"'
+  "${COMPOSE[@]}" --profile init run --rm \
+    --entrypoint sh \
+    -e TEST_DATABASE="$database" \
+    init-db -c '
+      directory="/var/lib/odoo/filestore/$TEST_DATABASE"
+      if [ -d "$directory" ]; then
+        find "$directory" -mindepth 1 -delete
+        rmdir "$directory"
+      fi
+    '
+}
+
+cleanup_test_container() {
+  local container="$1"
+  docker rm --force "$container" >/dev/null 2>&1 || true
+}
+
+finish_module_test() {
+  local database="$1"
+  local container="$2"
+  trap - EXIT INT TERM
+  cleanup_test_container "$container"
+  cleanup_test_database "$database"
+  "${COMPOSE[@]}" up -d --wait odoo
+  print_url
+}
+
+test_module() {
+  local module="$1"
+  local database="$2"
+  local container
+  local status=0
+  case "$module" in
+    ""|*[!A-Za-z0-9_]*)
+      printf 'Refusing unsafe test module name: %s\n' "$module" >&2
+      return 2
+      ;;
+  esac
+  case "$database" in
+    ""|"$DEV_DB"|*[!A-Za-z0-9_]*)
+      printf 'Refusing unsafe test database name: %s\n' "$database" >&2
+      return 2
+      ;;
+  esac
+  container="${COMPOSE_PROJECT}-test-${database}"
+  trap 'finish_module_test "$database" "$container"' EXIT INT TERM
+  cleanup_test_container "$container"
+  cleanup_test_database "$database"
+  "${COMPOSE[@]}" stop odoo >/dev/null 2>&1 || true
+  "${COMPOSE[@]}" --profile init run --rm \
+    --name "$container" \
+    -e ODOO_INIT_DB="$DEV_DB" \
+    init-db odoo \
+    --config=/etc/odoo/odoo.conf \
+    --database="$database" \
+    --init="$module" \
+    --without-demo=true \
+    --test-enable \
+    --test-tags="/$module" \
+    --stop-after-init \
+    --log-level=test || status=$?
+  finish_module_test "$database" "$container"
+  return "$status"
+}
+
 case "${1:-help}" in
   build)
     "${COMPOSE[@]}" build "${@:2}"
@@ -106,7 +184,7 @@ case "${1:-help}" in
   test)
     module="${2:-base}"
     database="${3:-odoo_unit_test}"
-    "${COMPOSE[@]}" --profile init run --rm init-db odoo --config=/etc/odoo/odoo.conf --database="$database" --init="$module" --without-demo=true --test-enable --stop-after-init
+    test_module "$module" "$database"
     ;;
   test-js)
     test_js "${2:-$DEV_MODULE}"
