@@ -1372,18 +1372,13 @@
                         class="alert alert-danger o_usl_overview_alert"
                         role="alert"
                         invisible="hygiene_status != 'blocked'">
-                        Accounting Hygiene has
+                        Accounting Hygiene has blocking issues.
+                        Review them before continuing normal accounting work.
                         <button
                             name="action_open_hygiene_issues"
                             type="object"
-                            string="blocking issues"
-                            class="btn btn-link alert-link o_usl_overview_alert_action"/>.
-                        <button
-                            name="action_open_hygiene_issues"
-                            type="object"
-                            string="Review them"
+                            string="Review issues"
                             class="btn btn-link alert-link o_usl_overview_alert_action"/>
-                        before continuing normal accounting work.
                     </div>
                     <div
                         class="alert alert-warning o_usl_overview_alert"
