@@ -973,23 +973,23 @@
                 </div>
             </xpath>
             <xpath expr="//page[@name='manual']/group" position="after">
-                <details class="mt-3">
-                    <summary>Transaction details</summary>
-                    <group id="rebuild-transaction-details">
-                        <field
-                            name="payment_ref"
-                            string="Bank reference"
-                            readonly="is_reconciled"
-                        />
-                        <field
-                            name="narration"
-                            colspan="2"
-                            nolabel="1"
-                            placeholder="Bank-provided memo or notes"
-                            readonly="is_reconciled"
-                        />
-                    </group>
-                </details>
+                <group
+                    id="rebuild-transaction-details"
+                    string="Transaction details"
+                    class="mt-3">
+                    <field
+                        name="payment_ref"
+                        string="Bank reference"
+                        readonly="is_reconciled"
+                    />
+                    <field
+                        name="narration"
+                        colspan="2"
+                        nolabel="1"
+                        placeholder="Bank-provided memo or notes"
+                        readonly="is_reconciled"
+                    />
+                </group>
             </xpath>
             <xpath expr="//page[@name='narration']" position="replace"/>
             <xpath expr="//page[@name='manual']//label[@for='manual_move_id']" position="attributes">

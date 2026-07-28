@@ -3332,18 +3332,18 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(len(categorize_page), 1)
         self.assertTrue(
             categorize_page[0].xpath(
-                ".//details[summary='Transaction details']"
-                "/group[@id='rebuild-transaction-details']"
+                ".//group[@id='rebuild-transaction-details']"
+                "[@string='Transaction details']"
                 "//field[@name='payment_ref'][@string='Bank reference']",
             ),
         )
         self.assertTrue(
             categorize_page[0].xpath(
-                ".//details[summary='Transaction details']"
-                "/group[@id='rebuild-transaction-details']"
+                ".//group[@id='rebuild-transaction-details']"
                 "//field[@name='narration']",
             ),
         )
+        self.assertFalse(categorize_page[0].xpath(".//details"))
         self.assertFalse(
             combined_arch.xpath("//page[@name='narration']"),
         )
