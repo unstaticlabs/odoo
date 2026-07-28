@@ -4553,6 +4553,7 @@
                         <group string="View">
                             <field name="group_by"/>
                             <field name="display_unit"/>
+                            <field name="hide_zero_accounts"/>
                             <field name="search_text" placeholder="Account, partner, entry, label…"/>
                             <field name="preview_limit"/>
                             <field name="show_details" invisible="group_by == 'none'"/>

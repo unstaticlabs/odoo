@@ -55,6 +55,24 @@ test("display unit scales company-currency amounts and labels dynamically", () =
     ).toBe("Résultat net de l’exercice (kCHF)");
 });
 
+test("checkbox filters send booleans to the shared report state", async () => {
+    const report = reportWith([]);
+    let changes;
+    report.load = async (nextChanges) => {
+        changes = nextChanges;
+    };
+
+    await report.onFilterChange({
+        target: {
+            name: "hide_zero_accounts",
+            type: "checkbox",
+            checked: true,
+        },
+    });
+
+    expect(changes).toEqual({ hide_zero_accounts: true });
+});
+
 test("report workspace and document theme stay presentation-driven", () => {
     const report = reportWith([]);
     report.reportType = "profit_loss";

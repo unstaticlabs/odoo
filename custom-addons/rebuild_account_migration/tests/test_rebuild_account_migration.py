@@ -7201,9 +7201,11 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertIn("analytic_accounts", trial["options"])
         self.assertTrue(trial["capabilities"]["period_presets"])
         self.assertTrue(trial["capabilities"]["display_unit"])
+        self.assertTrue(trial["capabilities"]["hide_zero_accounts"])
         self.assertTrue(trial["capabilities"]["comparison"])
         self.assertTrue(trial["capabilities"]["analytics"])
         self.assertEqual(trial["filters"]["display_unit"], "units")
+        self.assertFalse(trial["filters"]["hide_zero_accounts"])
         self.assertEqual(trial["display_unit"]["factor"], 1)
         self.assertEqual(trial["variant"]["key"], "standard")
         self.assertEqual(
@@ -7520,6 +7522,137 @@ class TestRebuildAccountMigration(TransactionCase):
             self.assertTrue(
                 base64.b64decode(wizard.export_file).startswith(signature),
             )
+
+    def test_hide_zero_accounts_filters_screen_and_live_pdf_state(self):
+        Report = self.env["rebuild.account.report.export.wizard"]
+        payload = Report.report_client_load(
+            "trial_balance",
+            {
+                "date_from": "2099-01-01",
+                "date_to": "2099-12-31",
+                "group_by": "none",
+            },
+        )
+        wizard = Report.browse(payload["wizard_id"])
+        report_rows = [
+            {
+                "account_code": "T000000",
+                "account_name": "Compte entièrement nul",
+                "opening_balance": "0.00",
+                "debit": "0.00",
+                "credit": "0.00",
+                "closing_balance": "0.00",
+            },
+            {
+                "account_code": "T100000",
+                "account_name": "Compte soldé avec activité",
+                "opening_balance": "0.00",
+                "debit": "100.00",
+                "credit": "100.00",
+                "closing_balance": "0.00",
+            },
+            {
+                "account_code": "T200000",
+                "account_name": "Compte avec solde",
+                "opening_balance": "0.00",
+                "debit": "25.00",
+                "credit": "0.00",
+                "closing_balance": "25.00",
+            },
+        ]
+
+        with patch.object(
+            type(wizard),
+            "_raw_report_rows",
+            return_value=report_rows,
+        ):
+            Report.report_client_export(
+                wizard.id,
+                "pdf",
+                {
+                    **payload["filters"],
+                    "hide_zero_accounts": True,
+                    "group_by": "none",
+                },
+            )
+
+        self.assertTrue(wizard.hide_zero_accounts)
+        self.assertEqual(
+            wizard.preview_line_ids.mapped("account_code"),
+            ["T100000", "T200000"],
+        )
+        metadata = json.loads(wizard.export_metadata)
+        self.assertTrue(metadata["hide_zero_accounts"])
+        self.assertEqual(metadata["row_count"], 2)
+        pdf_text = "\n".join(
+            page.extract_text() or ""
+            for page in PdfReader(
+                BytesIO(base64.b64decode(wizard.export_file)),
+            ).pages
+        )
+        self.assertIn("Comptes à zéro masqués", pdf_text)
+        self.assertNotIn("Compte entièrement nul", pdf_text)
+        self.assertIn("Compte soldé avec activité", pdf_text)
+        self.assertIn("Compte avec solde", pdf_text)
+
+        hierarchy_rows = [
+            {
+                "label": "Poste",
+                "is_group": "true",
+                "group_key": "statement",
+                "hierarchy_kind": "statement",
+                "amount": "0.00",
+            },
+            {
+                "label": "Groupe nul",
+                "is_group": "true",
+                "group_key": "statement|zero",
+                "parent_group_key": "statement",
+                "hierarchy_kind": "pcg_group",
+                "amount": "0.00",
+            },
+            {
+                "label": "Compte nul",
+                "account_code": "T000001",
+                "parent_group_key": "statement|zero",
+                "hierarchy_kind": "account",
+                "amount": "0.00",
+            },
+            {
+                "label": "Groupe compensé",
+                "is_group": "true",
+                "group_key": "statement|offset",
+                "parent_group_key": "statement",
+                "hierarchy_kind": "pcg_group",
+                "amount": "0.00",
+            },
+            {
+                "label": "Compte débiteur",
+                "account_code": "T100001",
+                "parent_group_key": "statement|offset",
+                "hierarchy_kind": "account",
+                "amount": "100.00",
+            },
+            {
+                "label": "Compte créditeur",
+                "account_code": "T100002",
+                "parent_group_key": "statement|offset",
+                "hierarchy_kind": "account",
+                "amount": "-100.00",
+            },
+        ]
+        filtered_hierarchy = wizard._hide_zero_account_rows(
+            hierarchy_rows,
+        )
+        self.assertEqual(
+            [row["label"] for row in filtered_hierarchy],
+            [
+                "Poste",
+                "Groupe compensé",
+                "Compte débiteur",
+                "Compte créditeur",
+            ],
+        )
 
     def test_profit_loss_unfolds_through_pcg_groups_to_account_number(self):
         expense = self._account(

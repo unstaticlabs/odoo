@@ -129,6 +129,39 @@ html .o_web_client > .o_action_manager > .o_action.o_usl_accounting_report {
         flex-basis: 112px !important;
     }
 
+    .o_usl_report_filter_toggle {
+        flex: 0 0 auto !important;
+
+        .o_usl_report_checkbox {
+            display: flex;
+            align-items: center;
+            min-height: 1.95rem;
+            margin: 0;
+            padding: 0.25rem 0.55rem;
+            border: 1px solid #d0d5dd;
+            border-radius: 0.3rem;
+            background: #fff;
+            color: #344054;
+            font-size: 0.76rem;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        input {
+            width: 0.9rem;
+            min-height: auto;
+            margin: 0 0.4rem 0 0;
+            padding: 0;
+        }
+
+        .o_usl_report_checkbox > span {
+            display: inline;
+            margin: 0;
+            color: inherit;
+            font: inherit;
+        }
+    }
+
     .o_usl_report_search {
         flex: 1 1 205px !important;
         min-width: 190px;

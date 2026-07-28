@@ -66,7 +66,10 @@ export class AccountingReportAction extends Component {
 
     async onFilterChange(event) {
         const name = event.target.name;
-        let value = event.target.value;
+        let value =
+            event.target.type === "checkbox"
+                ? event.target.checked
+                : event.target.value;
         if (name === "company_id") {
             value = Number(value);
         }
@@ -117,6 +120,7 @@ export class AccountingReportAction extends Component {
             partner_ids: [],
             analytic_plan_ids: [],
             analytic_account_ids: [],
+            hide_zero_accounts: false,
         });
     }
 
@@ -198,6 +202,7 @@ export class AccountingReportAction extends Component {
         return (
             this.activeAdvancedFilterCount > 0 ||
             Boolean(this.state.filters.search_text) ||
+            Boolean(this.state.filters.hide_zero_accounts) ||
             this.state.filters.comparison_mode !== "none"
         );
     }
@@ -246,7 +251,11 @@ export class AccountingReportAction extends Component {
         const data = await this.orm.call(
             "rebuild.account.report.export.wizard",
             "report_client_export",
-            [this.state.data.wizard_id, format],
+            [
+                this.state.data.wizard_id,
+                format,
+                { ...this.state.filters },
+            ],
         );
         await download({ url: "/web/content", data });
     }
