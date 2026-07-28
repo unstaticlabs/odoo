@@ -6,7 +6,7 @@ Accounting managers use **Configuration** for:
 - journals and payment methods;
 - chart of accounts and account groups;
 - taxes, tax grids and fiscal positions;
-- currencies and historical rates;
+- currencies and daily reference rates;
 - analytic plans and accounts;
 - asset models;
 - governed Bank Matching Rules, including usage evidence and inert rule
@@ -52,6 +52,23 @@ bank's CSV or XLSX export, create a **Statement Sheet Mapping** in
 **Configuration > Accounting**, then select it on the bank journal's advanced
 settings. The mapping describes the date, amount, reference and partner columns;
 it does not post or reconcile transactions automatically.
+
+## Currency Rate Automation
+
+Open **Configuration > Currency Rate Automation** to govern ECB reference
+rates. **Fill Missing Rates** imports every missing ECB publication day from
+the displayed coverage boundary through the latest available date. The daily
+scheduled action checks the recent publication history as well, so a temporary
+outage does not leave a silent gap.
+
+USL's company currency is EUR. Odoo therefore treats EUR as the implicit rate
+`1.0` and does not require a generated EUR row. Automation creates native
+`res.currency.rate` rows only for active foreign currencies such as USD and
+GBP. Restored source rates and manager-entered manual rates are never
+overwritten.
+
+ECB rates are informational reference rates. Preserve the actual bank, card or
+platform conversion when it defines a transaction.
 
 ## Accounting Controls
 
