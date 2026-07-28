@@ -2,6 +2,8 @@ import { expect, getFixture, test } from "@odoo/hoot";
 
 import { AccountingReportAction } from "../src/js/accounting_report_action";
 
+const { DateTime } = luxon;
+
 function reportWith(lines) {
     const report = Object.create(AccountingReportAction.prototype);
     report.state = { data: { lines } };
@@ -71,6 +73,33 @@ test("checkbox filters send booleans to the shared report state", async () => {
     });
 
     expect(changes).toEqual({ hide_zero_accounts: true });
+});
+
+test("report date filters serialize day-first Odoo dates", async () => {
+    const report = reportWith([]);
+    report.state.data.locale = "fr-FR";
+    report.state.filters = {
+        date_from: "2026-07-28",
+        date_to: "2026-08-09",
+    };
+    let changes;
+    report.load = async (nextChanges) => {
+        changes = nextChanges;
+    };
+
+    expect(report.periodLabel).toBe("28/07/2026 — 09/08/2026");
+    expect(report.dateFilterValue("date_from").toFormat("dd/MM/yyyy")).toBe(
+        "28/07/2026",
+    );
+    await report.onDateFilterChange(
+        "date_from",
+        DateTime.fromISO("2026-08-09"),
+    );
+
+    expect(changes).toEqual({
+        date_from: "2026-08-09",
+        period_preset: "custom",
+    });
 });
 
 test("report workspace and document theme stay presentation-driven", () => {

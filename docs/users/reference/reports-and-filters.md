@@ -75,6 +75,10 @@ normal application; English
 human-readable dates use `10 Jun` in the current year and include the year for
 any other year.
 
+Report date fields display `DD/MM/YYYY` and retain the calendar picker. Start,
+end, reference and comparison dates never inherit the browser's
+`MM/DD/YYYY` order.
+
 ## Reading results
 
 Light, high-contrast section rows identify the statement's principal
@@ -109,6 +113,9 @@ in the report before generating the file. The active zero-line choice is
 therefore applied to the downloaded rows and recorded in its context. XLSX
 also contains a raw `Audit Data` sheet for analysis; its monetary
 values remain in source units and it is not the presentation reference.
+Readable PDF/XLSX periods, date columns, headers, metadata and generation
+timestamps use `DD/MM/YYYY`. Machine metadata and the raw audit sheet retain
+ISO dates where software interchange requires them.
 
 Each report resolves a governed definition for the selected company and period.
 Its version and origin are retained in the report session and export metadata.

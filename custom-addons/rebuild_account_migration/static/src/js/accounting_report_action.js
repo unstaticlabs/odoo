@@ -1,4 +1,9 @@
 import { Component, onWillStart, useState } from "@odoo/owl";
+import { DateTimeInput } from "@web/core/datetime/datetime_input";
+import {
+    deserializeDate,
+    serializeDate,
+} from "@web/core/l10n/dates";
 import { download } from "@web/core/network/download";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
@@ -7,6 +12,7 @@ import { standardActionServiceProps } from "@web/webclient/actions/action_servic
 
 export class AccountingReportAction extends Component {
     static template = "rebuild_account_migration.AccountingReportAction";
+    static components = { DateTimeInput };
     static props = { ...standardActionServiceProps };
 
     setup() {
@@ -75,6 +81,21 @@ export class AccountingReportAction extends Component {
         }
         const changes = { [name]: value || false };
         if (["date_from", "date_to"].includes(name)) {
+            changes.period_preset = "custom";
+        }
+        await this.load(changes);
+    }
+
+    dateFilterValue(fieldName) {
+        const value = this.state.filters[fieldName];
+        return value ? deserializeDate(value) : false;
+    }
+
+    async onDateFilterChange(fieldName, value) {
+        const changes = {
+            [fieldName]: value ? serializeDate(value) : false,
+        };
+        if (["date_from", "date_to"].includes(fieldName)) {
             changes.period_preset = "custom";
         }
         await this.load(changes);
