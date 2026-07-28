@@ -23,32 +23,21 @@
                 <td colspan="3"
                     class="o_rebuild_payment_suggestion_context text-start text-wrap">
                     <span t-if="line.is_best_match"
-                          class="o_rebuild_payment_suggestion_best">
-                        Best match
-                    </span>
-                    <span class="o_rebuild_payment_suggestion_evidence"
-                          t-out="line.match_summary or line.match_reason"/>
-                    <span class="o_rebuild_payment_suggestion_source"
+                          class="badge rounded-pill o_rebuild_payment_suggestion_best"
                           t-att-title="line.match_reason"
                           data-bs-toggle="tooltip">
-                        Evidence
+                        Best match
                     </span>
-                    <div t-if="line.partner_reassignment_required"
-                         class="o_rebuild_payment_suggestion_change o_rebuild_payment_suggestion_partner_change">
-                        When added, the bank transaction will use the bill
-                        supplier
-                        <t t-out="line.assigned_partner_name
-                                  ? ' instead of ' + line.assigned_partner_name
-                                  : ''"/>.
-                    </div>
-                    <div t-if="line.account_reassignment_required"
-                         class="o_rebuild_payment_suggestion_change o_rebuild_payment_suggestion_account_change"
-                         t-att-title="'From ' + line.source_account_name
-                                      + ' to ' + line.target_account_name"
-                         data-bs-toggle="tooltip">
-                        When added, move the outstanding amount from suspense
-                        to the bill payable account, then reconcile it.
-                    </div>
+                    <span t-if="line.is_bank_statement_candidate"
+                          class="badge rounded-pill o_rebuild_payment_suggestion_kind">
+                        Bank transaction
+                    </span>
+                    <span class="o_rebuild_payment_suggestion_evidence"
+                          t-att-title="line.is_best_match
+                                       ? false
+                                       : line.match_reason"
+                          data-bs-toggle="tooltip"
+                          t-out="line.match_summary or line.match_reason"/>
                 </td>
             </tr>
         </xpath>

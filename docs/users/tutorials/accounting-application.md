@@ -33,8 +33,8 @@ items, residual, payment state and attachments remain on the normal Odoo
 document. Existing-payment suggestions are visible while the bill is draft,
 but matching becomes available only after posting. Close bank transactions may
 also be suggested when the supplier is inferred, missing or different; the
-compact suggestion keeps the sourced evidence visible and discloses any
-supplier or account change before **Add** is used.
+**Best match** helper explains the sourced evidence, while the **Add** helper
+discloses any supplier or account change before the action is used.
 
 ## 3. Follow a value into accounting
 
