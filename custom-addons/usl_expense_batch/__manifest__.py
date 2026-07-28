@@ -19,6 +19,9 @@
             "usl_expense_batch/static/src/js/expense_batch_list.js",
             "usl_expense_batch/static/src/xml/expense_batch_list.xml",
         ],
+        "web.assets_unit_tests": [
+            "usl_expense_batch/static/tests/expense_batch_list.test.js",
+        ],
     },
     "application": False,
     "installable": True,

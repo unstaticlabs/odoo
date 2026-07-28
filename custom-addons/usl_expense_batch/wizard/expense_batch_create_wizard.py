@@ -4,6 +4,10 @@ from odoo import Command, _, api, fields, models
 from odoo.exceptions import UserError
 from odoo.tools import format_date
 
+from odoo.addons.usl_expense_batch.models.hr_expense import (
+    EXPENSE_BATCH_ELIGIBLE_STATES,
+)
+
 
 class UslExpenseBatchCreateWizard(models.TransientModel):
     _name = "usl.expense.batch.create.wizard"
@@ -16,7 +20,7 @@ class UslExpenseBatchCreateWizard(models.TransientModel):
         string="Expenses",
         required=True,
         domain=[
-            ("state", "=", "draft"),
+            ("state", "in", list(EXPENSE_BATCH_ELIGIBLE_STATES)),
             ("expense_batch_id", "=", False),
         ],
     )
@@ -53,8 +57,28 @@ class UslExpenseBatchCreateWizard(models.TransientModel):
     incomplete_expense_ids = fields.Many2many(
         "hr.expense",
         compute="_compute_preview",
+        string="Incomplete expenses",
     )
-    incomplete_count = fields.Integer(compute="_compute_preview")
+    incomplete_count = fields.Integer(
+        compute="_compute_preview",
+        string="Expenses needing information",
+    )
+    draft_count = fields.Integer(
+        compute="_compute_preview",
+        string="Draft expenses",
+    )
+    draft_incomplete_count = fields.Integer(
+        compute="_compute_preview",
+        string="Draft expenses needing information",
+    )
+    readiness_state = fields.Selection(
+        selection=[
+            ("ready", "Ready"),
+            ("incomplete", "Needs information"),
+        ],
+        compute="_compute_preview",
+        string="Batch readiness",
+    )
     main_analytic_activity = fields.Char(compute="_compute_preview")
 
     @api.model_create_multi
@@ -87,6 +111,9 @@ class UslExpenseBatchCreateWizard(models.TransientModel):
             wizard.date_from = min(dates) if dates else False
             wizard.date_to = max(dates) if dates else False
             wizard.expense_count = len(expenses)
+            wizard.draft_count = len(
+                expenses.filtered(lambda expense: expense.state == "draft"),
+            )
             wizard.total_amount = sum(expenses.mapped("total_amount"))
             wizard.employee_paid_total = sum(
                 expenses.filtered(
@@ -99,10 +126,14 @@ class UslExpenseBatchCreateWizard(models.TransientModel):
                 ).mapped("total_amount"),
             )
             incomplete = expenses.filtered(
-                lambda expense: expense.batch_readiness != "ready",
+                lambda expense: expense.batch_readiness == "incomplete",
             )
             wizard.incomplete_expense_ids = incomplete
             wizard.incomplete_count = len(incomplete)
+            wizard.draft_incomplete_count = len(
+                incomplete.filtered(lambda expense: expense.state == "draft"),
+            )
+            wizard.readiness_state = "incomplete" if incomplete else "ready"
 
             analytic_weights = defaultdict(float)
             for distribution in expenses.mapped("analytic_distribution"):
@@ -153,10 +184,18 @@ class UslExpenseBatchCreateWizard(models.TransientModel):
         if len(self.expense_ids.employee_id) != 1:
             raise UserError(_("A batch cannot mix expenses from different employees."))
         invalid = self.expense_ids.filtered(
-            lambda expense: expense.state != "draft" or expense.expense_batch_id,
+            lambda expense: (
+                expense.state not in EXPENSE_BATCH_ELIGIBLE_STATES
+                or expense.expense_batch_id
+            ),
         )
         if invalid:
-            raise UserError(_("Only unbatched draft expenses can be selected."))
+            raise UserError(
+                _(
+                    "Only unbatched draft, approved, or posted expenses "
+                    "can be selected.",
+                ),
+            )
 
     def _create_batch(self):
         self.ensure_one()
@@ -183,6 +222,8 @@ class UslExpenseBatchCreateWizard(models.TransientModel):
         }
 
     def action_create_and_submit(self):
+        if not self.draft_count:
+            raise UserError(_("This selection has no draft expenses to submit."))
         batch = self._create_batch()
         batch.action_submit()
         return {

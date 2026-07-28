@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~19.2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-26 15:01+0000\n"
-"PO-Revision-Date: 2026-07-26 00:00+0200\n"
+"POT-Creation-Date: 2026-07-28 00:00+0200\n"
+"PO-Revision-Date: 2026-07-28 00:00+0200\n"
 "Last-Translator: Unstatic Labs\n"
 "Language-Team: French\n"
 "Language: fr\n"
@@ -113,14 +113,19 @@ msgid "Approved Date"
 msgstr "Date d’approbation"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__hr_expense__batch_attachment_status__attached
+msgid "Attached"
+msgstr "Joint"
+
+#. module: usl_expense_batch
 #: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__message_attachment_count
 msgid "Attachment Count"
 msgstr "Nombre de pièces jointes"
 
 #. module: usl_expense_batch
-#: model:ir.model.fields,field_description:usl_expense_batch.field_hr_expense__batch_incomplete_reason
-msgid "Batch Incomplete Reason"
-msgstr "Informations manquantes"
+#: model:ir.model.fields,field_description:usl_expense_batch.field_hr_expense__batch_attachment_status
+msgid "Attachment status"
+msgstr "Statut du justificatif"
 
 #. module: usl_expense_batch
 #. odoo-python
@@ -130,6 +135,8 @@ msgstr "Note de frais approuvée avec %(count)s dépenses."
 
 #. module: usl_expense_batch
 #: model:ir.model.fields,field_description:usl_expense_batch.field_hr_expense__batch_readiness
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__readiness_state
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_create_wizard__readiness_state
 msgid "Batch readiness"
 msgstr "Préparation de la note"
 
@@ -196,6 +203,11 @@ msgid "Create an expense batch"
 msgstr "Créer une note de frais"
 
 #. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_create_wizard_form
+msgid "Create batch"
+msgstr "Créer la note"
+
+#. module: usl_expense_batch
 #. odoo-javascript
 #. odoo-python
 #: code:addons/usl_expense_batch/models/hr_expense.py:0
@@ -203,6 +215,17 @@ msgstr "Créer une note de frais"
 #: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_create_wizard_form
 msgid "Create expense batch"
 msgstr "Créer une note de frais"
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_create_wizard_form
+msgid ""
+"Create the batch and submit only its draft expenses for manager review. "
+"Expenses already approved or posted keep their current status. This does not"
+" post accounting entries or create payments."
+msgstr ""
+"Crée la note et soumet uniquement ses dépenses en brouillon au responsable. "
+"Les dépenses déjà approuvées ou comptabilisées conservent leur statut. Cette "
+"action ne comptabilise aucune écriture et ne crée aucun paiement."
 
 #. module: usl_expense_batch
 #: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__currency_id
@@ -229,6 +252,16 @@ msgid "Draft"
 msgstr "Brouillon"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_create_wizard__draft_count
+msgid "Draft expenses"
+msgstr "Dépenses en brouillon"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_create_wizard__draft_incomplete_count
+msgid "Draft expenses needing information"
+msgstr "Dépenses en brouillon nécessitant des informations"
+
+#. module: usl_expense_batch
 #: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__employee_id
 #: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_create_wizard__employee_id
 #: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_search
@@ -250,10 +283,8 @@ msgstr "Saisissez le nom de la note de frais et son objet commun."
 #. module: usl_expense_batch
 #. odoo-python
 #: code:addons/usl_expense_batch/models/expense_batch.py:0
-msgid "Every active expense must be %(state)s before continuing: %(expenses)s"
-msgstr ""
-"Toutes les dépenses actives doivent être à l’état %(state)s avant de "
-"continuer : %(expenses)s"
+msgid "Every selected expense must still exist."
+msgstr "Chaque dépense sélectionnée doit toujours exister."
 
 #. module: usl_expense_batch
 #: model:ir.model,name:usl_expense_batch.model_hr_expense
@@ -290,6 +321,12 @@ msgid "Expense period"
 msgstr "Période des dépenses"
 
 #. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_create_wizard_form
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
+msgid "Expense status"
+msgstr "Statut de la dépense"
+
+#. module: usl_expense_batch
 #: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__expense_ids
 #: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_create_wizard__expense_ids
 #: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
@@ -297,9 +334,10 @@ msgid "Expenses"
 msgstr "Dépenses"
 
 #. module: usl_expense_batch
-#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__incomplete_expense_ids
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__incomplete_count
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_create_wizard__incomplete_count
 msgid "Expenses needing information"
-msgstr "Dépenses à compléter"
+msgstr "Dépenses nécessitant des informations"
 
 #. module: usl_expense_batch
 #: model_terms:ir.actions.act_window,help:usl_expense_batch.action_expense_batches
@@ -310,15 +348,10 @@ msgstr ""
 "comptabilisation."
 
 #. module: usl_expense_batch
-#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__incomplete_count
-#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_create_wizard__incomplete_count
-msgid "Incomplete Count"
-msgstr "Nombre de dépenses incomplètes"
-
-#. module: usl_expense_batch
 #: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_create_wizard__incomplete_expense_ids
-msgid "Incomplete Expense"
-msgstr "Dépense incomplète"
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__incomplete_expense_ids
+msgid "Incomplete expenses"
+msgstr "Dépenses à compléter"
 
 #. module: usl_expense_batch
 #. odoo-python
@@ -346,6 +379,18 @@ msgid "Missing: %s"
 msgstr "Manquant : %s"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__hr_expense__batch_attachment_status__missing
+msgid "Missing"
+msgstr "Manquant"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_hr_expense__batch_incomplete_reason
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_create_wizard_form
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
+msgid "Missing information"
+msgstr "Informations manquantes"
+
+#. module: usl_expense_batch
 #: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__move_count
 msgid "Move Count"
 msgstr "Nombre d’écritures"
@@ -363,9 +408,24 @@ msgstr "Nom"
 
 #. module: usl_expense_batch
 #: model:ir.model.fields.selection,name:usl_expense_batch.selection__hr_expense__batch_readiness__incomplete
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch__readiness_state__incomplete
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch_create_wizard__readiness_state__incomplete
 #: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_hr_expense_search_batch
 msgid "Needs information"
 msgstr "Informations requises"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__hr_expense__batch_attachment_status__not_required
+msgid "Not required"
+msgstr "Non requis"
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_batch.py:0
+msgid "Only existing expenses can be added when creating an expense batch."
+msgstr ""
+"Seules des dépenses existantes peuvent être ajoutées lors de la création "
+"d’une note de frais."
 
 #. module: usl_expense_batch
 #. odoo-python
@@ -376,18 +436,31 @@ msgstr "Seules les dépenses soumises ou approuvées peuvent être retournées."
 #. module: usl_expense_batch
 #. odoo-python
 #: code:addons/usl_expense_batch/models/hr_expense.py:0
-msgid "Only unbatched draft expenses can be added to a new batch."
+msgid ""
+"Only unbatched draft, approved, or posted expenses can be added to a new "
+"batch."
 msgstr ""
-"Seules les dépenses en brouillon qui ne figurent dans aucune note peuvent "
-"être ajoutées."
+"Seules les dépenses en brouillon, approuvées ou comptabilisées qui ne "
+"figurent dans aucune note peuvent être ajoutées à une nouvelle note."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_batch.py:0
+#: code:addons/usl_expense_batch/models/hr_expense.py:0
+msgid ""
+"Only unbatched draft, approved, or posted expenses can be added to an "
+"expense batch."
+msgstr ""
+"Seules les dépenses en brouillon, approuvées ou comptabilisées qui ne "
+"figurent dans aucune note peuvent être ajoutées à une note de frais."
 
 #. module: usl_expense_batch
 #. odoo-python
 #: code:addons/usl_expense_batch/wizard/expense_batch_create_wizard.py:0
-msgid "Only unbatched draft expenses can be selected."
+msgid "Only unbatched draft, approved, or posted expenses can be selected."
 msgstr ""
-"Seules les dépenses en brouillon qui ne figurent dans aucune note peuvent "
-"être sélectionnées."
+"Seules les dépenses en brouillon, approuvées ou comptabilisées qui ne "
+"figurent dans aucune note peuvent être sélectionnées."
 
 #. module: usl_expense_batch
 #: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch__state__paid
@@ -423,6 +496,12 @@ msgstr ""
 "Les comptables en lecture seule ne peuvent pas modifier les notes de frais."
 
 #. module: usl_expense_batch
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch__readiness_state__ready
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch_create_wizard__readiness_state__ready
+msgid "Ready"
+msgstr "Prête"
+
+#. module: usl_expense_batch
 #: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_search
 msgid "Ready to post"
 msgstr "Prête à comptabiliser"
@@ -444,6 +523,14 @@ msgid "Remove"
 msgstr "Retirer"
 
 #. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/hr_expense.py:0
+msgid ""
+"Remove an expense from its current batch before adding it to another one."
+msgstr ""
+"Retirez la dépense de sa note actuelle avant de l’ajouter à une autre."
+
+#. module: usl_expense_batch
 #: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch__state__refused
 msgid "Returned"
 msgstr "Retournée"
@@ -454,11 +541,6 @@ msgid "Review"
 msgstr "Contrôle"
 
 #. module: usl_expense_batch
-#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_create_wizard_form
-msgid "Save as draft"
-msgstr "Enregistrer en brouillon"
-
-#. module: usl_expense_batch
 #. odoo-python
 #: code:addons/usl_expense_batch/wizard/expense_batch_create_wizard.py:0
 msgid "Select at least one expense."
@@ -467,8 +549,8 @@ msgstr "Sélectionnez au moins une dépense."
 #. module: usl_expense_batch
 #. odoo-python
 #: code:addons/usl_expense_batch/models/hr_expense.py:0
-msgid "Select at least one draft expense."
-msgstr "Sélectionnez au moins une dépense en brouillon."
+msgid "Select at least one eligible expense."
+msgstr "Sélectionnez au moins une dépense admissible."
 
 #. module: usl_expense_batch
 #: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__state
@@ -485,6 +567,17 @@ msgstr "Statut"
 #: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
 msgid "Submit batch"
 msgstr "Soumettre la note de frais"
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
+msgid ""
+"Submit only the draft expenses in this batch for manager review. Expenses "
+"already approved or posted keep their current status. This does not post "
+"accounting entries or create payments."
+msgstr ""
+"Soumet uniquement les dépenses en brouillon de cette note au responsable. "
+"Les dépenses déjà approuvées ou comptabilisées conservent leur statut. Cette "
+"action ne comptabilise aucune écriture et ne crée aucun paiement."
 
 #. module: usl_expense_batch
 #: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch__state__submitted
@@ -514,6 +607,18 @@ msgid "The expense and its batch must belong to the same employee."
 msgstr "La dépense et sa note doivent appartenir au même employé."
 
 #. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_batch.py:0
+msgid "This batch has no %(state)s expenses to process."
+msgstr "Cette note ne contient aucune dépense « %(state)s » à traiter."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/wizard/expense_batch_create_wizard.py:0
+msgid "This selection has no draft expenses to submit."
+msgstr "Cette sélection ne contient aucune dépense en brouillon à soumettre."
+
+#. module: usl_expense_batch
 #: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_create_wizard_form
 #: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
 #: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_list
@@ -534,10 +639,11 @@ msgstr "En attente d’approbation"
 #. module: usl_expense_batch
 #: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_create_wizard_form
 msgid ""
-"You can save the batch now, but all lines must be complete before submission."
+"You can create the batch now; only incomplete draft expenses block "
+"submission."
 msgstr ""
-"Vous pouvez enregistrer la note maintenant, mais toutes les lignes doivent "
-"être complètes avant la soumission."
+"Vous pouvez créer la note maintenant ; seules les dépenses en brouillon "
+"incomplètes bloquent la soumission."
 
 #. module: usl_expense_batch
 #. odoo-python

@@ -6,6 +6,11 @@
         <field name="inherit_id" ref="hr_expense.hr_expense_view_expenses_analysis_tree"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='state']" position="before">
+                <field name="batch_attachment_status"
+                       widget="badge"
+                       optional="show"
+                       decoration-success="batch_attachment_status in ('attached', 'not_required')"
+                       decoration-warning="batch_attachment_status == 'missing'"/>
                 <field name="expense_batch_id" optional="show"/>
             </xpath>
         </field>
@@ -57,6 +62,7 @@
                 <field name="expense_batch_id" invisible="1"/>
                 <field name="batch_readiness" invisible="1"/>
                 <field name="batch_incomplete_reason" invisible="1"/>
+                <field name="batch_attachment_status" invisible="1"/>
             </xpath>
             <xpath expr="//field[@name='employee_id']" position="after">
                 <field name="expense_batch_id"

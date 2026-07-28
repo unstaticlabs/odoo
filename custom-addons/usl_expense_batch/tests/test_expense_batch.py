@@ -43,6 +43,7 @@ class TestExpenseBatch(TestExpenseCommon):
             expense.sudo().message_main_attachment_id = attachment
             expense.invalidate_recordset([
                 "message_main_attachment_id",
+                "batch_attachment_status",
                 "batch_readiness",
                 "batch_incomplete_reason",
             ])
@@ -64,9 +65,11 @@ class TestExpenseBatch(TestExpenseCommon):
         incomplete = self._expense("Toronto taxi", with_receipt=False)
         self.assertEqual(complete.batch_readiness, "ready")
         self.assertEqual(incomplete.batch_readiness, "incomplete")
+        self.assertEqual(complete.batch_attachment_status, "attached")
+        self.assertEqual(incomplete.batch_attachment_status, "missing")
         self.assertIn("receipt", incomplete.batch_incomplete_reason)
 
-        with self.assertRaisesRegex(UserError, "Select at least one draft expense"):
+        with self.assertRaisesRegex(UserError, "Select at least one eligible expense"):
             (
                 self.env["hr.expense"]
                 .with_user(self.expense_user_employee)
@@ -93,7 +96,7 @@ class TestExpenseBatch(TestExpenseCommon):
         self.assertTrue(wizard.purpose)
 
         complete.sudo().approval_state = "approved"
-        self.assertFalse(complete.batch_readiness)
+        self.assertEqual(complete.batch_readiness, "ready")
         complete.sudo().approval_state = False
 
         preview = self.env["usl.expense.batch.create.wizard"].create({
@@ -101,6 +104,108 @@ class TestExpenseBatch(TestExpenseCommon):
         })
         self.assertEqual(preview.incomplete_expense_ids, incomplete)
         self.assertEqual(preview.incomplete_count, 1)
+        self.assertEqual(preview.readiness_state, "incomplete")
+
+        batch = self._batch(complete + incomplete)
+        self.assertEqual(batch.incomplete_expense_ids, incomplete)
+        self.assertEqual(batch.incomplete_count, 1)
+        self.assertEqual(batch.readiness_state, "incomplete")
+
+    def test_mixed_draft_and_approved_expenses_advance_without_regression(self):
+        draft = self._expense("Toronto draft")
+        approved = self._expense(
+            "Toronto approved",
+            amount=43,
+            with_receipt=False,
+        )
+        approved.sudo().approval_state = "approved"
+        self.assertEqual(approved.state, "approved")
+        self.assertEqual(approved.batch_readiness, "incomplete")
+
+        action = (
+            self.env["hr.expense"]
+            .with_user(self.expense_user_employee)
+            .action_open_expense_batch_wizard((draft + approved).ids)
+        )
+        wizard = (
+            self.env[action["res_model"]]
+            .with_user(self.expense_user_employee)
+            .browse(action["res_id"])
+        )
+        self.assertEqual(wizard.expense_ids, draft + approved)
+        self.assertEqual(wizard.draft_count, 1)
+        self.assertEqual(wizard.draft_incomplete_count, 0)
+        self.assertEqual(wizard.readiness_state, "incomplete")
+
+        batch = wizard._create_batch()
+        self.assertEqual(batch.state, "draft")
+        batch.with_user(self.expense_user_employee).action_submit()
+        self.assertEqual(draft.state, "submitted")
+        self.assertEqual(approved.state, "approved")
+        self.assertEqual(batch.state, "submitted")
+
+        batch.with_user(self.expense_user_manager).action_approve()
+        self.assertEqual(draft.state, "approved")
+        self.assertEqual(approved.state, "approved")
+        self.assertEqual(batch.state, "approved")
+
+    def test_submitted_and_already_batched_expenses_are_rejected(self):
+        submitted = self._expense("Toronto submitted")
+        submitted.sudo().approval_state = "submitted"
+        self.assertEqual(submitted.state, "submitted")
+
+        with self.assertRaisesRegex(
+            UserError,
+            "Only unbatched draft, approved, or posted expenses",
+        ):
+            self.env["hr.expense"].action_open_expense_batch_wizard(
+                submitted.ids,
+            )
+        with self.assertRaisesRegex(
+            ValidationError,
+            "Only unbatched draft, approved, or posted expenses",
+        ), self.cr.savepoint():
+            self.env["usl.expense.batch"].sudo().create({
+                "name": "Invalid submitted claim",
+                "purpose": "Must not be batched",
+                "employee_id": self.expense_employee.id,
+                "company_id": self.env.company.id,
+                "expense_ids": [Command.set(submitted.ids)],
+            })
+
+        first = self._expense("Toronto first batch")
+        self._batch(first)
+        with self.assertRaisesRegex(
+            UserError,
+            "Only unbatched draft, approved, or posted expenses",
+        ):
+            self.env["hr.expense"].action_open_expense_batch_wizard(first.ids)
+
+    def test_posted_expense_can_be_batched_and_links_its_existing_move(self):
+        posted = self._expense("Toronto posted")
+        posted.sudo().approval_state = "approved"
+        self.post_expenses_with_wizard(posted.with_user(self.env.user))
+        self.assertEqual(posted.state, "posted")
+        self.assertTrue(posted.account_move_id)
+        self.assertFalse(posted.account_move_id.expense_batch_id)
+
+        action = (
+            self.env["hr.expense"]
+            .with_user(self.expense_user_employee)
+            .action_open_expense_batch_wizard(posted.ids)
+        )
+        wizard = (
+            self.env[action["res_model"]]
+            .with_user(self.expense_user_employee)
+            .browse(action["res_id"])
+        )
+        self.assertEqual(wizard.expense_ids, posted)
+        self.assertEqual(wizard.draft_count, 0)
+        batch = wizard._create_batch()
+
+        self.assertEqual(batch.state, "posted")
+        self.assertEqual(posted.expense_batch_id, batch)
+        self.assertEqual(posted.account_move_id.expense_batch_id, batch)
 
     def test_submit_approve_and_return_one_expense(self):
         first = self._expense("Toronto flight")
@@ -158,7 +263,7 @@ class TestExpenseBatch(TestExpenseCommon):
 
         with self.assertRaisesRegex(
             ValidationError,
-            "same employee",
+            "different employees",
         ), self.cr.savepoint():
             self.env["usl.expense.batch"].create(
                 {
@@ -237,6 +342,9 @@ class TestExpenseBatch(TestExpenseCommon):
             "hr_expense.hr_expense_view_expenses_analysis_tree",
         )._get_combined_arch()
         self.assertFalse(expense_list.xpath("//field[@name='batch_readiness']"))
+        self.assertTrue(
+            expense_list.xpath("//field[@name='batch_attachment_status']"),
+        )
         self.assertTrue(expense_list.xpath("//field[@name='expense_batch_id']"))
 
         expense_search = self.env.ref(
@@ -250,6 +358,53 @@ class TestExpenseBatch(TestExpenseCommon):
         move_form = self.env.ref("account.view_move_form")._get_combined_arch()
         self.assertTrue(
             move_form.xpath("//button[@name='action_open_expense_batch']"),
+        )
+
+        batch_form = self.env.ref(
+            "usl_expense_batch.view_expense_batch_form",
+        )._get_combined_arch()
+        expense_lines = batch_form.xpath(
+            "//field[@name='expense_ids']/list",
+        )[0]
+        self.assertFalse(
+            expense_lines.xpath("./field[@name='batch_readiness']"),
+        )
+        self.assertTrue(
+            expense_lines.xpath("./field[@name='batch_attachment_status']"),
+        )
+        self.assertTrue(expense_lines.xpath("./field[@name='state']"))
+        missing_information = expense_lines.xpath(
+            "./field[@name='batch_incomplete_reason']",
+        )
+        self.assertEqual(
+            missing_information[0].get("string"),
+            "Missing information",
+        )
+        self.assertTrue(batch_form.xpath("//field[@name='readiness_state']"))
+        submit = batch_form.xpath("//button[@name='action_submit']")[0]
+        self.assertIn("only the draft expenses", submit.get("title"))
+        self.assertIn("does not post", submit.get("title").lower())
+
+        wizard_form = self.env.ref(
+            "usl_expense_batch.view_expense_batch_create_wizard_form",
+        )._get_combined_arch()
+        wizard_lines = wizard_form.xpath(
+            "//field[@name='expense_ids']/list",
+        )[0]
+        self.assertFalse(
+            wizard_lines.xpath("./field[@name='batch_readiness']"),
+        )
+        self.assertTrue(
+            wizard_lines.xpath("./field[@name='batch_attachment_status']"),
+        )
+        self.assertTrue(wizard_lines.xpath("./field[@name='state']"))
+        wizard_submit = wizard_form.xpath(
+            "//button[@name='action_create_and_submit']",
+        )[0]
+        self.assertIn("only its draft expenses", wizard_submit.get("title"))
+        self.assertIn(
+            "draft_incomplete_count",
+            wizard_submit.get("invisible"),
         )
 
         batch = self._batch(self._expense("Toronto action contract"))

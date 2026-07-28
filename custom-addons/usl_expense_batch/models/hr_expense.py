@@ -1,6 +1,8 @@
 from odoo import Command, _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
+EXPENSE_BATCH_ELIGIBLE_STATES = ("draft", "approved", "posted")
+
 
 class HrExpense(models.Model):
     _inherit = "hr.expense"
@@ -24,7 +26,19 @@ class HrExpense(models.Model):
         search="_search_batch_readiness",
         string="Batch readiness",
     )
-    batch_incomplete_reason = fields.Char(compute="_compute_batch_readiness")
+    batch_incomplete_reason = fields.Char(
+        compute="_compute_batch_readiness",
+        string="Missing information",
+    )
+    batch_attachment_status = fields.Selection(
+        selection=[
+            ("attached", "Attached"),
+            ("missing", "Missing"),
+            ("not_required", "Not required"),
+        ],
+        compute="_compute_batch_attachment_status",
+        string="Attachment status",
+    )
 
     def _is_batch_receipt_required(self):
         self.ensure_one()
@@ -45,13 +59,19 @@ class HrExpense(models.Model):
             or self.currency_id.is_zero(self.total_amount_currency)
         ):
             reasons.append(_("non-zero amount"))
-        if (
-            self.product_id
-            and self._is_batch_receipt_required()
-            and not self.message_main_attachment_id
-        ):
+        if self.product_id and self.batch_attachment_status == "missing":
             reasons.append(_("receipt"))
         return reasons
+
+    @api.depends("message_main_attachment_id", "nb_attachment", "product_id")
+    def _compute_batch_attachment_status(self):
+        for expense in self:
+            if expense.message_main_attachment_id or expense.nb_attachment:
+                expense.batch_attachment_status = "attached"
+            elif expense.product_id and not expense._is_batch_receipt_required():
+                expense.batch_attachment_status = "not_required"
+            else:
+                expense.batch_attachment_status = "missing"
 
     @api.depends(
         "expense_batch_id",
@@ -66,12 +86,15 @@ class HrExpense(models.Model):
         for expense in self:
             reasons = (
                 expense._get_batch_incomplete_reasons()
-                if expense.state == "draft" or expense.expense_batch_id
+                if (
+                    expense.state in EXPENSE_BATCH_ELIGIBLE_STATES
+                    or expense.expense_batch_id
+                )
                 else []
             )
             if expense.expense_batch_id:
                 expense.batch_readiness = "batched"
-            elif expense.state != "draft":
+            elif expense.state not in EXPENSE_BATCH_ELIGIBLE_STATES:
                 expense.batch_readiness = False
             else:
                 expense.batch_readiness = "incomplete" if reasons else "ready"
@@ -104,6 +127,13 @@ class HrExpense(models.Model):
     @api.constrains("expense_batch_id", "employee_id", "company_id")
     def _check_expense_batch_compatibility(self):
         for expense in self.filtered("expense_batch_id"):
+            if expense.state not in EXPENSE_BATCH_ELIGIBLE_STATES:
+                raise ValidationError(
+                    _(
+                        "Only unbatched draft, approved, or posted expenses "
+                        "can be added to an expense batch.",
+                    ),
+                )
             if expense.company_id != expense.expense_batch_id.company_id:
                 raise ValidationError(
                     _("The expense and its batch must belong to the same company."),
@@ -113,17 +143,38 @@ class HrExpense(models.Model):
                     _("The expense and its batch must belong to the same employee."),
                 )
 
+    def write(self, values):
+        new_batch_id = values.get("expense_batch_id")
+        if new_batch_id and any(
+            expense.expense_batch_id
+            and expense.expense_batch_id.id != new_batch_id
+            for expense in self
+        ):
+            raise ValidationError(
+                _(
+                    "Remove an expense from its current batch before adding "
+                    "it to another one.",
+                ),
+            )
+        return super().write(values)
+
     @api.model
     def action_open_expense_batch_wizard(self, expense_ids=None):
         expenses = self.browse(expense_ids or []).exists()
         if not expenses:
-            raise UserError(_("Select at least one draft expense."))
+            raise UserError(_("Select at least one eligible expense."))
         invalid = expenses.filtered(
-            lambda expense: expense.state != "draft" or expense.expense_batch_id,
+            lambda expense: (
+                expense.state not in EXPENSE_BATCH_ELIGIBLE_STATES
+                or expense.expense_batch_id
+            ),
         )
         if invalid:
             raise UserError(
-                _("Only unbatched draft expenses can be added to a new batch."),
+                _(
+                    "Only unbatched draft, approved, or posted expenses "
+                    "can be added to a new batch.",
+                ),
             )
         if len(expenses.company_id) != 1 or len(expenses.employee_id) != 1:
             raise UserError(

@@ -2,7 +2,7 @@ from collections import defaultdict
 
 from lxml import etree
 
-from odoo import _, api, fields, models
+from odoo import Command, _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 
 
@@ -94,9 +94,20 @@ class UslExpenseBatch(models.Model):
     incomplete_expense_ids = fields.Many2many(
         "hr.expense",
         compute="_compute_review_context",
+        string="Incomplete expenses",
+    )
+    incomplete_count = fields.Integer(
+        compute="_compute_review_context",
         string="Expenses needing information",
     )
-    incomplete_count = fields.Integer(compute="_compute_review_context")
+    readiness_state = fields.Selection(
+        selection=[
+            ("ready", "Ready"),
+            ("incomplete", "Needs information"),
+        ],
+        compute="_compute_review_context",
+        string="Batch readiness",
+    )
     main_analytic_activity = fields.Char(compute="_compute_review_context")
     move_ids = fields.Many2many(
         "account.move",
@@ -174,6 +185,7 @@ class UslExpenseBatch(models.Model):
             )
             batch.incomplete_expense_ids = incomplete
             batch.incomplete_count = len(incomplete)
+            batch.readiness_state = "incomplete" if incomplete else "ready"
 
             analytic_weights = defaultdict(float)
             for distribution in batch.expense_ids.mapped("analytic_distribution"):
@@ -246,7 +258,87 @@ class UslExpenseBatch(models.Model):
     @api.model_create_multi
     def create(self, values_list):
         self._check_readonly_accountant_mutation()
-        return super().create(values_list)
+        clean_values_list = []
+        expense_ids_list = []
+        for values in values_list:
+            values = dict(values)
+            expense_ids_list.append(
+                self._expense_ids_from_create_commands(
+                    values.pop("expense_ids", []),
+                ),
+            )
+            clean_values_list.append(values)
+
+        batches = super().create(clean_values_list)
+        for batch, expense_ids in zip(batches, expense_ids_list):
+            expenses = self.env["hr.expense"].browse(expense_ids).exists()
+            if len(expenses) != len(expense_ids):
+                raise ValidationError(_("Every selected expense must still exist."))
+            expenses.check_access("read")
+            invalid = expenses.filtered(
+                lambda expense: (
+                    expense.state not in ("draft", "approved", "posted")
+                    or expense.expense_batch_id
+                ),
+            )
+            if invalid:
+                raise ValidationError(
+                    _(
+                        "Only unbatched draft, approved, or posted expenses "
+                        "can be added to an expense batch.",
+                    ),
+                )
+            if expenses.filtered(
+                lambda expense: expense.company_id != batch.company_id,
+            ):
+                raise ValidationError(
+                    _("A batch cannot contain expenses from different companies."),
+                )
+            if expenses.filtered(
+                lambda expense: expense.employee_id != batch.employee_id,
+            ):
+                raise ValidationError(
+                    _("A batch cannot contain expenses from different employees."),
+                )
+            if expenses:
+                # Native expense rules deliberately make approved and posted
+                # records read-only for their employee. Linking the optional
+                # grouping context is safe after the explicit access and
+                # compatibility checks above.
+                expenses.sudo().write({"expense_batch_id": batch.id})
+        batches._link_existing_moves()
+        return batches
+
+    @api.model
+    def _expense_ids_from_create_commands(self, commands):
+        expense_ids = []
+        for command in commands:
+            operation = command[0]
+            if operation == Command.SET:
+                expense_ids = list(command[2])
+            elif operation == Command.LINK:
+                expense_ids.append(command[1])
+            elif operation == Command.CLEAR:
+                expense_ids = []
+            else:
+                raise ValidationError(
+                    _(
+                        "Only existing expenses can be added when creating "
+                        "an expense batch.",
+                    ),
+                )
+        return list(dict.fromkeys(expense_ids))
+
+    def _link_existing_moves(self):
+        for batch in self:
+            for move in batch.expense_ids.account_move_id.filtered(
+                lambda candidate: not candidate.expense_batch_id,
+            ):
+                if move.expense_ids and all(
+                    expense.expense_batch_id == batch
+                    for expense in move.expense_ids
+                ):
+                    move.sudo().expense_batch_id = batch
 
     def write(self, values):
         self._check_readonly_accountant_mutation()
@@ -263,28 +355,27 @@ class UslExpenseBatch(models.Model):
                 _("A submitted expense batch must be preserved for auditability."),
             )
 
-    def _check_actionable_expenses(self, expected_state):
+    def _get_actionable_expenses(self, expected_state):
         self.ensure_one()
         expenses = self.expense_ids.filtered(lambda expense: expense.state != "refused")
         if not expenses:
             raise UserError(_("Add at least one expense before continuing."))
-        invalid = expenses.filtered(lambda expense: expense.state != expected_state)
-        if invalid:
+        actionable = expenses.filtered(lambda expense: expense.state == expected_state)
+        if not actionable:
             raise UserError(
                 _(
-                    "Every active expense must be %(state)s before continuing: %(expenses)s",
+                    "This batch has no %(state)s expenses to process.",
                     state=dict(self.env["hr.expense"]._fields["state"].selection)[
                         expected_state
                     ],
-                    expenses=", ".join(invalid.mapped("name")),
                 ),
             )
-        return expenses
+        return actionable
 
     def action_submit(self):
         self.ensure_one()
         self._check_readonly_accountant_mutation()
-        expenses = self._check_actionable_expenses("draft")
+        expenses = self._get_actionable_expenses("draft")
         incomplete = expenses.filtered(
             lambda expense: bool(expense.batch_incomplete_reason),
         )
@@ -312,7 +403,7 @@ class UslExpenseBatch(models.Model):
     def action_approve(self):
         self.ensure_one()
         self._check_readonly_accountant_mutation()
-        expenses = self._check_actionable_expenses("submitted")
+        expenses = self._get_actionable_expenses("submitted")
         result = expenses.with_context(validate_analytic=True).action_approve()
         if not result and all(expense.state == "approved" for expense in expenses):
             self.write({
@@ -331,7 +422,7 @@ class UslExpenseBatch(models.Model):
     def action_post(self):
         self.ensure_one()
         self._check_readonly_accountant_mutation()
-        expenses = self._check_actionable_expenses("approved")
+        expenses = self._get_actionable_expenses("approved")
         result = expenses.action_post()
         if not result:
             self.message_post(
