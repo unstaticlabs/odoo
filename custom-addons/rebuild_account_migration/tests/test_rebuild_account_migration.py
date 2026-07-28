@@ -4048,16 +4048,33 @@ class TestRebuildAccountMigration(TransactionCase):
             )[0].get("widget"),
             "rebuild_matching_badge",
         )
-        match_button = transaction_form_arch.xpath(
+        header_match_button = transaction_form_arch.xpath(
+            "//header/button[@name='action_rebuild_open_bank_matching']",
+        )
+        evidence_match_buttons = transaction_form_arch.xpath(
+            "//div[contains(@class, 'o_rebuild_transaction_matching')]"
             "//button[@name='action_rebuild_open_bank_matching']",
         )
         undo_button = transaction_form_arch.xpath(
             "//button[@name='action_undo_reconciliation']",
         )
-        self.assertEqual(len(match_button), 1)
+        self.assertEqual(len(header_match_button), 1)
+        self.assertEqual(
+            {button.get("string") for button in evidence_match_buttons},
+            {"Still to match", "View matching"},
+        )
+        self.assertTrue(all(
+            button.get("groups")
+            == "account.group_account_user,account.group_account_readonly"
+            for button in evidence_match_buttons
+        ))
+        self.assertTrue(all(
+            button.get("title")
+            for button in evidence_match_buttons
+        ))
         self.assertEqual(len(undo_button), 1)
         self.assertEqual(
-            match_button[0].get("groups"),
+            header_match_button[0].get("groups"),
             "account.group_account_user",
         )
         self.assertEqual(
@@ -4142,7 +4159,6 @@ class TestRebuildAccountMigration(TransactionCase):
             )
 
         for forbidden_action in (
-            "action_rebuild_open_bank_matching",
             "action_undo_reconciliation",
             "action_rebuild_apply_partner_suggestion",
             "action_rebuild_refresh_partner_suggestions",
@@ -4153,6 +4169,14 @@ class TestRebuildAccountMigration(TransactionCase):
                 ),
                 forbidden_action,
             )
+        reviewer_matching_links = reviewer_arch.xpath(
+            "//div[contains(@class, 'o_rebuild_transaction_matching')]"
+            "//button[@name='action_rebuild_open_bank_matching']",
+        )
+        self.assertEqual(
+            {button.get("string") for button in reviewer_matching_links},
+            {"Still to match", "View matching"},
+        )
         self.assertTrue(
             reviewer_arch.xpath(
                 "//field[@name='partner_id']",

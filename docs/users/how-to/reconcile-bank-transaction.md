@@ -29,7 +29,9 @@
 In Transactions, clicking a row opens the bank transaction and the same
 accounting-line presentation used by Bank Matching. Before matching, set or
 correct the **Partner** directly when needed; an automatic suggestion is only
-a shortcut. Click
+a shortcut. Click the **Still to match** amount to open this exact transaction
+in Bank Matching. Once completed, use **View matching** from the same place to
+inspect the reconciled result. Click
 **Linked document or entry** to open the matched invoice, bill, refund or
 journal entry. The compact list also retains **Open Entry** as a direct shortcut
 to the full bank journal entry.

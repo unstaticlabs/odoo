@@ -59,6 +59,8 @@ bank transaction beside the same accounting-line presentation used in Bank
 Matching, including accounts, partners, dates, labels, debit, credit,
 currencies and any open balance. Accounting users can set or correct the
 partner directly before matching; suggestions remain optional shortcuts. The
+linked **Still to match** residual opens that transaction in Bank Matching;
+after completion it becomes **View matching**. The
 read-only accountant can inspect the same evidence but cannot select or remove
 proposed lines, match, undo or change the partner.
 
