@@ -30,6 +30,12 @@ No provider contact is needed for these checks. Production identity
 verification, acceptance of the platform terms and French-directory
 registration happen later in the approved production change window.
 
+Odoo Approved Platform Demo mode is also safe in the disposable QA database:
+it simulates registration and reception locally. Do not treat **Authenticate**,
+**Refresh**, **Pilot Phase**, **Validate Registration (Production)**, a live
+poll or **Remove from Approved Platform** as harmless tests. Those actions
+contact or alter real external services once production access is authorized.
+
 ## Process a received invoice
 
 After the production runbook has been completed:
@@ -57,5 +63,6 @@ After the production runbook has been completed:
 Read-only accountants can inspect evidence and draft bills but cannot run the
 test, retry processing, post, configure or activate.
 
-Production activation, first-invoice verification and suspension are in
-`docs/operations/activate-french-electronic-invoicing.md`.
+When the production change is approved, follow
+[Activate electronic-invoice reception in production](activate-electronic-invoice-reception.md).
+It is the complete switch, first-invoice and rollback checklist.

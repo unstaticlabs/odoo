@@ -8,6 +8,10 @@ generate final or test FEC files. Can inspect shared Report and Declaration
 definitions and create company-specific overrides through the Accounting
 Framework.
 
+Can run the safe electronic-invoice reception test and govern production
+approval, startup and suspension. Provider authentication must be completed by
+the legal representative during the approved production change window.
+
 ## Read-only accountant
 
 Can inspect documents, evidence, journal entries and reconciliations; filter and
@@ -15,7 +19,9 @@ drill into reports; download PDF/XLSX; inspect Accounting Controls and their
 current or historical results; inspect declarations and closing material; and
 generate a complete posted test FEC.
 
-This role cannot create or edit accounting, post, pay, reconcile, configure, lock periods or mark declarations and closing complete.
+This role cannot create or edit accounting, post, pay, reconcile, configure,
+lock periods, mark declarations and closing complete, run reception tests,
+retry failed documents or activate electronic-invoice reception.
 
 ## Technical administrator
 

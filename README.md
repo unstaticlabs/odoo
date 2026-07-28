@@ -25,6 +25,8 @@ Primary entry points:
 - **Accounting > Configuration** for governed Controls, Reports, Declarations
   and E-Invoicing;
 - `/usl/user-docs` for role- and task-based user guidance;
+- `/usl/user-docs/how-to/activate-electronic-invoice-reception.md` for the
+  production reception switch and rollback checklist;
 - [Accounting development workflow](docs/operations/accounting-development-workflow.md)
   for safe iteration;
 - [Accounting compatibility harness](docs/accounting/accounting-compat-harness.md)

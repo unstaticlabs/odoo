@@ -7776,13 +7776,34 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(action.target, "self")
 
         rendered = user_docs.render_markdown(
-            "# Guide\n\nOpen [reports](reference/reports-and-filters.md).\n\n| A | B |\n| --- | --- |\n| `one` | two |\n",
+            "# Guide\n\nOpen [reports](reference/reports-and-filters.md).\n\n- A **clear** item that\n  continues on the next line.\n\n| A | B |\n| --- | --- |\n| `one` | two |\n",
             "README.md",
         )
         self.assertIn("<h1", rendered)
         self.assertIn("/usl/user-docs/reference/reports-and-filters.md", rendered)
+        self.assertIn(
+            "<li>A <strong>clear</strong> item that continues on the next line.</li>",
+            rendered,
+        )
         self.assertIn("<table>", rendered)
         self.assertIn("<code>one</code>", rendered)
+
+        docs_root = user_docs._docs_root()
+        self.assertTrue(docs_root)
+        activation_path = user_docs._safe_doc_path(
+            docs_root,
+            "how-to/activate-electronic-invoice-reception.md",
+        )
+        self.assertTrue(activation_path)
+        activation_rendered = user_docs.render_markdown(
+            activation_path.read_text(encoding="utf-8"),
+            activation_path.relative_to(docs_root).as_posix(),
+        )
+        self.assertIn("Authorize production onboarding", activation_rendered)
+        self.assertIn("USL_EINVOICE_LIVE_ENABLED=1", activation_rendered)
+        self.assertIn("USL_EREPORTING_LIVE_ENABLED=0", activation_rendered)
+        self.assertIn("Verify the first real invoice", activation_rendered)
+        self.assertIn("Suspend or roll back", activation_rendered)
 
     def test_source_report_parity_levels_are_explicit(self):
         mandatory = self.env["rebuild.account.source.report"].create({
