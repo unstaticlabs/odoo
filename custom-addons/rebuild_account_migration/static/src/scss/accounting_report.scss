@@ -3,12 +3,33 @@ html .o_web_client > .o_action_manager > .o_action.o_usl_accounting_report {
 }
 
 .o_usl_accounting_report {
-    --usl-report-ink: #17324d;
+    --usl-report-primary: #111111;
+    --usl-report-section-bg: #e9ecef;
+    --usl-report-section-text: #111111;
+    --usl-report-ink: var(--usl-report-primary);
     --usl-report-muted: #667085;
     --usl-report-rule: #dfe5ea;
     position: relative;
     overflow: auto;
     background: #f6f7f8;
+
+    .o_usl_report_workspace {
+        width: calc(100% - 2rem);
+        margin: 1rem auto 2rem;
+        overflow: hidden;
+        border: 1px solid #dfe3e6;
+        border-radius: 0.2rem;
+        background: #fff;
+        box-shadow: 0 0.35rem 1.25rem rgba(#101828, 0.07);
+    }
+
+    .o_usl_report_workspace_portrait {
+        max-width: 1040px;
+    }
+
+    .o_usl_report_workspace_landscape {
+        max-width: 1320px;
+    }
 
     .o_usl_report_header {
         display: flex;
@@ -250,6 +271,13 @@ html .o_web_client > .o_action_manager > .o_action.o_usl_accounting_report {
             color: #667085;
             font-size: 0.7rem;
             font-weight: 600;
+
+            small {
+                color: #475467;
+                font-size: inherit;
+                font-weight: 650;
+                white-space: nowrap;
+            }
         }
 
         strong {
@@ -275,6 +303,7 @@ html .o_web_client > .o_action_manager > .o_action.o_usl_accounting_report {
     }
 
     .o_usl_report_table_wrap {
+        overflow-x: auto;
         padding: 0 1.25rem 2rem;
         background: #fff;
     }
@@ -340,30 +369,44 @@ html .o_web_client > .o_action_manager > .o_action.o_usl_accounting_report {
         font-weight: 650;
     }
 
-    .o_usl_report_row:hover {
+    .o_usl_report_role_detail:hover {
         background: #f8fafb;
     }
 
     .o_usl_report_role_section {
-        background: #274c69;
-        color: #fff;
+        background: var(--usl-report-section-bg);
+        color: var(--usl-report-section-text);
         font-weight: 700;
 
         td {
-            border-bottom-color: #274c69;
+            border-block: 1px solid #b8c0c7;
         }
 
         .btn-link,
         .o_usl_report_code {
-            color: #fff;
+            color: var(--usl-report-section-text);
         }
 
         .o_usl_report_negative {
-            color: #ffd7dc;
+            color: #7d2935;
         }
 
         .o_usl_report_zero {
-            color: rgba(#fff, 0.62);
+            color: #737b82;
+        }
+
+        &:hover {
+            background: color-mix(
+                in srgb,
+                var(--usl-report-section-bg) 88%,
+                var(--usl-report-primary)
+            );
+            color: var(--usl-report-section-text);
+
+            .btn-link,
+            .o_usl_report_code {
+                color: var(--usl-report-section-text);
+            }
         }
     }
 
@@ -374,6 +417,11 @@ html .o_web_client > .o_action_manager > .o_action.o_usl_accounting_report {
 
         td {
             border-block: 1px solid #c8d3dc;
+        }
+
+        &:hover {
+            background: #dfe8ee;
+            color: var(--usl-report-ink);
         }
     }
 
@@ -503,6 +551,13 @@ html .o_web_client > .o_action_manager > .o_action.o_usl_accounting_report {
     }
 
     @media (max-width: 768px) {
+        .o_usl_report_workspace {
+            width: 100%;
+            margin: 0;
+            border: 0;
+            box-shadow: none;
+        }
+
         .o_usl_report_header {
             align-items: flex-start;
             flex-direction: column;

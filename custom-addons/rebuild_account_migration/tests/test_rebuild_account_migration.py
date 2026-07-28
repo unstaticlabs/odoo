@@ -6808,6 +6808,34 @@ class TestRebuildAccountMigration(TransactionCase):
             {equity_account.id, retained_account.id},
         )
 
+        prefix_group_row = wizard._group_report_rows([
+            {
+                "section": "Capitaux propres",
+                "drilldown_account_prefixes": "T10",
+                "amount": "300.00",
+            },
+            {
+                "section": "Capitaux propres",
+                "drilldown_account_prefixes": "T11",
+                "amount": "700.00",
+            },
+        ])[0]
+        prefix_domain = wizard._preview_journal_item_domain(prefix_group_row)
+        self.assertEqual(
+            prefix_group_row["drilldown_account_prefixes"],
+            "T10,T11",
+        )
+        prefix_account_terms = [
+            term
+            for term in prefix_domain
+            if term[0] == "account_id" and term[1] == "in"
+        ]
+        self.assertEqual(len(prefix_account_terms), 1)
+        self.assertEqual(
+            set(prefix_account_terms[0][2]),
+            {equity_account.id, retained_account.id},
+        )
+
     def test_dynamic_report_workbench_period_comparison_and_native_scope(self):
         expense_account = self._account(
             "T625100",
@@ -7051,6 +7079,18 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(standard.origin, "usl")
         self.assertFalse(standard.company_id)
         self.assertTrue(standard.business_purpose)
+        self.assertEqual(standard.document_template, "usl_official")
+        self.assertEqual(
+            standard._definition_snapshot()["document"],
+            {
+                "template": "usl_official",
+                "primary_color": "#111111",
+                "section_background_color": "#E9ECEF",
+                "section_text_color": "#111111",
+                "muted_color": "#666666",
+                "footer_label": "Document comptable",
+            },
+        )
         with self.assertRaises(UserError):
             standard.write({"name": "Unsafe direct customization"})
         standard.with_context(accounting_definition_seed=True).write({
@@ -7088,6 +7128,11 @@ class TestRebuildAccountMigration(TransactionCase):
             "business_purpose": "Company-governed Trial Balance.",
             "supports_comparison": False,
         })
+        with self.assertRaises(UserError):
+            company_definition.write({
+                "document_section_background_color": "#FFFFFF",
+                "document_section_text_color": "#FFFFFF",
+            })
         Definition._ensure_standard_definitions()
         self.assertEqual(company_definition.name, "Balance USL personnalisée")
         self.assertEqual(company_definition.origin, "company")
@@ -7312,6 +7357,52 @@ class TestRebuildAccountMigration(TransactionCase):
             Report.browse(sig_caf["wizard_id"]).export_file,
         )
         self.assertEqual(len(PdfReader(BytesIO(sig_pdf)).pages), 2)
+
+        profit_loss = Report.report_client_load(
+            "profit_loss",
+            {
+                "date_from": "2099-01-01",
+                "date_to": "2099-12-31",
+            },
+        )
+        self.assertEqual(profit_loss["title"], "Compte de résultat")
+        self.assertEqual(profit_loss["report_type"], "profit_loss")
+        self.assertEqual(profit_loss["definition"]["code"], "profit_loss")
+        self.assertEqual(profit_loss["variant"]["key"], "pcg_fr")
+        self.assertEqual(
+            profit_loss["summary"]["cards"][0]["label"],
+            "Résultat net de l’exercice",
+        )
+        self.assertEqual(
+            profit_loss["document"]["section_background_color"],
+            "#E9ECEF",
+        )
+        profit_loss_labels = {
+            line["label"]
+            for line in profit_loss["lines"]
+        }
+        self.assertIn("Produits d’exploitation", profit_loss_labels)
+        self.assertIn("Charges d’exploitation", profit_loss_labels)
+        self.assertIn("Résultat net comptable", profit_loss_labels)
+        legacy_alias = Report.report_client_load(
+            "french_profit_loss_2024",
+            {
+                "date_from": "2099-01-01",
+                "date_to": "2099-12-31",
+            },
+        )
+        self.assertEqual(legacy_alias["report_type"], "profit_loss")
+        self.assertEqual(legacy_alias["definition"]["code"], "profit_loss")
+        Report.report_client_export(profit_loss["wizard_id"], "pdf")
+        profit_loss_pdf = base64.b64decode(
+            Report.browse(profit_loss["wizard_id"]).export_file,
+        )
+        profit_loss_pdf_text = "\n".join(
+            page.extract_text() or ""
+            for page in PdfReader(BytesIO(profit_loss_pdf)).pages
+        )
+        self.assertIn("DOCUMENT COMPTABLE OFFICIEL", profit_loss_pdf_text)
+        self.assertIn("Charges d’exploitation", profit_loss_pdf_text)
 
         compared = Report.report_client_load(
             "trial_balance",
@@ -7624,6 +7715,20 @@ class TestRebuildAccountMigration(TransactionCase):
         )
         self.assertEqual(balance_export_menu.sequence, 4)
         self.assertEqual(profit_export_menu.sequence, 5)
+        legacy_profit_menu = self.env.ref(
+            "rebuild_account_migration."
+            "menu_rebuild_account_report_french_profit_loss_2024_launcher",
+        )
+        legacy_profit_action = self.env.ref(
+            "rebuild_account_migration."
+            "action_rebuild_interactive_french_profit_loss_2024",
+        )
+        self.assertFalse(legacy_profit_menu.active)
+        self.assertEqual(legacy_profit_action.name, "Compte de résultat")
+        self.assertEqual(
+            safe_eval(legacy_profit_action.context)["report_type"],
+            "profit_loss",
+        )
 
     def test_interactive_oca_report_wizards_default_to_benchmark_period(self):
         receivable = self._account("411900", "Unit receivable report default", "asset_receivable")

@@ -1,8 +1,7 @@
+import re
+
 from odoo import api, fields, models
 from odoo.exceptions import UserError
-
-from .configurable_definition import ACCOUNTING_DEFINITION_ORIGINS
-
 
 ACCOUNTING_REPORT_TYPES = [
     ("trial_balance", "Balance générale"),
@@ -35,7 +34,7 @@ ACCOUNTING_REPORT_TYPES = [
     ("french_balance_sheet_2024", "Bilan détaillé"),
     (
         "french_profit_loss_2024",
-        "Compte de résultat détaillé",
+        "Compte de résultat (alias historique)",
     ),
     ("sig_caf_2024", "SIG et CAF"),
     ("french_tax_package", "Liasse fiscale française"),
@@ -107,7 +106,7 @@ REPORT_ACTIONS = {
     "deferred_schedule": "rebuild_account_migration.action_rebuild_interactive_deferred_schedule",
     "french_annual": "rebuild_account_migration.action_rebuild_interactive_french_annual",
     "french_balance_sheet_2024": "rebuild_account_migration.action_rebuild_interactive_french_balance_sheet_2024",
-    "french_profit_loss_2024": "rebuild_account_migration.action_rebuild_interactive_french_profit_loss_2024",
+    "french_profit_loss_2024": "rebuild_account_migration.action_rebuild_interactive_profit_loss",
     "sig_caf_2024": "rebuild_account_migration.action_rebuild_interactive_sig_caf_2024",
     "french_tax_package": "rebuild_account_migration.action_rebuild_interactive_french_tax_package",
     "fec": "rebuild_account_migration.action_rebuild_account_report_export_fec",
@@ -116,6 +115,7 @@ REPORT_ACTIONS = {
 
 def _report_seed_values(report_type, name):
     french = report_type.startswith("french_") or report_type in {
+        "profit_loss",
         "sig_caf_2024",
         "fec",
     }
@@ -214,8 +214,13 @@ def _report_seed_values(report_type, name):
             else "account_asset_management" if schedule
             else "rebuild_account_migration"
         ),
-        "definition_version": "saas~19.2.1",
-        "lifecycle": "current",
+        "definition_version": "saas~19.2.2",
+        "active": report_type != "french_profit_loss_2024",
+        "lifecycle": (
+            "deprecated"
+            if report_type == "french_profit_loss_2024"
+            else "current"
+        ),
         "business_purpose": (
             f"Provide the governed {name} used for accounting review, "
             "investigation, and evidence."
@@ -239,6 +244,12 @@ def _report_seed_values(report_type, name):
         "supports_analytics": report_type not in no_analytics,
         "supports_pdf": report_type != "fec",
         "supports_xlsx": report_type != "fec",
+        "document_template": "usl_official",
+        "document_primary_color": "#111111",
+        "document_section_background_color": "#E9ECEF",
+        "document_section_text_color": "#111111",
+        "document_muted_color": "#666666",
+        "document_footer_label": "Document comptable",
         "technical_key": report_type,
         "technical_model": "rebuild.account.report.export.wizard",
         "technical_summary": (
@@ -328,6 +339,42 @@ class RebuildAccountReportDefinition(models.Model):
     supports_analytics = fields.Boolean(default=True)
     supports_pdf = fields.Boolean(default=True)
     supports_xlsx = fields.Boolean(default=True)
+    document_template = fields.Selection(
+        [
+            ("usl_official", "USL official A4"),
+            ("neutral_accounting", "Neutral accounting A4"),
+        ],
+        required=True,
+        default="usl_official",
+        help=(
+            "Shared document presentation used by the interactive statement "
+            "and its PDF export."
+        ),
+    )
+    document_primary_color = fields.Char(
+        required=True,
+        default="#111111",
+        help="Primary ink and rule color in hexadecimal notation.",
+    )
+    document_section_background_color = fields.Char(
+        required=True,
+        default="#E9ECEF",
+        help="Background used for principal financial-statement sections.",
+    )
+    document_section_text_color = fields.Char(
+        required=True,
+        default="#111111",
+        help="Text color used on principal financial-statement sections.",
+    )
+    document_muted_color = fields.Char(
+        required=True,
+        default="#666666",
+        help="Secondary text color used for metadata and document context.",
+    )
+    document_footer_label = fields.Char(
+        required=True,
+        default="Document comptable",
+    )
     target_action_xmlid = fields.Char(readonly=True)
     technical_key = fields.Char(readonly=True)
     customization_of_id = fields.Many2one(
@@ -395,6 +442,17 @@ class RebuildAccountReportDefinition(models.Model):
                         ]
                 if definition.origin != seed_values["origin"]:
                     values["origin"] = seed_values["origin"]
+                if (
+                    definition.definition_version
+                    != seed_values["definition_version"]
+                ):
+                    values["definition_version"] = seed_values[
+                        "definition_version"
+                    ]
+                if definition.active != seed_values["active"]:
+                    values["active"] = seed_values["active"]
+                if definition.lifecycle != seed_values["lifecycle"]:
+                    values["lifecycle"] = seed_values["lifecycle"]
                 if values:
                     definition.with_context(
                         accounting_definition_seed=True,
@@ -403,7 +461,80 @@ class RebuildAccountReportDefinition(models.Model):
             existing[report_type] = self.with_context(
                 accounting_definition_seed=True,
             ).create(_report_seed_values(report_type, name))
-        return self.search([("company_id", "=", False)])
+        return self.with_context(active_test=False).search([
+            ("company_id", "=", False),
+        ])
+
+    @staticmethod
+    def _hex_rgb(value):
+        if not re.fullmatch(r"#[0-9A-Fa-f]{6}", value or ""):
+            message = (
+                "Document colors must use six-digit hexadecimal notation "
+                "such as #111111."
+            )
+            raise UserError(message)
+        return tuple(
+            int(value[index:index + 2], 16) / 255
+            for index in (1, 3, 5)
+        )
+
+    @staticmethod
+    def _relative_luminance(rgb):
+        def channel(value):
+            return (
+                value / 12.92
+                if value <= 0.04045
+                else ((value + 0.055) / 1.055) ** 2.4
+            )
+
+        red, green, blue = (channel(value) for value in rgb)
+        return 0.2126 * red + 0.7152 * green + 0.0722 * blue
+
+    @api.constrains(
+        "document_primary_color",
+        "document_section_background_color",
+        "document_section_text_color",
+        "document_muted_color",
+    )
+    def _check_document_colors(self):
+        for definition in self:
+            primary = self._hex_rgb(definition.document_primary_color)
+            background = self._hex_rgb(
+                definition.document_section_background_color,
+            )
+            text = self._hex_rgb(definition.document_section_text_color)
+            self._hex_rgb(definition.document_muted_color)
+            lighter = max(
+                self._relative_luminance(background),
+                self._relative_luminance(text),
+            )
+            darker = min(
+                self._relative_luminance(background),
+                self._relative_luminance(text),
+            )
+            if (lighter + 0.05) / (darker + 0.05) < 4.5:
+                message = (
+                    "Section background and text colors must provide a "
+                    "WCAG contrast ratio of at least 4.5:1."
+                )
+                raise UserError(message)
+            # Evaluate the primary color as part of validation so malformed
+            # values cannot reach the browser or PDF renderer.
+            self._relative_luminance(primary)
+
+    def _definition_snapshot(self):
+        values = super()._definition_snapshot()
+        values["document"] = {
+            "template": self.document_template,
+            "primary_color": self.document_primary_color,
+            "section_background_color": (
+                self.document_section_background_color
+            ),
+            "section_text_color": self.document_section_text_color,
+            "muted_color": self.document_muted_color,
+            "footer_label": self.document_footer_label,
+        }
+        return values
 
     @api.model
     def _resolve(self, report_type, company, on_date=None):
@@ -519,6 +650,12 @@ class RebuildAccountReportDefinition(models.Model):
             "supports_analytics",
             "supports_pdf",
             "supports_xlsx",
+            "document_template",
+            "document_primary_color",
+            "document_section_background_color",
+            "document_section_text_color",
+            "document_muted_color",
+            "document_footer_label",
         }
         if (
             protected_business_fields & set(vals)

@@ -54,6 +54,17 @@ Valentin and the accountant must be able to:
 - Interactive reports are statement-first: one shared filter and interaction
   system presents explicit sections, groups, details, subtotals, totals and
   controls consistently on screen, in PDF and in the readable XLSX sheet.
+- Each accounting need has one canonical end-user report. **Compte de
+  résultat** is the single French performance statement; historical generic
+  and detailed aliases may remain for migration compatibility but are not
+  separate menu choices.
+- Designed statements use a restrained A4-like reading width on screen.
+  Headline figures state their unit, and every section/hover state must retain
+  accessible contrast.
+- Report definitions also govern the official document template, primary and
+  muted colors, section colors and footer label. Screen, PDF and readable XLSX
+  consume that configuration; company overrides must satisfy a minimum 4.5:1
+  section contrast ratio.
 - Exploratory analysis uses Odoo's native pivot/list/graph framework over
   authoritative analytic items. It remains distinct from designed financial
   statements while reconciling to the same accounting population.

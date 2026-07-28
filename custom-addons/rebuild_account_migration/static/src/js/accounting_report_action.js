@@ -374,6 +374,53 @@ export class AccountingReportAction extends Component {
         return this.state.data.display_unit?.short_label || "";
     }
 
+    get reportWorkspaceClass() {
+        const landscapeReports = new Set([
+            "trial_balance",
+            "general_ledger",
+            "journal_report",
+            "partner_ledger",
+            "customer_statement",
+            "open_items",
+            "aged_receivable",
+            "aged_payable",
+            "tax_report",
+            "currency_report",
+            "analytic_report",
+            "fixed_assets",
+            "depreciation_schedule",
+            "deferred_schedule",
+            "french_tax_package",
+            "closing_package",
+        ]);
+        return [
+            "o_usl_report_workspace",
+            landscapeReports.has(this.reportType)
+                ? "o_usl_report_workspace_landscape"
+                : "o_usl_report_workspace_portrait",
+        ].join(" ");
+    }
+
+    get documentThemeStyle() {
+        const document = this.state.data.document || {};
+        return [
+            `--usl-report-primary:${document.primary_color || "#111111"}`,
+            `--usl-report-section-bg:${
+                document.section_background_color || "#E9ECEF"
+            }`,
+            `--usl-report-section-text:${
+                document.section_text_color || "#111111"
+            }`,
+            `--usl-report-muted:${document.muted_color || "#666666"}`,
+        ].join(";");
+    }
+
+    summaryCardLabel(card) {
+        return card.type === "currency" && this.displayUnitLabel
+            ? `${card.label} (${this.displayUnitLabel})`
+            : card.label;
+    }
+
     formatCell(value, valueType) {
         if (value === undefined || value === null || value === "") {
             return "";

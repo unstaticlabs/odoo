@@ -2,6 +2,7 @@
 <templates xml:space="preserve">
     <div t-name="rebuild_account_migration.AccountingReportAction" class="o_action o_usl_accounting_report">
         <t t-if="state.data">
+            <div t-att-class="reportWorkspaceClass" t-att-style="documentThemeStyle">
             <div class="o_usl_report_header">
                 <div class="o_usl_report_identity">
                     <div class="o_usl_report_company" t-esc="state.data.company_name"/>
@@ -38,7 +39,7 @@
             <div class="o_usl_report_summary" t-if="state.data.summary.cards.length">
                 <div t-foreach="state.data.summary.cards" t-as="card" t-key="card.label"
                      t-att-class="'o_usl_report_summary_card ' + (card.status ? 'o_usl_report_summary_' + card.status : '')">
-                    <span t-esc="card.label"/>
+                    <span t-esc="summaryCardLabel(card)"/>
                     <strong t-att-class="amountClass(card.value)" t-esc="formatCell(card.value, card.type)"/>
                 </div>
             </div>
@@ -280,6 +281,7 @@
                         </tr>
                     </tbody>
                 </table>
+            </div>
             </div>
         </t>
         <div class="o_usl_report_loading" t-if="state.loading">
