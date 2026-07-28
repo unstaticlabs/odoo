@@ -119,8 +119,11 @@
         <field name="arch" type="xml">
             <form string="Currency Rate Automation">
                 <div class="alert alert-info" role="alert">
-                    ECB rates are daily euro reference rates published for information.
-                    Preserve the actual bank or platform conversion when it defines a transaction.
+                    ECB rates are published on euro-area business days. Fill Missing Rates
+                    imports every missing published day from the coverage boundary through
+                    the latest available date. EUR is the company currency and remains
+                    implicitly fixed at 1.0; generated rows are only needed for active
+                    foreign currencies.
                 </div>
                 <group>
                     <group string="Configuration">
@@ -138,17 +141,15 @@
                             decoration-muted="last_sync_status in (False, 'never')"/>
                         <field name="last_sync_at"/>
                         <field name="last_reference_date"/>
+                        <field name="coverage_start_date"/>
                     </group>
                 </group>
                 <group string="Details" invisible="not last_sync_message">
                     <field name="last_sync_message" nolabel="1"/>
                 </group>
-                <group string="Technical Result" invisible="not result_json">
-                    <field name="result_json" nolabel="1"/>
-                </group>
                 <footer>
                     <button name="action_save_configuration" type="object" string="Save Configuration" class="btn-primary"/>
-                    <button name="action_update_now" type="object" string="Retrieve Now" class="btn-secondary" invisible="provider != 'ecb'"/>
+                    <button name="action_update_now" type="object" string="Fill Missing Rates" class="btn-secondary" invisible="provider != 'ecb'"/>
                     <button name="action_open_currency_rates" type="object" string="Open Currency Rates"/>
                     <button string="Close" special="cancel"/>
                 </footer>

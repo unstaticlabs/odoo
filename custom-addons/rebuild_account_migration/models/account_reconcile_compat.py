@@ -549,7 +549,6 @@ class AccountJournal(models.Model):
             "active_ids": self.ids,
             "active_model": self._name,
             "default_journal_id": self.id,
-            "search_default_journal_id": self.id,
             "create": False,
             **({"search_default_not_reconciled": 1} if matching else {}),
         }

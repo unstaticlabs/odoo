@@ -846,7 +846,6 @@ class RebuildAccountReviewSummary(models.Model):
             "name": "Open balances in cash projection",
             "domain": self._cash_projection_reconciliation_domain(),
             "context": {
-                "search_default_unreconciled": 1,
                 "search_default_group_by_account": 1,
                 "create": False,
                 "delete": False,

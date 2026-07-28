@@ -511,7 +511,7 @@
                 <attribute name="title">Save the selected rate provider and schedule for this company.</attribute>
             </xpath>
             <xpath expr="//button[@name='action_update_now']" position="attributes">
-                <attribute name="title">Retrieve the latest ECB reference rates now. Existing transaction-specific conversion rates are preserved.</attribute>
+                <attribute name="title">Fill every missing published ECB business-day rate from the coverage boundary through the latest available date. Restored, manual and transaction-specific rates are preserved.</attribute>
             </xpath>
             <xpath expr="//button[@name='action_open_currency_rates']" position="attributes">
                 <attribute name="title">Open the company's dated currency-rate history and provider evidence.</attribute>
