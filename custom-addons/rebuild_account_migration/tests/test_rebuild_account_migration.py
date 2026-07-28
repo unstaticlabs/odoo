@@ -1319,6 +1319,16 @@ class TestRebuildAccountMigration(TransactionCase):
                 "//details[normalize-space(summary)='View projection details']",
             ),
         )
+        cca_card_links = home_arch.xpath(
+            "//div[contains(@class, 'o_usl_cca_position_card')]"
+            "/a[@name='action_open_cca_journal_items' and @type='object']"
+            "[.//field[@name='cca_projected_balance_display']]",
+        )
+        self.assertEqual(len(cca_card_links), 1)
+        self.assertEqual(
+            cca_card_links[0].get("invisible"),
+            "not cca_projection_ready",
+        )
         matching_stat_buttons = home_arch.xpath(
             "//div[contains(@class, 'oe_button_box')]"
             "/button[@name='action_open_bank_matching']"
