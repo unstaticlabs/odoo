@@ -1,28 +1,23 @@
-.git
-.agents
-.codex
-.devcontainer
-.env
-.env.*
-!.env.example
-__pycache__/
-*.py[cod]
-*.egg-info/
-.pytest_cache/
-.ruff_cache/
-.mypy_cache/
-.coverage
-htmlcov/
-node_modules/
-odoo/filestore/
-accounting_compat/private/
-artifacts/
-custom-addons/*/static/lib/
-oca-addons/
-oca-src/
-output/
-tmp/
-usl-online-dump/
-docker-compose.override.yml
-compose.override.yaml
-*.log
+# Docker images are self-contained for deployment, but only the paths copied by
+# Dockerfile belong in the build context. Custom/OCA add-ons and user docs are
+# mounted by Compose; private dumps, filestores and repository metadata must
+# never be transferred to the builder.
+*
+
+!.dockerignore
+!Dockerfile
+!MANIFEST.in
+!odoo-bin
+!requirements.txt
+!setup.py
+
+!addons/
+!addons/**
+!debian/
+!debian/odoo.conf
+!docker/
+!docker/**
+!odoo/
+!odoo/**
+!setup/
+!setup/**
