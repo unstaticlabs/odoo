@@ -1,6 +1,7 @@
 import base64
 import hashlib
 import json
+import re
 import tempfile
 from email.message import EmailMessage
 from pathlib import Path
@@ -8186,13 +8187,33 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(action.target, "self")
 
         rendered = user_docs.render_markdown(
-            "# Guide\n\nOpen [reports](reference/reports-and-filters.md).\n\n| A | B |\n| --- | --- |\n| `one` | two |\n",
+            "# Guide\n\n"
+            "Open **finished** [reports](reference/reports-and-filters.md#periods).\n\n"
+            "1. Review the bill.\n"
+            "   - Keep the *supporting evidence*.\n"
+            "   - Open `one` entry.\n\n"
+            "> Accounting evidence remains traceable.\n\n"
+            "| A | B |\n"
+            "| --- | --- |\n"
+            "| `one` | two |\n\n"
+            "<script>alert('unsafe')</script>\n"
+            "[Unsafe](javascript:alert('unsafe'))\n",
             "README.md",
         )
         self.assertIn("<h1", rendered)
-        self.assertIn("/usl/user-docs/reference/reports-and-filters.md", rendered)
+        self.assertIn("<strong>finished</strong>", rendered)
+        self.assertIn("<em>supporting evidence</em>", rendered)
+        self.assertIn(
+            "/usl/user-docs/reference/reports-and-filters.md#periods",
+            rendered,
+        )
+        self.assertIsNotNone(re.search(r"<ol>.*<ul>", rendered, re.DOTALL))
+        self.assertRegex(rendered, r"<blockquote(?:\s|>)")
         self.assertIn("<table>", rendered)
         self.assertIn("<code>one</code>", rendered)
+        self.assertIn("&lt;script&gt;", rendered)
+        self.assertNotIn("<script>", rendered)
+        self.assertNotIn('href="javascript:', rendered)
 
     def test_source_report_parity_levels_are_explicit(self):
         mandatory = self.env["rebuild.account.source.report"].create({
