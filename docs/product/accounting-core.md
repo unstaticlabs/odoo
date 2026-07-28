@@ -59,7 +59,7 @@ Valentin and the accountant must be able to:
   statements while reconciling to the same accounting population.
 - French electronic-invoice reception uses Odoo's maintained approved-platform
   and UBL/CII/Factur-X capabilities behind an explicit production activation
-  gate. Company configuration, safe-test verification, provider eligibility,
+  gate. Company configuration, safe-test verification, provider access,
   live connection and scheduled reception are separate states. Received
   payloads retain company-scoped original-file and duplicate/retry evidence,
   then enter the normal native vendor-bill, posting, payment and reconciliation

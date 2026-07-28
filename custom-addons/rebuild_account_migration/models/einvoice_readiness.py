@@ -260,7 +260,7 @@ class ResCompany(models.Model):
             ("other", "Different Approved Platform (not implemented)"),
         ],
         string="Approved Platform",
-        help="Platform intended for the production connection. This release supports the Odoo Approved Platform.",
+        help="The default French adapter uses Odoo's hosted Approved Platform service. No connection is made until production activation.",
         tracking=True,
     )
     rebuild_einvoice_provider_contract_status = fields.Selection(
@@ -268,8 +268,8 @@ class ResCompany(models.Model):
             ("not_verified", "Not yet verified"),
             ("verified", "Verified for production"),
         ],
-        string="Platform Eligibility",
-        help="Confirm only after the provider has verified production eligibility, subscription, and terms.",
+        string="Platform Access",
+        help="Confirm only after Odoo has accepted the production identity verification and applicable service terms.",
         required=True,
         default="not_verified",
         tracking=True,
@@ -407,6 +407,23 @@ class ResCompany(models.Model):
         ])
 
     @api.model
+    def _rebuild_apply_default_einvoice_provider(self):
+        companies = self.sudo().search([
+            ("account_fiscal_country_id.code", "=", "FR"),
+            ("rebuild_einvoice_provider", "=", False),
+        ])
+        companies.write({"rebuild_einvoice_provider": "odoo_pdp"})
+
+    @api.onchange("account_fiscal_country_id")
+    def _onchange_rebuild_einvoice_provider(self):
+        for company in self:
+            if (
+                company.account_fiscal_country_id.code == "FR"
+                and not company.rebuild_einvoice_provider
+            ):
+                company.rebuild_einvoice_provider = "odoo_pdp"
+
+    @api.model
     def _rebuild_einvoice_runtime_guard_enabled(self):
         return (
             os.getenv("USL_EINVOICE_LIVE_ENABLED", "").strip().lower()
@@ -458,7 +475,7 @@ class ResCompany(models.Model):
         if self.rebuild_einvoice_provider_contract_status != "verified":
             blockers.append(
                 _(
-                    "Verify production eligibility, subscription and terms with "
+                    "Verify production identity, service terms and support with "
                     "the approved platform.",
                 ),
             )
@@ -503,8 +520,8 @@ class ResCompany(models.Model):
                 _("Verify production access"),
                 [
                     _(
-                        "Confirm eligibility, subscription, terms, credentials, "
-                        "and support with the approved platform.",
+                        "Confirm identity verification, service terms, "
+                        "credentials and support with the approved platform.",
                     ),
                 ],
             )
@@ -977,7 +994,7 @@ class AccountEdiProxyClientUser(models.Model):
             )
         try:
             result = super()._call_peppol_proxy(endpoint, params=params)
-        except Exception as error:  # ruff: ignore[blind-except]
+        except Exception as error:  # noqa: BLE001
             error_text = str(error)
             status = (
                 "authentication"
@@ -1133,7 +1150,7 @@ class AccountEdiProxyClientUser(models.Model):
                     uuid,
                     journal=journal,
                 )
-        except Exception as error:  # ruff: ignore[blind-except]
+        except Exception as error:  # noqa: BLE001
             evidence.write({
                 "status": "technical_error",
                 "failure_kind": "technical",

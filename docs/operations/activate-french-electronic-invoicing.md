@@ -9,16 +9,18 @@ staging, reconstruction, copied or restored databases.
 Before the change window:
 
 1. verify that the exact release commit and database upgrade passed;
-2. verify USL's eligibility, subscription, support path and terms for the Odoo
-   Approved Platform service; Odoo's current documentation ties the service to
-   a valid Enterprise subscription, so this is a commercial prerequisite and
-   is not proven by Community software tests;
+2. obtain written confirmation that Odoo's Approved Platform accepts this
+   independently maintained Community fork, and confirm identity verification,
+   applicable service terms and the support path; Odoo documents generic
+   Peppol registration as available in Community, but does not explicitly
+   guarantee the French hosted service for forks;
 3. record the VAT number, SIREN/SIRET, scheme `0225` endpoint, platform contact
    email/mobile and incoming purchase journal;
 4. run **Accounting > Configuration > Invoicing > E-Invoicing > Test
    Reception** and inspect the resulting two-line €175 draft bill,
    original XML and **Test passed** state;
-5. select **Odoo Approved Platform** and mark provider eligibility **Verified**;
+5. keep **Odoo Approved Platform** selected and mark platform access
+   **Verified**;
 6. keep `USL_EREPORTING_LIVE_ENABLED=0`;
 7. take a recoverable database and filestore backup and record the operator,
    Accounting Manager, platform support contact and rollback owner.

@@ -5,6 +5,9 @@
         Module installation, database reconstruction and upgrades must never
         register, fetch, send or report data.
     -->
+    <function model="res.company"
+        name="_rebuild_apply_default_einvoice_provider"/>
+
     <record id="account_peppol.ir_cron_peppol_get_new_documents" model="ir.cron">
         <field name="active" eval="False"/>
     </record>

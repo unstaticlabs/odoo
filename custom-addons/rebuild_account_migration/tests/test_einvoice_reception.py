@@ -149,7 +149,7 @@ class EinvoiceTestDataMixin:
             "peppol_purchase_journal_id": cls.purchase_journal.id,
             "account_peppol_proxy_state": "not_registered",
             "rebuild_einvoice_environment": "development",
-            "rebuild_einvoice_provider": False,
+            "rebuild_einvoice_provider": "odoo_pdp",
             "rebuild_einvoice_provider_contract_status": "not_verified",
             "account_peppol_contact_email": False,
             "account_peppol_phone_number": False,
@@ -669,6 +669,10 @@ class TestFrenchEinvoiceReception(
             self.assertFalse(any(cron.active for cron in reception_crons))
 
     def test_daily_menus_hide_migration_and_parity_machinery(self):
+        self.company.rebuild_einvoice_provider = False
+        self.env["res.company"]._rebuild_apply_default_einvoice_provider()
+        self.assertEqual(self.company.rebuild_einvoice_provider, "odoo_pdp")
+
         technical_tokens = (
             "import run",
             "imported",
