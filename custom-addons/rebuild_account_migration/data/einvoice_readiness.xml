@@ -17,6 +17,9 @@
     <record id="account_peppol.ir_cron_peppol_webhook_keepalive" model="ir.cron">
         <field name="active" eval="False"/>
     </record>
+    <record id="account_peppol_response.ir_cron_peppol_auto_register_services" model="ir.cron">
+        <field name="active" eval="False"/>
+    </record>
     <record id="l10n_fr_pdp.ir_cron_pdp_get_regulatory_documents" model="ir.cron">
         <field name="active" eval="False"/>
     </record>

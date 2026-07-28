@@ -11,6 +11,7 @@ These documents define the accounting truths that implementations and migrations
 - [Accounting report presentation](accounting-report-presentation.md)
 - [Analytic pivot reporting](analytic-pivot-reporting.md)
 - [French electronic-invoicing reception readiness](french-electronic-invoicing-readiness.md)
+- [French electronic-invoicing validation evidence](french-electronic-invoicing-validation.md)
 - [Bank Matching Rule discovery](bank-matching-rule-discovery.md)
 - [Transactions navigation contract](transaction-navigation.md)
 - [Milestone 13 reporting and closing UX target](milestone-13-reporting-and-closing-ux-target.md)

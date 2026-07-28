@@ -1000,7 +1000,7 @@ class TestRebuildAccountMigration(TransactionCase):
         })
         with self.assertRaisesRegex(
             UserError,
-            "Electronic invoicing cannot be activated",
+            "Electronic invoicing cannot contact a live platform",
         ):
             settings.action_open_peppol_form()
         registration = self.env["pdp.registration"].new({
@@ -1008,21 +1008,21 @@ class TestRebuildAccountMigration(TransactionCase):
         })
         with self.assertRaisesRegex(
             UserError,
-            "Electronic invoicing cannot be activated",
+            "Electronic invoicing cannot contact a live platform",
         ):
             registration.button_register_pdp_participant()
         self.assertFalse(self.company.rebuild_einvoice_exchange_enabled)
         self.assertEqual(
             self.company.rebuild_einvoice_connection_status,
-            "not_connected",
+            "inactive",
         )
         self.assertEqual(
             self.company.rebuild_einvoice_capability_status,
-            "implemented_validated",
+            "not_verified",
         )
         self.assertEqual(
             self.company.rebuild_einvoice_readiness_status,
-            "configuration_required",
+            "configuration_incomplete",
         )
         manager = self.env["res.users"].with_context(
             no_reset_password=True,
@@ -1064,24 +1064,31 @@ class TestRebuildAccountMigration(TransactionCase):
             "account_peppol_contact_email": "accounting@example.invalid",
             "account_peppol_phone_number": "+33612345678",
             "rebuild_einvoice_provider": "odoo_pdp",
+            "rebuild_einvoice_provider_contract_status": "verified",
             "rebuild_einvoice_environment": "production",
+            "rebuild_einvoice_test_status": "passed",
         })
-        self.company.with_user(manager).action_rebuild_approve_einvoice_activation()
-        self.assertTrue(self.company.rebuild_einvoice_activation_approved)
-        self.assertEqual(
-            self.company.rebuild_einvoice_readiness_status,
-            "ready",
-        )
-        self.assertEqual(
-            self.company.rebuild_einvoice_connection_status,
-            "not_connected",
-        )
-        self.assertFalse(self.company.rebuild_einvoice_exchange_enabled)
-        with self.assertRaisesRegex(
-            UserError,
-            "Complete approved-platform registration",
+        with patch.dict(
+            "os.environ",
+            {"USL_EINVOICE_LIVE_ENABLED": "1"},
+            clear=False,
         ):
-            self.company.action_rebuild_enable_einvoice_exchange()
+            self.company.with_user(manager).action_rebuild_approve_einvoice_activation()
+            self.assertTrue(self.company.rebuild_einvoice_activation_approved)
+            self.assertEqual(
+                self.company.rebuild_einvoice_readiness_status,
+                "ready_inactive",
+            )
+            self.assertEqual(
+                self.company.rebuild_einvoice_connection_status,
+                "inactive",
+            )
+            self.assertFalse(self.company.rebuild_einvoice_exchange_enabled)
+            with self.assertRaisesRegex(
+                UserError,
+                "Complete approved-platform registration",
+            ):
+                self.company.action_rebuild_enable_einvoice_exchange()
         self.company.with_user(manager).action_rebuild_revoke_einvoice_activation()
         self.assertFalse(self.company.rebuild_einvoice_activation_approved)
 
