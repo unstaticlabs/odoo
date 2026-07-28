@@ -185,9 +185,6 @@
             <xpath expr="//button[@name='clean_reconcile']" position="attributes">
                 <attribute name="title">Discard the current unvalidated matching proposal and start again.</attribute>
             </xpath>
-            <xpath expr="//button[@name='action_to_check']" position="attributes">
-                <attribute name="title">Flag this bank transaction for follow-up without reconciling it.</attribute>
-            </xpath>
             <xpath expr="//button[@name='action_checked']" position="attributes">
                 <attribute name="title">Mark the review as complete. This does not change the reconciliation.</attribute>
             </xpath>

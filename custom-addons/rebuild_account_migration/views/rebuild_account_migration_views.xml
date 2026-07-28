@@ -915,10 +915,30 @@
                 <attribute name="string">Clear Selection</attribute>
                 <attribute name="title">Discard the currently prepared counterparts without changing posted accounting.</attribute>
             </xpath>
-            <xpath expr="//button[@name='action_to_check']" position="attributes">
-                <attribute name="groups">account.group_account_user</attribute>
-                <attribute name="string">Mark for Review</attribute>
-                <attribute name="title">Flag this transaction so it remains visible in the review queue.</attribute>
+            <xpath expr="//button[@name='action_to_check']" position="replace">
+                <button
+                    name="action_to_check"
+                    string="Reconcile &amp; Review"
+                    class="btn btn-secondary mx-1"
+                    accesskey="c"
+                    type="object"
+                    groups="account.group_account_user"
+                    invisible="review_state in ('todo', 'anomaly') or not rebuild_review_will_reconcile"
+                    title="Apply the prepared match, reconcile this bank transaction, and keep it flagged for follow-up review."
+                />
+                <button
+                    name="action_to_check"
+                    string="Mark for Review"
+                    class="btn btn-secondary mx-1"
+                    accesskey="c"
+                    type="object"
+                    groups="account.group_account_user"
+                    invisible="review_state in ('todo', 'anomaly') or rebuild_review_will_reconcile"
+                    title="Flag this bank transaction for follow-up without reconciling it."
+                />
+            </xpath>
+            <xpath expr="//field[@name='can_reconcile']" position="after">
+                <field name="rebuild_review_will_reconcile" invisible="1"/>
             </xpath>
             <xpath expr="//button[@name='action_checked']" position="attributes">
                 <attribute name="groups">account.group_account_user</attribute>
