@@ -34,17 +34,17 @@ workbench.
 
 | State | Primary status | Available accounting action | Evidence shown |
 | --- | --- | --- | --- |
-| Unmatched | **To match** | Set or correct the partner directly, then **Match** | Journal items, amount still to match, running balance, partner evidence and bank-source details |
-| Partially matched | **Partially matched** | **Match** | Residual, matching-reference drill-down and linked document or entry |
-| Fully matched | **Matched** | **Undo Match** for Accounting users | Matching reference, linked document or entry, related payment and bank entry |
+| Unmatched | **To match** | Set or correct the partner, then use **Match** or the linked **Still to match** residual | Journal items, amount still to match, running balance, partner evidence and bank-source details |
+| Partially matched | **Partially matched** | Use **Match** or the linked residual to continue | Residual, matching-reference drill-down and linked document or entry |
+| Fully matched | **Matched** | **View matching** inspects the OCA result; **Undo Match** remains an explicit Accounting-user action | Matching reference, linked document or entry, related payment and bank entry |
 | Any entry flagged for review | Separate **To Review** or **Anomaly** badge | Review remains governed on the journal entry or in Bank Matching | Matching state remains visible independently; “matched” never hides a review obligation |
 
 The scoped read-only accountant sees the same accounting evidence and can open
-the full bank entry, linked document and matched items. Match, undo and
-partner-changing actions are absent. Accounting users can edit the partner only
-while the transaction is still unmatched. Odoo's native statement-line write
-synchronization updates the generated entry; partial or completed matches are
-kept read-only to protect their accounting links.
+the full bank entry, linked document, matched items and read-only OCA matching
+view. Match, undo and partner-changing actions are absent. Accounting users can
+edit the partner only while the transaction is still unmatched. Odoo's native
+statement-line write synchronization updates the generated entry; partial or
+completed matches are kept read-only to protect their accounting links.
 
 ## Accounting and access invariants
 
