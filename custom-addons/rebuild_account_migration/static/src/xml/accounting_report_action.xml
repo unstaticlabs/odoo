@@ -122,7 +122,7 @@
                         <input type="checkbox" name="hide_zero_accounts"
                                t-att-checked="state.filters.hide_zero_accounts"
                                t-on-change="onFilterChange"/>
-                        <span>Masquer les comptes à zéro</span>
+                        <span>Masquer les lignes à zéro</span>
                     </span>
                 </label>
                 <button class="btn btn-outline-secondary o_usl_report_more_filters" type="button"
@@ -182,10 +182,10 @@
                 </span>
                 <span class="badge rounded-pill text-bg-light"
                       t-if="state.filters.hide_zero_accounts">
-                    Comptes à zéro masqués
+                    Lignes à zéro masquées
                     <button type="button"
                             t-on-click="() => this.removeFilter('hide_zero_accounts')"
-                            title="Afficher les comptes à zéro">
+                            title="Afficher les lignes à zéro">
                         <i class="fa fa-times"/>
                     </button>
                 </span>

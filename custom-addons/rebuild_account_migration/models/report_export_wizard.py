@@ -279,11 +279,12 @@ class RebuildAccountReportExportWizard(models.TransientModel):
     )
     search_text = fields.Char(string="Search Report")
     hide_zero_accounts = fields.Boolean(
-        string="Masquer les comptes à zéro",
+        string="Masquer les lignes à zéro",
         help=(
-            "Masque les lignes de compte dont toutes les valeurs monétaires "
-            "affichées sont nulles. Les comptes ayant une activité débit ou "
-            "crédit restent visibles même si leur solde est nul."
+            "Masque les lignes de détail et les comptes dont toutes les "
+            "valeurs monétaires affichées sont nulles. Les comptes ayant une "
+            "activité débit ou crédit restent visibles même si leur solde "
+            "est nul."
         ),
     )
     show_details = fields.Boolean(default=True)
@@ -2842,7 +2843,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             else "Brouillons inclus"
         )
         zero_accounts_label = (
-            " | Comptes à zéro masqués"
+            " | Lignes à zéro masquées"
             if metadata["hide_zero_accounts"]
             else ""
         )
@@ -3392,7 +3393,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             )
         )
         zero_accounts_context = (
-            " - Comptes à zéro masqués"
+            " - Lignes à zéro masquées"
             if metadata["hide_zero_accounts"]
             else ""
         )
@@ -3591,7 +3592,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 if row.get("is_group") in (True, "true"):
                     hidden_group_keys.add(str(row.get("group_key") or ""))
                 continue
-            if self._is_zero_account_row(row):
+            if self._is_zero_report_row(row):
                 if row.get("is_group") in (True, "true"):
                     hidden_group_keys.add(str(row.get("group_key") or ""))
                 continue
@@ -3605,13 +3606,20 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 and group_key not in retained_parent_keys
             ):
                 continue
+            if (
+                row.get("hierarchy_kind") == "statement"
+                and group_key not in retained_parent_keys
+                and self._report_presentation_role(row) == "detail"
+                and self._row_monetary_values_are_zero(row)
+            ):
+                continue
             pruned_rows.append(row)
             parent_key = str(row.get("parent_group_key") or "")
             if parent_key:
                 retained_parent_keys.add(parent_key)
         return list(reversed(pruned_rows))
 
-    def _is_zero_account_row(self, row):
+    def _is_zero_report_row(self, row):
         self.ensure_one()
         hierarchy_kind = row.get("hierarchy_kind")
         is_account_row = (
@@ -3632,8 +3640,17 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 and row.get("is_group") in (True, "true")
             )
         )
-        if not is_account_row:
-            return False
+        is_zero_detail_row = (
+            row.get("is_group") not in (True, "true")
+            and self._report_presentation_role(row) == "detail"
+        )
+        return (
+            (is_account_row or is_zero_detail_row)
+            and self._row_monetary_values_are_zero(row)
+        )
+
+    @staticmethod
+    def _row_monetary_values_are_zero(row):
         monetary_values = [
             _amount(row.get(field_name))
             for field_name in MONETARY_REPORT_FIELDS

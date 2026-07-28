@@ -7590,12 +7590,21 @@ class TestRebuildAccountMigration(TransactionCase):
                 BytesIO(base64.b64decode(wizard.export_file)),
             ).pages
         )
-        self.assertIn("Comptes à zéro masqués", pdf_text)
+        self.assertIn("Lignes à zéro masquées", pdf_text)
         self.assertNotIn("Compte entièrement nul", pdf_text)
         self.assertIn("Compte soldé avec activité", pdf_text)
         self.assertIn("Compte avec solde", pdf_text)
 
         hierarchy_rows = [
+            {
+                "label": "Ligne de détail nulle",
+                "amount": "0.00",
+            },
+            {
+                "label": "Sous-total nul conservé",
+                "presentation_role": "subtotal",
+                "amount": "0.00",
+            },
             {
                 "label": "Poste",
                 "is_group": "true",
@@ -7647,6 +7656,7 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(
             [row["label"] for row in filtered_hierarchy],
             [
+                "Sous-total nul conservé",
                 "Poste",
                 "Groupe compensé",
                 "Compte débiteur",
