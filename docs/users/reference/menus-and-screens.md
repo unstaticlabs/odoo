@@ -9,12 +9,20 @@ relevant records.
 The **Cash on banks** headline includes only real bank and payment-account
 balances effective through today. **Projected after settlement** estimates the
 result if every open General Reconciliation balance settles in cash and every
-unposted employee-paid expense is reimbursed. Expand **How this estimate is
-built** for the signed open balance, identified receipt/payment subsets and
-Draft/Submitted/Approved expense totals. Select any amount to inspect its
-records. The projection is intentionally broader than cash on banks: suspense,
-tax, current-account and prepayment residuals remain visible until Accounting
-cleans or reconciles them.
+unposted employee-paid expense is reimbursed. **Projected after taxes** then
+reserves estimated year-to-date corporate income tax without posting anything
+to accounting. Expand **How this estimate is built** for the signed open
+balance, identified receipt/payment subsets, Draft/Submitted/Approved expense
+totals, posted profit before IS, rate bands and account 444 instalments. Select
+any amount to inspect its records or the related declarations.
+
+The tax figure is planning guidance, not the final 2065 result. Unposted
+expenses do not reduce it, and fiscal adjustments, losses and credits remain
+for declaration review. In the 25% band, a genuinely deductible €1 expense
+typically lowers the estimate by about €0.25; an investment may only be
+deductible through depreciation. The projection is intentionally broader than
+cash on banks: suspense, tax, current-account and prepayment residuals remain
+visible until Accounting cleans or reconciles them.
 
 ## Journals
 

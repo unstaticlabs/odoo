@@ -244,6 +244,24 @@
             </list>
         </field>
     </record>
+    <record id="view_rebuild_cash_tax_base_line_list" model="ir.ui.view">
+        <field name="name">account.move.line.cash.tax.base.list</field>
+        <field name="model">account.move.line</field>
+        <field name="arch" type="xml">
+            <list string="YTD Profit Before Corporate Tax" create="0" edit="0" delete="0">
+                <field name="date"/>
+                <field name="move_id" string="Document or Entry"/>
+                <field name="account_id"/>
+                <field name="partner_id" optional="hide"/>
+                <field name="name" string="Description"/>
+                <field name="debit" sum="Debit"/>
+                <field name="credit" sum="Credit"/>
+                <field name="balance" sum="Balance"/>
+                <field name="company_currency_id" column_invisible="True"/>
+                <field name="company_id" optional="hide" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
     <record id="view_rebuild_bank_statement_import_dialog" model="ir.ui.view">
         <field name="name">account.statement.import.user.labels</field>
         <field name="model">account.statement.import</field>
@@ -1362,6 +1380,22 @@
                                                 <field name="projected_cash_after_settlement" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                                             </button>
                                         </div>
+                                        <div
+                                            class="o_usl_cash_tax_projection"
+                                            invisible="not cash_projection_tax_estimate_enabled"
+                                            title="Cash after the settlement estimate and a YTD corporate-tax reserve. This planning estimate does not create an accounting entry or tax declaration.">
+                                            <div class="o_usl_cash_projection_label">
+                                                <strong>Projected after taxes</strong>
+                                                <span>Includes an estimated YTD IS reserve</span>
+                                            </div>
+                                            <button
+                                                name="action_open_projected_cash_after_taxes"
+                                                type="object"
+                                                class="btn btn-link o_usl_cash_projection_link"
+                                                title="Open this fiscal year's 2571, 2572 and 2065 declaration workspaces.">
+                                                <field name="projected_cash_after_taxes" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                            </button>
+                                        </div>
                                         <details class="o_usl_cash_breakdown">
                                             <summary>How this estimate is built</summary>
                                             <div class="o_usl_cash_breakdown_body">
@@ -1424,6 +1458,75 @@
                                                     <field name="cash_projection_submitted_expense_amount" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                                                     · Approved
                                                     <field name="cash_projection_approved_expense_amount" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                                </div>
+                                                <div
+                                                    class="o_usl_cash_breakdown_section"
+                                                    invisible="not cash_projection_tax_estimate_enabled">
+                                                    <div class="o_usl_cash_breakdown_section_title">
+                                                        YTD corporate-tax estimate
+                                                    </div>
+                                                    <div class="o_usl_cash_breakdown_row">
+                                                        <button
+                                                            name="action_open_cash_projection_tax_base"
+                                                            type="object"
+                                                            string="Posted profit before IS"
+                                                            class="btn-link"
+                                                            title="Open posted revenue and expense journal items from the fiscal-year start through today. Account 695 is excluded."/>
+                                                        <span class="o_usl_cash_breakdown_amount">
+                                                            <field name="cash_projection_ytd_profit_before_tax" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                                        </span>
+                                                    </div>
+                                                    <div class="o_usl_cash_breakdown_context">
+                                                        Fiscal year
+                                                        <field name="cash_projection_fiscalyear_start" nolabel="1"/>
+                                                        to
+                                                        <field name="cash_projection_fiscalyear_end" nolabel="1"/>.
+                                                        Unposted expenses and fiscal adjustments are not assumed deductible.
+                                                    </div>
+                                                    <div class="o_usl_cash_breakdown_row o_usl_cash_breakdown_subrow">
+                                                        <span>Estimated base at 15%</span>
+                                                        <span class="o_usl_cash_breakdown_amount">
+                                                            <field name="cash_projection_tax_reduced_rate_base" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                                        </span>
+                                                    </div>
+                                                    <div class="o_usl_cash_breakdown_row o_usl_cash_breakdown_subrow">
+                                                        <span>Estimated base at 25%</span>
+                                                        <span class="o_usl_cash_breakdown_amount">
+                                                            <field name="cash_projection_tax_standard_rate_base" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                                        </span>
+                                                    </div>
+                                                    <div class="o_usl_cash_breakdown_row">
+                                                        <button
+                                                            name="action_open_projected_cash_after_taxes"
+                                                            type="object"
+                                                            string="Estimated YTD IS reserve"
+                                                            class="btn-link"
+                                                            title="Open the corporate-tax declaration workspaces governing the reviewed tax result, instalments and balance."/>
+                                                        <span class="o_usl_cash_breakdown_amount o_usl_cash_breakdown_negative">
+                                                            <field name="cash_projection_estimated_corporate_tax" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                                        </span>
+                                                    </div>
+                                                    <div class="o_usl_cash_breakdown_row o_usl_cash_breakdown_subrow">
+                                                        <button
+                                                            name="action_open_cash_projection_tax_items"
+                                                            type="object"
+                                                            string="IS instalments already in settlement"
+                                                            class="btn-link"
+                                                            title="Open unreconciled account 444 instalments already paid and reflected in Cash on banks and the General Reconciliation balance."/>
+                                                        <span class="o_usl_cash_breakdown_amount">
+                                                            <field name="cash_projection_tax_prepayment_amount" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                                        </span>
+                                                    </div>
+                                                    <div
+                                                        class="o_usl_cash_breakdown_context"
+                                                        invisible="cash_projection_tax_recognized_liability_amount == 0">
+                                                        A further
+                                                        <field name="cash_projection_tax_recognized_liability_amount" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                                        of IS liability is already included as an expected payment, so it is not reserved twice.
+                                                    </div>
+                                                    <div class="o_usl_cash_projection_note">
+                                                        At the 25% marginal rate, €1 of a genuinely deductible expense lowers this estimate by about €0.25—not €1. An investment may be capitalized and reduce tax only through depreciation. Confirm eligibility, fiscal adjustments, losses and credits in the 2065 review.
+                                                    </div>
                                                 </div>
                                                 <div class="o_usl_cash_projection_note">
                                                     This is a planning estimate. Some open balances may clear through reclassification or offset rather than cash.

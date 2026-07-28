@@ -1448,13 +1448,19 @@ class RebuildAccountImportRun(models.Model):
                     "rebuild_declaration_profile_active": True,
                     "rebuild_legal_form": "sasu",
                     "rebuild_corporate_tax_regime": "is",
+                    "rebuild_corporate_tax_projection_profile": (
+                        "fr_sme_15_25"
+                    ),
                     "rebuild_profit_tax_regime": "bic_simplified",
                     "rebuild_vat_regime": "simplified",
                     "rebuild_first_fiscalyear_start": "2024-01-10",
                     "rebuild_declaration_profile_evidence": (
                         "Confirmed Milestone 13 facts and the supplied 2025 BIC/RS/IS tax package: "
                         "Unstatic Labs is a French SASU subject to IS, using the simplified BIC/IS "
-                        "package and CA12/CA12-E VAT workflow. Fiscal year ends 30 September."
+                        "package and CA12/CA12-E VAT workflow. Fiscal year ends 30 September. "
+                        "The cash projection uses the French SME IS profile because the reconstructed "
+                        "2025 accounting charge applies the 15% rate; current reduced-rate ownership, "
+                        "paid-capital and group-turnover conditions remain part of the 2065 review."
                     ),
                 })
             if row["account_fiscal_country_id"] in countries:
