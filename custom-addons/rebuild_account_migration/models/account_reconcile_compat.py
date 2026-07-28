@@ -1,5 +1,5 @@
 from odoo import _, api, fields, models
-from odoo.exceptions import UserError
+from odoo.exceptions import AccessError, UserError
 from odoo.tools.safe_eval import safe_eval
 
 
@@ -192,6 +192,51 @@ class AccountMoveLine(models.Model):
             "view_mode": "form",
             "views": [(False, "form")],
         }
+
+    @api.model
+    def action_rebuild_open_matching_number(
+        self,
+        matching_number,
+        company_id,
+    ):
+        matching_number = (matching_number or "").strip()
+        company = self.env["res.company"].browse(company_id).exists()
+        if not matching_number:
+            raise UserError(
+                _("This journal item has no matching reference."),
+            )
+        if not company or company not in self.env.companies:
+            raise AccessError(
+                _("You cannot inspect matching items for this company."),
+            )
+        action = self.env["ir.actions.actions"]._for_xml_id(
+            "account.action_account_moves_all",
+        )
+        action.update({
+            "name": _("Matching %(reference)s", reference=matching_number),
+            "domain": [
+                ("company_id", "=", company.id),
+                ("matching_number", "=", matching_number),
+                (
+                    "display_type",
+                    "not in",
+                    ("line_section", "line_subsection", "line_note"),
+                ),
+            ],
+            "context": {
+                "allowed_company_ids": [company.id],
+                "create": False,
+                "delete": False,
+            },
+        })
+        return action
+
+    def action_rebuild_open_matching_items(self):
+        self.ensure_one()
+        return self.action_rebuild_open_matching_number(
+            self.matching_number,
+            self.company_id.id,
+        )
 
     def action_rebuild_unreconcile(self):
         matched_lines = self.filtered(
