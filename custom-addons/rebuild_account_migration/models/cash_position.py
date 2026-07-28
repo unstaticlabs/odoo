@@ -30,6 +30,43 @@ class AccountJournal(models.Model):
     )
 
 
+class ResCompany(models.Model):
+    _inherit = "res.company"
+
+    rebuild_overview_cca_account_id = fields.Many2one(
+        "account.account",
+        string="Shareholder Current Account",
+        check_company=True,
+        help=(
+            "Account 455 used by the Accounting Overview to estimate the "
+            "position with one shareholder. The delivered USL configuration "
+            "uses 455100."
+        ),
+    )
+    rebuild_overview_cca_employee_id = fields.Many2one(
+        "hr.employee",
+        string="Shareholder / Expense Owner",
+        check_company=True,
+        help=(
+            "Employee whose unpaid employee-paid expenses are included in "
+            "the shareholder current-account projection."
+        ),
+    )
+
+
+class ResConfigSettings(models.TransientModel):
+    _inherit = "res.config.settings"
+
+    rebuild_overview_cca_account_id = fields.Many2one(
+        related="company_id.rebuild_overview_cca_account_id",
+        readonly=False,
+    )
+    rebuild_overview_cca_employee_id = fields.Many2one(
+        related="company_id.rebuild_overview_cca_employee_id",
+        readonly=False,
+    )
+
+
 class AccountMoveLine(models.Model):
     _inherit = "account.move.line"
 
@@ -161,6 +198,70 @@ class RebuildAccountReviewSummary(models.Model):
         currency_field="currency_id",
         compute="_compute_cash_position",
     )
+    cca_projection_ready = fields.Boolean(
+        string="Shareholder projection configured",
+        compute="_compute_cash_position",
+    )
+    cca_projection_uses_inferred_config = fields.Boolean(
+        string="Shareholder projection configuration inferred",
+        compute="_compute_cash_position",
+    )
+    cca_projection_owner_name = fields.Char(
+        string="Shareholder",
+        compute="_compute_cash_position",
+    )
+    cca_projection_account_label = fields.Char(
+        string="Shareholder current account",
+        compute="_compute_cash_position",
+    )
+    cca_posted_balance = fields.Monetary(
+        string="Posted shareholder current-account position",
+        currency_field="currency_id",
+        compute="_compute_cash_position",
+        help=(
+            "Signed from the shareholder's perspective: positive means the "
+            "company owes the shareholder; negative means the shareholder "
+            "owes the company."
+        ),
+    )
+    cca_posted_balance_display = fields.Monetary(
+        string="Posted balance",
+        currency_field="currency_id",
+        compute="_compute_cash_position",
+    )
+    cca_unpaid_expense_amount = fields.Monetary(
+        string="Unpaid expenses not yet in the shareholder account",
+        currency_field="currency_id",
+        compute="_compute_cash_position",
+    )
+    cca_unpaid_expense_count = fields.Integer(
+        string="Shareholder unpaid expense records",
+        compute="_compute_cash_position",
+    )
+    cca_projected_balance = fields.Monetary(
+        string="Projected shareholder current-account position",
+        currency_field="currency_id",
+        compute="_compute_cash_position",
+        help=(
+            "Signed from the shareholder's perspective after adding unpaid "
+            "employee-paid expenses not already posted to the configured "
+            "account."
+        ),
+    )
+    cca_projected_balance_display = fields.Monetary(
+        string="Projected balance",
+        currency_field="currency_id",
+        compute="_compute_cash_position",
+    )
+    cca_projection_direction = fields.Selection(
+        [
+            ("company_owes", "USL owes the shareholder"),
+            ("shareholder_owes", "The shareholder owes USL"),
+            ("settled", "Settled"),
+        ],
+        string="Projected direction",
+        compute="_compute_cash_position",
+    )
 
     def _cash_position_journals(self):
         self.ensure_one()
@@ -229,6 +330,127 @@ class RebuildAccountReviewSummary(models.Model):
             ("payment_mode", "=", "own_account"),
             ("account_move_id", "=", False),
         ]
+
+    def _cca_projection_config(self):
+        """Return explicit configuration, with a conservative USL fallback.
+
+        The fallback keeps clean reconstructions useful before Accounting
+        Settings are saved: it accepts only one exact 455100 account and one
+        employee represented by employee-paid expenses. Ambiguity disables
+        the projection instead of guessing.
+        """
+        self.ensure_one()
+        company = self.company_id
+        account = company.rebuild_overview_cca_account_id
+        employee = company.rebuild_overview_cca_employee_id
+        inferred = False
+        if not account:
+            accounts = self.env["account.account"].with_company(company).search([
+                ("company_ids", "in", company.id),
+                ("code", "=", "455100"),
+            ])
+            if len(accounts) == 1:
+                account = accounts
+                inferred = True
+        if not employee:
+            expenses = self.env["hr.expense"].with_company(company).search([
+                ("company_id", "=", company.id),
+                ("payment_mode", "=", "own_account"),
+                ("state", "not in", ("paid", "refused")),
+                ("employee_id", "!=", False),
+            ])
+            employees = expenses.employee_id
+            if len(employees) == 1:
+                employee = employees
+                inferred = True
+        if (
+            account
+            and company not in account.company_ids
+        ):
+            account = self.env["account.account"]
+        if employee and employee.company_id != company:
+            employee = self.env["hr.employee"]
+        return account, employee, inferred
+
+    def _cca_unpaid_expenses(self, account, employee):
+        self.ensure_one()
+        if not account or not employee:
+            return self.env["hr.expense"], {}
+        owner_domain = [("employee_id", "=", employee.id)]
+        if employee.user_id:
+            owner_domain = [
+                "|",
+                ("employee_id", "=", employee.id),
+                ("create_uid", "=", employee.user_id.id),
+            ]
+        expenses = self.env["hr.expense"].with_company(
+            self.company_id,
+        ).search([
+            ("company_id", "=", self.company_id.id),
+            ("payment_mode", "=", "own_account"),
+            ("state", "in", (
+                "draft",
+                "submitted",
+                "approved",
+                "posted",
+                "in_payment",
+            )),
+            *owner_domain,
+        ])
+        amounts = {}
+        for expense in expenses:
+            if (
+                expense.account_move_id
+                and account in expense.account_move_id.line_ids.account_id
+            ):
+                continue
+            amount = (
+                abs(expense.amount_residual)
+                if expense.account_move_id
+                else expense.total_amount
+            )
+            if not self.company_id.currency_id.is_zero(amount):
+                amounts[expense.id] = amount
+        return expenses.filtered(lambda expense: expense.id in amounts), amounts
+
+    def _cca_projection_data(self):
+        self.ensure_one()
+        account, employee, inferred = self._cca_projection_config()
+        lines = self.env["account.move.line"]
+        expenses = self.env["hr.expense"]
+        expense_amounts = {}
+        if account and employee:
+            lines = lines.search([
+                ("company_id", "=", self.company_id.id),
+                ("parent_state", "=", "posted"),
+                ("date", "<=", fields.Date.context_today(self)),
+                ("account_id", "=", account.id),
+            ])
+            expenses, expense_amounts = self._cca_unpaid_expenses(
+                account,
+                employee,
+            )
+        posted_balance = -sum(lines.mapped("balance"))
+        unpaid_expense_amount = sum(expense_amounts.values())
+        projected_balance = posted_balance + unpaid_expense_amount
+        currency = self.company_id.currency_id
+        if currency.is_zero(projected_balance):
+            direction = "settled"
+        elif projected_balance > 0:
+            direction = "company_owes"
+        else:
+            direction = "shareholder_owes"
+        return {
+            "account": account,
+            "employee": employee,
+            "inferred": inferred,
+            "lines": lines,
+            "expenses": expenses,
+            "posted_balance": posted_balance,
+            "unpaid_expense_amount": unpaid_expense_amount,
+            "projected_balance": projected_balance,
+            "direction": direction,
+        }
 
     def _cash_projection_tax_base_domain(self):
         self.ensure_one()
@@ -433,6 +655,7 @@ class RebuildAccountReviewSummary(models.Model):
                 - unpaid_expense_amount
             )
             tax_projection = summary._cash_tax_projection_data()
+            cca_projection = summary._cca_projection_data()
             summary.cash_on_banks = cash_on_banks
             summary.cash_position_journal_count = len(journals)
             summary.expected_receipt_amount = expected_receipts
@@ -497,6 +720,40 @@ class RebuildAccountReviewSummary(models.Model):
             )
             summary.cash_projection_corporate_tax_reserve = (
                 tax_projection["additional_reserve"]
+            )
+            summary.cca_projection_ready = bool(
+                cca_projection["account"]
+                and cca_projection["employee"]
+            )
+            summary.cca_projection_uses_inferred_config = (
+                cca_projection["inferred"]
+            )
+            summary.cca_projection_owner_name = (
+                cca_projection["employee"].name
+            )
+            summary.cca_projection_account_label = (
+                cca_projection["account"].display_name
+            )
+            summary.cca_posted_balance = (
+                cca_projection["posted_balance"]
+            )
+            summary.cca_posted_balance_display = abs(
+                cca_projection["posted_balance"],
+            )
+            summary.cca_unpaid_expense_amount = (
+                cca_projection["unpaid_expense_amount"]
+            )
+            summary.cca_unpaid_expense_count = len(
+                cca_projection["expenses"],
+            )
+            summary.cca_projected_balance = (
+                cca_projection["projected_balance"]
+            )
+            summary.cca_projected_balance_display = abs(
+                cca_projection["projected_balance"],
+            )
+            summary.cca_projection_direction = (
+                cca_projection["direction"]
             )
 
     def action_open_cash_position_journals(self):
@@ -635,6 +892,34 @@ class RebuildAccountReviewSummary(models.Model):
         action.update({
             "name": "Unpaid expenses in cash projection",
             "domain": self._cash_projection_unpaid_expense_domain(),
+            "context": {
+                "create": False,
+                "delete": False,
+            },
+        })
+        return action
+
+    def action_open_cca_journal_items(self):
+        self.ensure_one()
+        projection = self._cca_projection_data()
+        return self._cash_projection_line_action(
+            projection["account"].display_name,
+            [("id", "in", projection["lines"].ids)],
+        )
+
+    def action_open_cca_unpaid_expenses(self):
+        self.ensure_one()
+        projection = self._cca_projection_data()
+        action = self.env["ir.actions.actions"]._for_xml_id(
+            "hr_expense.action_hr_expense_account",
+        )
+        action.update({
+            "name": (
+                f"Unpaid expenses · {projection['employee'].name}"
+                if projection["employee"]
+                else "Unpaid shareholder expenses"
+            ),
+            "domain": [("id", "in", projection["expenses"].ids)],
             "context": {
                 "create": False,
                 "delete": False,
