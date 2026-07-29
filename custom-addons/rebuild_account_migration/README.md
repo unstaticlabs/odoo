@@ -48,7 +48,7 @@ Use the repository workflow:
 
 ```bash
 make deploy
-scripts/odoo-dev test-tag '/rebuild_account_migration'
+scripts/odoo-dev test-tag '/usl_accounting,/rebuild_account_migration'
 scripts/odoo-dev test-js rebuild_account_migration
 ```
 

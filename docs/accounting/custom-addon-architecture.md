@@ -36,10 +36,10 @@ usl_bootstrap ---> native modules only (disposable test fixture)
 
 `rebuild_account_migration` remains the installed compatibility module during
 the staged decomposition. It continues to own existing XML records, seeded
-definitions, access records, actions, menus and views. The source code that
-implements production behavior belongs to the feature module shown above.
-This distinction improves code and dependency ownership without destructively
-changing database ownership in the same release.
+definitions, access records, actions, menus, views and installed `rebuild.*`
+models. Shared extensions of pre-existing native and OCA models belong to
+`usl_accounting`. This improves the safest dependency boundary without
+destructively changing database ownership in the same release.
 
 ## Alternatives considered
 
@@ -86,7 +86,8 @@ identifiers. It is explicitly rejected for this increment.
 | Component | Resulting owner | Classification | Safety evidence |
 | --- | --- | --- | --- |
 | Fiscal-year API | `usl_accounting` | runtime foundation | model/API tests and governed fiscal-year contract |
-| Payment suggestions, partner inference, reconciliation extensions and rule intelligence | `usl_accounting` | runtime foundation over native/OCA | backend and browser regression tests; OCA remains authoritative |
+| Payment suggestions, partner inference and reconciliation extensions | `usl_accounting` | runtime foundation over native/OCA | backend and browser regression tests; OCA remains authoritative |
+| Reconciliation-model intelligence | compatibility module for this stage | source-trace dependency, left unchanged | rule behavior and replay tests |
 | Read-only evidence, analytic measures and entry-direction guard | `usl_accounting` | runtime foundation | role, analytic and direction-guard tests |
 | Hygiene, Closing and Declarations | compatibility module for this stage | stable model/XML-ID ownership, left unchanged | focused lifecycle, ACL, company, period and idempotency tests |
 | Interactive reports, definitions, PDF/XLSX and OCA report defaults | compatibility module for this stage | stable report/wizard-model ownership, left unchanged | report screen/export parity and report presentation tests |
