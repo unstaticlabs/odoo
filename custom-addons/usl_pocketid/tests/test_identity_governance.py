@@ -214,15 +214,127 @@ class TestPocketIDIdentityGovernance(TransactionCase):
         with self.assertRaises(ValidationError):
             identity.unlink()
 
-    def test_sso_managed_user_cannot_use_local_password(self):
+    def test_historical_profile_preserves_user_identity_and_attribution(self):
+        identity = self._identity()
+        attributed_message = self.env["mail.message"].sudo().create(
+            {
+                "model": "res.partner",
+                "res_id": self.user.partner_id.id,
+                "message_type": "comment",
+                "body": "Preserved historical chatter authorship",
+                "author_id": self.user.partner_id.id,
+            },
+        )
+        original_user_id = self.user.id
+        original_partner_id = self.user.partner_id.id
+        user_count = self.env["res.users"].with_context(
+            active_test=False,
+        ).search_count([])
+        configuration = [
+            {
+                "login": self.user.login,
+                "email": self.user.email,
+                "profile": "historical",
+            },
+            {
+                "login": "historical-test-break-glass",
+                "name": "Historical Test Break Glass",
+                "email": "historical-test-break-glass@example.invalid",
+                "profile": "break_glass",
+                "companies": "all",
+                "create_if_missing": True,
+            },
+        ]
+
+        self.env["res.users"]._usl_pocketid_apply_user_configuration(
+            configuration,
+            break_glass_password="safe-local-password-12345",
+            strict=False,
+        )
+
+        archived_user = self.env["res.users"].with_context(
+            active_test=False,
+        ).browse(original_user_id)
+        archived_identity = self.env["usl.oidc.identity"].with_context(
+            active_test=False,
+        ).browse(identity.id)
+        self.assertTrue(archived_user.exists())
+        self.assertFalse(archived_user.active)
+        self.assertEqual(archived_user.usl_identity_classification, "historical")
+        self.assertFalse(archived_user.usl_pocketid_access)
+        self.assertEqual(archived_user.partner_id.id, original_partner_id)
+        self.assertTrue(archived_identity.exists())
+        self.assertFalse(archived_identity.active)
+        self.assertEqual(archived_identity.user_id, archived_user)
+        self.assertEqual(attributed_message.author_id, archived_user.partner_id)
+        self.assertEqual(
+            self.env["res.users"].with_context(
+                active_test=False,
+            ).search_count([]),
+            user_count + 1,
+        )
+
+    def test_sso_managed_user_cannot_use_or_register_local_credentials(self):
+        credentials = [
+            {
+                "type": "password",
+                "password": "local-password-must-not-work",
+            },
+            {
+                "type": "webauthn",
+                "credential": {"id": "odoo-local-passkey"},
+            },
+        ]
+        for credential in credentials:
+            with self.subTest(credential_type=credential["type"]):
+                with self.assertRaises(AccessDenied):
+                    self.user.with_user(self.user)._check_credentials(
+                        credential,
+                        {"interactive": True},
+                    )
+        self.user.write(
+            {
+                "oauth_provider_id": self.env.ref(
+                    "auth_oauth.provider_openerp",
+                ).id,
+                "oauth_uid": "alternate-oauth-subject",
+                "oauth_access_token": "alternate-oauth-token",
+            },
+        )
         with self.assertRaises(AccessDenied):
             self.user.with_user(self.user)._check_credentials(
                 {
-                    "type": "password",
-                    "password": "local-password-must-not-work",
+                    "type": "oauth_token",
+                    "token": "alternate-oauth-token",
                 },
                 {"interactive": True},
             )
+        self.user.write(
+            {
+                "oauth_provider_id": False,
+                "oauth_uid": False,
+                "oauth_access_token": False,
+            },
+        )
+        self._identity()
+        self.user.write(
+            {
+                "usl_pocketid_access": False,
+                "oauth_provider_id": self.provider.id,
+                "oauth_uid": "immutable-subject",
+                "oauth_access_token": "disabled-pocketid-token",
+            },
+        )
+        with self.assertRaises(AccessDenied):
+            self.user.with_user(self.user)._check_credentials(
+                {
+                    "type": "oauth_token",
+                    "token": "disabled-pocketid-token",
+                },
+                {"interactive": True},
+            )
+        with self.assertRaisesRegex(ValidationError, "Pocket ID"):
+            self.user.with_user(self.user).action_create_passkey()
 
     def test_break_glass_user_cannot_be_pocket_id_managed(self):
         with self.assertRaises(ValidationError):
@@ -275,6 +387,13 @@ class TestPocketIDIdentityGovernance(TransactionCase):
         self.assertTrue(break_glass.usl_local_break_glass)
         self.assertFalse(break_glass.usl_pocketid_access)
         self.assertTrue(break_glass.has_group("base.group_system"))
+        break_glass.with_user(break_glass)._check_credentials(
+            {
+                "type": "password",
+                "password": "safe-local-password-12345",
+            },
+            {"interactive": True},
+        )
         user_count = self.env["res.users"].with_context(
             active_test=False,
         ).search_count([])

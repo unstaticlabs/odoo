@@ -120,6 +120,20 @@ class TestPocketIDOidcSecurity(TransactionCase):
                 nonce="expected-nonce",
             )
 
+    def test_wrong_signature_is_denied(self):
+        attacker_key = rsa.generate_private_key(
+            public_exponent=65537,
+            key_size=2048,
+        )
+        token = jwt.encode(
+            self._claims(),
+            attacker_key,
+            algorithm="RS256",
+            headers={"kid": "test-key"},
+        )
+        with self.assertRaises(PocketIDAccessDenied):
+            self._validate(token)
+
     def test_login_link_uses_session_bound_state_nonce_and_pkce(self):
         self.env["auth.oauth.provider"].search(
             [("id", "!=", self.provider.id)],
@@ -148,6 +162,8 @@ class TestPocketIDOidcSecurity(TransactionCase):
             self.assertIsNone(_consume_transaction(state))
 
     def test_environment_configuration_uses_discovery_without_storing_secret(self):
+        default_odoo_provider = self.env.ref("auth_oauth.provider_openerp")
+        default_odoo_provider.sudo().write({"enabled": True})
         discovery = {
             "issuer": "https://id.example.test",
             "authorization_endpoint": "https://id.example.test/authorize",
@@ -183,6 +199,16 @@ class TestPocketIDOidcSecurity(TransactionCase):
         self.assertEqual(
             self.provider.usl_token_auth_method,
             "client_secret_post",
+        )
+        self.assertFalse(default_odoo_provider.enabled)
+        self.assertTrue(
+            self.env["usl.oidc.audit.event"].search(
+                [
+                    ("provider_id", "=", default_odoo_provider.id),
+                    ("event_type", "=", "configuration"),
+                    ("reason_code", "=", "default_odoo_oauth_disabled"),
+                ],
+            ),
         )
         self.assertTrue(
             self.env["usl.oidc.audit.event"].search(

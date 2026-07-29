@@ -327,6 +327,17 @@ class AuthOauthProvider(models.Model):
                 "usl_token_auth_method": token_auth_method,
             },
         )
+        default_odoo_provider = self.env.ref(
+            "auth_oauth.provider_openerp",
+            raise_if_not_found=False,
+        )
+        if default_odoo_provider and default_odoo_provider.enabled:
+            default_odoo_provider.sudo().write({"enabled": False})
+            self.env["usl.oidc.audit.event"]._record(
+                event_type="configuration",
+                reason_code="default_odoo_oauth_disabled",
+                provider_id=default_odoo_provider.id,
+            )
         self.env["usl.oidc.audit.event"]._record(
             event_type="configuration",
             reason_code="environment_enabled",

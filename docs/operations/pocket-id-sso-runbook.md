@@ -182,18 +182,21 @@ record passkey screens, secrets, tokens or raw subjects.
    are denied.
 4. A Pocket ID user with the required group but no identity link is denied;
    the Odoo user count remains unchanged.
-5. An incorrect issuer, audience, nonce, expired token, unsigned/wrong
+5. Confirm the default Odoo.com login button is absent after activation. The
+   native Odoo passkey option remains available to eligible non-SSO identities,
+   but a Pocket ID-managed user cannot use or register an Odoo-local passkey.
+6. An incorrect issuer, audience, nonce, expired token, unsigned/wrong
    algorithm token, missing group and replayed state are denied and audited.
-6. Archive a disposable SSO user or disable its identity. Its active session
+7. Archive a disposable SSO user or disable its identity. Its active session
    stops working, a new SSO login is denied, and its historical records remain.
-7. Remove a disposable user from the Pocket ID allowed group. New login is
+8. Remove a disposable user from the Pocket ID allowed group. New login is
    denied. Disable the Odoo identity immediately and confirm the existing
    session is invalidated.
-8. Stop or firewall the Pocket ID preproduction service. New SSO login shows
+9. Stop or firewall the Pocket ID preproduction service. New SSO login shows
    the safe provider-unavailable error. The break-glass user can still sign in
    locally and inspect the configuration. Restore Pocket ID and confirm SSO
    recovery.
-9. Change a disposable Pocket ID email/display name. The same issuer/subject
+10. Change a disposable Pocket ID email/display name. The same issuer/subject
    returns to the same Odoo user without changing Odoo authorization or profile
    fields.
 
