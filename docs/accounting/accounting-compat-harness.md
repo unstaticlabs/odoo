@@ -145,8 +145,8 @@ Stage dependencies:
 | `make accounting-validation-native-bank-categorization` | Track B through General Reconciliation plus source bank transactions without external partial endpoints | Native OCA-categorized interest, fees, transfers and account allocations plus source-open transactions retained for review; private proof artifact | It replays the operator's account, partner, analytic and currency inputs for direct categorizations and deliberately leaves source-unreconciled transactions open. |
 | `make accounting-validation-native-bank-external` | Track B through direct categorization plus the remaining source bank/external-reconciliation graph | Exact multi-line OCA bank categorizations, posted payroll/tax/clearing entries, native General Reconciliation and explicit cutoff boundaries; private proof artifact | It completes all current-period bank transactions while keeping draft/post-cutoff documents as prepayments and identifying five aggregates from earlier bounded settlement stages that still need refinement. |
 | `make accounting-validation-native-analytics` | Completed Track B native stages plus source expense decisions, finalized analytic distributions and analytic lines | Explicit analytic-correction audit records and direct source/target reconciliation across both analytic plans; private proof artifact | It runs last, after every posting stage. Native business objects remain the accounting input; the stage applies only source post-posting analytic classifications through Odoo's supported distribution write, then compares both theoretical allocations and actual analytic lines. |
-| `make accounting-dev-reset` | Completed and validated Track B native state | Fresh `odoo_dev` clone with the current migration add-on upgraded | It refuses to clone incomplete Track B state and preserves both the exact-replay baseline and the isolated native proof. |
-| `make accounting-dev-import` | Canonical historical snapshot plus the replacement clone | Exact benchmark history in the replacement database, reusing only four checksum/shape-validated native move representations | It adds the locked historical ledger without duplicating the four current native moves that already represent source history. |
+| `make accounting-dev-reset` | Current target source and pinned module set | Empty, disposable `odoo_dev` product database | It initializes the supported Community/OCA/USL dependency closure without source business data. It never opens the Online dump directly with target code. |
+| `make accounting-dev-import` | Clean replacement database plus the read-only restored Online source | Complete source-faithful Accounting product state, including native expenses and their evidence | It blocks unless every source expense passes field-by-field native validation. The gate covers workflow state, monetary fields, account move and line links, company, employee, department, manager, payment method, analytics, split-expense history, notification/approval history and all direct expense attachments, including URL evidence. |
 | `make accounting-dev-validate` | Source database and completed replacement candidate | Historical parity, current-period difference decomposition and promotion-gate evidence | It requires exact benchmark parity, balanced/unique native state and a classification for every current journal and account-balance difference. A classified difference can still require professional acceptance. |
 | `make accounting-currency-rate-provider` | Imported target company configuration and the official ECB publication-history XML feed | Native `res.currency.rate` rows for every missing published day, plus provider, retrieval, cron and idempotence evidence | It runs after restored rates are loaded. It never replaces a restored or manager-entered rate, and its reference rows remain separate from transaction-specific bank or platform conversion evidence. |
 | `make accounting-reports` | Imported and validated target database | Report preview/export/drill-down evidence artifacts | It proves the user-facing report surfaces can generate and trace values. |
@@ -357,51 +357,54 @@ Option 1 is selected. The audit represents all `29` corrections and is idempoten
 
 This proves current-period native expense approval/refusal/posting, invoice/bill/refund/receipt posting, expense-related bank matching, partial reimbursement allocation, direct commercial-document bank matching, non-bank document netting/manual-entry reconciliation, exchange-difference generation, all `1,841` bank transactions, native asset depreciation, operational deferrals, multi-plan analytics and final current-document/payment state. The selected design improves the earlier stages rather than creating duplicate manual moves; copying finalized source rows and direct journal-line surgery remain rejected because they would not prove the operational workflow. Remaining Track B work is deliberate draft/post-cutoff acceptance, undo behavior and closing acceptance.
 
-## Hybrid replacement candidate
+### Product expense reconstruction gate
 
-The exact historical target and Track B answer different questions, so neither is promoted in place. Three integration approaches were considered:
+The product import validates the complete source expense population independently
+of the bounded native-workflow rehearsal. A successful
+`make accounting-dev-import` requires all source `hr.expense` rows to exist as
+native expenses with no blocked or mismatched record. Validation compares the
+business fields and relationships used by daily work, including employee and
+manager identity, department, workflow and approval history, payment method,
+linked journal entry and journal items, taxes, currency amounts, analytic
+distribution, split-expense origin and source evidence.
 
-1. generate current native documents inside the exact-replay database, which would mix recomputed accounting effects with the historical audit baseline;
-2. promote Track B alone, which would leave the exact pre-cutoff ledger outside the operational candidate;
-3. clone the completed Track B state into a third disposable database and exact-import the benchmark history, reusing only native records whose source identity and accounting shape are validated.
+Direct expense evidence is part of the blocking gate. Binary files are verified
+against the restored filestore checksum and size; URL attachments retain their
+native type and URL instead of being discarded as non-binary records. Chatter
+attachments retain their source message relationship metadata. Notification
+followers and generated tracking messages are not copied as business records:
+blindly restoring notification subscriptions could send unintended mail, while
+generated tracking logs would duplicate events produced by the native target
+workflow. Those exclusions do not remove original receipts, invoices, uploaded
+files or links from the expense.
 
-Option 3 is selected. `make accounting-dev-reset` creates
-`odoo_dev` only after Track B proves `284` documents, `325`
-expenses, `1,841` bank transactions, zero unbalanced posted moves and zero
-duplicate source move representations. `make accounting-dev-import` then adds
-the `2024-01-10` through `2025-09-30` benchmark. It imports `2,046` moves and
-`4,809` lines while reusing exactly four validated native move aliases (`6727`,
-`6728`, `6730` and `6735`); a duplicate or shape mismatch blocks the import.
+The import is safe to repeat. Existing source-traced expenses and evidence are
+revalidated and reused. Payments already linked to expenses and depreciation
+lines already linked to assets are treated as native immutable records: an
+identical relationship is left untouched, while a conflicting source/target
+identity blocks the replay instead of bypassing Odoo or OCA write protections.
 
-Historical validation is exact: source and target both contain `2,046` moves, `4,809` lines and debit/credit of `1,064,045.02`. The combined candidate contains `4,541` posted moves and `10,727` posted lines, with zero unbalanced moves and zero duplicate source identities.
+## Product replacement candidate
 
-Historical move identity is now blocking evidence, not only a count and amount
-comparison. Three treatments were considered for the four reused native move
-aliases: retain their newly generated native names, duplicate the source moves,
-or keep the validated native accounting representation and restore its source
-entry reference through Odoo's ORM. Retaining the generated names would
-silently renumber history, while duplication would repeat accounting effects;
-direct SQL mutation was also rejected because it bypasses Odoo's sequence and
-lock machinery. The selected ORM path uses Odoo's scoped lock-check bypass for
-this migration-only normalization and verifies the exact source name, date,
-journal, sequence prefix and sequence number afterwards. The four aliases now
-retain `OD000000003`, `OD000000004`, `OD000000006` and `OD000000011`.
+The product candidate is reconstructed from an empty target through the target
+ORM. Three approaches were considered: opening the Enterprise dump directly,
+promoting the bounded native-workflow proof database, or replaying the complete
+source truth into a clean Community/OCA/USL target. Direct opening is
+unsupported across editions, while the bounded proof database intentionally
+does not contain the complete source. The selected clean replay keeps one
+canonical product flow and leaves Track B as isolated engine evidence.
 
-Source and target sequence/chronology profiles now match exactly across all
-`2,046` benchmark moves: no blank entry references, no duplicate names, no
-duplicate sequence numbers, `2` source sequence gaps and `3` source
-date-order decreases. The gaps and decreases already exist in the locked source
-ledger; they are preserved rather than repaired and are exposed as a P2
-accountant-owned source-anomaly discrepancy. Technical parity is complete, but
-the accountant still needs to explain or accept those five source exceptions.
+The current source snapshot contains `5,044` moves, `11,871` move lines, `360`
+expenses and `3` assets. `make accounting-dev-import` preserves each source
+move identity, imports every expense as a native record, restores its direct
+evidence and creates no duplicate accounting representation. Historical
+sequence gaps and chronology decreases already present in the Online source are
+preserved and reported; the importer does not silently resequence history.
 
-The exact target also validates the broader posted replay through the
-`2026-07-21` source snapshot. Across `4,843` source moves, source and target
-again have no blank or duplicate entry references and no duplicate sequence
-numbers; both have the same `16` sequence gaps and `104` sequence-ordered date
-decreases. This broader profile is not interchangeable with the locked
-`2,046`-move benchmark profile above. Both prove exact preservation, and both
-remain covered by the same accountant-owned P2 explanation/acceptance gate.
+The exact target validates the posted replay through the `2026-07-31` source
+snapshot. Source and target have the same `16` sequence gaps and `104`
+sequence-ordered date decreases. This proves exact preservation; the
+accountant-owned P2 explanation/acceptance gate remains explicit.
 
 The final product database is an exact source-state reconstruction; Track B is
 an isolated native-engine proof and is not mixed into the candidate. The

@@ -3665,6 +3665,33 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
                   AND expense.date BETWEEN DATE '2024-01-10'
                                        AND source_end.date_to
             ),
+            'source_expense_split_count', (
+                SELECT count(*)
+                FROM hr_expense expense
+                WHERE expense.company_id = 1
+                  AND expense.date BETWEEN DATE '2024-01-10'
+                                       AND source_end.date_to
+                  AND expense.split_expense_origin_id IS NOT NULL
+            ),
+            'source_expense_attachment_count', (
+                SELECT count(*)
+                FROM ir_attachment attachment
+                JOIN hr_expense expense ON expense.id = attachment.res_id
+                WHERE attachment.res_model = 'hr.expense'
+                  AND expense.company_id = 1
+                  AND expense.date BETWEEN DATE '2024-01-10'
+                                       AND source_end.date_to
+            ),
+            'source_expense_url_attachment_count', (
+                SELECT count(*)
+                FROM ir_attachment attachment
+                JOIN hr_expense expense ON expense.id = attachment.res_id
+                WHERE attachment.res_model = 'hr.expense'
+                  AND attachment.type = 'url'
+                  AND expense.company_id = 1
+                  AND expense.date BETWEEN DATE '2024-01-10'
+                                       AND source_end.date_to
+            ),
             'source_asset_count', (
                 SELECT count(*)
                 FROM account_asset asset
@@ -3815,7 +3842,12 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
             "    }",
             "    if partner:",
             "        values['partner_id'] = partner.id",
-            "    user = Users.search([('login', '=', login)], limit=1)",
+            "    user = (",
+            "        Users.search([('partner_id', '=', partner.id)], limit=1)",
+            "        if partner else Users.browse()",
+            "    )",
+            "    if not user:",
+            "        user = Users.search([('login', '=', login)], limit=1)",
             "    if user:",
             "        user.write(values)",
             "    else:",
@@ -4012,6 +4044,33 @@ def dev_import(args: argparse.Namespace) -> dict[str, Any]:
         == source_profile["source_expense_count"]
         and payload["expense_stats"]["mismatch_expense_count"] == 0
         and payload["expense_stats"]["blocked_case_count"] == 0
+        and payload["expense_stats"]["restored_context_count"]
+        == source_profile["source_expense_count"]
+        and payload["expense_stats"]["restored_split_link_count"]
+        == source_profile["source_expense_split_count"]
+        and payload["expense_stats"]["attachments"][
+            "source_attachment_count"
+        ]
+        == source_profile["source_expense_attachment_count"]
+        and payload["expense_stats"]["attachments"][
+            "imported_attachment_count"
+        ]
+        == source_profile["source_expense_attachment_count"]
+    )
+    checks["native_expense_url_evidence_matches"] = (
+        query_json(
+            DEV_QA_DB,
+            """
+            SELECT to_jsonb(count(*))
+            FROM ir_attachment attachment
+            JOIN hr_expense expense ON expense.id = attachment.res_id
+            WHERE attachment.res_model = 'hr.expense'
+              AND attachment.type = 'url'
+              AND expense.rebuild_source_model = 'hr.expense'
+            """,
+            set_readonly_role=False,
+        )
+        == source_profile["source_expense_url_attachment_count"]
     )
     checks["native_assets_match"] = (
         payload["asset_run_status"] == "passed"

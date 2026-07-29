@@ -169,6 +169,10 @@ class ManagerAccountingIdentityTest(unittest.TestCase):
 
         ast.parse(generated)
         self.assertIn("values['partner_id'] = partner.id", generated)
+        self.assertIn(
+            "Users.search([('partner_id', '=', partner.id)], limit=1)",
+            generated,
+        )
         self.assertIn("partner=manager_partner", generated)
         self.assertIn("'canonical_partner': (", generated)
         self.assertIn(
