@@ -1,4 +1,4 @@
-# ruff: noqa: EM101,F821,T201
+# ruff: file-ignore[raw-string-in-exception, undefined-name, print]
 
 import json
 import os

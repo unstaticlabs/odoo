@@ -26,19 +26,34 @@ export USL_EINVOICE_LIVE_ENABLED=0
 export USL_EREPORTING_LIVE_ENABLED=0
 
 install_module() {
-    module_operation="--init=usl_project_restore"
-    if docker compose -p "$compose_project" exec -T db \
-        psql -U "${ODOO_DB_USER:-odoo}" -d "$target_database" -Atc \
-        "SELECT 1 FROM ir_module_module WHERE name = 'usl_project_restore' AND state = 'installed'" \
-        | grep -qx 1; then
-        module_operation="--update=usl_project_restore"
+    init_modules=()
+    update_modules=()
+    for module_name in \
+        usl_accounting \
+        rebuild_account_migration \
+        usl_project_restore; do
+        if docker compose -p "$compose_project" exec -T db \
+            psql -U "${ODOO_DB_USER:-odoo}" -d "$target_database" -Atc \
+            "SELECT 1 FROM ir_module_module WHERE name = '$module_name' AND state = 'installed'" \
+            | grep -qx 1; then
+            update_modules+=("$module_name")
+        else
+            init_modules+=("$module_name")
+        fi
+    done
+    module_operations=()
+    if ((${#init_modules[@]})); then
+        module_operations+=("--init=$(IFS=,; echo "${init_modules[*]}")")
+    fi
+    if ((${#update_modules[@]})); then
+        module_operations+=("--update=$(IFS=,; echo "${update_modules[*]}")")
     fi
     docker compose -p "$compose_project" --profile init run --rm \
         -e ODOO_INIT_DB="$target_database" \
         init-db \
         odoo --config=/etc/odoo/odoo.conf \
         --database="$target_database" \
-        "$module_operation" \
+        "${module_operations[@]}" \
         --without-demo=true \
         --stop-after-init
 }
