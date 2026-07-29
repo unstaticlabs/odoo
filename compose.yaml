@@ -34,6 +34,74 @@ services:
     volumes:
       - accounting-source-postgres-data:/var/lib/postgresql/data
 
+  paperless-db:
+    profiles: ["paperless"]
+    image: ${PAPERLESS_POSTGRES_IMAGE:-postgres:16-bookworm}
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${PAPERLESS_DB_NAME:-paperless}
+      POSTGRES_USER: ${PAPERLESS_DB_USER:-paperless}
+      POSTGRES_PASSWORD: ${PAPERLESS_DB_PASSWORD:-paperless-change-me-dev-only}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    volumes:
+      - paperless-postgres-data:/var/lib/postgresql/data
+
+  paperless-broker:
+    profiles: ["paperless"]
+    image: ${PAPERLESS_BROKER_IMAGE:-valkey/valkey:8.1.3-alpine}
+    restart: unless-stopped
+    command: ["valkey-server", "--save", "60", "1", "--loglevel", "warning"]
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - paperless-broker-data:/data
+
+  paperless-webserver:
+    profiles: ["paperless"]
+    image: ${PAPERLESS_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx:3.0.4}
+    restart: unless-stopped
+    depends_on:
+      paperless-db:
+        condition: service_healthy
+      paperless-broker:
+        condition: service_healthy
+    environment:
+      PAPERLESS_REDIS: redis://paperless-broker:6379
+      PAPERLESS_DBHOST: paperless-db
+      PAPERLESS_DBNAME: ${PAPERLESS_DB_NAME:-paperless}
+      PAPERLESS_DBUSER: ${PAPERLESS_DB_USER:-paperless}
+      PAPERLESS_DBPASS: ${PAPERLESS_DB_PASSWORD:-paperless-change-me-dev-only}
+      PAPERLESS_URL: ${PAPERLESS_PUBLIC_URL:-http://127.0.0.1:8010}
+      PAPERLESS_SECRET_KEY: ${PAPERLESS_SECRET_KEY:-paperless-change-me-dev-only}
+      PAPERLESS_TIME_ZONE: ${PAPERLESS_TIME_ZONE:-Europe/Paris}
+      PAPERLESS_OCR_LANGUAGE: ${PAPERLESS_OCR_LANGUAGE:-fra+eng}
+      PAPERLESS_CONSUMER_ENABLE_BARCODES: ${PAPERLESS_CONSUMER_ENABLE_BARCODES:-true}
+      PAPERLESS_CONSUMER_RECURSIVE: "true"
+      PAPERLESS_CONSUMER_SUBDIRS_AS_TAGS: "false"
+      PAPERLESS_OCR_USER_ARGS: '{"invalidate_digital_signatures": false}'
+      PAPERLESS_TIKA_ENABLED: "0"
+    ports:
+      - "127.0.0.1:${PAPERLESS_HTTP_PORT:-8010}:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail --silent http://127.0.0.1:8000/api/ >/dev/null"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
+    volumes:
+      - paperless-data:/usr/src/paperless/data
+      - paperless-media:/usr/src/paperless/media
+      - paperless-export:/usr/src/paperless/export
+      - paperless-consume:/usr/src/paperless/consume
+
   odoo:
     image: ${ODOO_IMAGE:-usl-odoo-saas-19-2-odoo:latest}
     build:
@@ -60,6 +128,7 @@ services:
       ODOO_GEVENT_PORT: 8072
       ODOO_HTTP_INTERFACE: ${ODOO_HTTP_INTERFACE:-0.0.0.0}
       ODOO_MAX_CRON_THREADS: ${ODOO_MAX_CRON_THREADS:-1}
+      ODOO_DB_FILTER: ${ODOO_DB_FILTER:-^odoo_dev$}
       ODOO_ADDONS_PATH: ${ODOO_ADDONS_PATH:-/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons}
       USL_USER_DOCS_PATH: ${USL_USER_DOCS_PATH:-/mnt/user-docs}
       USL_EINVOICE_LIVE_ENABLED: ${USL_EINVOICE_LIVE_ENABLED:-0}
@@ -73,6 +142,7 @@ services:
       USL_POCKET_ID_SCOPES: ${USL_POCKET_ID_SCOPES:-openid profile email groups}
       USL_POCKET_ID_TOKEN_AUTH_METHOD: ${USL_POCKET_ID_TOKEN_AUTH_METHOD:-}
       USL_POCKET_ID_ALLOW_UNIQUE_EMAIL_LINK: ${USL_POCKET_ID_ALLOW_UNIQUE_EMAIL_LINK:-0}
+      PAPERLESS_INTERNAL_URL: ${PAPERLESS_INTERNAL_URL:-http://paperless-webserver:8000}
     ports:
       - "${ODOO_HTTP_PORT:-8069}:8069"
       - "${ODOO_GEVENT_PORT:-8072}:8072"
@@ -267,3 +337,9 @@ volumes:
   accounting-source-postgres-data:
   odoo-data:
   odoo-dev-home:
+  paperless-postgres-data:
+  paperless-broker-data:
+  paperless-data:
+  paperless-media:
+  paperless-export:
+  paperless-consume:

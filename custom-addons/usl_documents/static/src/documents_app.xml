@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="usl_documents.DocumentsWorkspace">
+        <div class="o_usl_documents d-flex h-100 bg-view">
+            <aside class="o_usl_documents_sidebar border-end p-3">
+                <div class="d-flex align-items-center gap-2 mb-4">
+                    <i class="fa fa-folder-open-o fs-3 text-primary"/>
+                    <div>
+                        <h4 class="mb-0">Documents</h4>
+                        <small class="text-muted">Enterprise archive</small>
+                    </div>
+                </div>
+                <nav class="nav nav-pills flex-column gap-1">
+                    <button t-foreach="[
+                                ['attention', 'fa-exclamation-circle', 'Needs attention'],
+                                ['recent', 'fa-clock-o', 'Recent documents'],
+                                ['accounting', 'fa-calculator', 'Accounting evidence'],
+                                ['contracts', 'fa-file-text-o', 'Contracts &amp; legal'],
+                                ['banking', 'fa-bank', 'Banking'],
+                                ['tax', 'fa-balance-scale', 'Tax &amp; reporting'],
+                                ['hr', 'fa-lock', 'HR restricted'],
+                                ['all', 'fa-archive', 'All accessible'],
+                            ]"
+                            t-as="workspace" t-key="workspace[0]"
+                            type="button"
+                            t-att-class="'nav-link text-start ' + (state.workspace === workspace[0] ? 'active' : '')"
+                            t-on-click="() => this.selectWorkspace(workspace[0])">
+                        <i t-att-class="'fa ' + workspace[1] + ' me-2'"/>
+                        <t t-esc="workspace[2]"/>
+                    </button>
+                </nav>
+                <div class="mt-auto pt-4">
+                    <div t-if="state.degraded" class="alert alert-warning small mb-2">
+                        <strong>Archive degraded</strong>
+                        <div>Odoo remains available.</div>
+                    </div>
+                    <small class="text-muted">
+                        Odoo controls business access. Paperless stores originals, OCR, previews, and versions.
+                    </small>
+                </div>
+            </aside>
+
+            <main class="flex-grow-1 min-w-0 d-flex flex-column">
+                <header class="o_control_panel border-bottom bg-white p-3">
+                    <div t-if="recordContext" class="alert alert-info py-2 mb-3">
+                        Upload a new document or select an existing archive item to link it to
+                        this Odoo record. The archived binary is never copied into Odoo.
+                    </div>
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                        <form class="input-group flex-grow-1" style="max-width:720px" t-on-submit="search">
+                            <span class="input-group-text bg-white border-end-0">
+                                <i class="fa fa-search"/>
+                            </span>
+                            <input class="form-control border-start-0"
+                                   type="search"
+                                   placeholder="Search OCR text, title, correspondent, type, tags…"
+                                   t-model="state.query"/>
+                            <button t-if="state.query" type="button" class="btn btn-outline-secondary" t-on-click="clearSearch">
+                                Clear
+                            </button>
+                            <button type="submit" class="btn btn-primary">Search archive</button>
+                        </form>
+                        <select class="form-select w-auto" t-model="state.companyId" t-on-change="load">
+                            <option value="">All allowed companies</option>
+                            <option t-foreach="state.companies" t-as="company" t-key="company.id"
+                                    t-att-value="company.id" t-esc="company.name"/>
+                        </select>
+                        <select class="form-select w-auto" t-model="state.documentType" t-on-change="load">
+                            <option value="">All document types</option>
+                            <option t-foreach="state.documentTypes" t-as="documentType" t-key="documentType"
+                                    t-att-value="documentType" t-esc="documentType"/>
+                        </select>
+                        <select class="form-select w-auto" t-model="state.sort" t-on-change="load">
+                            <option value="recent">Recently ingested</option>
+                            <option value="date">Document date</option>
+                            <option value="title">Title</option>
+                        </select>
+                        <div class="btn-group">
+                            <button type="button"
+                                    t-att-class="'btn btn-outline-secondary ' + (state.view === 'cards' ? 'active' : '')"
+                                    t-on-click="() => state.view = 'cards'" title="Card view">
+                                <i class="fa fa-th-large"/>
+                            </button>
+                            <button type="button"
+                                    t-att-class="'btn btn-outline-secondary ' + (state.view === 'list' ? 'active' : '')"
+                                    t-on-click="() => state.view = 'list'" title="Compact list">
+                                <i class="fa fa-list"/>
+                            </button>
+                        </div>
+                        <label class="btn btn-primary mb-0" t-att-class="state.uploading ? 'btn btn-primary disabled' : 'btn btn-primary'">
+                            <i class="fa fa-upload me-1"/>
+                            <t t-if="state.uploading">Uploading…</t>
+                            <t t-else="">Upload</t>
+                            <input type="file" class="d-none" t-on-change="onFileChange" t-att-disabled="state.uploading"/>
+                        </label>
+                    </div>
+                </header>
+
+                <div t-if="state.operation" class="px-3 pt-3">
+                    <div t-att-class="'alert mb-0 ' + (state.operation.state === 'failed' ? 'alert-danger' : state.operation.state === 'archived' ? 'alert-success' : 'alert-info')">
+                        <div class="d-flex align-items-center gap-2">
+                            <i t-att-class="'fa ' + (state.operation.state === 'failed' ? 'fa-times-circle' : state.operation.state === 'archived' ? 'fa-check-circle' : 'fa-circle-o-notch fa-spin')"/>
+                            <strong t-esc="state.operation.name"/>
+                            <span class="text-capitalize" t-esc="state.operation.state"/>
+                            <span t-if="state.operation.error" t-esc="state.operation.error"/>
+                        </div>
+                    </div>
+                </div>
+
+                <section class="flex-grow-1 overflow-auto p-3"
+                         t-att-class="state.dragged ? 'flex-grow-1 overflow-auto p-3 o_usl_documents_dragged' : 'flex-grow-1 overflow-auto p-3'"
+                         t-on-dragover="onDragOver" t-on-dragleave="onDragLeave" t-on-drop="onDrop">
+                    <div t-if="state.loading" class="h-100 d-flex flex-column align-items-center justify-content-center text-muted">
+                        <i class="fa fa-circle-o-notch fa-spin fs-2 mb-3"/>
+                        <span>Searching the authorized archive…</span>
+                    </div>
+                    <div t-elif="state.error" class="h-100 d-flex align-items-center justify-content-center">
+                        <div class="o_usl_documents_empty text-center">
+                            <i class="fa fa-plug fs-1 text-warning mb-3"/>
+                            <h4>Archive temporarily unavailable</h4>
+                            <p class="text-muted" t-esc="state.error"/>
+                            <button class="btn btn-primary" type="button" t-on-click="load">Retry</button>
+                        </div>
+                    </div>
+                    <div t-elif="!state.documents.length" class="h-100 d-flex align-items-center justify-content-center">
+                        <div class="o_usl_documents_empty text-center">
+                            <i class="fa fa-inbox fs-1 text-muted mb-3"/>
+                            <h4>No accessible documents</h4>
+                            <p class="text-muted" t-if="state.query">Try another OCR phrase or clear the current filters.</p>
+                            <p class="text-muted" t-else="">Drop a document here. Classification happens after archival.</p>
+                            <button t-if="state.query" class="btn btn-outline-primary" type="button" t-on-click="clearSearch">Clear search</button>
+                        </div>
+                    </div>
+                    <t t-else="">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="text-muted"><t t-esc="state.count"/> accessible document(s)</span>
+                            <span t-if="state.dragged" class="badge text-bg-primary fs-6">Drop to archive</span>
+                        </div>
+                        <div t-if="state.view === 'cards'" class="o_usl_documents_grid">
+                            <article t-foreach="state.documents" t-as="document" t-key="document.id"
+                                     class="card o_usl_document_card shadow-sm"
+                                     t-on-click="() => this.select(document)">
+                                <div class="o_usl_document_thumb">
+                                    <img t-att-src="'/usl_documents/' + document.id + '/thumbnail'" alt="Document thumbnail"/>
+                                    <span t-if="document.review_state === 'needs_attention'" class="badge text-bg-warning">Needs attention</span>
+                                    <span t-if="document.availability_state !== 'available'" class="badge text-bg-danger" t-esc="document.availability_state"/>
+                                </div>
+                                <div class="card-body">
+                                    <h6 class="card-title text-truncate" t-esc="document.name"/>
+                                    <div class="small text-muted text-truncate" t-esc="document.correspondent || document.document_type || 'Unclassified'"/>
+                                    <div class="small text-muted mt-2 d-flex justify-content-between">
+                                        <span t-esc="document.date || 'No document date'"/>
+                                        <span t-if="document.link_count"><i class="fa fa-link me-1"/><t t-esc="document.link_count"/></span>
+                                    </div>
+                                </div>
+                            </article>
+                        </div>
+                        <div t-else="" class="list-group shadow-sm">
+                            <button t-foreach="state.documents" t-as="document" t-key="document.id"
+                                    type="button" class="list-group-item list-group-item-action d-flex align-items-center gap-3"
+                                    t-on-click="() => this.select(document)">
+                                <img t-att-src="'/usl_documents/' + document.id + '/thumbnail'" class="o_usl_document_list_thumb" alt=""/>
+                                <div class="flex-grow-1 min-w-0">
+                                    <strong class="d-block text-truncate" t-esc="document.name"/>
+                                    <small class="text-muted">
+                                        <t t-esc="document.correspondent || 'Unknown correspondent'"/>
+                                        · <t t-esc="document.document_type || 'Unclassified'"/>
+                                    </small>
+                                </div>
+                                <span class="text-muted" t-esc="document.date"/>
+                                <span t-if="document.review_state === 'needs_attention'" class="badge text-bg-warning">Needs attention</span>
+                            </button>
+                        </div>
+                        <nav class="d-flex justify-content-center align-items-center gap-3 mt-4">
+                            <button class="btn btn-outline-secondary" type="button" t-on-click="previousPage" t-att-disabled="state.page === 1">Previous</button>
+                            <span>Page <t t-esc="state.page"/></span>
+                            <button class="btn btn-outline-secondary" type="button" t-on-click="nextPage"
+                                    t-att-disabled="state.page * state.pageSize >= state.count">Next</button>
+                        </nav>
+                    </t>
+                </section>
+            </main>
+
+            <aside t-if="state.selected" class="o_usl_documents_detail border-start bg-white d-flex flex-column">
+                <header class="d-flex justify-content-between align-items-start p-3 border-bottom">
+                    <div class="min-w-0">
+                        <small class="text-muted">Paperless #<t t-esc="state.selected.paperless_id"/></small>
+                        <h5 class="text-truncate mb-0" t-esc="state.selected.name"/>
+                    </div>
+                    <button class="btn-close" type="button" t-on-click="closeDetail" aria-label="Close"/>
+                </header>
+                <div class="flex-grow-1 overflow-auto">
+                    <iframe t-if="state.selected.availability_state === 'available'"
+                            t-att-src="'/usl_documents/' + state.selected.id + '/preview'"
+                            title="Document preview"/>
+                    <div t-else="" class="alert alert-warning m-3">
+                        Preview is unavailable. The relationship and metadata remain visible.
+                    </div>
+                    <dl class="row small p-3 mb-0">
+                        <dt class="col-5">Company</dt><dd class="col-7" t-esc="state.selected.company || 'Needs classification'"/>
+                        <dt class="col-5">Type</dt><dd class="col-7" t-esc="state.selected.document_type || 'Unclassified'"/>
+                        <dt class="col-5">Correspondent</dt><dd class="col-7" t-esc="state.selected.correspondent || 'Unknown'"/>
+                        <dt class="col-5">Source file</dt><dd class="col-7 text-break" t-esc="state.selected.filename"/>
+                        <dt class="col-5">Odoo links</dt><dd class="col-7" t-esc="state.selected.link_count"/>
+                    </dl>
+                </div>
+                <footer class="p-3 border-top d-grid gap-2">
+                    <button t-if="recordContext" type="button" class="btn btn-success"
+                            t-on-click="() => this.linkSelected()">
+                        <i class="fa fa-link me-1"/>Link to current Odoo record
+                    </button>
+                    <a t-att-href="'/usl_documents/' + state.selected.id + '/download'" class="btn btn-primary">
+                        <i class="fa fa-download me-1"/>Download received original
+                    </a>
+                    <button type="button" class="btn btn-outline-primary" t-on-click="() => this.openRecord(state.selected)">
+                        Details, versions &amp; Odoo links
+                    </button>
+                    <a t-if="state.selected.paperless_url" t-att-href="state.selected.paperless_url"
+                       target="_blank" rel="noopener noreferrer" class="btn btn-outline-secondary">
+                        Open in Paperless <i class="fa fa-external-link ms-1"/>
+                    </a>
+                </footer>
+            </aside>
+        </div>
+    </t>
+</templates>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_documents" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.documents</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app string="Documents" name="usl_documents" groups="usl_documents.group_documents_manager">
+                    <block title="Paperless-ngx archive" name="paperless_connection">
+                        <setting string="Internal service URL" help="Only the Odoo server calls this address.">
+                            <field name="paperless_url" placeholder="http://paperless-webserver:8000"/>
+                        </setting>
+                        <setting string="Secured user URL" help="Individual users open this SSO-protected address for heavy document work.">
+                            <field name="paperless_public_url" placeholder="https://documents.example.com"/>
+                        </setting>
+                        <setting string="Integration credential" help="Server-side credential; never sent to browsers.">
+                            <field name="paperless_token" password="True"/>
+                        </setting>
+                        <setting string="Dedicated service identity" help="Paperless user ID for the non-human integration owner. Do not use a person's administrator account.">
+                            <field name="paperless_service_user_id"/>
+                        </setting>
+                        <setting string="Request timeout">
+                            <field name="paperless_timeout"/>
+                        </setting>
+                        <setting string="Health and compatibility">
+                            <field name="paperless_health" readonly="1"/>
+                            <button name="action_test_paperless" type="object" string="Test connection" class="btn-link"/>
+                        </setting>
+                        <setting string="Last successful synchronization">
+                            <field name="paperless_last_sync" readonly="1"/>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+</odoo>
